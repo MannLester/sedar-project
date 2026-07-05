@@ -1,0 +1,40 @@
+<odoo>
+    <record id="view_sedar_voyage_log_tree" model="ir.ui.view">
+        <field name="name">sedar.voyage.log.tree</field>
+        <field name="model">sedar.voyage.log</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="job_order_id"/>
+                <field name="vessel_id"/>
+                <field name="departure_time"/>
+                <field name="arrival_time"/>
+                <field name="distance_nm"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_sedar_voyage_log_form" model="ir.ui.view">
+        <field name="name">sedar.voyage.log.form</field>
+        <field name="model">sedar.voyage.log</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="job_order_id"/>
+                        <field name="vessel_id"/>
+                        <field name="departure_time"/>
+                        <field name="arrival_time"/>
+                        <field name="distance_nm"/>
+                        <field name="weather_notes"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sedar_voyage_log" model="ir.actions.act_window">
+        <field name="name">Voyage Log</field>
+        <field name="res_model">sedar.voyage.log</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

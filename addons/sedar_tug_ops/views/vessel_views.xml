@@ -1,0 +1,39 @@
+<odoo>
+    <record id="view_sedar_vessel_tree" model="ir.ui.view">
+        <field name="name">sedar.vessel.tree</field>
+        <field name="model">sedar.vessel</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="registry_no"/>
+                <field name="vessel_type"/>
+                <field name="capacity"/>
+                <field name="status"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_sedar_vessel_form" model="ir.ui.view">
+        <field name="name">sedar.vessel.form</field>
+        <field name="model">sedar.vessel</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="registry_no"/>
+                        <field name="vessel_type"/>
+                        <field name="capacity"/>
+                        <field name="status"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sedar_vessel" model="ir.actions.act_window">
+        <field name="name">Vessels</field>
+        <field name="res_model">sedar.vessel</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

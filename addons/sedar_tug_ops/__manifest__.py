@@ -1,0 +1,19 @@
+{
+    'name': 'SEDAR Tug Operations',
+    'version': '17.0.1.0.0',
+    'summary': 'Job dispatch, scheduling, voyage logs, fuel, towage billing',
+    'category': 'Operations',
+    'depends': ['base', 'account'],
+    'data': [
+        'security/ir.model.access.csv',
+        'data/ir_sequence_data.xml',
+        'views/vessel_views.xml',
+        'views/job_order_views.xml',
+        'views/voyage_log_views.xml',
+        'views/fuel_log_views.xml',
+        'views/towage_billing_views.xml',
+        'views/menu.xml',
+    ],
+    'installable': True,
+    'application': True,
+}

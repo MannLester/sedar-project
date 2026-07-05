@@ -1,0 +1,46 @@
+<odoo>
+    <record id="view_sedar_towage_billing_tree" model="ir.ui.view">
+        <field name="name">sedar.towage.billing.tree</field>
+        <field name="model">sedar.towage.billing</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="job_order_id"/>
+                <field name="customer_id"/>
+                <field name="rate_basis"/>
+                <field name="amount"/>
+                <field name="invoice_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_sedar_towage_billing_form" model="ir.ui.view">
+        <field name="name">sedar.towage.billing.form</field>
+        <field name="model">sedar.towage.billing</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_create_invoice" string="Create Invoice" type="object" invisible="invoice_id"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="job_order_id"/>
+                        <field name="customer_id"/>
+                        <field name="rate_basis"/>
+                        <field name="hours"/>
+                        <field name="currency_id"/>
+                        <field name="rate"/>
+                        <field name="amount"/>
+                        <field name="invoice_id"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sedar_towage_billing" model="ir.actions.act_window">
+        <field name="name">Towage Billing</field>
+        <field name="res_model">sedar.towage.billing</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

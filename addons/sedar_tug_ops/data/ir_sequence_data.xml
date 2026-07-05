@@ -1,0 +1,8 @@
+<odoo>
+    <record id="seq_sedar_job_order" model="ir.sequence">
+        <field name="name">SEDAR Job Order</field>
+        <field name="code">sedar.job.order</field>
+        <field name="prefix">JO/%(year)s/</field>
+        <field name="padding">4</field>
+    </record>
+</odoo>
