@@ -1,0 +1,8 @@
+<odoo>
+    <menuitem id="menu_root" name="HSSE" sequence="20"/>
+    <menuitem id="menu_incident" name="Incidents" parent="menu_root" action="action_sedar_hsse_incident" sequence="10"/>
+    <menuitem id="menu_near_miss" name="Near-Miss Reports" parent="menu_root" action="action_sedar_hsse_near_miss" sequence="20"/>
+    <menuitem id="menu_inspection" name="Inspections &amp; Audits" parent="menu_root" action="action_sedar_hsse_inspection" sequence="30"/>
+    <menuitem id="menu_risk_assessment" name="Risk Assessments" parent="menu_root" action="action_sedar_hsse_risk_assessment" sequence="40"/>
+    <menuitem id="menu_permit" name="Permits" parent="menu_root" action="action_sedar_hsse_permit" sequence="50"/>
+</odoo>
