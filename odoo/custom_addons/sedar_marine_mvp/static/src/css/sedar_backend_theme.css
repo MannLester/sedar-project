@@ -260,7 +260,7 @@
 }
 
 .o_list_view .o_list_table thead th {
-    color: var(--sedar-ice);
+    color: #000000;
     border-color: var(--sedar-line);
 }
 
