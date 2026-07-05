@@ -116,6 +116,7 @@ See [odoo/community/README.md](odoo/community/README.md) for the source boundary
 - [PLAN_OF_PROCEEDINGS.md](PLAN_OF_PROCEEDINGS.md): Recommended order for starting and executing the MVP.
 - [DASHBOARD_COVERAGE_MATRIX.md](DASHBOARD_COVERAGE_MATRIX.md): Checklist proving every PDF item is represented in the dashboard.
 - [MVP_PRESIDENT_DATA_REQUIREMENTS.md](MVP_PRESIDENT_DATA_REQUIREMENTS.md): Data and KPIs a tugboat company president would want.
+- [MODULE_CONTENT_SPECIFICATION.md](MODULE_CONTENT_SPECIFICATION.md): Exact owner-facing content and actions for every PDF module.
 - [RESEARCH_NOTES.md](RESEARCH_NOTES.md): Public research notes and what can safely be borrowed.
 - [odoo/README.md](odoo/README.md): Odoo Community MVP setup and run instructions.
 - [phases/01-mvp-alignment-and-demo-scope.md](phases/01-mvp-alignment-and-demo-scope.md): Phase 1 planning.
