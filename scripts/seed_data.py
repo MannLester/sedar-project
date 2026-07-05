@@ -30,7 +30,8 @@ def seed(env):
     Equipment = env['maintenance.equipment']
 
     if Vessel.search_count([]):
-        print('Seed data already present, skipping.')
+        ensure_native_demo(env)
+        print('Seed data already present; native demo data checked.')
         return
 
     company = env.company
@@ -189,9 +190,65 @@ def seed(env):
     })
 
     Equipment.create({'name': 'Main Engine - Port', 'vessel_id': vessels[0].id})
+    ensure_native_demo(env)
 
     env.cr.commit()
     print('Seed data loaded successfully.')
+
+
+def ensure_native_demo(env):
+    Partner = env['res.partner']
+    Product = env['product.product']
+    PurchaseOrder = env['purchase.order']
+    Employee = env['hr.employee']
+    Job = env['hr.job']
+    Applicant = env['hr.applicant']
+    Dashboard = env['sedar.dashboard']
+
+    vendor = Partner.search([('name', '=', 'Cebu Marine Supplies')], limit=1)
+    if not vendor:
+        vendor = Partner.create({'name': 'Cebu Marine Supplies', 'supplier_rank': 1})
+
+    product = Product.search([('name', '=', 'Marine Diesel Oil - MDO')], limit=1)
+    if not product:
+        product = Product.create({
+            'name': 'Marine Diesel Oil - MDO',
+            'list_price': 72.50,
+            'standard_price': 68.00,
+            'sale_ok': False,
+            'purchase_ok': True,
+        })
+
+    if not PurchaseOrder.search([('partner_id', '=', vendor.id)], limit=1):
+        PurchaseOrder.create({
+            'partner_id': vendor.id,
+            'order_line': [(0, 0, {
+                'product_id': product.id,
+                'name': product.display_name,
+                'product_qty': 5000.0,
+                'product_uom': product.uom_po_id.id,
+                'price_unit': 68.00,
+                'date_planned': '2026-07-15 08:00:00',
+            })],
+        })
+
+    if not Employee.search([('name', '=', 'Maria Santos')], limit=1):
+        Employee.create({'name': 'Maria Santos', 'job_title': 'Operations Coordinator'})
+
+    job = Job.search([('name', '=', 'Able Seaman')], limit=1)
+    if not job:
+        job = Job.create({'name': 'Able Seaman'})
+
+    if not Applicant.search([('partner_name', '=', 'Ramon Cruz')], limit=1):
+        Applicant.create({
+            'name': 'Able Seaman Application - Ramon Cruz',
+            'partner_name': 'Ramon Cruz',
+            'email_from': 'ramon.cruz@example.com',
+            'job_id': job.id,
+        })
+
+    if not Dashboard.search([], limit=1):
+        Dashboard.create({})
 
 
 seed(env)  # noqa: F821 -- env is injected by odoo shell
