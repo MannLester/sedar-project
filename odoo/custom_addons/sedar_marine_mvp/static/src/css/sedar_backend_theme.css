@@ -10,15 +10,23 @@
     --sedar-accent-soft: rgba(114, 199, 242, 0.16);
     --sedar-risk: #f2b36d;
     --sedar-danger: #e57d7d;
+    --sedar-sidebar-width: 280px;
 }
 
 .o_web_client .o_main_navbar {
     background: var(--sedar-navy-950);
     border-bottom: 1px solid var(--sedar-line);
     box-shadow: 0 10px 30px rgba(1, 11, 24, 0.28);
+    margin-left: var(--sedar-sidebar-width);
+    width: calc(100% - var(--sedar-sidebar-width));
 }
 
+.o_main_navbar .o_navbar_apps_menu,
 .o_main_navbar .o_menu_brand,
+.o_main_navbar .o_menu_sections {
+    display: none !important;
+}
+
 .o_main_navbar .o_menu_sections .dropdown-toggle,
 .o_main_navbar .o_menu_systray .dropdown-toggle,
 .o_main_navbar .o_menu_systray button,
@@ -50,6 +58,137 @@
     font-weight: 800;
 }
 
+.o_sedar_sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 1040;
+    display: flex;
+    flex-direction: column;
+    width: var(--sedar-sidebar-width);
+    min-height: 100vh;
+    background: var(--sedar-navy-950);
+    border-right: 1px solid rgba(247, 251, 255, 0.12);
+    box-shadow: 18px 0 40px rgba(1, 11, 24, 0.24);
+    color: var(--sedar-ice);
+}
+
+.o_sedar_sidebar_brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 56px;
+    padding: 12px 18px;
+    border-bottom: 1px solid rgba(247, 251, 255, 0.1);
+}
+
+.o_sedar_logo_mark,
+.o_sedar_user_avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 34px;
+    height: 34px;
+    border: 1px solid rgba(247, 251, 255, 0.36);
+    border-radius: 50%;
+    background: linear-gradient(145deg, var(--sedar-navy-800), var(--sedar-navy-950));
+    color: #ffffff;
+    font-weight: 800;
+}
+
+.o_sedar_logo_text {
+    color: #ffffff;
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.o_sedar_logo_subtitle {
+    color: var(--sedar-muted);
+    font-size: 12px;
+    line-height: 1.25;
+}
+
+.o_sedar_sidebar_nav {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 14px 12px;
+}
+
+.o_sedar_nav_group {
+    margin-bottom: 16px;
+}
+
+.o_sedar_nav_heading {
+    padding: 0 10px 7px;
+    color: #7f98b1;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
+.o_sedar_nav_item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 38px;
+    margin-bottom: 3px;
+    padding: 9px 11px;
+    border-radius: 8px;
+    color: #d8e8f6;
+    font-size: 14px;
+    font-weight: 650;
+    text-decoration: none;
+}
+
+.o_sedar_nav_item .fa {
+    width: 18px;
+    color: #8fb6d7;
+    text-align: center;
+}
+
+.o_sedar_nav_item:hover,
+.o_sedar_nav_item:focus,
+.o_sedar_nav_item.active {
+    background: rgba(114, 199, 242, 0.14);
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.o_sedar_nav_item.active {
+    box-shadow: inset 3px 0 0 var(--sedar-accent);
+}
+
+.o_sedar_nav_item:hover .fa,
+.o_sedar_nav_item:focus .fa,
+.o_sedar_nav_item.active .fa {
+    color: var(--sedar-accent);
+}
+
+.o_sedar_sidebar_footer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 62px;
+    padding: 13px 16px;
+    border-top: 1px solid rgba(247, 251, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.o_sedar_user_name {
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.o_sedar_user_role {
+    color: var(--sedar-muted);
+    font-size: 12px;
+    line-height: 1.25;
+}
+
 .o_main_navbar .dropdown-menu {
     background: var(--sedar-navy-900);
     border: 1px solid var(--sedar-line);
@@ -70,6 +209,7 @@
 
 .o_web_client .o_action_manager {
     background: #f4f7fa;
+    margin-left: var(--sedar-sidebar-width);
 }
 
 .o_control_panel {
@@ -137,3 +277,23 @@
     border-color: var(--sedar-navy-800) !important;
 }
 
+@media (max-width: 991.98px) {
+    .o_sedar_sidebar {
+        display: none;
+    }
+
+    .o_web_client .o_main_navbar {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .o_web_client .o_action_manager {
+        margin-left: 0;
+    }
+
+    .o_main_navbar .o_navbar_apps_menu,
+    .o_main_navbar .o_menu_brand,
+    .o_main_navbar .o_menu_sections {
+        display: flex !important;
+    }
+}

@@ -13,6 +13,7 @@
     ],
     "assets": {
         "web.assets_backend": [
+            "sedar_marine_mvp/static/src/xml/sedar_sidebar.xml",
             "sedar_marine_mvp/static/src/css/sedar_backend_theme.css",
         ],
     },
