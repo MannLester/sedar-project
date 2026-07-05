@@ -1,0 +1,7 @@
+<odoo>
+    <menuitem id="menu_root" name="Document Control" sequence="40"/>
+    <menuitem id="menu_contract" name="Contracts" parent="menu_root" action="action_sedar_doc_contract" sequence="10"/>
+    <menuitem id="menu_vessel_cert" name="Vessel Certificates" parent="menu_root" action="action_sedar_doc_vessel_cert" sequence="20"/>
+    <menuitem id="menu_insurance" name="Insurance" parent="menu_root" action="action_sedar_doc_insurance" sequence="30"/>
+    <menuitem id="menu_doc_record" name="Permits / Resolutions / ISO Docs" parent="menu_root" action="action_sedar_doc_record" sequence="40"/>
+</odoo>

@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_sedar_doc_contract_user,sedar.doc.contract.user,model_sedar_doc_contract,base.group_user,1,1,1,1
+access_sedar_doc_vessel_cert_user,sedar.doc.vessel.cert.user,model_sedar_doc_vessel_cert,base.group_user,1,1,1,1
+access_sedar_doc_insurance_user,sedar.doc.insurance.user,model_sedar_doc_insurance,base.group_user,1,1,1,1
+access_sedar_doc_record_user,sedar.doc.record.user,model_sedar_doc_record,base.group_user,1,1,1,1
