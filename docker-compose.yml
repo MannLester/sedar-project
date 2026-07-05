@@ -8,20 +8,38 @@ services:
       POSTGRES_DB: postgres
     volumes:
       - db-data:/var/lib/postgresql/data
+    networks:
+      sedar_net:
+        ipv4_address: 172.28.0.10
   odoo:
     image: odoo:17.0
     depends_on:
       - db
     ports:
-      - "8069:8069"
+      # Host port 18069 (not the default 8069) — this sandbox already has an
+      # unrelated native Odoo service bound to 8069 on the host.
+      - "18069:8069"
     environment:
       HOST: db
       USER: odoo
       PASSWORD: odoo
+    # Static IP + extra_hosts instead of relying on Docker's embedded DNS:
+    # some Docker hosts (e.g. restricted/nested environments) don't wire up
+    # the NAT rules embedded DNS needs, and service-name resolution silently
+    # fails. This works everywhere embedded DNS would have.
+    extra_hosts:
+      - "db:172.28.0.10"
     volumes:
       - ./addons:/mnt/extra-addons
       - odoo-data:/var/lib/odoo
       - ./config/odoo.conf:/etc/odoo/odoo.conf
+    networks:
+      - sedar_net
 volumes:
   db-data:
   odoo-data:
+networks:
+  sedar_net:
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
