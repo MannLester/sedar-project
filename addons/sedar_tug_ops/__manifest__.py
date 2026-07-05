@@ -9,6 +9,7 @@
         'data/ir_sequence_data.xml',
         'views/vessel_views.xml',
         'views/job_order_views.xml',
+        'views/tug_schedule_views.xml',
         'views/voyage_log_views.xml',
         'views/tracking_log_views.xml',
         'views/fuel_log_views.xml',

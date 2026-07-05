@@ -9,6 +9,7 @@ def seed(env):
     Partner = env['res.partner']
     Vessel = env['sedar.vessel']
     JobOrder = env['sedar.job.order']
+    TugSchedule = env['sedar.tug.schedule']
     VoyageLog = env['sedar.voyage.log']
     FuelLog = env['sedar.fuel.log']
     TrackingLog = env['sedar.vessel.tracking.log']
@@ -32,6 +33,7 @@ def seed(env):
 
     if Vessel.search_count([]):
         ensure_tracking_demo(env)
+        ensure_schedule_demo(env)
         ensure_native_demo(env)
         env.cr.commit()
         print('Seed data already present; native demo data checked.')
@@ -85,13 +87,44 @@ def seed(env):
         'destination_port': 'Subic Bay',
         'state': 'in_progress',
     })
-    JobOrder.create({
+    job3 = JobOrder.create({
         'customer_id': customers[0].id,
         'vessel_id': vessels[0].id,
         'origin_port': 'Manila South Harbor',
         'destination_port': 'Corregidor',
         'state': 'requested',
     })
+    TugSchedule.create([
+        {
+            'name': 'Manila Harbor Assist',
+            'vessel_id': vessels[0].id,
+            'job_order_id': job1.id,
+            'start_datetime': '2026-07-06 08:00:00',
+            'end_datetime': '2026-07-06 12:00:00',
+            'port_area': 'Manila South Harbor',
+            'assignment_type': 'towage',
+            'state': 'done',
+        },
+        {
+            'name': 'Batangas Standby Window',
+            'vessel_id': vessels[1].id,
+            'start_datetime': '2026-07-06 13:00:00',
+            'end_datetime': '2026-07-06 18:00:00',
+            'port_area': 'Batangas Port',
+            'assignment_type': 'standby',
+            'state': 'confirmed',
+        },
+        {
+            'name': 'Corregidor Towage Request',
+            'vessel_id': vessels[0].id,
+            'job_order_id': job3.id,
+            'start_datetime': '2026-07-07 09:00:00',
+            'end_datetime': '2026-07-07 14:00:00',
+            'port_area': 'Manila Bay',
+            'assignment_type': 'towage',
+            'state': 'planned',
+        },
+    ])
 
     VoyageLog.create({
         'job_order_id': job1.id,
@@ -299,6 +332,52 @@ def ensure_tracking_demo(env):
             'port_area': port_area,
             'notes': 'Demo vessel tracking position',
         })
+
+
+def ensure_schedule_demo(env):
+    Vessel = env['sedar.vessel']
+    JobOrder = env['sedar.job.order']
+    TugSchedule = env['sedar.tug.schedule']
+    if TugSchedule.search_count([]):
+        return
+    kalinga = Vessel.search([('name', '=', 'SEDAR Kalinga')], limit=1)
+    bantay = Vessel.search([('name', '=', 'SEDAR Bantay')], limit=1)
+    completed_job = JobOrder.search([('vessel_id', '=', kalinga.id), ('state', '=', 'billed')], limit=1)
+    requested_job = JobOrder.search([('vessel_id', '=', kalinga.id), ('state', '=', 'requested')], limit=1)
+    schedules = []
+    if kalinga:
+        schedules.append({
+            'name': 'Manila Harbor Assist',
+            'vessel_id': kalinga.id,
+            'job_order_id': completed_job.id if completed_job else False,
+            'start_datetime': '2026-07-06 08:00:00',
+            'end_datetime': '2026-07-06 12:00:00',
+            'port_area': 'Manila South Harbor',
+            'assignment_type': 'towage',
+            'state': 'done',
+        })
+        schedules.append({
+            'name': 'Corregidor Towage Request',
+            'vessel_id': kalinga.id,
+            'job_order_id': requested_job.id if requested_job else False,
+            'start_datetime': '2026-07-07 09:00:00',
+            'end_datetime': '2026-07-07 14:00:00',
+            'port_area': 'Manila Bay',
+            'assignment_type': 'towage',
+            'state': 'planned',
+        })
+    if bantay:
+        schedules.append({
+            'name': 'Batangas Standby Window',
+            'vessel_id': bantay.id,
+            'start_datetime': '2026-07-06 13:00:00',
+            'end_datetime': '2026-07-06 18:00:00',
+            'port_area': 'Batangas Port',
+            'assignment_type': 'standby',
+            'state': 'confirmed',
+        })
+    if schedules:
+        TugSchedule.create(schedules)
 
 
 seed(env)  # noqa: F821 -- env is injected by odoo shell
