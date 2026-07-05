@@ -1,0 +1,46 @@
+<odoo>
+    <record id="view_sedar_vessel_tracking_log_tree" model="ir.ui.view">
+        <field name="name">sedar.vessel.tracking.log.tree</field>
+        <field name="model">sedar.vessel.tracking.log</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="timestamp"/>
+                <field name="vessel_id"/>
+                <field name="latitude"/>
+                <field name="longitude"/>
+                <field name="speed_knots"/>
+                <field name="course_degrees"/>
+                <field name="source"/>
+                <field name="port_area"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_sedar_vessel_tracking_log_form" model="ir.ui.view">
+        <field name="name">sedar.vessel.tracking.log.form</field>
+        <field name="model">sedar.vessel.tracking.log</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="vessel_id"/>
+                        <field name="timestamp"/>
+                        <field name="latitude"/>
+                        <field name="longitude"/>
+                        <field name="speed_knots"/>
+                        <field name="course_degrees"/>
+                        <field name="source"/>
+                        <field name="port_area"/>
+                        <field name="notes"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sedar_vessel_tracking_log" model="ir.actions.act_window">
+        <field name="name">Fleet Tracking</field>
+        <field name="res_model">sedar.vessel.tracking.log</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

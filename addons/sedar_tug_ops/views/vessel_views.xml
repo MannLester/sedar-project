@@ -8,7 +8,9 @@
                 <field name="registry_no"/>
                 <field name="vessel_type"/>
                 <field name="capacity"/>
+                <field name="home_port"/>
                 <field name="status"/>
+                <field name="tracking_status"/>
             </tree>
         </field>
     </record>
@@ -24,8 +26,32 @@
                         <field name="registry_no"/>
                         <field name="vessel_type"/>
                         <field name="capacity"/>
+                        <field name="home_port"/>
                         <field name="status"/>
                     </group>
+                    <group string="Latest GPS/AIS Position">
+                        <field name="current_latitude"/>
+                        <field name="current_longitude"/>
+                        <field name="speed_knots"/>
+                        <field name="course_degrees"/>
+                        <field name="last_position_at"/>
+                        <field name="tracking_status"/>
+                    </group>
+                    <notebook>
+                        <page string="Tracking History">
+                            <field name="tracking_log_ids">
+                                <tree editable="bottom">
+                                    <field name="timestamp"/>
+                                    <field name="latitude"/>
+                                    <field name="longitude"/>
+                                    <field name="speed_knots"/>
+                                    <field name="course_degrees"/>
+                                    <field name="source"/>
+                                    <field name="port_area"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>

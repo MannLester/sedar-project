@@ -3,12 +3,15 @@
     <t t-name="sedar_theme.NavBarSidebar" t-inherit="web.NavBar" t-inherit-mode="extension">
         <xpath expr="//nav[contains(@class, 'o_main_navbar')]" position="after">
             <aside class="o_sedar_shell d-print-none">
-                <div class="o_sedar_icon_rail" aria-hidden="true">
+                <input id="o_sedar_sidebar_state" class="o_sedar_sidebar_state" type="checkbox" checked="checked"/>
+                <div class="o_sedar_icon_rail">
+                    <label class="o_sedar_sidebar_toggle o_sedar_sidebar_expand" for="o_sedar_sidebar_state" title="Open sidebar">
+                        <i class="fa fa-bars"/>
+                    </label>
                     <div class="o_sedar_rail_logo">S</div>
                     <div class="o_sedar_rail_icons">
                         <i class="fa fa-th-large"/>
                         <i class="fa fa-ship"/>
-                        <i class="fa fa-anchor"/>
                         <i class="fa fa-wrench"/>
                         <i class="fa fa-users"/>
                         <i class="fa fa-life-ring"/>
@@ -28,6 +31,9 @@
                             <div class="o_sedar_logo_text">SEDAR</div>
                             <div class="o_sedar_logo_subtitle">TUG SERVICE CORP.</div>
                         </div>
+                        <label class="o_sedar_sidebar_toggle o_sedar_sidebar_collapse" for="o_sedar_sidebar_state" title="Close sidebar">
+                            <i class="fa fa-angle-left"/>
+                        </label>
                     </div>
 
                     <nav class="o_sedar_sidebar_nav" aria-label="SEDAR navigation">

@@ -1,7 +1,7 @@
 :root {
     --sedar-sidebar-rail: 76px;
     --sedar-sidebar-panel: 226px;
-    --sedar-sidebar-total: calc(var(--sedar-sidebar-rail) + var(--sedar-sidebar-panel));
+    --sedar-sidebar-total: var(--sedar-sidebar-panel);
     --sedar-navy-980: #031225;
     --sedar-navy-950: #06182f;
     --sedar-navy-920: #071d39;
@@ -9,6 +9,10 @@
     --sedar-ink: #f5f8fc;
     --sedar-muted: #8fa3ba;
     --sedar-line: rgba(215, 230, 244, 0.22);
+}
+
+.o_web_client:has(.o_sedar_sidebar_state:not(:checked)) {
+    --sedar-sidebar-total: var(--sedar-sidebar-rail);
 }
 
 .o_web_client .o_main_navbar {
@@ -36,8 +40,7 @@
     position: fixed;
     inset: 0 auto 0 0;
     z-index: 1040;
-    display: grid;
-    grid-template-columns: var(--sedar-sidebar-rail) var(--sedar-sidebar-panel);
+    display: block;
     width: var(--sedar-sidebar-total);
     min-height: 100vh;
     background: var(--sedar-navy-980);
@@ -45,6 +48,20 @@
     font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
     letter-spacing: 0;
     box-shadow: 18px 0 38px rgba(1, 9, 20, 0.28);
+}
+
+.o_sedar_sidebar_state {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.o_sedar_sidebar_state:checked ~ .o_sedar_icon_rail {
+    display: none;
+}
+
+.o_sedar_sidebar_state:not(:checked) ~ .o_sedar_sidebar {
+    display: none;
 }
 
 .o_sedar_icon_rail {
@@ -55,6 +72,30 @@
     padding: 22px 0 18px;
     background: #061932;
     border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.o_sedar_sidebar_toggle {
+    display: grid;
+    place-items: center;
+    color: #ffffff;
+    cursor: pointer;
+}
+
+.o_sedar_sidebar_expand {
+    width: 34px;
+    height: 34px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.o_sedar_sidebar_collapse {
+    width: 28px;
+    height: 28px;
+    margin-left: auto;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 4px;
+    font-size: 17px;
 }
 
 .o_sedar_rail_logo,
@@ -106,7 +147,7 @@
 .o_sedar_sidebar_brand {
     display: flex;
     align-items: center;
-    gap: 13px;
+    gap: 12px;
     min-height: 102px;
     padding: 18px 20px 17px;
     border-bottom: 1px solid var(--sedar-line);

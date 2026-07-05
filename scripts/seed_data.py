@@ -11,6 +11,7 @@ def seed(env):
     JobOrder = env['sedar.job.order']
     VoyageLog = env['sedar.voyage.log']
     FuelLog = env['sedar.fuel.log']
+    TrackingLog = env['sedar.vessel.tracking.log']
     TowageBilling = env['sedar.towage.billing']
     Incident = env['sedar.hsse.incident']
     NearMiss = env['sedar.hsse.near.miss']
@@ -30,6 +31,7 @@ def seed(env):
     Equipment = env['maintenance.equipment']
 
     if Vessel.search_count([]):
+        ensure_tracking_demo(env)
         ensure_native_demo(env)
         env.cr.commit()
         print('Seed data already present; native demo data checked.')
@@ -99,6 +101,28 @@ def seed(env):
     FuelLog.create([
         {'vessel_id': vessels[0].id, 'liters': 850.0, 'cost': 62000.0},
         {'vessel_id': vessels[1].id, 'liters': 620.0, 'cost': 45000.0},
+    ])
+    TrackingLog.create([
+        {
+            'vessel_id': vessels[0].id,
+            'latitude': 14.5833,
+            'longitude': 120.9667,
+            'speed_knots': 5.8,
+            'course_degrees': 188.0,
+            'source': 'ais',
+            'port_area': 'Manila Bay',
+            'notes': 'Demo AIS position near Manila South Harbor',
+        },
+        {
+            'vessel_id': vessels[1].id,
+            'latitude': 13.7565,
+            'longitude': 121.0437,
+            'speed_knots': 7.2,
+            'course_degrees': 242.0,
+            'source': 'gps',
+            'port_area': 'Batangas Port',
+            'notes': 'Demo GPS position near Batangas anchorage',
+        },
     ])
     bill = TowageBilling.create({
         'job_order_id': job1.id,
@@ -250,6 +274,31 @@ def ensure_native_demo(env):
 
     if not Dashboard.search([], limit=1):
         Dashboard.create({})
+
+
+def ensure_tracking_demo(env):
+    Vessel = env['sedar.vessel']
+    TrackingLog = env['sedar.vessel.tracking.log']
+    demo_positions = {
+        'SEDAR Kalinga': (14.5833, 120.9667, 5.8, 188.0, 'Manila Bay', 'ais'),
+        'SEDAR Bantay': (13.7565, 121.0437, 7.2, 242.0, 'Batangas Port', 'gps'),
+        'SEDAR Tagumpay': (14.8229, 120.2829, 0.0, 0.0, 'Subic Bay', 'manual'),
+    }
+    for vessel_name, position in demo_positions.items():
+        vessel = Vessel.search([('name', '=', vessel_name)], limit=1)
+        if not vessel or TrackingLog.search([('vessel_id', '=', vessel.id)], limit=1):
+            continue
+        latitude, longitude, speed, course, port_area, source = position
+        TrackingLog.create({
+            'vessel_id': vessel.id,
+            'latitude': latitude,
+            'longitude': longitude,
+            'speed_knots': speed,
+            'course_degrees': course,
+            'source': source,
+            'port_area': port_area,
+            'notes': 'Demo vessel tracking position',
+        })
 
 
 seed(env)  # noqa: F821 -- env is injected by odoo shell

@@ -2,5 +2,6 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_sedar_vessel_user,sedar.vessel.user,model_sedar_vessel,base.group_user,1,1,1,1
 access_sedar_job_order_user,sedar.job.order.user,model_sedar_job_order,base.group_user,1,1,1,1
 access_sedar_voyage_log_user,sedar.voyage.log.user,model_sedar_voyage_log,base.group_user,1,1,1,1
+access_sedar_vessel_tracking_log_user,sedar.vessel.tracking.log.user,model_sedar_vessel_tracking_log,base.group_user,1,1,1,1
 access_sedar_fuel_log_user,sedar.fuel.log.user,model_sedar_fuel_log,base.group_user,1,1,1,1
 access_sedar_towage_billing_user,sedar.towage.billing.user,model_sedar_towage_billing,base.group_user,1,1,1,1
