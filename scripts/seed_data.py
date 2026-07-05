@@ -31,6 +31,7 @@ def seed(env):
 
     if Vessel.search_count([]):
         ensure_native_demo(env)
+        env.cr.commit()
         print('Seed data already present; native demo data checked.')
         return
 
