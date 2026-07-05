@@ -1,0 +1,5 @@
+<odoo>
+    <record id="sedar_dashboard_record" model="sedar.dashboard">
+        <field name="name">SEDAR KPI Snapshot</field>
+    </record>
+</odoo>

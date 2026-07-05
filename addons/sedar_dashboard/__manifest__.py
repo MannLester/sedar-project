@@ -6,6 +6,7 @@
     'depends': ['account', 'sedar_tug_ops', 'sedar_hsse', 'sedar_crewing', 'sedar_doccontrol'],
     'data': [
         'security/ir.model.access.csv',
+        'data/dashboard_data.xml',
         'views/dashboard_views.xml',
         'views/menu.xml',
     ],

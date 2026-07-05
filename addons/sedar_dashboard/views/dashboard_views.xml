@@ -25,7 +25,7 @@
         <field name="name">KPI Dashboard</field>
         <field name="res_model">sedar.dashboard</field>
         <field name="view_mode">form</field>
+        <field name="res_id" ref="sedar_dashboard_record"/>
         <field name="target">current</field>
-        <field name="context">{'default_name': 'SEDAR KPI Snapshot'}</field>
     </record>
 </odoo>
