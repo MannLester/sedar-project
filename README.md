@@ -64,15 +64,16 @@ If Odoo asks you to log in, use the database's administrator account created dur
 After logging in, open the app switcher. You should see these app areas:
 
 - SEDAR Dashboard.
-- SEDAR Operations.
-- SEDAR Finance.
-- SEDAR Fleet.
-- SEDAR Crewing.
-- SEDAR HSE.
-- SEDAR Procurement.
-- SEDAR Inventory.
-- SEDAR HR.
-- SEDAR Documents.
+- Marine Operations.
+- Finance.
+- Fleet Management.
+- Crewing.
+- HSSE.
+- Procurement.
+- Inventory.
+- Human Resources.
+- Document Control.
+- Management Reports.
 
 ## Re-running From Scratch
 

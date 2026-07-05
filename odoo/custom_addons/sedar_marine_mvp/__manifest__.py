@@ -5,12 +5,17 @@
     "category": "Operations",
     "author": "Mann, Edrian, and Clarenz",
     "license": "LGPL-3",
-    "depends": ["base", "mail"],
+    "depends": ["base", "mail", "web"],
     "data": [
         "security/ir.model.access.csv",
         "views/sedar_marine_views.xml",
         "demo/sedar_marine_demo.xml",
     ],
+    "assets": {
+        "web.assets_backend": [
+            "sedar_marine_mvp/static/src/css/sedar_backend_theme.css",
+        ],
+    },
     "application": True,
     "installable": True,
 }

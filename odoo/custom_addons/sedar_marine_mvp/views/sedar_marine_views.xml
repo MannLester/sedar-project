@@ -652,42 +652,47 @@
 
     <menuitem id="menu_sedar_president_app" name="SEDAR Dashboard" action="action_sedar_dashboard_metric" sequence="5"/>
 
-    <menuitem id="menu_sedar_operations_app" name="SEDAR Operations" action="action_sedar_job_order" sequence="10"/>
+    <menuitem id="menu_sedar_operations_app" name="Marine Operations" action="action_sedar_job_order" sequence="10"/>
     <menuitem id="menu_sedar_operations_jobs" name="Dispatch Board" parent="menu_sedar_operations_app" action="action_sedar_job_order" sequence="1"/>
     <menuitem id="menu_sedar_operations_voyages" name="Voyage and Fuel Logs" parent="menu_sedar_operations_app" action="action_sedar_voyage_log" sequence="2"/>
     <menuitem id="menu_sedar_operations_customers" name="Customers and Contracts" parent="menu_sedar_operations_app" action="action_sedar_customer" sequence="3"/>
 
-    <menuitem id="menu_sedar_finance_app" name="SEDAR Finance" action="action_sedar_finance_record" sequence="20"/>
+    <menuitem id="menu_sedar_finance_app" name="Finance" action="action_sedar_finance_record" sequence="20"/>
     <menuitem id="menu_sedar_finance_records" name="Accounting Summary" parent="menu_sedar_finance_app" action="action_sedar_finance_record" sequence="1"/>
     <menuitem id="menu_sedar_finance_customers" name="Customer Receivables" parent="menu_sedar_finance_app" action="action_sedar_customer" sequence="2"/>
     <menuitem id="menu_sedar_finance_billing" name="Towage Billing Source Jobs" parent="menu_sedar_finance_app" action="action_sedar_job_order" sequence="3"/>
 
-    <menuitem id="menu_sedar_fleet_app" name="SEDAR Fleet" action="action_sedar_vessel" sequence="30"/>
+    <menuitem id="menu_sedar_fleet_app" name="Fleet Management" action="action_sedar_vessel" sequence="30"/>
     <menuitem id="menu_sedar_fleet_vessels" name="Vessel Register" parent="menu_sedar_fleet_app" action="action_sedar_vessel" sequence="1"/>
     <menuitem id="menu_sedar_fleet_maintenance" name="Maintenance and Dry Dock" parent="menu_sedar_fleet_app" action="action_sedar_maintenance_work_order" sequence="2"/>
     <menuitem id="menu_sedar_fleet_inventory" name="Critical Spares" parent="menu_sedar_fleet_app" action="action_sedar_inventory_item" sequence="3"/>
 
-    <menuitem id="menu_sedar_crewing_app" name="SEDAR Crewing" action="action_sedar_crew_member" sequence="40"/>
+    <menuitem id="menu_sedar_crewing_app" name="Crewing" action="action_sedar_crew_member" sequence="40"/>
     <menuitem id="menu_sedar_crewing_members" name="Crew Readiness" parent="menu_sedar_crewing_app" action="action_sedar_crew_member" sequence="1"/>
     <menuitem id="menu_sedar_crewing_jobs" name="Assigned Jobs" parent="menu_sedar_crewing_app" action="action_sedar_job_order" sequence="2"/>
 
-    <menuitem id="menu_sedar_hse_app" name="SEDAR HSE" action="action_sedar_hse_record" sequence="50"/>
+    <menuitem id="menu_sedar_hse_app" name="HSSE" action="action_sedar_hse_record" sequence="50"/>
     <menuitem id="menu_sedar_hse_records" name="Incidents, Permits, Audits" parent="menu_sedar_hse_app" action="action_sedar_hse_record" sequence="1"/>
     <menuitem id="menu_sedar_hse_vessels" name="Vessel Risk Context" parent="menu_sedar_hse_app" action="action_sedar_vessel" sequence="2"/>
 
-    <menuitem id="menu_sedar_procurement_app" name="SEDAR Procurement" action="action_sedar_procurement_record" sequence="60"/>
+    <menuitem id="menu_sedar_procurement_app" name="Procurement" action="action_sedar_procurement_record" sequence="60"/>
     <menuitem id="menu_sedar_procurement_records" name="Requests and Orders" parent="menu_sedar_procurement_app" action="action_sedar_procurement_record" sequence="1"/>
     <menuitem id="menu_sedar_procurement_inventory" name="Stock Reorder Signals" parent="menu_sedar_procurement_app" action="action_sedar_inventory_item" sequence="2"/>
 
-    <menuitem id="menu_sedar_inventory_app" name="SEDAR Inventory" action="action_sedar_inventory_item" sequence="70"/>
+    <menuitem id="menu_sedar_inventory_app" name="Inventory" action="action_sedar_inventory_item" sequence="70"/>
     <menuitem id="menu_sedar_inventory_items" name="Warehouse Stock" parent="menu_sedar_inventory_app" action="action_sedar_inventory_item" sequence="1"/>
     <menuitem id="menu_sedar_inventory_maintenance" name="Maintenance Demand" parent="menu_sedar_inventory_app" action="action_sedar_maintenance_work_order" sequence="2"/>
 
-    <menuitem id="menu_sedar_hr_app" name="SEDAR HR" action="action_sedar_hr_record" sequence="80"/>
+    <menuitem id="menu_sedar_hr_app" name="Human Resources" action="action_sedar_hr_record" sequence="80"/>
     <menuitem id="menu_sedar_hr_records" name="Employee, Attendance, Performance" parent="menu_sedar_hr_app" action="action_sedar_hr_record" sequence="1"/>
     <menuitem id="menu_sedar_hr_crew" name="Marine Crew Link" parent="menu_sedar_hr_app" action="action_sedar_crew_member" sequence="2"/>
 
-    <menuitem id="menu_sedar_documents_app" name="SEDAR Documents" action="action_sedar_document_control" sequence="90"/>
+    <menuitem id="menu_sedar_documents_app" name="Document Control" action="action_sedar_document_control" sequence="90"/>
     <menuitem id="menu_sedar_documents_control" name="Document Control Register" parent="menu_sedar_documents_app" action="action_sedar_document_control" sequence="1"/>
     <menuitem id="menu_sedar_documents_vessels" name="Vessel Certificate Context" parent="menu_sedar_documents_app" action="action_sedar_vessel" sequence="2"/>
+
+    <menuitem id="menu_sedar_reports_app" name="Management Reports" action="action_sedar_dashboard_metric" sequence="100"/>
+    <menuitem id="menu_sedar_reports_kpis" name="KPIs and Analytics" parent="menu_sedar_reports_app" action="action_sedar_dashboard_metric" sequence="1"/>
+    <menuitem id="menu_sedar_reports_finance" name="Financial Reports" parent="menu_sedar_reports_app" action="action_sedar_finance_record" sequence="2"/>
+    <menuitem id="menu_sedar_reports_assets" name="Utilization and Availability" parent="menu_sedar_reports_app" action="action_sedar_vessel" sequence="3"/>
 </odoo>

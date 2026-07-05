@@ -30,19 +30,24 @@ Create a database and install the `SEDAR Marine MVP` app.
 The installed MVP now exposes these top-level app areas:
 
 - SEDAR Dashboard.
-- SEDAR Operations.
-- SEDAR Finance.
-- SEDAR Fleet.
-- SEDAR Crewing.
-- SEDAR HSE.
-- SEDAR Procurement.
-- SEDAR Inventory.
-- SEDAR HR.
-- SEDAR Documents.
+- Marine Operations.
+- Finance.
+- Fleet Management.
+- Crewing.
+- HSSE.
+- Procurement.
+- Inventory.
+- Human Resources.
+- Document Control.
+- Management Reports.
 
 ## Where Are The Community Files?
 
 The Odoo Community source and built-in Community apps come from the Docker image. They are not copied into this repository. See [community/README.md](community/README.md).
+
+## Theme Direction
+
+The backend theme borrows only the palette and design mood from the sidebar reference image in `resources/`. It does not copy the exact layout. See [THEME_NOTES.md](THEME_NOTES.md).
 
 ## Community Edition Boundary
 
