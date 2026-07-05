@@ -1,0 +1,39 @@
+<odoo>
+    <record id="view_sedar_crew_certification_tree" model="ir.ui.view">
+        <field name="name">sedar.crew.certification.tree</field>
+        <field name="model">sedar.crew.certification</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="crew_id"/>
+                <field name="cert_type"/>
+                <field name="certificate_no"/>
+                <field name="issue_date"/>
+                <field name="expiry_date"/>
+                <field name="expiry_status"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_sedar_crew_certification_form" model="ir.ui.view">
+        <field name="name">sedar.crew.certification.form</field>
+        <field name="model">sedar.crew.certification</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="crew_id"/>
+                        <field name="cert_type"/>
+                        <field name="certificate_no"/>
+                        <field name="issue_date"/>
+                        <field name="expiry_date"/>
+                        <field name="expiry_status"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_sedar_crew_certification" model="ir.actions.act_window">
+        <field name="name">Certifications</field>
+        <field name="res_model">sedar.crew.certification</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

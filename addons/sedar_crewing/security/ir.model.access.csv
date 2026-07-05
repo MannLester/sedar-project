@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_sedar_crew_member_user,sedar.crew.member.user,model_sedar_crew_member,base.group_user,1,1,1,1
+access_sedar_crew_rotation_user,sedar.crew.rotation.user,model_sedar_crew_rotation,base.group_user,1,1,1,1
+access_sedar_crew_certification_user,sedar.crew.certification.user,model_sedar_crew_certification,base.group_user,1,1,1,1
+access_sedar_crew_medical_user,sedar.crew.medical.user,model_sedar_crew_medical,base.group_user,1,1,1,1
+access_sedar_crew_leave_user,sedar.crew.leave.user,model_sedar_crew_leave,base.group_user,1,1,1,1
