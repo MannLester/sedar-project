@@ -268,6 +268,10 @@
     background: #edf7fc;
 }
 
+.o_list_view .o_list_table tbody tr:not(.o_data_row):not(.o_group_header):not(.o_list_footer) {
+    display: none;
+}
+
 .o_sedar_document_dashboard {
     height: 100%;
     min-height: 0;
