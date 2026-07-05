@@ -16,9 +16,9 @@ services:
     depends_on:
       - db
     ports:
-      # Host port 18069 (not the default 8069) — this sandbox already has an
-      # unrelated native Odoo service bound to 8069 on the host.
-      - "18069:8069"
+      # Host port parameterized with default 8069; override with HOST_PORT=18069
+      # on hosts with port 8069 already bound (e.g., this sandbox).
+      - "${HOST_PORT:-8069}:8069"
     environment:
       HOST: db
       USER: odoo
@@ -42,4 +42,4 @@ networks:
   sedar_net:
     ipam:
       config:
-        - subnet: 172.28.0.0/16
+        - subnet: 172.28.0.0/24
