@@ -7,6 +7,8 @@ from odoo.tests.common import TransactionCase
 class TestExpiryMixin(TransactionCase):
 
     def _make_concrete_model_record(self, expiry_date):
+        if 'sedar.hsse.permit' not in self.env:
+            self.skipTest('sedar.hsse.permit is not available until sedar_hsse is loaded')
         return self.env['sedar.hsse.permit'].create({
             'name': 'Test Permit',
             'expiry_date': expiry_date,
