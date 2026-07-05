@@ -3,8 +3,7 @@
     "summary": "Dashboard-first tug ERP and marine fleet management MVP for Odoo Community",
     "version": "19.0.1.0.0",
     "category": "Operations",
-    "author": "SEDAR MVP Team",
-    "license": "LGPL-3",
+    "author": "Mann, Edrian, and Clarenz",
     "depends": ["base", "mail"],
     "data": [
         "security/ir.model.access.csv",

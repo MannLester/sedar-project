@@ -12,7 +12,7 @@ class SedarDashboardMetric(models.Model):
             ("finance", "Finance and Accounting"),
             ("operations", "Tug Operations"),
             ("maintenance", "Technical and Maintenance"),
-            ("hse", "HSE"),
+            ("hse", "Health, Safety, and Environment"),
             ("crewing", "Crewing"),
             ("procurement", "Procurement"),
             ("inventory", "Inventory"),
@@ -42,7 +42,11 @@ class SedarVessel(models.Model):
     name = fields.Char(required=True, tracking=True)
     registry_no = fields.Char()
     vessel_type = fields.Selection(
-        [("harbor_tug", "Harbor Tug"), ("tow_tug", "Tow Tug"), ("support", "Support Vessel")],
+        [
+            ("harbor_tug", "Harbor Tug"),
+            ("tow_tug", "Tow Tug"),
+            ("support", "Support Vessel"),
+        ],
         default="harbor_tug",
     )
     horsepower = fields.Integer()
@@ -75,7 +79,12 @@ class SedarCustomer(models.Model):
 
     name = fields.Char(required=True)
     customer_type = fields.Selection(
-        [("shipping", "Shipping Line"), ("terminal", "Terminal"), ("industrial", "Industrial"), ("government", "Government")],
+        [
+            ("shipping", "Shipping Line"),
+            ("terminal", "Terminal"),
+            ("industrial", "Industrial"),
+            ("government", "Government"),
+        ],
         default="shipping",
     )
     billing_terms = fields.Char(default="30 days")
@@ -180,11 +189,22 @@ class SedarFinanceRecord(models.Model):
     invoice_date = fields.Date()
     due_date = fields.Date()
     status = fields.Selection(
-        [("draft", "Draft"), ("open", "Open"), ("overdue", "Overdue"), ("paid", "Paid")],
+        [
+            ("draft", "Draft"),
+            ("open", "Open"),
+            ("overdue", "Overdue"),
+            ("paid", "Paid"),
+        ],
         default="draft",
     )
     aging_bucket = fields.Selection(
-        [("current", "Current"), ("30", "1-30 Days"), ("60", "31-60 Days"), ("90", "61-90 Days"), ("over90", "Over 90 Days")]
+        [
+            ("current", "Current"),
+            ("30", "1-30 Days"),
+            ("60", "31-60 Days"),
+            ("90", "61-90 Days"),
+            ("over90", "Over 90 Days"),
+        ]
     )
     note = fields.Text()
 
@@ -197,7 +217,12 @@ class SedarCrewMember(models.Model):
     name = fields.Char(required=True)
     rank = fields.Char()
     availability = fields.Selection(
-        [("available", "Available"), ("assigned", "Assigned"), ("leave", "On Leave"), ("training", "Training")],
+        [
+            ("available", "Available"),
+            ("assigned", "Assigned"),
+            ("leave", "On Leave"),
+            ("training", "Training"),
+        ],
         default="available",
     )
     vessel_id = fields.Many2one("sedar.vessel")
@@ -218,7 +243,12 @@ class SedarCrewCertificate(models.Model):
     name = fields.Char(required=True)
     crew_id = fields.Many2one("sedar.crew.member", required=True)
     certificate_type = fields.Selection(
-        [("stcw", "STCW"), ("medical", "Medical"), ("training", "Training"), ("license", "License")],
+        [
+            ("stcw", "STCW"),
+            ("medical", "Medical"),
+            ("training", "Training"),
+            ("license", "License"),
+        ],
         default="stcw",
     )
     expiry_date = fields.Date()
@@ -236,16 +266,34 @@ class SedarMaintenanceWorkOrder(models.Model):
     name = fields.Char(required=True)
     vessel_id = fields.Many2one("sedar.vessel", required=True)
     work_type = fields.Selection(
-        [("planned", "Planned Maintenance"), ("defect", "Defect"), ("dry_dock", "Dry Dock")],
+        [
+            ("planned", "Planned Maintenance"),
+            ("defect", "Defect"),
+            ("dry_dock", "Dry Dock"),
+        ],
         default="planned",
     )
     equipment = fields.Char()
-    severity = fields.Selection([("low", "Low"), ("medium", "Medium"), ("high", "High"), ("critical", "Critical")], default="medium")
+    severity = fields.Selection(
+        [
+            ("low", "Low"),
+            ("medium", "Medium"),
+            ("high", "High"),
+            ("critical", "Critical"),
+        ],
+        default="medium",
+    )
     due_date = fields.Date()
     downtime_hours = fields.Float()
     cost = fields.Float()
     status = fields.Selection(
-        [("open", "Open"), ("waiting_parts", "Waiting Parts"), ("in_progress", "In Progress"), ("done", "Done"), ("overdue", "Overdue")],
+        [
+            ("open", "Open"),
+            ("waiting_parts", "Waiting Parts"),
+            ("in_progress", "In Progress"),
+            ("done", "Done"),
+            ("overdue", "Overdue"),
+        ],
         default="open",
     )
     spare_parts_note = fields.Text()
@@ -273,11 +321,21 @@ class SedarHseRecord(models.Model):
     vessel_id = fields.Many2one("sedar.vessel")
     job_id = fields.Many2one("sedar.job.order")
     event_date = fields.Date()
-    risk_level = fields.Selection([("low", "Low"), ("medium", "Medium"), ("high", "High")], default="medium")
+    risk_level = fields.Selection(
+        [("low", "Low"), ("medium", "Medium"), ("high", "High")], default="medium"
+    )
     corrective_action = fields.Text()
     responsible_person = fields.Char()
     due_date = fields.Date()
-    status = fields.Selection([("open", "Open"), ("in_progress", "In Progress"), ("closed", "Closed"), ("overdue", "Overdue")], default="open")
+    status = fields.Selection(
+        [
+            ("open", "Open"),
+            ("in_progress", "In Progress"),
+            ("closed", "Closed"),
+            ("overdue", "Overdue"),
+        ],
+        default="open",
+    )
 
 
 class SedarProcurementRecord(models.Model):
@@ -286,13 +344,21 @@ class SedarProcurementRecord(models.Model):
     _order = "request_date desc, name"
 
     name = fields.Char(required=True)
-    record_type = fields.Selection([("pr", "Purchase Request"), ("po", "Purchase Order")], default="pr")
+    record_type = fields.Selection(
+        [("pr", "Purchase Request"), ("po", "Purchase Order")], default="pr"
+    )
     supplier = fields.Char()
     requested_by = fields.Char()
     request_date = fields.Date()
     amount = fields.Float()
     status = fields.Selection(
-        [("draft", "Draft"), ("pending_approval", "Pending Approval"), ("approved", "Approved"), ("ordered", "Ordered"), ("received", "Received")],
+        [
+            ("draft", "Draft"),
+            ("pending_approval", "Pending Approval"),
+            ("approved", "Approved"),
+            ("ordered", "Ordered"),
+            ("received", "Received"),
+        ],
         default="draft",
     )
     approval_owner = fields.Char()
@@ -307,7 +373,12 @@ class SedarInventoryItem(models.Model):
 
     name = fields.Char(required=True)
     category = fields.Selection(
-        [("spare", "Spare Parts"), ("fuel", "Fuel"), ("lubricant", "Lubricants"), ("office", "Office Supplies")],
+        [
+            ("spare", "Spare Parts"),
+            ("fuel", "Fuel"),
+            ("lubricant", "Lubricants"),
+            ("office", "Office Supplies"),
+        ],
         default="spare",
     )
     warehouse = fields.Char()
@@ -316,7 +387,9 @@ class SedarInventoryItem(models.Model):
     reorder_point = fields.Float()
     unit_cost = fields.Float()
     stock_value = fields.Float(compute="_compute_stock_value", store=True)
-    status = fields.Selection([("ok", "OK"), ("low", "Low Stock"), ("critical", "Critical")], default="ok")
+    status = fields.Selection(
+        [("ok", "OK"), ("low", "Low Stock"), ("critical", "Critical")], default="ok"
+    )
 
     @api.depends("quantity_on_hand", "unit_cost")
     def _compute_stock_value(self):
@@ -332,10 +405,23 @@ class SedarHrRecord(models.Model):
     name = fields.Char(required=True)
     department = fields.Char()
     record_type = fields.Selection(
-        [("employee", "Employee Records"), ("attendance", "Attendance"), ("performance", "Performance Evaluation"), ("recruitment", "Recruitment")],
+        [
+            ("employee", "Employee Records"),
+            ("attendance", "Attendance"),
+            ("performance", "Performance Evaluation"),
+            ("recruitment", "Recruitment"),
+        ],
         default="employee",
     )
-    status = fields.Selection([("active", "Active"), ("pending", "Pending"), ("due", "Due"), ("closed", "Closed")], default="active")
+    status = fields.Selection(
+        [
+            ("active", "Active"),
+            ("pending", "Pending"),
+            ("due", "Due"),
+            ("closed", "Closed"),
+        ],
+        default="active",
+    )
     summary = fields.Text()
 
 
@@ -360,6 +446,8 @@ class SedarDocumentControl(models.Model):
     vessel_id = fields.Many2one("sedar.vessel")
     expiry_date = fields.Date()
     renewal_owner = fields.Char()
-    status = fields.Selection([("valid", "Valid"), ("renewal", "For Renewal"), ("expired", "Expired")], default="valid")
+    status = fields.Selection(
+        [("valid", "Valid"), ("renewal", "For Renewal"), ("expired", "Expired")],
+        default="valid",
+    )
     version = fields.Char(default="1.0")
-

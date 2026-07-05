@@ -16,11 +16,11 @@ The MVP should have these top-level dashboard pages:
 2. Finance and Accounting.
 3. Tug Operations.
 4. Technical and Maintenance.
-5. HSE.
+5. Health, Safety, and Environment.
 6. Crewing.
 7. Procurement.
 8. Inventory.
-9. HR.
+9. Human Resources.
 10. Document Control.
 11. Management KPI Dashboard.
 
@@ -41,8 +41,8 @@ MVP dashboard coverage:
 - Revenue this month.
 - Expenses this month.
 - Gross margin.
-- AR aging.
-- AP aging.
+- Accounts receivable aging.
+- Accounts payable aging.
 - Cash position.
 - Budget versus actual.
 - Fixed asset summary by vessel/equipment.
@@ -139,7 +139,7 @@ Production later:
 - Vendor maintenance integration.
 - Full dry dock budgeting and project management.
 
-## HSE
+## Health, Safety, And Environment
 
 PDF items:
 
@@ -173,7 +173,7 @@ MVP drill-down:
 
 Production later:
 
-- Full HSE forms.
+- Full health, safety, and environment forms.
 - Regulatory reports.
 - Mobile incident capture.
 - Corrective action approval workflow.
@@ -184,7 +184,7 @@ PDF items:
 
 - Crew scheduling.
 - Certifications.
-- STCW documents.
+- Standards of Training, Certification, and Watchkeeping documents.
 - Medicals.
 - Leave.
 - Payroll integration.
@@ -282,7 +282,7 @@ Production later:
 - Physical count process.
 - Full inventory valuation method.
 
-## HR
+## Human Resource
 
 PDF items:
 
@@ -308,7 +308,7 @@ MVP drill-down:
 
 Production later:
 
-- Full HRIS.
+- Full human resource information system.
 - Biometric attendance integration.
 - Final performance process.
 - Applicant tracking workflow.
@@ -363,13 +363,13 @@ MVP dashboard coverage:
 - Revenue.
 - Gross margin.
 - Cash position.
-- AR aging.
+- Accounts receivable aging.
 - Jobs completed.
 - Jobs delayed.
 - Fleet utilization.
 - Vessel availability.
 - Maintenance downtime.
-- HSE open actions.
+- Health, safety, and environment open actions.
 - Crew compliance risk.
 - Inventory risk.
 - Procurement bottlenecks.
@@ -412,8 +412,8 @@ Production later:
 
 ### Row 3: Finance
 
-- AR aging.
-- AP aging.
+- Accounts receivable aging.
+- Accounts payable aging.
 - Budget versus actual.
 - Profitability by vessel/customer/job type.
 
@@ -421,7 +421,7 @@ Production later:
 
 - Maintenance due.
 - Crew certificate expiry.
-- HSE open actions.
+- Health, safety, and environment open actions.
 - Inventory low stock.
 - Procurement pending approvals.
 - Document expiries.
@@ -431,11 +431,11 @@ Production later:
 - Finance.
 - Operations.
 - Maintenance.
-- HSE.
+- Health, Safety, and Environment.
 - Crewing.
 - Procurement.
 - Inventory.
-- HR.
+- Human Resources.
 - Document Control.
 
 ## Final Coverage Checklist
@@ -445,11 +445,11 @@ Before demo, confirm:
 - Finance and Accounting is visible.
 - Tug Operations is visible.
 - Technical and Maintenance is visible.
-- HSE is visible.
+- Health, Safety, and Environment is visible.
 - Crewing is visible.
 - Procurement is visible.
 - Inventory is visible.
-- HR is visible.
+- Human Resources is visible.
 - Document Control is visible.
 - Management KPIs are visible.
 - Odoo recommendation is acknowledged as an implementation option.
@@ -457,4 +457,3 @@ Before demo, confirm:
 - AIS/GPS is visible as an MVP placeholder and future integration.
 - All records are sample data.
 - SEDAR-specific workflows are marked for post-deal discovery.
-

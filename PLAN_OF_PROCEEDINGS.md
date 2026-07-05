@@ -51,7 +51,7 @@ Required sample entities:
 - Suppliers.
 - Invoices.
 - Payments.
-- HSE incidents.
+- Health, safety, and environment incidents.
 - Risk assessments.
 - Training records.
 - Employee records.
@@ -79,7 +79,7 @@ It should include:
 - Vessel availability.
 - Job performance.
 - Maintenance risk.
-- HSE risk.
+- Health, safety, and environment risk.
 - Crew compliance.
 - Procurement and inventory risk.
 - Document expiry risk.
@@ -97,11 +97,11 @@ After the president dashboard, build the department pages:
 - Finance and Accounting.
 - Tug Operations.
 - Technical and Maintenance.
-- HSE.
+- Health, Safety, and Environment.
 - Crewing.
 - Procurement.
 - Inventory.
-- HR.
+- Human Resources.
 - Document Control.
 - Management Dashboard.
 
@@ -118,7 +118,7 @@ Output:
 - One usable page per module.
 - Consistent status model.
 
-### Step 5: Build The End-To-End Demo Workflow
+### Step 5: Build The End-To-End Demo Workflow (also mentioned in MVP Interpretation section in PDF_ANALYSIS.md)
 
 Create one connected demo path:
 
@@ -128,7 +128,7 @@ Create one connected demo path:
 4. Voyage log records hours, fuel, delay, and completion.
 5. Billing data updates finance.
 6. Vessel utilization and profitability update president dashboard.
-7. Maintenance, HSE, crew, procurement, inventory, and document alerts remain visible.
+7. Maintenance, health, safety, and environment, crew, procurement, inventory, and document alerts remain visible.
 
 Output:
 
@@ -149,7 +149,7 @@ Priority detail screens:
 - Invoice detail.
 - Inventory item detail.
 - Purchase order detail.
-- HSE incident detail.
+- Health, safety, and environment incident detail.
 - Document detail.
 
 Output:
@@ -182,14 +182,14 @@ Output:
 - Finance summary with billing, AR, cash flow, and profitability.
 - Maintenance work orders and downtime.
 - Crew certification alerts.
-- HSE incidents and corrective actions.
+- Health, safety, and environment incidents and corrective actions.
 - Inventory reorder alerts.
 - Procurement approvals.
 - Document expiry alerts.
 
 ### Priority 2: Should Be In First Demo If Time Allows
 
-- HR attendance summary.
+- Human Resource attendance summary.
 - Payroll summary placeholder.
 - Budget versus actual.
 - Fixed assets register.
@@ -248,7 +248,7 @@ No PDF module should be hidden only in documentation. Every module should be vis
 - Build job, dispatch, vessel, and finance dashboard sections.
 - Connect job-to-cash sample records.
 
-### Day 5: Maintenance, Crew, HSE, Procurement, Inventory, Documents
+### Day 5: Maintenance, Crew, Health, Safety, And Environment, Procurement, Inventory, Documents
 
 - Build risk and compliance sections.
 - Add expiry and overdue alerts.
@@ -284,4 +284,3 @@ The MVP is done when:
 - The president dashboard tells the business story in one screen.
 - The demo can run from job request to billing impact.
 - The team can clearly explain what is generic, what is sample, and what requires SEDAR confirmation.
-
