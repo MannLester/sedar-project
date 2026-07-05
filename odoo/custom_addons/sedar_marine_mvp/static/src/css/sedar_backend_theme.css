@@ -15,7 +15,7 @@
     --sedar-accent-soft: rgba(114, 199, 242, 0.16);
     --sedar-risk: #f2b36d;
     --sedar-danger: #e57d7d;
-    --sedar-sidebar-width: 280px;
+    --sedar-sidebar-width: 300px;
 }
 
 .o_web_client .o_main_navbar {
@@ -135,7 +135,7 @@
 
 .o_sedar_nav_item {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 10px;
     min-height: 38px;
     margin-bottom: 3px;
@@ -148,9 +148,16 @@
 }
 
 .o_sedar_nav_item .fa {
+    margin-top: 2px;
     width: 18px;
     color: #8fb6d7;
     text-align: center;
+}
+
+.o_sedar_nav_item span {
+    min-width: 0;
+    line-height: 1.25;
+    white-space: normal;
 }
 
 .o_sedar_nav_item:hover,

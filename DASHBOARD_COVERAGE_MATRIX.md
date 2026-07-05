@@ -21,8 +21,10 @@ The MVP should have these top-level dashboard pages:
 7. Procurement.
 8. Inventory.
 9. Human Resources.
-10. Document Control.
-11. Management KPI Dashboard.
+10. Marketing.
+11. Document Control.
+12. Corporate Management.
+13. Management KPI Dashboard.
 
 ## Finance And Accounting
 
@@ -144,11 +146,14 @@ Production later:
 PDF items:
 
 - Incident reporting.
+- Near miss reports.
 - Inspections.
 - Permits.
 - Audits.
 - Risk assessments.
 - Training records.
+- Safety meetings.
+- Security readiness.
 
 MVP dashboard coverage:
 
@@ -161,6 +166,8 @@ MVP dashboard coverage:
 - Audit findings by status.
 - High-risk assessments.
 - Training completion rate.
+- Safety meeting completion.
+- Security/compliance readiness placeholder.
 
 MVP drill-down:
 
@@ -313,6 +320,33 @@ Production later:
 - Final performance process.
 - Applicant tracking workflow.
 
+## Marketing
+
+PDF items:
+
+- Marketing as a connected business function.
+- Customer satisfaction as a stated transformation objective.
+
+MVP dashboard coverage:
+
+- Customer pipeline.
+- Service proposals.
+- Customer satisfaction and feedback.
+- Follow-up actions.
+- Opportunity value by customer or service type.
+
+MVP drill-down:
+
+- Marketing record detail.
+- Customer pipeline.
+- Customer feedback.
+
+Production later:
+
+- CRM integration.
+- Campaign management.
+- Final customer satisfaction process.
+
 ## Document Control
 
 PDF items:
@@ -392,6 +426,45 @@ Production later:
 - Advanced forecasting.
 - Scenario planning.
 
+## Corporate Management
+
+PDF items:
+
+- Executive Management.
+- Board resolutions.
+- Legal cases.
+- Insurance.
+- Contracts.
+- Internal audit.
+- KPI dashboard.
+- Recommended systems.
+- Other essential programs: Power BI, Microsoft 365, Teams, SharePoint, DocuSign, AIS/GPS fleet tracking.
+
+MVP dashboard coverage:
+
+- Corporate action list.
+- Board resolution register.
+- Legal case placeholder.
+- Insurance and contract governance view.
+- Internal audit actions.
+- KPI dashboard governance record.
+- Recommended systems register.
+- Essential programs register.
+
+MVP drill-down:
+
+- Corporate record detail.
+- Recommended system detail.
+- Essential program detail.
+- Internal audit action.
+
+Production later:
+
+- Legal case management integration.
+- Internal audit workflows.
+- Board pack automation.
+- Microsoft 365, SharePoint, DocuSign, Power BI, and AIS/GPS integrations.
+
 ## Recommended First Dashboard Layout
 
 ### Row 1: Executive Summary
@@ -436,7 +509,9 @@ Production later:
 - Procurement.
 - Inventory.
 - Human Resources.
+- Marketing.
 - Document Control.
+- Corporate Management.
 
 ## Final Coverage Checklist
 
@@ -450,8 +525,12 @@ Before demo, confirm:
 - Procurement is visible.
 - Inventory is visible.
 - Human Resources is visible.
+- Marketing is visible.
 - Document Control is visible.
+- Corporate Management is visible.
 - Management KPIs are visible.
+- Legal cases and internal audit are visible as MVP placeholders.
+- Recommended systems and essential programs are visible.
 - Odoo recommendation is acknowledged as an implementation option.
 - Power BI is acknowledged as a reporting/dashboard option.
 - AIS/GPS is visible as an MVP placeholder and future integration.

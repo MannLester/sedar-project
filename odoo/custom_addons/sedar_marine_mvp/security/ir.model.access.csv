@@ -13,3 +13,5 @@ access_sedar_procurement_record,sedar.procurement.record,model_sedar_procurement
 access_sedar_inventory_item,sedar.inventory.item,model_sedar_inventory_item,base.group_user,1,1,1,1
 access_sedar_hr_record,sedar.hr.record,model_sedar_hr_record,base.group_user,1,1,1,1
 access_sedar_document_control,sedar.document.control,model_sedar_document_control,base.group_user,1,1,1,1
+access_sedar_marketing_record,sedar.marketing.record,model_sedar_marketing_record,base.group_user,1,1,1,1
+access_sedar_corporate_record,sedar.corporate.record,model_sedar_corporate_record,base.group_user,1,1,1,1
