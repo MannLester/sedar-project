@@ -650,6 +650,11 @@
         <field name="view_mode">list,form</field>
     </record>
 
+    <record id="action_sedar_document_risk_dashboard" model="ir.actions.client">
+        <field name="name">Document Expiry Risk</field>
+        <field name="tag">sedar_document_risk_dashboard</field>
+    </record>
+
     <menuitem id="menu_sedar_president_app" name="SEDAR Dashboard" action="action_sedar_dashboard_metric" sequence="5"/>
 
     <menuitem id="menu_sedar_operations_app" name="Marine Operations" action="action_sedar_job_order" sequence="10"/>
@@ -687,7 +692,7 @@
     <menuitem id="menu_sedar_hr_records" name="Employee, Attendance, Performance" parent="menu_sedar_hr_app" action="action_sedar_hr_record" sequence="1"/>
     <menuitem id="menu_sedar_hr_crew" name="Marine Crew Link" parent="menu_sedar_hr_app" action="action_sedar_crew_member" sequence="2"/>
 
-    <menuitem id="menu_sedar_documents_app" name="Document Control" action="action_sedar_document_control" sequence="90"/>
+    <menuitem id="menu_sedar_documents_app" name="Document Control" action="action_sedar_document_risk_dashboard" sequence="90"/>
     <menuitem id="menu_sedar_documents_control" name="Document Control Register" parent="menu_sedar_documents_app" action="action_sedar_document_control" sequence="1"/>
     <menuitem id="menu_sedar_documents_vessels" name="Vessel Certificate Context" parent="menu_sedar_documents_app" action="action_sedar_vessel" sequence="2"/>
 

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sedar_marine_mvp.DocumentRiskDashboard">
+        <div class="o_sedar_document_dashboard">
+            <div class="o_sedar_dashboard_topbar">
+                <div>
+                    <h1>Document Expiry Risk</h1>
+                    <p>Compliance readiness across contracts, certificates, permits, policies, and ISO records</p>
+                </div>
+            </div>
+
+            <t t-if="state.loading">
+                <div class="o_sedar_dashboard_loading">Loading document risk dashboard...</div>
+            </t>
+
+            <t t-else="">
+                <div class="o_sedar_risk_grid">
+                    <section class="o_sedar_risk_card o_sedar_risk_donut_card">
+                        <div class="o_sedar_card_header">
+                            <div>
+                                <h2>Expiry Readiness</h2>
+                                <p>Status distribution for controlled documents</p>
+                            </div>
+                            <button class="o_sedar_icon_button" title="Open all documents" aria-label="Open all documents" t-on-click="() => this.openRegister()">
+                                <i class="fa fa-chevron-right"/>
+                            </button>
+                        </div>
+
+                        <div class="o_sedar_donut_wrap">
+                            <button class="o_sedar_donut" title="Open all documents" aria-label="Open all documents" t-att-style="state.donutStyle" t-on-click="() => this.openRegister()">
+                                <span class="o_sedar_donut_inner">
+                                    <strong t-esc="state.total"/>
+                                    <span>Total Documents</span>
+                                </span>
+                            </button>
+                        </div>
+
+                        <div class="o_sedar_risk_legend">
+                            <t t-foreach="state.statuses" t-as="status" t-key="status.key">
+                                <button class="o_sedar_legend_item" t-on-click="() => this.openStatus(status.key)">
+                                    <span class="o_sedar_legend_dot" t-att-style="'background:' + status.color"/>
+                                    <span class="o_sedar_legend_label" t-esc="status.label"/>
+                                    <strong t-esc="this.getLegendValue(status)"/>
+                                </button>
+                            </t>
+                        </div>
+                    </section>
+
+                    <section class="o_sedar_risk_card o_sedar_risk_summary_card">
+                        <div class="o_sedar_card_header">
+                            <div>
+                                <h2>Risk Queue</h2>
+                                <p>Documents that need attention</p>
+                            </div>
+                            <button class="o_sedar_icon_button" title="Open risk queue" aria-label="Open risk queue" t-on-click="() => this.openRiskRegister()">
+                                <i class="fa fa-chevron-right"/>
+                            </button>
+                        </div>
+                        <div class="o_sedar_big_metric">
+                            <strong t-esc="state.criticalCount"/>
+                            <span>Renewal or expiry risks</span>
+                        </div>
+                        <div class="o_sedar_risk_actions">
+                            <button t-on-click="() => this.openStatus('renewal')">
+                                <span>For Renewal</span>
+                                <strong t-esc="state.renewalCount"/>
+                            </button>
+                            <button t-on-click="() => this.openStatus('expired')">
+                                <span>Expired</span>
+                                <strong t-esc="state.expiredCount"/>
+                            </button>
+                            <button t-on-click="() => this.openStatus('missing')">
+                                <span>No Expiry Date</span>
+                                <strong t-esc="state.missingCount"/>
+                            </button>
+                        </div>
+                    </section>
+                </div>
+
+                <section class="o_sedar_risk_card o_sedar_distribution_card">
+                    <div class="o_sedar_card_header">
+                        <div>
+                            <h2>Risk by Document Category</h2>
+                            <p>Valid, renewal, and expired exposure by controlled document type</p>
+                        </div>
+                        <div class="o_sedar_chart_key">
+                            <span><i class="o_sedar_key_valid"/>Valid</span>
+                            <span><i class="o_sedar_key_renewal"/>For Renewal</span>
+                            <span><i class="o_sedar_key_expired"/>Expired</span>
+                        </div>
+                    </div>
+
+                    <div class="o_sedar_category_chart">
+                        <t t-foreach="state.categories" t-as="category" t-key="category.key">
+                            <button class="o_sedar_category_row" t-on-click="() => this.openCategory(category.key)">
+                                <span class="o_sedar_category_label" t-esc="category.label"/>
+                                <span class="o_sedar_stacked_bar">
+                                    <span class="o_sedar_bar_valid" t-att-style="'width:' + category.validPct + '%'"/>
+                                    <span class="o_sedar_bar_renewal" t-att-style="'width:' + category.renewalPct + '%'"/>
+                                    <span class="o_sedar_bar_expired" t-att-style="'width:' + category.expiredPct + '%'"/>
+                                </span>
+                                <span class="o_sedar_category_counts">
+                                    <strong t-esc="category.total"/>
+                                    <span>docs</span>
+                                </span>
+                            </button>
+                        </t>
+                    </div>
+                </section>
+            </t>
+        </div>
+    </t>
+</templates>
