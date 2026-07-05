@@ -1,0 +1,19 @@
+# Python/Odoo generated files
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Local Odoo/Docker runtime data
+.local/
+*.log
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Environment files
+.env
+.env.*
+

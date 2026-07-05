@@ -1,0 +1,16 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_sedar_dashboard_metric,sedar.dashboard.metric,model_sedar_dashboard_metric,base.group_user,1,1,1,1
+access_sedar_vessel,sedar.vessel,model_sedar_vessel,base.group_user,1,1,1,1
+access_sedar_customer,sedar.customer,model_sedar_customer,base.group_user,1,1,1,1
+access_sedar_job_order,sedar.job.order,model_sedar_job_order,base.group_user,1,1,1,1
+access_sedar_voyage_log,sedar.voyage.log,model_sedar_voyage_log,base.group_user,1,1,1,1
+access_sedar_finance_record,sedar.finance.record,model_sedar_finance_record,base.group_user,1,1,1,1
+access_sedar_crew_member,sedar.crew.member,model_sedar_crew_member,base.group_user,1,1,1,1
+access_sedar_crew_certificate,sedar.crew.certificate,model_sedar_crew_certificate,base.group_user,1,1,1,1
+access_sedar_maintenance_work_order,sedar.maintenance.work.order,model_sedar_maintenance_work_order,base.group_user,1,1,1,1
+access_sedar_hse_record,sedar.hse.record,model_sedar_hse_record,base.group_user,1,1,1,1
+access_sedar_procurement_record,sedar.procurement.record,model_sedar_procurement_record,base.group_user,1,1,1,1
+access_sedar_inventory_item,sedar.inventory.item,model_sedar_inventory_item,base.group_user,1,1,1,1
+access_sedar_hr_record,sedar.hr.record,model_sedar_hr_record,base.group_user,1,1,1,1
+access_sedar_document_control,sedar.document.control,model_sedar_document_control,base.group_user,1,1,1,1
+

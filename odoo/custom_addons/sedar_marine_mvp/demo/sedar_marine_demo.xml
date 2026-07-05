@@ -1,0 +1,470 @@
+<odoo>
+    <record id="metric_revenue" model="sedar.dashboard.metric">
+        <field name="sequence">1</field>
+        <field name="module_area">finance</field>
+        <field name="name">Revenue This Month</field>
+        <field name="value">PHP 4.8M</field>
+        <field name="status">good</field>
+        <field name="note">Finance and accounting sample metric covering billing and GL summary.</field>
+    </record>
+    <record id="metric_cash" model="sedar.dashboard.metric">
+        <field name="sequence">2</field>
+        <field name="module_area">finance</field>
+        <field name="name">Cash Position</field>
+        <field name="value">PHP 2.1M</field>
+        <field name="status">watch</field>
+        <field name="note">Cash flow placeholder until bank integration and reconciliation are implemented.</field>
+    </record>
+    <record id="metric_utilization" model="sedar.dashboard.metric">
+        <field name="sequence">3</field>
+        <field name="module_area">management</field>
+        <field name="name">Fleet Utilization</field>
+        <field name="value">72</field>
+        <field name="unit">%</field>
+        <field name="status">good</field>
+        <field name="note">Management KPI for tug utilization.</field>
+    </record>
+    <record id="metric_availability" model="sedar.dashboard.metric">
+        <field name="sequence">4</field>
+        <field name="module_area">management</field>
+        <field name="name">Vessel Availability</field>
+        <field name="value">86</field>
+        <field name="unit">%</field>
+        <field name="status">good</field>
+        <field name="note">Availability reflects maintenance and dry dock sample records.</field>
+    </record>
+    <record id="metric_jobs_delayed" model="sedar.dashboard.metric">
+        <field name="sequence">5</field>
+        <field name="module_area">operations</field>
+        <field name="name">Delayed Jobs</field>
+        <field name="value">3</field>
+        <field name="status">watch</field>
+        <field name="note">Tug operations metric covering dispatch, scheduling, and voyage delays.</field>
+    </record>
+    <record id="metric_maintenance" model="sedar.dashboard.metric">
+        <field name="sequence">6</field>
+        <field name="module_area">maintenance</field>
+        <field name="name">Overdue Work Orders</field>
+        <field name="value">2</field>
+        <field name="status">risk</field>
+        <field name="note">Technical and maintenance risk across PMS, work orders, spare parts, and equipment history.</field>
+    </record>
+    <record id="metric_hse" model="sedar.dashboard.metric">
+        <field name="sequence">7</field>
+        <field name="module_area">hse</field>
+        <field name="name">Open HSE Actions</field>
+        <field name="value">4</field>
+        <field name="status">watch</field>
+        <field name="note">HSE metric covering incidents, inspections, permits, audits, risk assessments, and training.</field>
+    </record>
+    <record id="metric_crew" model="sedar.dashboard.metric">
+        <field name="sequence">8</field>
+        <field name="module_area">crewing</field>
+        <field name="name">Crew Documents Expiring</field>
+        <field name="value">5</field>
+        <field name="status">risk</field>
+        <field name="note">Crewing metric covering STCW, medicals, certifications, leave, and payroll integration placeholder.</field>
+    </record>
+    <record id="metric_procurement" model="sedar.dashboard.metric">
+        <field name="sequence">9</field>
+        <field name="module_area">procurement</field>
+        <field name="name">PRs Pending Approval</field>
+        <field name="value">6</field>
+        <field name="status">watch</field>
+        <field name="note">Procurement approval workflow placeholder for purchase requests and purchase orders.</field>
+    </record>
+    <record id="metric_inventory" model="sedar.dashboard.metric">
+        <field name="sequence">10</field>
+        <field name="module_area">inventory</field>
+        <field name="name">Low Stock Items</field>
+        <field name="value">8</field>
+        <field name="status">risk</field>
+        <field name="note">Inventory metric covering spare parts, fuel, lubricants, office supplies, warehouse, and barcode placeholder.</field>
+    </record>
+    <record id="metric_hr" model="sedar.dashboard.metric">
+        <field name="sequence">11</field>
+        <field name="module_area">hr</field>
+        <field name="name">HR Actions Due</field>
+        <field name="value">7</field>
+        <field name="status">watch</field>
+        <field name="note">HR metric covering employee records, attendance, performance evaluation, and recruitment.</field>
+    </record>
+    <record id="metric_documents" model="sedar.dashboard.metric">
+        <field name="sequence">12</field>
+        <field name="module_area">documents</field>
+        <field name="name">Documents For Renewal</field>
+        <field name="value">9</field>
+        <field name="status">risk</field>
+        <field name="note">Document control metric covering contracts, certificates, insurance, permits, board resolutions, and ISO documents.</field>
+    </record>
+
+    <record id="vessel_aurora" model="sedar.vessel">
+        <field name="name">MT Aurora</field>
+        <field name="registry_no">SEDAR-TUG-001</field>
+        <field name="vessel_type">harbor_tug</field>
+        <field name="horsepower">4200</field>
+        <field name="bollard_pull">55</field>
+        <field name="home_port">Manila</field>
+        <field name="status">available</field>
+        <field name="utilization_rate">78</field>
+        <field name="availability_rate">92</field>
+        <field name="fuel_on_hand">12500</field>
+        <field name="certificate_expiry">2026-09-30</field>
+        <field name="insurance_expiry">2026-12-15</field>
+    </record>
+    <record id="vessel_baystar" model="sedar.vessel">
+        <field name="name">MT Baystar</field>
+        <field name="registry_no">SEDAR-TUG-002</field>
+        <field name="vessel_type">tow_tug</field>
+        <field name="horsepower">3600</field>
+        <field name="bollard_pull">48</field>
+        <field name="home_port">Batangas</field>
+        <field name="status">maintenance</field>
+        <field name="utilization_rate">61</field>
+        <field name="availability_rate">74</field>
+        <field name="fuel_on_hand">8200</field>
+        <field name="certificate_expiry">2026-08-20</field>
+        <field name="insurance_expiry">2026-10-05</field>
+    </record>
+    <record id="vessel_coastal" model="sedar.vessel">
+        <field name="name">MT Coastal Pride</field>
+        <field name="registry_no">SEDAR-TUG-003</field>
+        <field name="vessel_type">harbor_tug</field>
+        <field name="horsepower">5000</field>
+        <field name="bollard_pull">65</field>
+        <field name="home_port">Subic</field>
+        <field name="status">assigned</field>
+        <field name="utilization_rate">84</field>
+        <field name="availability_rate">88</field>
+        <field name="fuel_on_hand">14300</field>
+        <field name="certificate_expiry">2027-01-12</field>
+        <field name="insurance_expiry">2027-02-01</field>
+    </record>
+
+    <record id="customer_oceanlink" model="sedar.customer">
+        <field name="name">Oceanlink Shipping</field>
+        <field name="customer_type">shipping</field>
+        <field name="billing_terms">30 days</field>
+        <field name="contract_status">active</field>
+        <field name="receivable_balance">780000</field>
+        <field name="margin_rate">28</field>
+    </record>
+    <record id="customer_harbor_terminal" model="sedar.customer">
+        <field name="name">Harbor Gateway Terminal</field>
+        <field name="customer_type">terminal</field>
+        <field name="billing_terms">45 days</field>
+        <field name="contract_status">renewal</field>
+        <field name="receivable_balance">1250000</field>
+        <field name="margin_rate">22</field>
+    </record>
+
+    <record id="job_001" model="sedar.job.order">
+        <field name="name">JOB-2026-001 Ship Assist</field>
+        <field name="customer_id" ref="customer_oceanlink"/>
+        <field name="service_type">ship_assist</field>
+        <field name="vessel_id" ref="vessel_aurora"/>
+        <field name="requested_datetime">2026-07-04 08:00:00</field>
+        <field name="scheduled_datetime">2026-07-04 10:00:00</field>
+        <field name="origin">Manila Anchorage</field>
+        <field name="destination">Berth 5</field>
+        <field name="status">billed</field>
+        <field name="billable_amount">420000</field>
+        <field name="direct_cost">285000</field>
+    </record>
+    <record id="job_002" model="sedar.job.order">
+        <field name="name">JOB-2026-002 Barge Tow</field>
+        <field name="customer_id" ref="customer_harbor_terminal"/>
+        <field name="service_type">barge_tow</field>
+        <field name="vessel_id" ref="vessel_coastal"/>
+        <field name="requested_datetime">2026-07-05 02:00:00</field>
+        <field name="scheduled_datetime">2026-07-05 05:00:00</field>
+        <field name="origin">Subic Yard</field>
+        <field name="destination">Terminal Basin</field>
+        <field name="status">dispatched</field>
+        <field name="delay_reason">Waiting for berth clearance</field>
+        <field name="billable_amount">560000</field>
+        <field name="direct_cost">410000</field>
+    </record>
+
+    <record id="voyage_001" model="sedar.voyage.log">
+        <field name="name">VOY-2026-001</field>
+        <field name="job_id" ref="job_001"/>
+        <field name="start_datetime">2026-07-04 10:10:00</field>
+        <field name="end_datetime">2026-07-04 15:25:00</field>
+        <field name="voyage_hours">5.25</field>
+        <field name="fuel_used">1800</field>
+        <field name="waiting_hours">0.75</field>
+        <field name="remarks">Completed ship assist with billable waiting time.</field>
+    </record>
+
+    <record id="finance_ar_001" model="sedar.finance.record">
+        <field name="name">INV-2026-001</field>
+        <field name="record_type">ar</field>
+        <field name="customer_id" ref="customer_oceanlink"/>
+        <field name="job_id" ref="job_001"/>
+        <field name="amount">420000</field>
+        <field name="invoice_date">2026-07-04</field>
+        <field name="due_date">2026-08-03</field>
+        <field name="status">open</field>
+        <field name="aging_bucket">current</field>
+        <field name="note">Towage billing sample record.</field>
+    </record>
+    <record id="finance_budget_001" model="sedar.finance.record">
+        <field name="name">BUD-OPS-2026-07</field>
+        <field name="record_type">budget</field>
+        <field name="amount">3500000</field>
+        <field name="invoice_date">2026-07-01</field>
+        <field name="status">open</field>
+        <field name="note">Monthly operations budget sample.</field>
+    </record>
+    <record id="finance_asset_001" model="sedar.finance.record">
+        <field name="name">FA-MT-AURORA</field>
+        <field name="record_type">asset</field>
+        <field name="amount">52000000</field>
+        <field name="invoice_date">2026-01-01</field>
+        <field name="status">open</field>
+        <field name="note">Fixed asset register placeholder for MT Aurora.</field>
+    </record>
+    <record id="finance_payroll_001" model="sedar.finance.record">
+        <field name="name">PAY-CREW-2026-07</field>
+        <field name="record_type">payroll</field>
+        <field name="amount">980000</field>
+        <field name="invoice_date">2026-07-15</field>
+        <field name="status">draft</field>
+        <field name="note">Payroll summary placeholder for Odoo Community MVP.</field>
+    </record>
+
+    <record id="crew_juan" model="sedar.crew.member">
+        <field name="name">Juan Dela Cruz</field>
+        <field name="rank">Master</field>
+        <field name="availability">assigned</field>
+        <field name="vessel_id" ref="vessel_aurora"/>
+        <field name="stcw_expiry">2026-08-10</field>
+        <field name="medical_expiry">2026-09-01</field>
+        <field name="certificate_status">expiring</field>
+        <field name="payroll_group">Marine Crew</field>
+    </record>
+    <record id="crew_maria" model="sedar.crew.member">
+        <field name="name">Maria Santos</field>
+        <field name="rank">Chief Engineer</field>
+        <field name="availability">available</field>
+        <field name="vessel_id" ref="vessel_baystar"/>
+        <field name="stcw_expiry">2027-02-20</field>
+        <field name="medical_expiry">2026-07-28</field>
+        <field name="certificate_status">expiring</field>
+        <field name="payroll_group">Marine Crew</field>
+    </record>
+    <record id="cert_juan_stcw" model="sedar.crew.certificate">
+        <field name="name">STCW Basic Training</field>
+        <field name="crew_id" ref="crew_juan"/>
+        <field name="certificate_type">stcw</field>
+        <field name="expiry_date">2026-08-10</field>
+        <field name="status">expiring</field>
+    </record>
+
+    <record id="maintenance_001" model="sedar.maintenance.work.order">
+        <field name="name">WO-2026-001 Main Engine Inspection</field>
+        <field name="vessel_id" ref="vessel_baystar"/>
+        <field name="work_type">planned</field>
+        <field name="equipment">Main Engine</field>
+        <field name="severity">high</field>
+        <field name="due_date">2026-07-08</field>
+        <field name="downtime_hours">18</field>
+        <field name="cost">240000</field>
+        <field name="status">waiting_parts</field>
+        <field name="spare_parts_note">Waiting for fuel injector kit.</field>
+        <field name="equipment_history">Repeat vibration issue observed in June and July.</field>
+    </record>
+    <record id="maintenance_002" model="sedar.maintenance.work.order">
+        <field name="name">DD-2026-001 Dry Dock Planning</field>
+        <field name="vessel_id" ref="vessel_aurora"/>
+        <field name="work_type">dry_dock</field>
+        <field name="equipment">Hull and Propulsion</field>
+        <field name="severity">medium</field>
+        <field name="due_date">2026-09-01</field>
+        <field name="downtime_hours">0</field>
+        <field name="cost">1500000</field>
+        <field name="status">open</field>
+    </record>
+
+    <record id="hse_001" model="sedar.hse.record">
+        <field name="name">HSE-2026-001 Near Miss During Berthing</field>
+        <field name="record_type">near_miss</field>
+        <field name="vessel_id" ref="vessel_aurora"/>
+        <field name="job_id" ref="job_001"/>
+        <field name="event_date">2026-07-04</field>
+        <field name="risk_level">medium</field>
+        <field name="corrective_action">Review communication protocol with pilot and crew.</field>
+        <field name="responsible_person">HSE Officer</field>
+        <field name="due_date">2026-07-12</field>
+        <field name="status">open</field>
+    </record>
+    <record id="hse_002" model="sedar.hse.record">
+        <field name="name">PERMIT-2026-001 Hot Work Permit</field>
+        <field name="record_type">permit</field>
+        <field name="vessel_id" ref="vessel_baystar"/>
+        <field name="event_date">2026-07-05</field>
+        <field name="risk_level">high</field>
+        <field name="responsible_person">Technical Superintendent</field>
+        <field name="due_date">2026-07-06</field>
+        <field name="status">in_progress</field>
+    </record>
+    <record id="hse_003" model="sedar.hse.record">
+        <field name="name">TRAIN-2026-001 Safety Meeting Attendance</field>
+        <field name="record_type">training</field>
+        <field name="event_date">2026-07-03</field>
+        <field name="risk_level">low</field>
+        <field name="responsible_person">Training Coordinator</field>
+        <field name="status">closed</field>
+    </record>
+
+    <record id="procurement_001" model="sedar.procurement.record">
+        <field name="name">PR-2026-001 Fuel Injector Kit</field>
+        <field name="record_type">pr</field>
+        <field name="supplier">Marine Parts PH</field>
+        <field name="requested_by">Technical Department</field>
+        <field name="request_date">2026-07-05</field>
+        <field name="amount">185000</field>
+        <field name="status">pending_approval</field>
+        <field name="approval_owner">Operations Director</field>
+        <field name="maintenance_id" ref="maintenance_001"/>
+        <field name="note">Urgent part needed for vessel availability.</field>
+    </record>
+    <record id="procurement_002" model="sedar.procurement.record">
+        <field name="name">PO-2026-004 Lubricants</field>
+        <field name="record_type">po</field>
+        <field name="supplier">Harbor Oil Supply</field>
+        <field name="requested_by">Inventory</field>
+        <field name="request_date">2026-07-02</field>
+        <field name="amount">320000</field>
+        <field name="status">ordered</field>
+        <field name="approval_owner">Finance Manager</field>
+    </record>
+
+    <record id="inventory_001" model="sedar.inventory.item">
+        <field name="name">Fuel Injector Kit</field>
+        <field name="category">spare</field>
+        <field name="warehouse">Main Warehouse</field>
+        <field name="barcode">SEDAR-SP-0001</field>
+        <field name="quantity_on_hand">1</field>
+        <field name="reorder_point">4</field>
+        <field name="unit_cost">92500</field>
+        <field name="status">critical</field>
+    </record>
+    <record id="inventory_002" model="sedar.inventory.item">
+        <field name="name">Marine Diesel Fuel</field>
+        <field name="category">fuel</field>
+        <field name="warehouse">Fuel Tank A</field>
+        <field name="barcode">SEDAR-FUEL-001</field>
+        <field name="quantity_on_hand">54000</field>
+        <field name="reorder_point">30000</field>
+        <field name="unit_cost">62</field>
+        <field name="status">ok</field>
+    </record>
+    <record id="inventory_003" model="sedar.inventory.item">
+        <field name="name">Engine Lubricant 40L</field>
+        <field name="category">lubricant</field>
+        <field name="warehouse">Main Warehouse</field>
+        <field name="barcode">SEDAR-LUBE-040</field>
+        <field name="quantity_on_hand">12</field>
+        <field name="reorder_point">20</field>
+        <field name="unit_cost">6800</field>
+        <field name="status">low</field>
+    </record>
+    <record id="inventory_004" model="sedar.inventory.item">
+        <field name="name">Office Supplies Pack</field>
+        <field name="category">office</field>
+        <field name="warehouse">Admin Store</field>
+        <field name="barcode">SEDAR-OFF-001</field>
+        <field name="quantity_on_hand">35</field>
+        <field name="reorder_point">15</field>
+        <field name="unit_cost">1200</field>
+        <field name="status">ok</field>
+    </record>
+
+    <record id="hr_001" model="sedar.hr.record">
+        <field name="name">Employee Records Register</field>
+        <field name="department">HR</field>
+        <field name="record_type">employee</field>
+        <field name="status">active</field>
+        <field name="summary">Sample employee master data coverage.</field>
+    </record>
+    <record id="hr_002" model="sedar.hr.record">
+        <field name="name">July Attendance Summary</field>
+        <field name="department">Operations</field>
+        <field name="record_type">attendance</field>
+        <field name="status">active</field>
+        <field name="summary">Attendance placeholder pending final timekeeping process.</field>
+    </record>
+    <record id="hr_003" model="sedar.hr.record">
+        <field name="name">Performance Reviews Due</field>
+        <field name="department">Technical</field>
+        <field name="record_type">performance</field>
+        <field name="status">due</field>
+        <field name="summary">Performance evaluation sample record.</field>
+    </record>
+    <record id="hr_004" model="sedar.hr.record">
+        <field name="name">Recruitment: Tug Master Pool</field>
+        <field name="department">Crewing</field>
+        <field name="record_type">recruitment</field>
+        <field name="status">pending</field>
+        <field name="summary">Recruitment pipeline placeholder.</field>
+    </record>
+
+    <record id="doc_001" model="sedar.document.control">
+        <field name="name">Oceanlink Towage Contract</field>
+        <field name="document_type">contract</field>
+        <field name="owner_department">Commercial</field>
+        <field name="expiry_date">2026-10-31</field>
+        <field name="renewal_owner">Commercial Manager</field>
+        <field name="status">renewal</field>
+        <field name="version">2.1</field>
+    </record>
+    <record id="doc_002" model="sedar.document.control">
+        <field name="name">MT Aurora Safety Certificate</field>
+        <field name="document_type">vessel_certificate</field>
+        <field name="owner_department">Technical</field>
+        <field name="vessel_id" ref="vessel_aurora"/>
+        <field name="expiry_date">2026-09-30</field>
+        <field name="renewal_owner">Technical Superintendent</field>
+        <field name="status">renewal</field>
+        <field name="version">1.0</field>
+    </record>
+    <record id="doc_003" model="sedar.document.control">
+        <field name="name">Fleet Insurance Policy</field>
+        <field name="document_type">insurance</field>
+        <field name="owner_department">Finance</field>
+        <field name="expiry_date">2026-12-15</field>
+        <field name="renewal_owner">Finance Manager</field>
+        <field name="status">valid</field>
+        <field name="version">2026</field>
+    </record>
+    <record id="doc_004" model="sedar.document.control">
+        <field name="name">Port Operations Permit</field>
+        <field name="document_type">permit</field>
+        <field name="owner_department">Operations</field>
+        <field name="expiry_date">2026-08-15</field>
+        <field name="renewal_owner">Operations Manager</field>
+        <field name="status">renewal</field>
+        <field name="version">1.0</field>
+    </record>
+    <record id="doc_005" model="sedar.document.control">
+        <field name="name">Board Resolution: Fleet Expansion</field>
+        <field name="document_type">board_resolution</field>
+        <field name="owner_department">Corporate</field>
+        <field name="expiry_date">2027-01-01</field>
+        <field name="renewal_owner">Corporate Secretary</field>
+        <field name="status">valid</field>
+        <field name="version">BR-2026-04</field>
+    </record>
+    <record id="doc_006" model="sedar.document.control">
+        <field name="name">ISO Safety Procedure Manual</field>
+        <field name="document_type">iso</field>
+        <field name="owner_department">HSE</field>
+        <field name="expiry_date">2026-11-20</field>
+        <field name="renewal_owner">HSE Officer</field>
+        <field name="status">valid</field>
+        <field name="version">3.0</field>
+    </record>
+</odoo>
+
