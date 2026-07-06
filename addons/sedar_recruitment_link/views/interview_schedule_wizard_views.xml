@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_sedar_interview_schedule_wizard_form" model="ir.ui.view">
+        <field name="name">sedar.interview.schedule.wizard.form</field>
+        <field name="model">sedar.interview.schedule.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Schedule Interview">
+                <group>
+                    <group>
+                        <field name="applicant_id" readonly="1"/>
+                        <field name="interview_datetime"/>
+                        <field name="selected_day_warning" nolabel="1" readonly="1"/>
+                        <field name="interview_mode" widget="radio"/>
+                        <field name="interview_location" placeholder="Example: HR Office - Pier 12, or Microsoft Teams link"/>
+                        <field name="note" placeholder="Optional note for the HR interview panel."/>
+                    </group>
+                    <group string="Calendar Occupancy">
+                        <field name="occupied_dates_html" nolabel="1" readonly="1"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_schedule" string="Schedule Interview" type="object" class="btn-primary"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

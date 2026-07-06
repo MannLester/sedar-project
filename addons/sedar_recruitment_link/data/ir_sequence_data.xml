@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="seq_sedar_job_dispatch" model="ir.sequence">
+        <field name="name">SEDAR Job Dispatch</field>
+        <field name="code">sedar.job.dispatch</field>
+        <field name="prefix">JDO-</field>
+        <field name="padding">5</field>
+    </record>
+</odoo>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="sedar_login_layout" inherit_id="web.login_layout" name="SEDAR Login Layout" priority="30">
+        <xpath expr="//t[@t-set='body_classname']" position="replace">
+            <t t-set="body_classname" t-value="'o_sedar_login_body'"/>
+        </xpath>
+
+        <xpath expr="//div[hasclass('container')]" position="replace">
+            <main class="o_sedar_login_page">
+                <section class="o_sedar_login_hero" aria-label="SEDAR Tug Services login">
+                    <div class="o_sedar_login_visual">
+                        <div class="o_sedar_login_visual_overlay"/>
+                        <div class="o_sedar_login_hero_copy">
+                            <img class="o_sedar_login_logo_wide" src="/sedar_theme/static/src/img/sedar-logo-wide.png" alt="SEDAR Tug Services Corp."/>
+                            <p class="o_sedar_login_kicker">Marine Operations ERP</p>
+                            <h1>Command center for tug operations, crewing, safety, and finance.</h1>
+                            <p class="o_sedar_login_intro">
+                                One secure portal for dispatch, hiring, vessel records, compliance, and executive reporting.
+                            </p>
+                            <div class="o_sedar_login_metrics" aria-label="Operational focus areas">
+                                <div>
+                                    <strong>24/7</strong>
+                                    <span>Fleet Support</span>
+                                </div>
+                                <div>
+                                    <strong>ERP</strong>
+                                    <span>Integrated Workflows</span>
+                                </div>
+                                <div>
+                                    <strong>HSSE</strong>
+                                    <span>Compliance Ready</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="o_sedar_login_panel_wrap">
+                        <div class="o_sedar_login_panel">
+                            <div class="o_sedar_login_panel_header">
+                                <img class="o_sedar_login_logo" src="/sedar_theme/static/src/img/sedar-logo-login.png" alt="SEDAR Tug Services Corp."/>
+                                <div>
+                                    <p>Welcome back</p>
+                                    <h2>Sign in to SEDAR ERP</h2>
+                                </div>
+                            </div>
+                            <div class="o_sedar_login_form_slot">
+                                <t t-out="0"/>
+                            </div>
+                            <div class="o_sedar_login_help">
+                                <span>Need access?</span>
+                                <a href="mailto:admin@sedartug.local">Contact system administrator</a>
+                            </div>
+                            <div class="text-center small mt-4 pt-3 o_sedar_login_odoo_footer" t-if="not disable_footer">
+                                <t t-if="not disable_database_manager">
+                                    <a class="border-end pe-2 me-1" href="/web/database/manager">Manage Databases</a>
+                                </t>
+                                <a href="https://www.odoo.com?utm_source=db&amp;utm_medium=auth" target="_blank">Powered by <span>Odoo</span></a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <footer class="o_sedar_login_footer">
+                    <div class="o_sedar_login_footer_inner">
+                        <section>
+                            <h3>Mission</h3>
+                            <p>Deliver dependable tug services through disciplined operations, safe crews, and responsive support for every client movement.</p>
+                        </section>
+                        <section>
+                            <h3>Vision</h3>
+                            <p>To be a trusted marine operations partner known for reliability, safety, transparent reporting, and operational excellence.</p>
+                        </section>
+                        <section>
+                            <h3>Contact</h3>
+                            <p>Operations Desk: Manila South Harbor<br/>Email: operations@sedartug.local<br/>Phone: +63 2 0000 0000</p>
+                        </section>
+                    </div>
+                </footer>
+            </main>
+        </xpath>
+    </template>
+</odoo>

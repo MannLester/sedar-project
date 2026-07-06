@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <menuitem id="menu_sedar_job_hiring_root" name="Job Hiring" parent="hr_recruitment.menu_hr_recruitment_root" action="action_sedar_job_hiring_overview" sequence="1"/>
+    <menuitem id="menu_sedar_job_dispatch" name="Job Dispatch Orders" parent="menu_sedar_job_hiring_root" action="action_sedar_job_dispatch" sequence="10"/>
+    <menuitem id="menu_sedar_job_applications" name="Job Applications" parent="menu_sedar_job_hiring_root" action="action_sedar_job_applications" sequence="20"/>
+    <menuitem id="menu_sedar_pending_interviews" name="Pending Interviews" parent="menu_sedar_job_hiring_root" action="action_sedar_pending_interviews" sequence="30"/>
+    <menuitem id="menu_sedar_final_assessment" name="Final Assessment" parent="menu_sedar_job_hiring_root" action="action_sedar_final_assessment" sequence="40"/>
+    <menuitem id="menu_sedar_contract_signing" name="Contract Signing" parent="menu_sedar_job_hiring_root" action="action_sedar_contract_signing" sequence="50"/>
+</odoo>

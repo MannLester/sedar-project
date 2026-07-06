@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_sedar_job_dispatch_tree" model="ir.ui.view">
+        <field name="name">sedar.job.dispatch.tree</field>
+        <field name="model">sedar.job.dispatch</field>
+        <field name="arch" type="xml">
+            <tree string="Job Dispatch Orders" decoration-success="state == 'approved'" decoration-muted="state in ('filled', 'cancelled')">
+                <field name="name"/>
+                <field name="role_needed"/>
+                <field name="quantity"/>
+                <field name="vessel_id"/>
+                <field name="client_name"/>
+                <field name="requested_datetime"/>
+                <field name="needed_by"/>
+                <field name="applicant_count"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_sedar_job_dispatch_form" model="ir.ui.view">
+        <field name="name">sedar.job.dispatch.form</field>
+        <field name="model">sedar.job.dispatch</field>
+        <field name="arch" type="xml">
+            <form string="Job Dispatch Order">
+                <header>
+                    <button name="action_approve_publish" string="Approve and Publish Job" type="object" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_mark_filled" string="Mark Filled" type="object" invisible="state not in ('approved', 'draft')"/>
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state in ('filled', 'cancelled')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,approved,filled"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_applicants" type="object" class="oe_stat_button" icon="fa-users">
+                            <field name="applicant_count" widget="statinfo" string="Applicants"/>
+                        </button>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="role_needed"/>
+                            <field name="quantity"/>
+                            <field name="vessel_id"/>
+                            <field name="client_name"/>
+                        </group>
+                        <group>
+                            <field name="requested_datetime"/>
+                            <field name="needed_by"/>
+                            <field name="hr_job_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Request Details">
+                            <field name="missing_reason" placeholder="Example: SEDAR Kalinga is short one Captain for tomorrow's towage window."/>
+                        </page>
+                        <page string="Role Requirements">
+                            <field name="requirements" placeholder="Licenses, certifications, sea time, documents, availability, and client-specific requirements."/>
+                        </page>
+                        <page string="Applicants">
+                            <field name="applicant_ids" context="{'default_sedar_dispatch_id': id, 'default_job_id': hr_job_id}">
+                                <tree editable="bottom">
+                                    <field name="partner_name"/>
+                                    <field name="email_from"/>
+                                    <field name="sedar_hiring_state"/>
+                                    <field name="sedar_interview_datetime"/>
+                                    <field name="sedar_interview_mode"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_sedar_job_dispatch_kanban" model="ir.ui.view">
+        <field name="name">sedar.job.dispatch.kanban</field>
+        <field name="model">sedar.job.dispatch</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state">
+                <field name="name"/>
+                <field name="role_needed"/>
+                <field name="quantity"/>
+                <field name="vessel_id"/>
+                <field name="client_name"/>
+                <field name="needed_by"/>
+                <field name="applicant_count"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click">
+                            <strong><field name="role_needed"/></strong>
+                            <div><field name="quantity"/> needed</div>
+                            <div><field name="vessel_id"/><field name="client_name"/></div>
+                            <div>Needed: <field name="needed_by"/></div>
+                            <div>Applicants: <field name="applicant_count"/></div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="action_sedar_job_dispatch" model="ir.actions.act_window">
+        <field name="name">Job Dispatch Orders</field>
+        <field name="res_model">sedar.job.dispatch</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="context">{'search_default_draft': 1}</field>
+    </record>
+</odoo>

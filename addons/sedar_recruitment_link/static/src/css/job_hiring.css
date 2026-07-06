@@ -1,0 +1,178 @@
+.o_sedar_job_hiring_overview .o_kanban_renderer {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    padding: 18px;
+}
+
+.o_sedar_job_hiring_overview .o_kanban_record {
+    width: auto;
+    margin: 0;
+    border: 0;
+    background: transparent;
+}
+
+.o_sedar_hiring_card {
+    min-height: 142px;
+    border: 1px solid #d8e1ea;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 10px 28px rgba(11, 31, 52, 0.08);
+}
+
+.o_sedar_hiring_card_button {
+    display: grid;
+    grid-template-columns: 48px 1fr 54px;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    height: 100%;
+    min-height: 142px;
+    padding: 18px;
+    border: 0;
+    background: transparent;
+    color: #10243a;
+    text-align: left;
+}
+
+.o_sedar_hiring_card_button:hover {
+    background: #f5f9fc;
+}
+
+.o_sedar_hiring_card_icon {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 6px;
+    background: #08213d;
+    color: #ffffff;
+    font-size: 20px;
+}
+
+.o_sedar_hiring_card_body strong,
+.o_sedar_hiring_card_body span {
+    display: block;
+}
+
+.o_sedar_hiring_card_body strong {
+    color: #06182f;
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.o_sedar_hiring_card_body span {
+    margin-top: 7px;
+    color: #526b84;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.o_sedar_hiring_card_count {
+    display: grid;
+    place-items: center;
+    min-width: 44px;
+    height: 44px;
+    border-radius: 6px;
+    background: #eaf5fc;
+    color: #08213d;
+    font-size: 20px;
+    font-weight: 900;
+}
+
+.o_calendar_renderer .o_event {
+    border-width: 0;
+    border-radius: 4px;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.26), 0 4px 10px rgba(9, 29, 49, 0.14);
+    font-weight: 750;
+}
+
+.o_calendar_renderer .o_event .o_event_title {
+    white-space: normal;
+    line-height: 1.2;
+}
+
+.o_sedar_interview_occupied {
+    display: grid;
+    gap: 10px;
+}
+
+.o_sedar_interview_occupied_title {
+    color: #10243a;
+    font-size: 12px;
+    font-weight: 850;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+}
+
+.o_sedar_interview_day {
+    display: grid;
+    grid-template-columns: 68px 1fr;
+    gap: 10px;
+    align-items: start;
+    padding: 10px;
+    border: 1px solid #d6e2ec;
+    border-radius: 6px;
+    background: #f7fbfe;
+}
+
+.o_sedar_interview_day_badge {
+    display: grid;
+    place-items: center;
+    min-height: 52px;
+    border-radius: 5px;
+    background: #08213d;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 900;
+    line-height: 1.1;
+}
+
+.o_sedar_interview_day_badge span {
+    display: block;
+    margin-top: 3px;
+    color: #a9dbff;
+    font-size: 11px;
+}
+
+.o_sedar_interview_day ul,
+.o_sedar_interview_notice ul {
+    margin: 0;
+    padding-left: 16px;
+}
+
+.o_sedar_interview_day li,
+.o_sedar_interview_notice li {
+    color: #334d66;
+    font-size: 12px;
+    font-weight: 650;
+    line-height: 1.45;
+}
+
+.o_sedar_interview_notice {
+    margin: 0 0 10px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 750;
+}
+
+.o_sedar_interview_notice_free {
+    border: 1px solid #b8dfca;
+    background: #eefaf3;
+    color: #17613a;
+}
+
+.o_sedar_interview_notice_busy {
+    border: 1px solid #f3c187;
+    background: #fff6eb;
+    color: #7a3f00;
+}
+
+.o_sedar_interview_notice_empty {
+    border: 1px solid #d6e2ec;
+    background: #f7fbfe;
+    color: #526b84;
+}

@@ -37,80 +37,119 @@
                     </div>
 
                     <nav class="o_sedar_sidebar_nav" aria-label="SEDAR navigation">
-                        <div class="o_sedar_nav_group">
-                            <t t-foreach="menuService.getApps()" t-as="app" t-key="app.id">
-                                <a t-if="app.xmlid === 'sedar_dashboard.menu_root'"
-                                   t-att-href="getMenuItemHref(app)"
-                                   t-att-data-menu-xmlid="app.xmlid"
-                                   t-att-class="{'o_sedar_nav_item': true, 'active': currentApp and currentApp.id === app.id}"
-                                   t-on-click.prevent="() => this.onNavBarDropdownItemSelection(app)">
-                                    <i class="fa fa-th-large"/>
-                                    <span t-esc="app.name"/>
-                                </a>
-                            </t>
-                        </div>
+                        <details class="o_sedar_nav_group" open="open">
+                            <summary class="o_sedar_nav_parent">
+                                <span><i class="fa fa-users"/>Human Resources</span>
+                                <i class="fa fa-angle-down o_sedar_nav_chevron"/>
+                            </summary>
+                            <div class="o_sedar_nav_children">
+                                <details class="o_sedar_nav_subgroup" open="open">
+                                    <summary class="o_sedar_nav_item o_sedar_nav_subparent">
+                                        <span>Job Hiring</span>
+                                        <i class="fa fa-angle-down o_sedar_nav_chevron"/>
+                                    </summary>
+                                    <div class="o_sedar_nav_subchildren">
+                                        <a class="o_sedar_nav_item" href="/web#action=sedar_recruitment_link.action_sedar_job_hiring_overview&amp;model=sedar.job.hiring.overview&amp;view_type=kanban">
+                                            <span>Overview</span>
+                                        </a>
+                                        <a class="o_sedar_nav_item" href="/web#action=sedar_recruitment_link.action_sedar_job_dispatch&amp;model=sedar.job.dispatch&amp;view_type=kanban">
+                                            <span>Job Dispatch Orders</span>
+                                        </a>
+                                        <a class="o_sedar_nav_item" href="/web#action=sedar_recruitment_link.action_sedar_job_applications&amp;model=hr.applicant&amp;view_type=list">
+                                            <span>Job Applications</span>
+                                        </a>
+                                        <a class="o_sedar_nav_item" href="/web#action=sedar_recruitment_link.action_sedar_pending_interviews&amp;model=hr.applicant&amp;view_type=calendar">
+                                            <span>Pending Interviews</span>
+                                        </a>
+                                        <a class="o_sedar_nav_item" href="/web#action=sedar_recruitment_link.action_sedar_final_assessment&amp;model=hr.applicant&amp;view_type=list">
+                                            <span>Final Assessment</span>
+                                        </a>
+                                        <a class="o_sedar_nav_item" href="/web#action=sedar_recruitment_link.action_sedar_contract_signing&amp;model=hr.applicant&amp;view_type=list">
+                                            <span>Contract Signing</span>
+                                        </a>
+                                    </div>
+                                </details>
+                                <span class="o_sedar_nav_item o_sedar_nav_placeholder">Placeholder 1</span>
+                            </div>
+                        </details>
 
-                        <div class="o_sedar_nav_group">
-                            <div class="o_sedar_nav_heading">Operations &amp; Assets</div>
-                            <t t-foreach="menuService.getApps()" t-as="app" t-key="app.id">
-                                <a t-if="['sedar_tug_ops.menu_root', 'maintenance.menu_maintenance_title'].includes(app.xmlid)"
-                                   t-att-href="getMenuItemHref(app)"
-                                   t-att-data-menu-xmlid="app.xmlid"
-                                   t-att-class="{'o_sedar_nav_item': true, 'active': currentApp and currentApp.id === app.id}"
-                                   t-on-click.prevent="() => this.onNavBarDropdownItemSelection(app)">
-                                    <i t-if="app.xmlid === 'sedar_tug_ops.menu_root'" class="fa fa-ship"/>
-                                    <i t-if="app.xmlid === 'maintenance.menu_maintenance_title'" class="fa fa-wrench"/>
-                                    <span t-esc="app.name"/>
-                                </a>
-                            </t>
-                        </div>
+                        <details class="o_sedar_nav_group">
+                            <summary class="o_sedar_nav_parent">
+                                <span><i class="fa fa-money"/>Finance and Accounting</span>
+                                <i class="fa fa-angle-down o_sedar_nav_chevron"/>
+                            </summary>
+                            <div class="o_sedar_nav_children">
+                                <span class="o_sedar_nav_item o_sedar_nav_placeholder">Placeholder 1</span>
+                            </div>
+                        </details>
 
-                        <div class="o_sedar_nav_group">
-                            <div class="o_sedar_nav_heading">People &amp; Safety</div>
-                            <t t-foreach="menuService.getApps()" t-as="app" t-key="app.id">
-                                <a t-if="['sedar_crewing.menu_root', 'hr.menu_hr_root', 'hr_recruitment.menu_hr_recruitment_root', 'sedar_hsse.menu_root'].includes(app.xmlid)"
-                                   t-att-href="getMenuItemHref(app)"
-                                   t-att-data-menu-xmlid="app.xmlid"
-                                   t-att-class="{'o_sedar_nav_item': true, 'active': currentApp and currentApp.id === app.id}"
-                                   t-on-click.prevent="() => this.onNavBarDropdownItemSelection(app)">
-                                    <i t-if="app.xmlid === 'sedar_crewing.menu_root'" class="fa fa-users"/>
-                                    <i t-if="app.xmlid === 'hr.menu_hr_root'" class="fa fa-user"/>
-                                    <i t-if="app.xmlid === 'hr_recruitment.menu_hr_recruitment_root'" class="fa fa-id-card"/>
-                                    <i t-if="app.xmlid === 'sedar_hsse.menu_root'" class="fa fa-life-ring"/>
-                                    <span t-esc="app.name"/>
-                                </a>
-                            </t>
-                        </div>
+                        <details class="o_sedar_nav_group" open="open">
+                            <summary class="o_sedar_nav_parent">
+                                <span><i class="fa fa-shopping-cart"/>Procurement</span>
+                                <i class="fa fa-angle-down o_sedar_nav_chevron"/>
+                            </summary>
+                            <div class="o_sedar_nav_children">
+                                <t t-foreach="menuService.getApps()" t-as="app" t-key="app.id">
+                                    <a t-if="app.xmlid === 'stock.menu_stock_root'"
+                                       t-att-href="getMenuItemHref(app)"
+                                       t-att-data-menu-xmlid="app.xmlid"
+                                       t-att-class="{'o_sedar_nav_item': true, 'active': currentApp and currentApp.id === app.id}"
+                                       t-on-click.prevent="() => this.onNavBarDropdownItemSelection(app)">
+                                        <span>Inventory</span>
+                                    </a>
+                                </t>
+                                <span class="o_sedar_nav_item o_sedar_nav_placeholder">Placeholder 1</span>
+                            </div>
+                        </details>
 
-                        <div class="o_sedar_nav_group">
-                            <div class="o_sedar_nav_heading">Resources &amp; Finances</div>
-                            <t t-foreach="menuService.getApps()" t-as="app" t-key="app.id">
-                                <a t-if="['account.menu_finance', 'purchase.menu_purchase_root', 'stock.menu_stock_root'].includes(app.xmlid)"
-                                   t-att-href="getMenuItemHref(app)"
-                                   t-att-data-menu-xmlid="app.xmlid"
-                                   t-att-class="{'o_sedar_nav_item': true, 'active': currentApp and currentApp.id === app.id}"
-                                   t-on-click.prevent="() => this.onNavBarDropdownItemSelection(app)">
-                                    <i t-if="app.xmlid === 'account.menu_finance'" class="fa fa-money"/>
-                                    <i t-if="app.xmlid === 'purchase.menu_purchase_root'" class="fa fa-shopping-cart"/>
-                                    <i t-if="app.xmlid === 'stock.menu_stock_root'" class="fa fa-archive"/>
-                                    <span t-esc="app.name"/>
-                                </a>
-                            </t>
-                        </div>
+                        <details class="o_sedar_nav_group" open="open">
+                            <summary class="o_sedar_nav_parent">
+                                <span><i class="fa fa-life-ring"/>HSSE</span>
+                                <i class="fa fa-angle-down o_sedar_nav_chevron"/>
+                            </summary>
+                            <div class="o_sedar_nav_children">
+                                <t t-foreach="menuService.getApps()" t-as="app" t-key="app.id">
+                                    <a t-if="app.xmlid === 'sedar_hsse.menu_root'"
+                                       t-att-href="getMenuItemHref(app)"
+                                       t-att-data-menu-xmlid="app.xmlid"
+                                       t-att-class="{'o_sedar_nav_item': true, 'active': currentApp and currentApp.id === app.id}"
+                                       t-on-click.prevent="() => this.onNavBarDropdownItemSelection(app)">
+                                        <span>Incident Reports</span>
+                                    </a>
+                                </t>
+                                <span class="o_sedar_nav_item o_sedar_nav_placeholder">Placeholder 1</span>
+                            </div>
+                        </details>
 
-                        <div class="o_sedar_nav_group">
-                            <div class="o_sedar_nav_heading">System &amp; Compliance</div>
-                            <t t-foreach="menuService.getApps()" t-as="app" t-key="app.id">
-                                <a t-if="app.xmlid === 'sedar_doccontrol.menu_root'"
-                                   t-att-href="getMenuItemHref(app)"
-                                   t-att-data-menu-xmlid="app.xmlid"
-                                   t-att-class="{'o_sedar_nav_item': true, 'active': currentApp and currentApp.id === app.id}"
-                                   t-on-click.prevent="() => this.onNavBarDropdownItemSelection(app)">
-                                    <i class="fa fa-file-text"/>
-                                    <span t-esc="app.name"/>
-                                </a>
-                            </t>
-                        </div>
+                        <details class="o_sedar_nav_group">
+                            <summary class="o_sedar_nav_parent">
+                                <span><i class="fa fa-comments"/>Customer Relations</span>
+                                <i class="fa fa-angle-down o_sedar_nav_chevron"/>
+                            </summary>
+                            <div class="o_sedar_nav_children">
+                                <span class="o_sedar_nav_item o_sedar_nav_placeholder">Help Desk</span>
+                                <span class="o_sedar_nav_item o_sedar_nav_placeholder">Placeholder 1</span>
+                            </div>
+                        </details>
+
+                        <details class="o_sedar_nav_group" open="open">
+                            <summary class="o_sedar_nav_parent">
+                                <span><i class="fa fa-th-large"/>Executive Dashboard</span>
+                                <i class="fa fa-angle-down o_sedar_nav_chevron"/>
+                            </summary>
+                            <div class="o_sedar_nav_children">
+                                <t t-foreach="menuService.getApps()" t-as="app" t-key="app.id">
+                                    <a t-if="app.xmlid === 'sedar_dashboard.menu_root'"
+                                       t-att-href="getMenuItemHref(app)"
+                                       t-att-data-menu-xmlid="app.xmlid"
+                                       t-att-class="{'o_sedar_nav_item': true, 'active': currentApp and currentApp.id === app.id}"
+                                       t-on-click.prevent="() => this.onNavBarDropdownItemSelection(app)">
+                                        <span>Company Calendar</span>
+                                    </a>
+                                </t>
+                                <span class="o_sedar_nav_item o_sedar_nav_placeholder">Placeholder 1</span>
+                            </div>
+                        </details>
                     </nav>
 
                     <div class="o_sedar_sidebar_footer">

@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="demo_dispatch_captain" model="sedar.job.dispatch">
+        <field name="name">JDO-00001</field>
+        <field name="role_needed">Captain</field>
+        <field name="quantity">1</field>
+        <field name="client_name">Manila Harbor Client</field>
+        <field name="requested_datetime">2026-07-06 08:00:00</field>
+        <field name="needed_by">2026-07-07 06:00:00</field>
+        <field name="missing_reason">A confirmed harbor assist request is missing one Captain for tomorrow's tug window.</field>
+        <field name="requirements">Captain license, STCW documents, valid medical certificate, and tugboat maneuvering experience.</field>
+    </record>
+
+    <record id="demo_dispatch_cadets" model="sedar.job.dispatch">
+        <field name="name">JDO-00002</field>
+        <field name="role_needed">Cadet</field>
+        <field name="quantity">3</field>
+        <field name="client_name">Batangas Standby Window</field>
+        <field name="requested_datetime">2026-07-06 09:30:00</field>
+        <field name="needed_by">2026-07-08 07:00:00</field>
+        <field name="missing_reason">Client standby coverage requires three cadets assigned before deployment.</field>
+        <field name="requirements">Basic safety training, seafarer documents, school endorsement if applicable, and immediate availability.</field>
+        <field name="state">approved</field>
+    </record>
+
+    <record id="demo_dispatch_engineer" model="sedar.job.dispatch">
+        <field name="name">JDO-00003</field>
+        <field name="role_needed">Chief Engineer</field>
+        <field name="quantity">1</field>
+        <field name="client_name">North Harbor Towage Rotation</field>
+        <field name="requested_datetime">2026-07-06 11:15:00</field>
+        <field name="needed_by">2026-07-09 05:30:00</field>
+        <field name="missing_reason">Assigned engineer is on medical leave and the vessel cannot sail without engine-room coverage.</field>
+        <field name="requirements">Chief Engineer license, diesel engine troubleshooting, STCW, valid medical certificate, and 2+ years tugboat experience.</field>
+        <field name="state">approved</field>
+    </record>
+
+    <record id="demo_dispatch_deckhand" model="sedar.job.dispatch">
+        <field name="name">JDO-00004</field>
+        <field name="role_needed">Deckhand</field>
+        <field name="quantity">2</field>
+        <field name="client_name">Pasig River Assist Coverage</field>
+        <field name="requested_datetime">2026-07-06 13:00:00</field>
+        <field name="needed_by">2026-07-10 07:00:00</field>
+        <field name="missing_reason">Two deckhands are needed to complete the safe manning requirement for river assist work.</field>
+        <field name="requirements">Mooring operations, line handling, basic safety training, PPE readiness, and willingness for shifting schedule.</field>
+    </record>
+
+    <record id="demo_hr_job_cadet" model="hr.job">
+        <field name="name">Cadet</field>
+        <field name="no_of_recruitment">3</field>
+        <field name="description">Cadet opening created from SEDAR job dispatch for tug standby coverage.</field>
+    </record>
+
+    <record id="demo_hr_job_engineer" model="hr.job">
+        <field name="name">Chief Engineer</field>
+        <field name="no_of_recruitment">1</field>
+        <field name="description">Chief Engineer opening for urgent tug assignment and engine-room coverage.</field>
+    </record>
+
+    <record id="demo_hr_job_deckhand" model="hr.job">
+        <field name="name">Deckhand</field>
+        <field name="no_of_recruitment">2</field>
+        <field name="description">Deckhand opening for tug mooring, line handling, and standby operations.</field>
+    </record>
+
+    <record id="demo_applicant_application" model="hr.applicant">
+        <field name="name">Cadet Application - Juan Dela Cruz</field>
+        <field name="partner_name">Juan Dela Cruz</field>
+        <field name="email_from">juan.cadet@example.com</field>
+        <field name="partner_mobile">+63 917 000 1001</field>
+        <field name="job_id" ref="demo_hr_job_cadet"/>
+        <field name="sedar_dispatch_id" ref="demo_dispatch_cadets"/>
+        <field name="sedar_target_role">Cadet</field>
+        <field name="sedar_requirements_summary">Submitted resume, basic safety training certificate, school endorsement, and seafarer ID copy.</field>
+        <field name="description">Skills: watchkeeping support, safety drills, basic rope handling, logbook preparation. Availability: immediate.</field>
+        <field name="sedar_hiring_state">application</field>
+    </record>
+
+    <record id="demo_applicant_interview" model="hr.applicant">
+        <field name="name">Maria Santos - Cadet</field>
+        <field name="partner_name">Maria Santos</field>
+        <field name="email_from">maria.santos@example.com</field>
+        <field name="partner_mobile">+63 917 000 1002</field>
+        <field name="job_id" ref="demo_hr_job_cadet"/>
+        <field name="sedar_dispatch_id" ref="demo_dispatch_cadets"/>
+        <field name="sedar_target_role">Cadet</field>
+        <field name="sedar_requirements_summary">Documents checked: resume, STCW basic safety, medical certificate, and character reference.</field>
+        <field name="sedar_interview_datetime">2026-07-07 10:00:00</field>
+        <field name="sedar_interview_mode">face_to_face</field>
+        <field name="sedar_interview_location">SEDAR HR Office - Pier 12</field>
+        <field name="description">Skills: engine-room familiarization, safety checklist support, deck watch assistance. Interview panel: HR and Crewing Supervisor.</field>
+        <field name="sedar_hiring_state">for_interview</field>
+    </record>
+
+    <record id="demo_applicant_final" model="hr.applicant">
+        <field name="name">Captain Application - Roberto Lim</field>
+        <field name="partner_name">Roberto Lim</field>
+        <field name="email_from">roberto.lim@example.com</field>
+        <field name="partner_mobile">+63 917 000 1003</field>
+        <field name="sedar_target_role">Captain</field>
+        <field name="sedar_requirements_summary">Captain license, STCW, tug handling history, and medical certificate verified.</field>
+        <field name="description">Skills: harbor assist, close-quarters maneuvering, radio communication, crew leadership, incident reporting.</field>
+        <field name="sedar_hiring_state">final_assessment</field>
+    </record>
+
+    <record id="demo_applicant_engineer_application" model="hr.applicant">
+        <field name="name">Elena Cruz - Chief Engineer</field>
+        <field name="partner_name">Elena Cruz</field>
+        <field name="email_from">elena.engineer@example.com</field>
+        <field name="partner_mobile">+63 917 000 1004</field>
+        <field name="job_id" ref="demo_hr_job_engineer"/>
+        <field name="sedar_dispatch_id" ref="demo_dispatch_engineer"/>
+        <field name="sedar_target_role">Chief Engineer</field>
+        <field name="sedar_requirements_summary">Submitted resume, PRC license, STCW documents, medical certificate, and diesel engine maintenance record.</field>
+        <field name="description">Skills: diesel engine diagnostics, preventive maintenance, fuel monitoring, emergency repair coordination, engine log reporting.</field>
+        <field name="sedar_hiring_state">application</field>
+    </record>
+
+    <record id="demo_applicant_engineer_interview" model="hr.applicant">
+        <field name="name">Noel Garcia - Chief Engineer</field>
+        <field name="partner_name">Noel Garcia</field>
+        <field name="email_from">noel.garcia@example.com</field>
+        <field name="partner_mobile">+63 917 000 1005</field>
+        <field name="job_id" ref="demo_hr_job_engineer"/>
+        <field name="sedar_dispatch_id" ref="demo_dispatch_engineer"/>
+        <field name="sedar_target_role">Chief Engineer</field>
+        <field name="sedar_requirements_summary">License, BST, medical certificate, previous company clearance, and engine maintenance portfolio submitted.</field>
+        <field name="sedar_interview_datetime">2026-07-08 14:00:00</field>
+        <field name="sedar_interview_mode">online</field>
+        <field name="sedar_interview_location">Microsoft Teams - HR Interview Room</field>
+        <field name="description">Skills: Caterpillar and Yanmar diesel systems, repair planning, inventory coordination, safety toolbox briefings.</field>
+        <field name="sedar_hiring_state">for_interview</field>
+    </record>
+
+    <record id="demo_applicant_deckhand_application" model="hr.applicant">
+        <field name="name">Arnel Bautista - Deckhand</field>
+        <field name="partner_name">Arnel Bautista</field>
+        <field name="email_from">arnel.deckhand@example.com</field>
+        <field name="partner_mobile">+63 917 000 1006</field>
+        <field name="job_id" ref="demo_hr_job_deckhand"/>
+        <field name="sedar_dispatch_id" ref="demo_dispatch_deckhand"/>
+        <field name="sedar_target_role">Deckhand</field>
+        <field name="sedar_requirements_summary">Resume, basic safety training, seafarer ID, and barangay clearance submitted.</field>
+        <field name="description">Skills: mooring line handling, fender setup, deck housekeeping, PPE discipline, night-shift availability.</field>
+        <field name="sedar_hiring_state">application</field>
+    </record>
+
+    <record id="demo_applicant_contract_signing" model="hr.applicant">
+        <field name="name">Paolo Reyes - Deckhand</field>
+        <field name="partner_name">Paolo Reyes</field>
+        <field name="email_from">paolo.reyes@example.com</field>
+        <field name="partner_mobile">+63 917 000 1007</field>
+        <field name="job_id" ref="demo_hr_job_deckhand"/>
+        <field name="sedar_dispatch_id" ref="demo_dispatch_deckhand"/>
+        <field name="sedar_target_role">Deckhand</field>
+        <field name="sedar_requirements_summary">All requirements cleared. Contract package prepared for HR release.</field>
+        <field name="description">Skills: line handling, deck safety checks, emergency response support, standby crew experience.</field>
+        <field name="sedar_hiring_state">contract_signing</field>
+    </record>
+
+    <record id="overview_dispatch" model="sedar.job.hiring.overview">
+        <field name="name">Job Dispatch Orders</field>
+        <field name="sequence">10</field>
+        <field name="icon">fa-clipboard</field>
+        <field name="description">Crew gap requests from vessels or clients waiting for HR review and publishing.</field>
+        <field name="action_xmlid">sedar_recruitment_link.action_sedar_job_dispatch</field>
+    </record>
+
+    <record id="overview_applications" model="sedar.job.hiring.overview">
+        <field name="name">Job Applications</field>
+        <field name="sequence">20</field>
+        <field name="icon">fa-file-text</field>
+        <field name="description">New applicants with skills, requirements, and submitted documents for screening.</field>
+        <field name="action_xmlid">sedar_recruitment_link.action_sedar_job_applications</field>
+    </record>
+
+    <record id="overview_interviews" model="sedar.job.hiring.overview">
+        <field name="name">Pending Interviews</field>
+        <field name="sequence">30</field>
+        <field name="icon">fa-calendar</field>
+        <field name="description">Scheduled interviews shown as calendar blocks with candidate names and roles.</field>
+        <field name="action_xmlid">sedar_recruitment_link.action_sedar_pending_interviews</field>
+    </record>
+
+    <record id="overview_final" model="sedar.job.hiring.overview">
+        <field name="name">Final Assessment</field>
+        <field name="sequence">40</field>
+        <field name="icon">fa-check-square-o</field>
+        <field name="description">Candidates cleared from interview and ready for final technical or HR decision.</field>
+        <field name="action_xmlid">sedar_recruitment_link.action_sedar_final_assessment</field>
+    </record>
+
+    <record id="overview_contract" model="sedar.job.hiring.overview">
+        <field name="name">Contract Signing</field>
+        <field name="sequence">50</field>
+        <field name="icon">fa-pencil-square-o</field>
+        <field name="description">Approved candidates waiting for contract signing and onboarding confirmation.</field>
+        <field name="action_xmlid">sedar_recruitment_link.action_sedar_contract_signing</field>
+    </record>
+
+    <record id="attachment_juan_resume" model="ir.attachment">
+        <field name="name">Juan Dela Cruz - Resume.pdf</field>
+        <field name="res_model">hr.applicant</field>
+        <field name="res_id" ref="demo_applicant_application"/>
+        <field name="mimetype">application/pdf</field>
+        <field name="datas">U0VEQVIgU2FtcGxlIFJlc3VtZSAtIEp1YW4gRGVsYSBDcnV6</field>
+    </record>
+
+    <record id="attachment_juan_bst" model="ir.attachment">
+        <field name="name">Juan Dela Cruz - Basic Safety Certificate.pdf</field>
+        <field name="res_model">hr.applicant</field>
+        <field name="res_id" ref="demo_applicant_application"/>
+        <field name="mimetype">application/pdf</field>
+        <field name="datas">U0VEQVIgU2FtcGxlIEJhc2ljIFNhZmV0eSBDZXJ0aWZpY2F0ZQ==</field>
+    </record>
+
+    <record id="attachment_maria_medical" model="ir.attachment">
+        <field name="name">Maria Santos - Medical Certificate.pdf</field>
+        <field name="res_model">hr.applicant</field>
+        <field name="res_id" ref="demo_applicant_interview"/>
+        <field name="mimetype">application/pdf</field>
+        <field name="datas">U0VEQVIgU2FtcGxlIE1lZGljYWwgQ2VydGlmaWNhdGU=</field>
+    </record>
+
+    <record id="attachment_elena_license" model="ir.attachment">
+        <field name="name">Elena Cruz - Engineer License.pdf</field>
+        <field name="res_model">hr.applicant</field>
+        <field name="res_id" ref="demo_applicant_engineer_application"/>
+        <field name="mimetype">application/pdf</field>
+        <field name="datas">U0VEQVIgU2FtcGxlIENoaWVmIEVuZ2luZWVyIExpY2Vuc2U=</field>
+    </record>
+
+    <record id="attachment_noel_portfolio" model="ir.attachment">
+        <field name="name">Noel Garcia - Engine Maintenance Portfolio.pdf</field>
+        <field name="res_model">hr.applicant</field>
+        <field name="res_id" ref="demo_applicant_engineer_interview"/>
+        <field name="mimetype">application/pdf</field>
+        <field name="datas">U0VEQVIgU2FtcGxlIEVuZ2luZSBNYWludGVuYW5jZSBQb3J0Zm9saW8=</field>
+    </record>
+</odoo>
