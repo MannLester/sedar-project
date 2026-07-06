@@ -27,6 +27,8 @@
                         </group>
                         <group>
                             <field name="sedar_interview_datetime"/>
+                            <field name="sedar_interview_duration" widget="float_time"/>
+                            <field name="sedar_interview_end" readonly="1"/>
                             <field name="sedar_interview_mode"/>
                             <field name="sedar_interview_location"/>
                         </group>
@@ -59,6 +61,8 @@
                 <field name="email_from"/>
                 <field name="partner_mobile"/>
                 <field name="sedar_interview_datetime"/>
+                <field name="sedar_interview_end"/>
+                <field name="sedar_interview_duration" widget="float_time"/>
                 <field name="sedar_interview_mode"/>
                 <field name="sedar_interview_location"/>
                 <field name="sedar_attachment_count"/>
@@ -67,14 +71,86 @@
         </field>
     </record>
 
+    <record id="view_hr_applicant_kanban_sedar_interviews" model="ir.ui.view">
+        <field name="name">hr.applicant.kanban.sedar.interviews</field>
+        <field name="model">hr.applicant</field>
+        <field name="arch" type="xml">
+            <kanban string="Pending Interviews" class="o_sedar_interview_board" default_order="sedar_interview_datetime asc" quick_create="false" create="false">
+                <field name="partner_name"/>
+                <field name="name"/>
+                <field name="job_id"/>
+                <field name="sedar_target_role"/>
+                <field name="sedar_interview_datetime"/>
+                <field name="sedar_interview_end"/>
+                <field name="sedar_interview_schedule_label"/>
+                <field name="sedar_interview_duration"/>
+                <field name="sedar_interview_mode"/>
+                <field name="sedar_interview_location"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click o_sedar_interview_card">
+                            <div class="o_sedar_interview_card_time">
+                                <i class="fa fa-calendar" title="Schedule"/>
+                                <field name="sedar_interview_schedule_label"/>
+                            </div>
+                            <div class="o_sedar_interview_card_body">
+                                <strong>
+                                    <field name="partner_name"/>
+                                </strong>
+                                <span>
+                                    <field name="sedar_target_role"/>
+                                    <t t-if="!record.sedar_target_role.raw_value">
+                                        <field name="job_id"/>
+                                    </t>
+                                </span>
+                            </div>
+                            <div class="o_sedar_interview_card_meta">
+                                <span>
+                                    <i class="fa fa-clock-o" title="Duration"/>
+                                    <field name="sedar_interview_duration" widget="float_time"/>
+                                </span>
+                                <span>
+                                    <i t-att-class="record.sedar_interview_mode.raw_value == 'online' ? 'fa fa-video-camera' : 'fa fa-map-marker'" title="Mode"/>
+                                    <field name="sedar_interview_mode"/>
+                                </span>
+                            </div>
+                            <div class="o_sedar_interview_card_location">
+                                <i class="fa fa-location-arrow" title="Location"/>
+                                <field name="sedar_interview_location"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_hr_applicant_tree_sedar_interviews" model="ir.ui.view">
+        <field name="name">hr.applicant.tree.sedar.interviews</field>
+        <field name="model">hr.applicant</field>
+        <field name="arch" type="xml">
+            <tree string="Pending Interviews" default_order="sedar_interview_datetime asc" create="false" decoration-info="sedar_interview_mode == 'online'">
+                <field name="sedar_interview_datetime"/>
+                <field name="sedar_interview_end"/>
+                <field name="partner_name"/>
+                <field name="sedar_target_role"/>
+                <field name="job_id"/>
+                <field name="sedar_interview_duration" widget="float_time"/>
+                <field name="sedar_interview_mode"/>
+                <field name="sedar_interview_location"/>
+            </tree>
+        </field>
+    </record>
+
     <record id="view_hr_applicant_calendar_sedar_interviews" model="ir.ui.view">
         <field name="name">hr.applicant.calendar.sedar.interviews</field>
         <field name="model">hr.applicant</field>
         <field name="arch" type="xml">
-            <calendar string="Pending Interviews" date_start="sedar_interview_datetime" date_stop="sedar_interview_end" color="sedar_calendar_color" mode="month" event_open_popup="true" quick_create="false">
+            <calendar string="Pending Interviews" date_start="sedar_interview_datetime" date_stop="sedar_interview_end" color="sedar_calendar_color" mode="week" event_open_popup="true" quick_create="false">
                 <field name="partner_name"/>
                 <field name="job_id"/>
                 <field name="sedar_target_role"/>
+                <field name="sedar_interview_duration" widget="float_time"/>
                 <field name="sedar_interview_mode"/>
                 <field name="sedar_interview_location"/>
             </calendar>
@@ -93,13 +169,20 @@
     <record id="action_sedar_pending_interviews" model="ir.actions.act_window">
         <field name="name">Pending Interviews</field>
         <field name="res_model">hr.applicant</field>
-        <field name="view_mode">calendar,tree,form</field>
+        <field name="view_mode">kanban,tree,calendar,form</field>
         <field name="domain">[('sedar_hiring_state', '=', 'for_interview')]</field>
-        <field name="context">{'default_sedar_hiring_state': 'for_interview', 'calendar_default_mode': 'month'}</field>
+        <field name="context">{'default_sedar_hiring_state': 'for_interview', 'calendar_default_mode': 'week'}</field>
+    </record>
+
+    <record id="action_sedar_pending_interviews_kanban_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">kanban</field>
+        <field name="view_id" ref="view_hr_applicant_kanban_sedar_interviews"/>
+        <field name="act_window_id" ref="action_sedar_pending_interviews"/>
     </record>
 
     <record id="action_sedar_pending_interviews_calendar_view" model="ir.actions.act_window.view">
-        <field name="sequence" eval="1"/>
+        <field name="sequence" eval="3"/>
         <field name="view_mode">calendar</field>
         <field name="view_id" ref="view_hr_applicant_calendar_sedar_interviews"/>
         <field name="act_window_id" ref="action_sedar_pending_interviews"/>
@@ -108,12 +191,12 @@
     <record id="action_sedar_pending_interviews_tree_view" model="ir.actions.act_window.view">
         <field name="sequence" eval="2"/>
         <field name="view_mode">tree</field>
-        <field name="view_id" ref="view_hr_applicant_tree_sedar_hiring"/>
+        <field name="view_id" ref="view_hr_applicant_tree_sedar_interviews"/>
         <field name="act_window_id" ref="action_sedar_pending_interviews"/>
     </record>
 
     <record id="action_sedar_pending_interviews_form_view" model="ir.actions.act_window.view">
-        <field name="sequence" eval="3"/>
+        <field name="sequence" eval="4"/>
         <field name="view_mode">form</field>
         <field name="act_window_id" ref="action_sedar_pending_interviews"/>
     </record>

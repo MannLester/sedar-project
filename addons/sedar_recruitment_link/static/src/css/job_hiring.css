@@ -94,6 +94,101 @@
     line-height: 1.2;
 }
 
+.o_sedar_interview_board .o_kanban_renderer {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 14px;
+    padding: 16px;
+}
+
+.o_sedar_interview_board .o_kanban_record {
+    width: auto;
+    margin: 0;
+    border: 0;
+    background: transparent;
+}
+
+.o_sedar_interview_card {
+    display: grid;
+    gap: 12px;
+    min-height: 184px;
+    padding: 16px;
+    border: 1px solid #d8e1ea;
+    border-left: 4px solid #08213d;
+    border-radius: 6px;
+    background: #ffffff;
+    box-shadow: 0 8px 22px rgba(11, 31, 52, 0.08);
+}
+
+.o_sedar_interview_card:hover {
+    border-color: #b9ccdc;
+    box-shadow: 0 10px 26px rgba(11, 31, 52, 0.12);
+}
+
+.o_sedar_interview_card_time {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    width: fit-content;
+    max-width: 100%;
+    padding: 7px 10px;
+    border-radius: 5px;
+    background: #eef6fb;
+    color: #08213d;
+    font-size: 13px;
+    font-weight: 850;
+}
+
+.o_sedar_interview_card_body {
+    display: grid;
+    gap: 4px;
+}
+
+.o_sedar_interview_card_body strong {
+    color: #06182f;
+    font-size: 17px;
+    font-weight: 850;
+    line-height: 1.2;
+}
+
+.o_sedar_interview_card_body span {
+    color: #526b84;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.o_sedar_interview_card_meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.o_sedar_interview_card_meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 28px;
+    padding: 5px 9px;
+    border-radius: 5px;
+    background: #f4f7fa;
+    color: #334d66;
+    font-size: 12px;
+    font-weight: 750;
+}
+
+.o_sedar_interview_card_location {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    min-height: 36px;
+    padding-top: 10px;
+    border-top: 1px solid #edf1f5;
+    color: #334d66;
+    font-size: 13px;
+    font-weight: 650;
+    line-height: 1.35;
+}
+
 .o_sedar_interview_wizard {
     display: grid;
     grid-template-columns: minmax(360px, 0.9fr) minmax(480px, 1.1fr);
