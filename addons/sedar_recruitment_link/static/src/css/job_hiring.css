@@ -94,9 +94,103 @@
     line-height: 1.2;
 }
 
+.o_sedar_interview_wizard {
+    display: grid;
+    grid-template-columns: minmax(360px, 0.9fr) minmax(480px, 1.1fr);
+    gap: 18px;
+    padding: 18px 20px 8px;
+}
+
+.o_sedar_interview_panel {
+    min-width: 0;
+    padding: 16px;
+    border: 1px solid #d8e1ea;
+    border-radius: 6px;
+    background: #ffffff;
+}
+
+.o_sedar_interview_panel_title {
+    margin-bottom: 12px;
+    color: #10243a;
+    font-size: 13px;
+    font-weight: 850;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+}
+
+.o_sedar_interview_fields {
+    margin: 0;
+}
+
+.o_sedar_interview_fields .o_inner_group {
+    width: 100%;
+}
+
+.o_sedar_interview_fields .o_td_label {
+    min-width: 132px;
+    padding-right: 14px;
+}
+
+.o_sedar_interview_fields .o_field_widget,
+.o_sedar_interview_fields input,
+.o_sedar_interview_fields textarea {
+    max-width: 100%;
+}
+
+.o_sedar_interview_availability_panel {
+    display: grid;
+    align-content: start;
+    gap: 12px;
+    max-height: min(64vh, 720px);
+    overflow: auto;
+}
+
+.o_sedar_interview_availability_panel .o_field_html {
+    display: block;
+    min-width: 0;
+}
+
 .o_sedar_interview_occupied {
     display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+}
+
+.o_sedar_interview_slots {
+    display: grid;
     gap: 10px;
+    margin-bottom: 12px;
+    padding: 12px;
+    border: 1px solid #b8dfca;
+    border-radius: 6px;
+    background: #eefaf3;
+}
+
+.o_sedar_interview_slot_grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(178px, 1fr));
+    gap: 8px;
+}
+
+.o_sedar_interview_slot_grid span,
+.o_sedar_interview_slot_grid small {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 26px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    background: #ffffff;
+    color: #17613a;
+    font-size: 12px;
+    font-weight: 750;
+    line-height: 1.25;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+.o_sedar_interview_slot_grid small {
+    color: #526b84;
 }
 
 .o_sedar_interview_occupied_title {
@@ -109,10 +203,10 @@
 
 .o_sedar_interview_day {
     display: grid;
-    grid-template-columns: 68px 1fr;
-    gap: 10px;
+    grid-template-columns: 76px minmax(0, 1fr);
+    gap: 12px;
     align-items: start;
-    padding: 10px;
+    padding: 12px;
     border: 1px solid #d6e2ec;
     border-radius: 6px;
     background: #f7fbfe;
@@ -128,6 +222,7 @@
     font-size: 13px;
     font-weight: 900;
     line-height: 1.1;
+    text-align: center;
 }
 
 .o_sedar_interview_day_badge span {
@@ -175,4 +270,14 @@
     border: 1px solid #d6e2ec;
     background: #f7fbfe;
     color: #526b84;
+}
+
+@media (max-width: 1100px) {
+    .o_sedar_interview_wizard {
+        grid-template-columns: 1fr;
+    }
+
+    .o_sedar_interview_availability_panel {
+        max-height: none;
+    }
 }

@@ -4,20 +4,26 @@
         <field name="name">sedar.interview.schedule.wizard.form</field>
         <field name="model">sedar.interview.schedule.wizard</field>
         <field name="arch" type="xml">
-            <form string="Schedule Interview">
-                <group>
-                    <group>
+            <form string="Schedule Interview" class="o_sedar_interview_schedule_form">
+                <div class="o_sedar_interview_wizard">
+                    <div class="o_sedar_interview_panel">
+                        <div class="o_sedar_interview_panel_title">Interview Details</div>
+                        <group col="2" class="o_sedar_interview_fields">
                         <field name="applicant_id" readonly="1"/>
                         <field name="interview_datetime"/>
-                        <field name="selected_day_warning" nolabel="1" readonly="1"/>
+                        <field name="interview_duration" widget="float_time"/>
                         <field name="interview_mode" widget="radio"/>
                         <field name="interview_location" placeholder="Example: HR Office - Pier 12, or Microsoft Teams link"/>
                         <field name="note" placeholder="Optional note for the HR interview panel."/>
-                    </group>
-                    <group string="Calendar Occupancy">
+                        </group>
+                        <field name="selected_day_warning" nolabel="1" readonly="1"/>
+                    </div>
+                    <div class="o_sedar_interview_panel o_sedar_interview_availability_panel">
+                        <div class="o_sedar_interview_panel_title">Availability</div>
+                        <field name="available_slots_html" nolabel="1" readonly="1"/>
                         <field name="occupied_dates_html" nolabel="1" readonly="1"/>
-                    </group>
-                </group>
+                    </div>
+                </div>
                 <footer>
                     <button name="action_schedule" string="Schedule Interview" type="object" class="btn-primary"/>
                     <button string="Cancel" special="cancel" class="btn-secondary"/>
