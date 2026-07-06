@@ -1,0 +1,454 @@
+:root {
+    --sedar-login-navy-990: #020b17;
+    --sedar-login-navy-960: #041426;
+    --sedar-login-navy-920: #08213d;
+    --sedar-login-blue: #4aa8e8;
+    --sedar-login-blue-soft: #a9dbff;
+    --sedar-login-text: #f7fbff;
+    --sedar-login-muted: #b7c7d8;
+    --sedar-login-line: rgba(205, 228, 246, 0.2);
+}
+
+.o_sedar_login_body {
+    min-height: 100%;
+    background: var(--sedar-login-navy-990);
+    color: var(--sedar-login-text);
+    font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+    letter-spacing: 0;
+}
+
+.o_sedar_login_page {
+    min-height: 100vh;
+    background:
+        linear-gradient(180deg, rgba(2, 11, 23, 0.08), #020b17 78%),
+        radial-gradient(circle at 18% 10%, rgba(74, 168, 232, 0.2), transparent 28%),
+        var(--sedar-login-navy-990);
+}
+
+.o_sedar_login_hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.12fr) minmax(380px, 0.58fr);
+    min-height: 100vh;
+}
+
+.o_sedar_login_visual {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    min-height: 100vh;
+    padding: clamp(32px, 6vw, 86px);
+    overflow: hidden;
+    background: var(--sedar-login-navy-960);
+}
+
+.o_sedar_login_visual::before,
+.o_sedar_login_visual::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-position: center;
+    background-size: cover;
+    will-change: opacity, transform;
+}
+
+.o_sedar_login_visual::before {
+    background-image:
+        linear-gradient(90deg, rgba(2, 11, 23, 0.72), rgba(2, 11, 23, 0.14)),
+        url("https://images.unsplash.com/photo-1569263979104-865ab7cd8d13?auto=format&fit=crop&w=1600&q=80");
+    animation: sedar-login-boat-primary 30s ease-in-out infinite;
+}
+
+.o_sedar_login_visual::after {
+    background-image:
+        linear-gradient(90deg, rgba(2, 11, 23, 0.72), rgba(2, 11, 23, 0.14)),
+        url("https://images.unsplash.com/photo-1605281317010-fe5ffe798166?auto=format&fit=crop&w=1600&q=80");
+    opacity: 0;
+    animation: sedar-login-boat-secondary 30s ease-in-out infinite;
+}
+
+.o_sedar_login_visual_overlay {
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(180deg, rgba(2, 11, 23, 0.12), rgba(2, 11, 23, 0.88)),
+        linear-gradient(90deg, rgba(4, 20, 38, 0.78), rgba(4, 20, 38, 0.26));
+    z-index: 1;
+}
+
+.o_sedar_login_hero_copy {
+    position: relative;
+    z-index: 2;
+    max-width: 760px;
+}
+
+.o_sedar_login_logo_wide {
+    width: min(310px, 58vw);
+    height: auto;
+    margin-bottom: 34px;
+}
+
+.o_sedar_login_kicker {
+    margin: 0 0 14px;
+    color: var(--sedar-login-blue-soft);
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 2.4px;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.o_sedar_login_hero h1 {
+    max-width: 720px;
+    margin: 0;
+    color: #ffffff;
+    font-size: clamp(42px, 5.6vw, 76px);
+    font-weight: 850;
+    line-height: 0.98;
+}
+
+.o_sedar_login_intro {
+    max-width: 620px;
+    margin: 24px 0 0;
+    color: #d9e8f5;
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.6;
+}
+
+.o_sedar_login_metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    max-width: 620px;
+    margin-top: 38px;
+}
+
+.o_sedar_login_metrics div {
+    min-height: 92px;
+    padding: 18px;
+    border: 1px solid rgba(205, 228, 246, 0.2);
+    background: rgba(3, 18, 37, 0.54);
+    backdrop-filter: blur(10px);
+}
+
+.o_sedar_login_metrics strong,
+.o_sedar_login_metrics span {
+    display: block;
+}
+
+.o_sedar_login_metrics strong {
+    color: #ffffff;
+    font-size: 24px;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.o_sedar_login_metrics span {
+    margin-top: 8px;
+    color: var(--sedar-login-muted);
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.35;
+}
+
+.o_sedar_login_panel_wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 42px;
+    background:
+        linear-gradient(180deg, rgba(8, 33, 61, 0.96), rgba(2, 11, 23, 0.98)),
+        var(--sedar-login-navy-960);
+}
+
+.o_sedar_login_panel {
+    width: min(100%, 430px);
+    padding: 34px;
+    border: 1px solid var(--sedar-login-line);
+    background: rgba(255, 255, 255, 0.97);
+    color: #10243a;
+    box-shadow: 0 28px 80px rgba(0, 0, 0, 0.35);
+}
+
+.o_sedar_login_panel_header {
+    display: grid;
+    grid-template-columns: 82px 1fr;
+    align-items: center;
+    gap: 17px;
+    margin-bottom: 24px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid #dbe5ee;
+}
+
+.o_sedar_login_logo {
+    width: 82px;
+    height: auto;
+}
+
+.o_sedar_login_panel_header p {
+    margin: 0 0 5px;
+    color: #52708c;
+    font-size: 12px;
+    font-weight: 850;
+    letter-spacing: 1.5px;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.o_sedar_login_panel_header h2 {
+    margin: 0;
+    color: #06182f;
+    font-size: 24px;
+    font-weight: 900;
+    line-height: 1.12;
+}
+
+.o_sedar_login_form_slot .text-center.pb-3.border-bottom {
+    display: none;
+}
+
+.o_sedar_login_form_slot label {
+    color: #17314c;
+    font-size: 12px;
+    font-weight: 850;
+}
+
+.o_sedar_login_form_slot .form-control {
+    min-height: 46px;
+    border: 1px solid #cbd8e4;
+    border-radius: 4px;
+    color: #06182f;
+    font-size: 14px;
+    font-weight: 650;
+}
+
+.o_sedar_login_form_slot .form-control:focus {
+    border-color: var(--sedar-login-blue);
+    box-shadow: 0 0 0 3px rgba(74, 168, 232, 0.18);
+}
+
+.o_sedar_login_form_slot .btn-primary {
+    min-height: 46px;
+    border-radius: 4px;
+    background: #08213d !important;
+    border-color: #08213d !important;
+    font-size: 14px;
+    font-weight: 900;
+}
+
+.o_sedar_login_form_slot .btn-primary:hover {
+    background: #0b315b !important;
+    border-color: #0b315b !important;
+}
+
+.o_sedar_login_help {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 18px;
+    color: #52708c;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.o_sedar_login_help a,
+.o_sedar_login_odoo_footer a {
+    color: #0b5f9d;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.o_sedar_login_help a:hover,
+.o_sedar_login_odoo_footer a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.o_sedar_login_odoo_footer {
+    border-top: 1px solid #dbe5ee;
+}
+
+.o_sedar_login_footer {
+    padding: 42px clamp(22px, 5vw, 74px) 52px;
+    background: #020b17;
+    border-top: 1px solid rgba(205, 228, 246, 0.12);
+}
+
+.o_sedar_login_footer_inner {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 28px;
+    max-width: 1240px;
+    margin: 0 auto;
+}
+
+.o_sedar_login_footer h3 {
+    margin: 0 0 10px;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 1.4px;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.o_sedar_login_footer p {
+    margin: 0;
+    color: var(--sedar-login-muted);
+    font-size: 13px;
+    font-weight: 650;
+    line-height: 1.65;
+}
+
+@keyframes sedar-login-boat-primary {
+    0%,
+    26% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    38%,
+    78% {
+        opacity: 0;
+        transform: scale(1.035);
+    }
+
+    90%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes sedar-login-boat-secondary {
+    0%,
+    26% {
+        opacity: 0;
+        transform: scale(1.035);
+    }
+
+    38%,
+    78% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    90%,
+    100% {
+        opacity: 0;
+        transform: scale(1.035);
+    }
+}
+
+@media (max-width: 991.98px) {
+    .o_sedar_login_hero {
+        grid-template-columns: 1fr;
+        min-height: 100vh;
+    }
+
+    .o_sedar_login_visual {
+        min-height: auto;
+        padding: 22px 18px 0;
+        align-items: flex-start;
+    }
+
+    .o_sedar_login_panel_wrap {
+        position: relative;
+        min-height: calc(100vh - 118px);
+        padding: 24px 18px 42px;
+        background:
+            linear-gradient(180deg, rgba(2, 11, 23, 0), rgba(2, 11, 23, 0.9) 28%, rgba(2, 11, 23, 0.98)),
+            transparent;
+        z-index: 3;
+        margin-top: -1px;
+    }
+
+    .o_sedar_login_metrics {
+        grid-template-columns: 1fr;
+    }
+
+    .o_sedar_login_footer_inner {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .o_sedar_login_page {
+        background:
+            linear-gradient(180deg, rgba(2, 11, 23, 0.02), #020b17 72%),
+            var(--sedar-login-navy-990);
+    }
+
+    .o_sedar_login_hero {
+        display: block;
+        min-height: auto;
+    }
+
+    .o_sedar_login_visual {
+        min-height: 190px;
+        padding: 20px 18px;
+    }
+
+    .o_sedar_login_visual::before,
+    .o_sedar_login_visual::after {
+        background-position: center top;
+    }
+
+    .o_sedar_login_visual_overlay {
+        background:
+            linear-gradient(180deg, rgba(2, 11, 23, 0.08), rgba(2, 11, 23, 0.92)),
+            linear-gradient(90deg, rgba(4, 20, 38, 0.78), rgba(4, 20, 38, 0.3));
+    }
+
+    .o_sedar_login_logo_wide {
+        width: min(230px, 78vw);
+        margin-bottom: 0;
+    }
+
+    .o_sedar_login_kicker,
+    .o_sedar_login_hero h1 {
+        display: none;
+    }
+
+    .o_sedar_login_intro,
+    .o_sedar_login_metrics {
+        display: none;
+    }
+
+    .o_sedar_login_panel_wrap {
+        min-height: auto;
+        padding: 0 16px 34px;
+        background: #020b17;
+    }
+
+    .o_sedar_login_panel {
+        width: 100%;
+        padding: 22px;
+        box-shadow: 0 18px 46px rgba(0, 0, 0, 0.32);
+    }
+
+    .o_sedar_login_panel_header {
+        grid-template-columns: 66px 1fr;
+        gap: 13px;
+        margin-bottom: 18px;
+        padding-bottom: 18px;
+    }
+
+    .o_sedar_login_logo {
+        width: 66px;
+    }
+
+    .o_sedar_login_panel_header h2 {
+        font-size: 21px;
+    }
+
+    .o_sedar_login_help {
+        display: block;
+        line-height: 1.55;
+    }
+
+    .o_sedar_login_footer {
+        padding: 30px 18px 38px;
+    }
+}

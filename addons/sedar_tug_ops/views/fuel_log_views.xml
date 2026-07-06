@@ -1,0 +1,41 @@
+<odoo>
+    <record id="view_sedar_fuel_log_tree" model="ir.ui.view">
+        <field name="name">sedar.fuel.log.tree</field>
+        <field name="model">sedar.fuel.log</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="date"/>
+                <field name="vessel_id"/>
+                <field name="liters"/>
+                <field name="cost"/>
+                <field name="cost_per_liter"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_sedar_fuel_log_form" model="ir.ui.view">
+        <field name="name">sedar.fuel.log.form</field>
+        <field name="model">sedar.fuel.log</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="vessel_id"/>
+                        <field name="date"/>
+                        <field name="liters"/>
+                        <field name="currency_id"/>
+                        <field name="cost"/>
+                        <field name="cost_per_liter"/>
+                        <field name="notes"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sedar_fuel_log" model="ir.actions.act_window">
+        <field name="name">Fuel Monitoring</field>
+        <field name="res_model">sedar.fuel.log</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

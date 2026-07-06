@@ -70,7 +70,7 @@
     </record>
 
     <record id="action_sedar_dashboard_metric" model="ir.actions.act_window">
-        <field name="name">President Dashboard</field>
+        <field name="name">Management Dashboard</field>
         <field name="res_model">sedar.dashboard.metric</field>
         <field name="view_mode">kanban,list,form</field>
     </record>
@@ -88,6 +88,8 @@
                 <field name="utilization_rate"/>
                 <field name="availability_rate"/>
                 <field name="fuel_on_hand"/>
+                <field name="last_known_location"/>
+                <field name="ais_timestamp"/>
                 <field name="certificate_expiry"/>
                 <field name="insurance_expiry"/>
             </list>
@@ -114,6 +116,8 @@
                             <field name="utilization_rate"/>
                             <field name="availability_rate"/>
                             <field name="fuel_on_hand"/>
+                            <field name="last_known_location"/>
+                            <field name="ais_timestamp"/>
                         </group>
                     </group>
                     <group string="Compliance">
@@ -190,6 +194,8 @@
                 <field name="status"/>
                 <field name="billable_amount"/>
                 <field name="gross_margin"/>
+                <field name="expected_fuel_used"/>
+                <field name="fuel_variance"/>
             </list>
         </field>
     </record>
@@ -220,6 +226,8 @@
                         <field name="billable_amount"/>
                         <field name="direct_cost"/>
                         <field name="gross_margin"/>
+                        <field name="expected_fuel_used"/>
+                        <field name="fuel_variance"/>
                     </group>
                     <notebook>
                         <page string="Voyage Logs"><field name="voyage_log_ids"/></page>
@@ -290,6 +298,11 @@
                 <field name="record_type"/>
                 <field name="customer_id"/>
                 <field name="job_id"/>
+                <field name="supplier"/>
+                <field name="budget_category"/>
+                <field name="cash_impact"/>
+                <field name="asset_category"/>
+                <field name="payroll_group"/>
                 <field name="amount"/>
                 <field name="invoice_date"/>
                 <field name="due_date"/>
@@ -310,6 +323,11 @@
                         <field name="record_type"/>
                         <field name="customer_id"/>
                         <field name="job_id"/>
+                        <field name="supplier"/>
+                        <field name="budget_category"/>
+                        <field name="cash_impact"/>
+                        <field name="asset_category"/>
+                        <field name="payroll_group"/>
                         <field name="amount"/>
                         <field name="invoice_date"/>
                         <field name="due_date"/>
@@ -341,6 +359,9 @@
                 <field name="medical_expiry"/>
                 <field name="certificate_status"/>
                 <field name="payroll_group"/>
+                <field name="schedule_note"/>
+                <field name="leave_start"/>
+                <field name="leave_end"/>
             </list>
         </field>
     </record>
@@ -360,6 +381,9 @@
                         <field name="medical_expiry"/>
                         <field name="certificate_status"/>
                         <field name="payroll_group"/>
+                        <field name="schedule_note"/>
+                        <field name="leave_start"/>
+                        <field name="leave_end"/>
                     </group>
                     <notebook>
                         <page string="Certifications, STCW, Medicals, Training">
@@ -388,6 +412,8 @@
                 <field name="equipment"/>
                 <field name="severity"/>
                 <field name="due_date"/>
+                <field name="dry_dock_window"/>
+                <field name="assigned_owner"/>
                 <field name="downtime_hours"/>
                 <field name="cost"/>
                 <field name="status"/>
@@ -408,6 +434,8 @@
                         <field name="equipment"/>
                         <field name="severity"/>
                         <field name="due_date"/>
+                        <field name="dry_dock_window"/>
+                        <field name="assigned_owner"/>
                         <field name="downtime_hours"/>
                         <field name="cost"/>
                         <field name="status"/>
@@ -439,6 +467,8 @@
                 <field name="event_date"/>
                 <field name="risk_level"/>
                 <field name="responsible_person"/>
+                <field name="training_participant"/>
+                <field name="audit_reference"/>
                 <field name="due_date"/>
                 <field name="status"/>
             </list>
@@ -459,6 +489,8 @@
                         <field name="event_date"/>
                         <field name="risk_level"/>
                         <field name="responsible_person"/>
+                        <field name="training_participant"/>
+                        <field name="audit_reference"/>
                         <field name="due_date"/>
                         <field name="status"/>
                     </group>
@@ -489,7 +521,12 @@
                 <field name="amount"/>
                 <field name="status"/>
                 <field name="approval_owner"/>
+                <field name="approval_age_days"/>
+                <field name="expected_delivery"/>
+                <field name="supplier_lead_days"/>
+                <field name="delivery_performance"/>
                 <field name="maintenance_id"/>
+                <field name="inventory_id"/>
             </list>
         </field>
     </record>
@@ -509,7 +546,12 @@
                         <field name="amount"/>
                         <field name="status"/>
                         <field name="approval_owner"/>
+                        <field name="approval_age_days"/>
+                        <field name="expected_delivery"/>
+                        <field name="supplier_lead_days"/>
+                        <field name="delivery_performance"/>
                         <field name="maintenance_id"/>
+                        <field name="inventory_id"/>
                         <field name="note"/>
                     </group>
                 </sheet>
@@ -531,12 +573,15 @@
                 <field name="name"/>
                 <field name="category"/>
                 <field name="warehouse"/>
+                <field name="location_bin"/>
                 <field name="barcode"/>
                 <field name="quantity_on_hand"/>
                 <field name="reorder_point"/>
                 <field name="unit_cost"/>
                 <field name="stock_value"/>
                 <field name="status"/>
+                <field name="maintenance_demand"/>
+                <field name="procurement_signal"/>
             </list>
         </field>
     </record>
@@ -551,12 +596,15 @@
                         <field name="name"/>
                         <field name="category"/>
                         <field name="warehouse"/>
+                        <field name="location_bin"/>
                         <field name="barcode"/>
                         <field name="quantity_on_hand"/>
                         <field name="reorder_point"/>
                         <field name="unit_cost"/>
                         <field name="stock_value"/>
                         <field name="status"/>
+                        <field name="maintenance_demand"/>
+                        <field name="procurement_signal"/>
                     </group>
                 </sheet>
             </form>
@@ -578,6 +626,11 @@
                 <field name="department"/>
                 <field name="record_type"/>
                 <field name="status"/>
+                <field name="attendance_date"/>
+                <field name="attendance_status"/>
+                <field name="evaluation_due_date"/>
+                <field name="recruitment_role"/>
+                <field name="recruitment_stage"/>
             </list>
         </field>
     </record>
@@ -593,6 +646,11 @@
                         <field name="department"/>
                         <field name="record_type"/>
                         <field name="status"/>
+                        <field name="attendance_date"/>
+                        <field name="attendance_status"/>
+                        <field name="evaluation_due_date"/>
+                        <field name="recruitment_role"/>
+                        <field name="recruitment_stage"/>
                         <field name="summary"/>
                     </group>
                 </sheet>
@@ -619,6 +677,8 @@
                 <field name="renewal_owner"/>
                 <field name="status"/>
                 <field name="version"/>
+                <field name="approval_status"/>
+                <field name="document_link"/>
             </list>
         </field>
     </record>
@@ -638,6 +698,8 @@
                         <field name="renewal_owner"/>
                         <field name="status"/>
                         <field name="version"/>
+                        <field name="approval_status"/>
+                        <field name="document_link"/>
                     </group>
                 </sheet>
             </form>
@@ -655,49 +717,150 @@
         <field name="tag">sedar_document_risk_dashboard</field>
     </record>
 
-    <menuitem id="menu_sedar_president_app" name="SEDAR Dashboard" action="action_sedar_dashboard_metric" sequence="5"/>
+    <record id="view_sedar_marketing_record_list" model="ir.ui.view">
+        <field name="name">sedar.marketing.record.list</field>
+        <field name="model">sedar.marketing.record</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="record_type"/>
+                <field name="customer_id"/>
+                <field name="service_type"/>
+                <field name="opportunity_value"/>
+                <field name="status"/>
+                <field name="owner"/>
+                <field name="next_action_date"/>
+                <field name="satisfaction_score"/>
+            </list>
+        </field>
+    </record>
 
-    <menuitem id="menu_sedar_operations_app" name="Marine Operations" action="action_sedar_job_order" sequence="10"/>
+    <record id="view_sedar_marketing_record_form" model="ir.ui.view">
+        <field name="name">sedar.marketing.record.form</field>
+        <field name="model">sedar.marketing.record</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="record_type"/>
+                        <field name="customer_id"/>
+                        <field name="service_type"/>
+                        <field name="opportunity_value"/>
+                        <field name="status"/>
+                        <field name="owner"/>
+                        <field name="next_action_date"/>
+                        <field name="satisfaction_score"/>
+                        <field name="note"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sedar_marketing_record" model="ir.actions.act_window">
+        <field name="name">Marketing</field>
+        <field name="res_model">sedar.marketing.record</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_sedar_corporate_record_list" model="ir.ui.view">
+        <field name="name">sedar.corporate.record.list</field>
+        <field name="model">sedar.corporate.record</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="record_type"/>
+                <field name="owner_department"/>
+                <field name="responsible_person"/>
+                <field name="due_date"/>
+                <field name="status"/>
+                <field name="priority"/>
+                <field name="value"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sedar_corporate_record_form" model="ir.ui.view">
+        <field name="name">sedar.corporate.record.form</field>
+        <field name="model">sedar.corporate.record</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="record_type"/>
+                        <field name="owner_department"/>
+                        <field name="responsible_person"/>
+                        <field name="due_date"/>
+                        <field name="status"/>
+                        <field name="priority"/>
+                        <field name="value"/>
+                        <field name="note"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sedar_corporate_record" model="ir.actions.act_window">
+        <field name="name">Corporate Management</field>
+        <field name="res_model">sedar.corporate.record</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_sedar_president_app" name="Management Dashboard" action="action_sedar_dashboard_metric" sequence="5"/>
+
+    <menuitem id="menu_sedar_operations_app" name="Tug Operations" action="action_sedar_job_order" sequence="10"/>
     <menuitem id="menu_sedar_operations_jobs" name="Dispatch Board" parent="menu_sedar_operations_app" action="action_sedar_job_order" sequence="1"/>
+    <menuitem id="menu_sedar_operations_schedule" name="Tug Scheduling and Vessel Availability" parent="menu_sedar_operations_app" action="action_sedar_vessel" sequence="2"/>
     <menuitem id="menu_sedar_operations_voyages" name="Voyage and Fuel Logs" parent="menu_sedar_operations_app" action="action_sedar_voyage_log" sequence="2"/>
     <menuitem id="menu_sedar_operations_customers" name="Customers and Contracts" parent="menu_sedar_operations_app" action="action_sedar_customer" sequence="3"/>
+    <menuitem id="menu_sedar_operations_billing" name="Customer Billing Source Jobs" parent="menu_sedar_operations_app" action="action_sedar_job_order" sequence="4"/>
 
-    <menuitem id="menu_sedar_finance_app" name="Finance" action="action_sedar_finance_record" sequence="20"/>
-    <menuitem id="menu_sedar_finance_records" name="Accounting Summary" parent="menu_sedar_finance_app" action="action_sedar_finance_record" sequence="1"/>
+    <menuitem id="menu_sedar_finance_app" name="Finance and Accounting" action="action_sedar_finance_record" sequence="20"/>
+    <menuitem id="menu_sedar_finance_records" name="GL, AP, AR, Budget, Cash, Assets, Payroll" parent="menu_sedar_finance_app" action="action_sedar_finance_record" sequence="1"/>
     <menuitem id="menu_sedar_finance_customers" name="Customer Receivables" parent="menu_sedar_finance_app" action="action_sedar_customer" sequence="2"/>
     <menuitem id="menu_sedar_finance_billing" name="Towage Billing Source Jobs" parent="menu_sedar_finance_app" action="action_sedar_job_order" sequence="3"/>
+    <menuitem id="menu_sedar_finance_bank" name="Cash Management and Bank Reconciliation" parent="menu_sedar_finance_app" action="action_sedar_finance_record" sequence="4"/>
 
-    <menuitem id="menu_sedar_fleet_app" name="Fleet Management" action="action_sedar_vessel" sequence="30"/>
+    <menuitem id="menu_sedar_fleet_app" name="Technical and Maintenance" action="action_sedar_maintenance_work_order" sequence="30"/>
     <menuitem id="menu_sedar_fleet_vessels" name="Vessel Register" parent="menu_sedar_fleet_app" action="action_sedar_vessel" sequence="1"/>
-    <menuitem id="menu_sedar_fleet_maintenance" name="Maintenance and Dry Dock" parent="menu_sedar_fleet_app" action="action_sedar_maintenance_work_order" sequence="2"/>
-    <menuitem id="menu_sedar_fleet_inventory" name="Critical Spares" parent="menu_sedar_fleet_app" action="action_sedar_inventory_item" sequence="3"/>
+    <menuitem id="menu_sedar_fleet_maintenance" name="PMS, Defects, Work Orders, Dry Dock" parent="menu_sedar_fleet_app" action="action_sedar_maintenance_work_order" sequence="2"/>
+    <menuitem id="menu_sedar_fleet_inventory" name="Spare Parts and Equipment History" parent="menu_sedar_fleet_app" action="action_sedar_inventory_item" sequence="3"/>
 
     <menuitem id="menu_sedar_crewing_app" name="Crewing" action="action_sedar_crew_member" sequence="40"/>
-    <menuitem id="menu_sedar_crewing_members" name="Crew Readiness" parent="menu_sedar_crewing_app" action="action_sedar_crew_member" sequence="1"/>
+    <menuitem id="menu_sedar_crewing_members" name="Crew Scheduling, Rotation, STCW, Medicals" parent="menu_sedar_crewing_app" action="action_sedar_crew_member" sequence="1"/>
     <menuitem id="menu_sedar_crewing_jobs" name="Assigned Jobs" parent="menu_sedar_crewing_app" action="action_sedar_job_order" sequence="2"/>
 
-    <menuitem id="menu_sedar_hse_app" name="HSSE" action="action_sedar_hse_record" sequence="50"/>
-    <menuitem id="menu_sedar_hse_records" name="Incidents, Permits, Audits" parent="menu_sedar_hse_app" action="action_sedar_hse_record" sequence="1"/>
+    <menuitem id="menu_sedar_hse_app" name="Health, Safety, Security and Environment" action="action_sedar_hse_record" sequence="50"/>
+    <menuitem id="menu_sedar_hse_records" name="Incidents, Near Misses, Permits, Audits" parent="menu_sedar_hse_app" action="action_sedar_hse_record" sequence="1"/>
     <menuitem id="menu_sedar_hse_vessels" name="Vessel Risk Context" parent="menu_sedar_hse_app" action="action_sedar_vessel" sequence="2"/>
+    <menuitem id="menu_sedar_hse_training" name="Risk Assessments, Safety Meetings, Training" parent="menu_sedar_hse_app" action="action_sedar_hse_record" sequence="3"/>
 
     <menuitem id="menu_sedar_procurement_app" name="Procurement" action="action_sedar_procurement_record" sequence="60"/>
     <menuitem id="menu_sedar_procurement_records" name="Requests and Orders" parent="menu_sedar_procurement_app" action="action_sedar_procurement_record" sequence="1"/>
     <menuitem id="menu_sedar_procurement_inventory" name="Stock Reorder Signals" parent="menu_sedar_procurement_app" action="action_sedar_inventory_item" sequence="2"/>
 
-    <menuitem id="menu_sedar_inventory_app" name="Inventory" action="action_sedar_inventory_item" sequence="70"/>
-    <menuitem id="menu_sedar_inventory_items" name="Warehouse Stock" parent="menu_sedar_inventory_app" action="action_sedar_inventory_item" sequence="1"/>
+    <menuitem id="menu_sedar_inventory_app" name="Inventory Management" action="action_sedar_inventory_item" sequence="70"/>
+    <menuitem id="menu_sedar_inventory_items" name="Warehouse, Barcode, Fuel, Lubricants, Supplies" parent="menu_sedar_inventory_app" action="action_sedar_inventory_item" sequence="1"/>
     <menuitem id="menu_sedar_inventory_maintenance" name="Maintenance Demand" parent="menu_sedar_inventory_app" action="action_sedar_maintenance_work_order" sequence="2"/>
 
     <menuitem id="menu_sedar_hr_app" name="Human Resources" action="action_sedar_hr_record" sequence="80"/>
     <menuitem id="menu_sedar_hr_records" name="Employee, Attendance, Performance" parent="menu_sedar_hr_app" action="action_sedar_hr_record" sequence="1"/>
     <menuitem id="menu_sedar_hr_crew" name="Marine Crew Link" parent="menu_sedar_hr_app" action="action_sedar_crew_member" sequence="2"/>
+    <menuitem id="menu_sedar_hr_recruitment" name="Recruitment" parent="menu_sedar_hr_app" action="action_sedar_hr_record" sequence="3"/>
+
+    <menuitem id="menu_sedar_marketing_app" name="Marketing" action="action_sedar_marketing_record" sequence="85"/>
+    <menuitem id="menu_sedar_marketing_pipeline" name="Customer Pipeline and Proposals" parent="menu_sedar_marketing_app" action="action_sedar_marketing_record" sequence="1"/>
+    <menuitem id="menu_sedar_marketing_feedback" name="Customer Satisfaction and Feedback" parent="menu_sedar_marketing_app" action="action_sedar_marketing_record" sequence="2"/>
 
     <menuitem id="menu_sedar_documents_app" name="Document Control" action="action_sedar_document_risk_dashboard" sequence="90"/>
     <menuitem id="menu_sedar_documents_control" name="Document Control Register" parent="menu_sedar_documents_app" action="action_sedar_document_control" sequence="1"/>
     <menuitem id="menu_sedar_documents_vessels" name="Vessel Certificate Context" parent="menu_sedar_documents_app" action="action_sedar_vessel" sequence="2"/>
 
-    <menuitem id="menu_sedar_reports_app" name="Management Reports" action="action_sedar_dashboard_metric" sequence="100"/>
-    <menuitem id="menu_sedar_reports_kpis" name="KPIs and Analytics" parent="menu_sedar_reports_app" action="action_sedar_dashboard_metric" sequence="1"/>
-    <menuitem id="menu_sedar_reports_finance" name="Financial Reports" parent="menu_sedar_reports_app" action="action_sedar_finance_record" sequence="2"/>
-    <menuitem id="menu_sedar_reports_assets" name="Utilization and Availability" parent="menu_sedar_reports_app" action="action_sedar_vessel" sequence="3"/>
+    <menuitem id="menu_sedar_reports_app" name="Corporate Management" action="action_sedar_corporate_record" sequence="100"/>
+    <menuitem id="menu_sedar_reports_kpis" name="Board, Legal, Insurance, Contracts, Audit" parent="menu_sedar_reports_app" action="action_sedar_corporate_record" sequence="1"/>
+    <menuitem id="menu_sedar_reports_dashboard" name="KPI Dashboard and Executive Management" parent="menu_sedar_reports_app" action="action_sedar_dashboard_metric" sequence="2"/>
+    <menuitem id="menu_sedar_reports_tools" name="Recommended Systems and Essential Programs" parent="menu_sedar_reports_app" action="action_sedar_corporate_record" sequence="3"/>
 </odoo>

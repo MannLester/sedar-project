@@ -1,0 +1,65 @@
+<odoo>
+    <record id="view_sedar_vessel_tree" model="ir.ui.view">
+        <field name="name">sedar.vessel.tree</field>
+        <field name="model">sedar.vessel</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="registry_no"/>
+                <field name="vessel_type"/>
+                <field name="capacity"/>
+                <field name="home_port"/>
+                <field name="status"/>
+                <field name="tracking_status"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_sedar_vessel_form" model="ir.ui.view">
+        <field name="name">sedar.vessel.form</field>
+        <field name="model">sedar.vessel</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="registry_no"/>
+                        <field name="vessel_type"/>
+                        <field name="capacity"/>
+                        <field name="home_port"/>
+                        <field name="status"/>
+                    </group>
+                    <group string="Latest GPS/AIS Position">
+                        <field name="current_latitude"/>
+                        <field name="current_longitude"/>
+                        <field name="speed_knots"/>
+                        <field name="course_degrees"/>
+                        <field name="last_position_at"/>
+                        <field name="tracking_status"/>
+                    </group>
+                    <notebook>
+                        <page string="Tracking History">
+                            <field name="tracking_log_ids">
+                                <tree editable="bottom">
+                                    <field name="timestamp"/>
+                                    <field name="latitude"/>
+                                    <field name="longitude"/>
+                                    <field name="speed_knots"/>
+                                    <field name="course_degrees"/>
+                                    <field name="source"/>
+                                    <field name="port_area"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sedar_vessel" model="ir.actions.act_window">
+        <field name="name">Vessels</field>
+        <field name="res_model">sedar.vessel</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_sedar_job_dispatch_user,sedar.job.dispatch.user,model_sedar_job_dispatch,base.group_user,1,1,1,1
+access_sedar_job_hiring_overview_user,sedar.job.hiring.overview.user,model_sedar_job_hiring_overview,base.group_user,1,0,0,0
+access_sedar_interview_schedule_wizard_user,sedar.interview.schedule.wizard.user,model_sedar_interview_schedule_wizard,base.group_user,1,1,1,1

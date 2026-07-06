@@ -1,0 +1,41 @@
+<odoo>
+    <record id="view_sedar_hsse_incident_tree" model="ir.ui.view">
+        <field name="name">sedar.hsse.incident.tree</field>
+        <field name="model">sedar.hsse.incident</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="date"/>
+                <field name="name"/>
+                <field name="vessel_id"/>
+                <field name="location"/>
+                <field name="severity"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_sedar_hsse_incident_form" model="ir.ui.view">
+        <field name="name">sedar.hsse.incident.form</field>
+        <field name="model">sedar.hsse.incident</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="date"/>
+                        <field name="vessel_id"/>
+                        <field name="location"/>
+                        <field name="severity"/>
+                        <field name="state"/>
+                        <field name="description"/>
+                        <field name="corrective_action"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_sedar_hsse_incident" model="ir.actions.act_window">
+        <field name="name">Incidents</field>
+        <field name="res_model">sedar.hsse.incident</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

@@ -1,0 +1,39 @@
+<odoo>
+    <record id="view_sedar_doc_vessel_cert_tree" model="ir.ui.view">
+        <field name="name">sedar.doc.vessel.cert.tree</field>
+        <field name="model">sedar.doc.vessel.cert</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="vessel_id"/>
+                <field name="cert_type"/>
+                <field name="issuing_body"/>
+                <field name="issue_date"/>
+                <field name="expiry_date"/>
+                <field name="expiry_status"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_sedar_doc_vessel_cert_form" model="ir.ui.view">
+        <field name="name">sedar.doc.vessel.cert.form</field>
+        <field name="model">sedar.doc.vessel.cert</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="vessel_id"/>
+                        <field name="cert_type"/>
+                        <field name="issuing_body"/>
+                        <field name="issue_date"/>
+                        <field name="expiry_date"/>
+                        <field name="expiry_status"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_sedar_doc_vessel_cert" model="ir.actions.act_window">
+        <field name="name">Vessel Certificates</field>
+        <field name="res_model">sedar.doc.vessel.cert</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

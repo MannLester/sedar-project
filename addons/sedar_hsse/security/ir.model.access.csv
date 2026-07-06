@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_sedar_hsse_incident_user,sedar.hsse.incident.user,model_sedar_hsse_incident,base.group_user,1,1,1,1
+access_sedar_hsse_near_miss_user,sedar.hsse.near.miss.user,model_sedar_hsse_near_miss,base.group_user,1,1,1,1
+access_sedar_hsse_inspection_user,sedar.hsse.inspection.user,model_sedar_hsse_inspection,base.group_user,1,1,1,1
+access_sedar_hsse_inspection_line_user,sedar.hsse.inspection.line.user,model_sedar_hsse_inspection_line,base.group_user,1,1,1,1
+access_sedar_hsse_risk_assessment_user,sedar.hsse.risk.assessment.user,model_sedar_hsse_risk_assessment,base.group_user,1,1,1,1
+access_sedar_hsse_permit_user,sedar.hsse.permit.user,model_sedar_hsse_permit,base.group_user,1,1,1,1

@@ -1,0 +1,35 @@
+<odoo>
+    <record id="view_sedar_crew_member_tree" model="ir.ui.view">
+        <field name="name">sedar.crew.member.tree</field>
+        <field name="model">sedar.crew.member</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="employee_id"/>
+                <field name="rank"/>
+                <field name="vessel_id"/>
+                <field name="payroll_reference"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_sedar_crew_member_form" model="ir.ui.view">
+        <field name="name">sedar.crew.member.form</field>
+        <field name="model">sedar.crew.member</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="employee_id"/>
+                        <field name="rank"/>
+                        <field name="vessel_id"/>
+                        <field name="payroll_reference"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_sedar_crew_member" model="ir.actions.act_window">
+        <field name="name">Crew Roster</field>
+        <field name="res_model">sedar.crew.member</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

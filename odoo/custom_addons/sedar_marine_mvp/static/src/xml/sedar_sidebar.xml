@@ -15,7 +15,7 @@
                     <div class="o_sedar_nav_group">
                         <div class="o_sedar_nav_heading">Command Center</div>
                         <t t-foreach="menuService.getApps()" t-as="app" t-key="app.id">
-                            <a t-if="app.xmlid and app.xmlid.startsWith('sedar_marine_mvp.') and app.name === 'SEDAR Dashboard'"
+                            <a t-if="app.xmlid and app.xmlid.startsWith('sedar_marine_mvp.') and app.name === 'Management Dashboard'"
                                 t-att-href="getMenuItemHref(app)"
                                 t-att-data-menu-xmlid="app.xmlid"
                                 t-att-class="{'o_sedar_nav_item': true, 'active': currentApp and currentApp.id === app.id}"
@@ -29,13 +29,13 @@
                     <div class="o_sedar_nav_group">
                         <div class="o_sedar_nav_heading">Operations and Assets</div>
                         <t t-foreach="menuService.getApps()" t-as="app" t-key="app.id">
-                            <a t-if="app.xmlid and app.xmlid.startsWith('sedar_marine_mvp.') and ['Marine Operations', 'Fleet Management'].includes(app.name)"
+                            <a t-if="app.xmlid and app.xmlid.startsWith('sedar_marine_mvp.') and ['Tug Operations', 'Technical and Maintenance'].includes(app.name)"
                                 t-att-href="getMenuItemHref(app)"
                                 t-att-data-menu-xmlid="app.xmlid"
                                 t-att-class="{'o_sedar_nav_item': true, 'active': currentApp and currentApp.id === app.id}"
                                 t-on-click.prevent="() => this.onNavBarDropdownItemSelection(app)">
-                                <i t-if="app.name === 'Marine Operations'" class="fa fa-ship"/>
-                                <i t-if="app.name === 'Fleet Management'" class="fa fa-anchor"/>
+                                <i t-if="app.name === 'Tug Operations'" class="fa fa-ship"/>
+                                <i t-if="app.name === 'Technical and Maintenance'" class="fa fa-wrench"/>
                                 <span t-esc="app.name"/>
                             </a>
                         </t>
@@ -44,14 +44,14 @@
                     <div class="o_sedar_nav_group">
                         <div class="o_sedar_nav_heading">People and Safety</div>
                         <t t-foreach="menuService.getApps()" t-as="app" t-key="app.id">
-                            <a t-if="app.xmlid and app.xmlid.startsWith('sedar_marine_mvp.') and ['Crewing', 'Human Resources', 'HSSE'].includes(app.name)"
+                            <a t-if="app.xmlid and app.xmlid.startsWith('sedar_marine_mvp.') and ['Crewing', 'Human Resources', 'Health, Safety, Security and Environment'].includes(app.name)"
                                 t-att-href="getMenuItemHref(app)"
                                 t-att-data-menu-xmlid="app.xmlid"
                                 t-att-class="{'o_sedar_nav_item': true, 'active': currentApp and currentApp.id === app.id}"
                                 t-on-click.prevent="() => this.onNavBarDropdownItemSelection(app)">
                                 <i t-if="app.name === 'Crewing'" class="fa fa-users"/>
                                 <i t-if="app.name === 'Human Resources'" class="fa fa-user"/>
-                                <i t-if="app.name === 'HSSE'" class="fa fa-shield"/>
+                                <i t-if="app.name === 'Health, Safety, Security and Environment'" class="fa fa-shield"/>
                                 <span t-esc="app.name"/>
                             </a>
                         </t>
@@ -60,14 +60,15 @@
                     <div class="o_sedar_nav_group">
                         <div class="o_sedar_nav_heading">Resources and Finance</div>
                         <t t-foreach="menuService.getApps()" t-as="app" t-key="app.id">
-                            <a t-if="app.xmlid and app.xmlid.startsWith('sedar_marine_mvp.') and ['Finance', 'Procurement', 'Inventory'].includes(app.name)"
+                            <a t-if="app.xmlid and app.xmlid.startsWith('sedar_marine_mvp.') and ['Finance and Accounting', 'Procurement', 'Inventory Management', 'Marketing'].includes(app.name)"
                                 t-att-href="getMenuItemHref(app)"
                                 t-att-data-menu-xmlid="app.xmlid"
                                 t-att-class="{'o_sedar_nav_item': true, 'active': currentApp and currentApp.id === app.id}"
                                 t-on-click.prevent="() => this.onNavBarDropdownItemSelection(app)">
-                                <i t-if="app.name === 'Finance'" class="fa fa-money"/>
+                                <i t-if="app.name === 'Finance and Accounting'" class="fa fa-money"/>
                                 <i t-if="app.name === 'Procurement'" class="fa fa-shopping-cart"/>
-                                <i t-if="app.name === 'Inventory'" class="fa fa-archive"/>
+                                <i t-if="app.name === 'Inventory Management'" class="fa fa-archive"/>
+                                <i t-if="app.name === 'Marketing'" class="fa fa-bullhorn"/>
                                 <span t-esc="app.name"/>
                             </a>
                         </t>
@@ -76,13 +77,13 @@
                     <div class="o_sedar_nav_group">
                         <div class="o_sedar_nav_heading">System and Compliance</div>
                         <t t-foreach="menuService.getApps()" t-as="app" t-key="app.id">
-                            <a t-if="app.xmlid and app.xmlid.startsWith('sedar_marine_mvp.') and ['Document Control', 'Management Reports'].includes(app.name)"
+                            <a t-if="app.xmlid and app.xmlid.startsWith('sedar_marine_mvp.') and ['Document Control', 'Corporate Management'].includes(app.name)"
                                 t-att-href="getMenuItemHref(app)"
                                 t-att-data-menu-xmlid="app.xmlid"
                                 t-att-class="{'o_sedar_nav_item': true, 'active': currentApp and currentApp.id === app.id}"
                                 t-on-click.prevent="() => this.onNavBarDropdownItemSelection(app)">
                                 <i t-if="app.name === 'Document Control'" class="fa fa-file-text"/>
-                                <i t-if="app.name === 'Management Reports'" class="fa fa-bar-chart"/>
+                                <i t-if="app.name === 'Corporate Management'" class="fa fa-briefcase"/>
                                 <span t-esc="app.name"/>
                             </a>
                         </t>

@@ -2,7 +2,7 @@
 
 Source of truth: `resources/Web System.pdf`
 
-Note: `resources/Web System.txt` currently exists but is empty, so this plan uses the already extracted project documents: `PDF_ANALYSIS.md` and `DASHBOARD_COVERAGE_MATRIX.md`.
+Text source: `resources/Web System.txt`
 
 This document defines what every MVP tab should display, do, and execute from the viewpoint of a tugboat company owner or president.
 
@@ -35,20 +35,25 @@ The MVP should use these exact document-backed tabs:
 2. Finance and Accounting
 3. Tug Operations
 4. Technical and Maintenance
-5. Health, Safety, and Environment
-6. Crewing
+5. Crewing
+6. Health, Safety, Security and Environment
 7. Procurement
-8. Inventory
+8. Inventory Management
 9. Human Resources
-10. Document Control
+10. Marketing
+11. Document Control
+12. Corporate Management
 
 Implementation cleanup:
 
-- `SEDAR Dashboard` may remain as the landing screen only if it is treated as the `Management Dashboard`.
-- `Marine Operations` should be renamed to `Tug Operations`.
-- `HSSE` should be renamed to `Health, Safety, and Environment` unless abbreviated only for compact layout.
-- `Fleet Management` should not remain as a separate top-level module under the strict rule. Vessel data belongs inside `Tug Operations`, `Technical and Maintenance`, and `Management Dashboard`.
-- `Management Reports` should be renamed or merged into `Management Dashboard`.
+- `SEDAR Dashboard` should be treated as `Management Dashboard`.
+- `Marine Operations` should be named `Tug Operations`.
+- `HSE` should include the narrative's `Security`, so the MVP label should be `Health, Safety, Security and Environment`.
+- `Inventory` should be treated as `Inventory Management`.
+- `Fleet Management` should not remain as a separate top-level module. Vessel data belongs inside `Tug Operations`, `Technical and Maintenance`, and `Management Dashboard`.
+- `Marketing` is required because the narrative says the centralized system connects Marketing.
+- `Corporate Management` is required because the suggested architecture names board resolutions, legal cases, insurance, contracts, internal audit, and KPI dashboard.
+- Recommended systems and essential programs must be visible as MVP planning records: Odoo, Power BI, Microsoft 365/Teams/SharePoint, DocuSign, and AIS/GPS fleet tracking.
 
 ## 1. Management Dashboard
 
@@ -243,6 +248,9 @@ PDF coverage:
 - Audits
 - Risk assessments
 - Training records
+- Security readiness
+- Near miss reports
+- Safety meetings
 
 Owner question:
 
@@ -257,6 +265,8 @@ What this tab should display:
 - Audit findings by status and responsible person.
 - Risk assessment list by vessel, job, risk level, and mitigation status.
 - Training record compliance summary.
+- Safety meeting records.
+- Security/compliance readiness notes.
 - Open and overdue corrective actions.
 
 What this tab should do:
@@ -459,7 +469,44 @@ MVP drill-downs:
 - Recruitment pipeline
 - Crew/HR link
 
-## 10. Document Control
+## 10. Marketing
+
+PDF coverage:
+
+- Marketing is named in the opening system vision as one of the connected business functions.
+- The document objective also mentions customer satisfaction and stakeholder needs.
+
+Owner question:
+
+- Are we protecting current customer relationships and converting service opportunities into profitable tug work?
+
+What this tab should display:
+
+- Customer pipeline.
+- Service proposals.
+- Customer satisfaction score or feedback.
+- Follow-up dates.
+- Opportunity value by customer and service type.
+
+What this tab should do:
+
+- Track sample customer opportunities and proposals.
+- Link marketing records to customers and likely tug service types.
+- Show customer feedback that can affect retention and service quality.
+- Feed client satisfaction and pipeline visibility into management dashboard.
+
+Required fields:
+
+- Record name, record type, customer, service type, opportunity value, status, owner, next action date, satisfaction score, note.
+
+MVP drill-downs:
+
+- Customer pipeline
+- Service proposal
+- Customer feedback
+- Customer satisfaction list
+
+## 11. Document Control
 
 PDF coverage:
 
@@ -504,6 +551,53 @@ MVP drill-downs:
 - Approval status placeholder
 - Vessel certificate context
 
+## 12. Corporate Management
+
+PDF coverage:
+
+- Executive Management
+- Board Resolutions
+- Legal Cases
+- Insurance
+- Contracts
+- Internal Audit
+- KPI Dashboard
+- Recommended Systems
+- Other Essential Programs
+
+Owner question:
+
+- Are governance, contracts, legal exposure, internal controls, and technology decisions visible to leadership?
+
+What this tab should display:
+
+- Board resolution register.
+- Legal case register placeholder.
+- Insurance and contract governance summary.
+- Internal audit action list.
+- KPI dashboard governance record.
+- Recommended systems: Microsoft Dynamics 365 Business Central, Odoo, Star Information Systems ShipNet, ABS NS5.
+- Essential programs: Power BI, Microsoft 365/Teams/SharePoint, DocuSign, AIS/GPS fleet tracking.
+
+What this tab should do:
+
+- Track governance and internal-control records.
+- Show recommended systems and essential supporting programs as decision records.
+- Link corporate governance concerns to Document Control and Management Dashboard.
+
+Required fields:
+
+- Record name, record type, owner department, responsible person, due date, status, priority, value, note.
+
+MVP drill-downs:
+
+- Board resolutions
+- Legal cases
+- Insurance/contracts governance
+- Internal audit
+- Recommended systems
+- Essential programs
+
 ## Cross-Module Demo Flow
 
 The first demo should prove that all PDF modules can connect through sample data without claiming SEDAR-specific process confirmation.
@@ -517,7 +611,9 @@ The first demo should prove that all PDF modules can connect through sample data
 7. `Tug Operations` records voyage hours, waiting time, fuel use, and completion.
 8. `Finance and Accounting` shows towage billing, AR, cash, budget, fixed asset, and payroll summaries.
 9. `Document Control` shows contracts, vessel certificates, insurance, permits, board resolutions, and ISO documents.
-10. `Management Dashboard` summarizes KPIs, financial reports, utilization, vessel availability, and profitability.
+10. `Marketing` shows customer pipeline, proposals, and satisfaction feedback.
+11. `Corporate Management` shows board, legal, internal audit, recommended systems, and essential programs.
+12. `Management Dashboard` summarizes KPIs, financial reports, utilization, vessel availability, and profitability.
 
 ## Exact PDF Coverage Checklist
 
@@ -556,6 +652,9 @@ Health, Safety, and Environment:
 - [ ] Audits
 - [ ] Risk assessments
 - [ ] Training records
+- [ ] Security readiness
+- [ ] Near miss reports
+- [ ] Safety meetings
 
 Crewing:
 
@@ -589,6 +688,13 @@ Human Resources:
 - [ ] Performance evaluation
 - [ ] Recruitment
 
+Marketing:
+
+- [ ] Customer pipeline
+- [ ] Service proposals
+- [ ] Customer satisfaction
+- [ ] Client feedback
+
 Document Control:
 
 - [ ] Contracts
@@ -606,6 +712,18 @@ Management Dashboard:
 - [ ] Vessel availability
 - [ ] Profitability
 
+Corporate Management:
+
+- [ ] Executive Management
+- [ ] Board Resolutions
+- [ ] Legal Cases
+- [ ] Insurance
+- [ ] Contracts
+- [ ] Internal Audit
+- [ ] KPI Dashboard
+- [ ] Recommended Systems
+- [ ] Other Essential Programs
+
 ## Build Order From This Plan
 
 1. Rename top-level navigation to the exact PDF module names.
@@ -615,4 +733,3 @@ Management Dashboard:
 5. Seed sample records for every checklist item.
 6. Add drill-down links from KPI cards to source records.
 7. Run the cross-module demo flow and verify every checklist item appears on screen.
-

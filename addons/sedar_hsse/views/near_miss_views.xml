@@ -1,0 +1,38 @@
+<odoo>
+    <record id="view_sedar_hsse_near_miss_tree" model="ir.ui.view">
+        <field name="name">sedar.hsse.near.miss.tree</field>
+        <field name="model">sedar.hsse.near.miss</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="date"/>
+                <field name="name"/>
+                <field name="reporter_id"/>
+                <field name="vessel_id"/>
+                <field name="risk_category"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_sedar_hsse_near_miss_form" model="ir.ui.view">
+        <field name="name">sedar.hsse.near.miss.form</field>
+        <field name="model">sedar.hsse.near.miss</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="date"/>
+                        <field name="reporter_id"/>
+                        <field name="vessel_id"/>
+                        <field name="risk_category"/>
+                        <field name="description"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_sedar_hsse_near_miss" model="ir.actions.act_window">
+        <field name="name">Near-Miss Reports</field>
+        <field name="res_model">sedar.hsse.near.miss</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

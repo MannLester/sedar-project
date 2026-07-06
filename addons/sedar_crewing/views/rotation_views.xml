@@ -1,0 +1,37 @@
+<odoo>
+    <record id="view_sedar_crew_rotation_tree" model="ir.ui.view">
+        <field name="name">sedar.crew.rotation.tree</field>
+        <field name="model">sedar.crew.rotation</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="crew_id"/>
+                <field name="vessel_id"/>
+                <field name="onboard_date"/>
+                <field name="offboard_date"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_sedar_crew_rotation_form" model="ir.ui.view">
+        <field name="name">sedar.crew.rotation.form</field>
+        <field name="model">sedar.crew.rotation</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="crew_id"/>
+                        <field name="vessel_id"/>
+                        <field name="onboard_date"/>
+                        <field name="offboard_date"/>
+                        <field name="state"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_sedar_crew_rotation" model="ir.actions.act_window">
+        <field name="name">Rotation Schedule</field>
+        <field name="res_model">sedar.crew.rotation</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

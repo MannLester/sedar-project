@@ -1,0 +1,8 @@
+<odoo>
+    <menuitem id="menu_root" name="Crewing" sequence="30"/>
+    <menuitem id="menu_crew_member" name="Crew Roster" parent="menu_root" action="action_sedar_crew_member" sequence="10"/>
+    <menuitem id="menu_rotation" name="Rotation Schedule" parent="menu_root" action="action_sedar_crew_rotation" sequence="20"/>
+    <menuitem id="menu_certification" name="Certifications" parent="menu_root" action="action_sedar_crew_certification" sequence="30"/>
+    <menuitem id="menu_medical" name="Medical Certificates" parent="menu_root" action="action_sedar_crew_medical" sequence="40"/>
+    <menuitem id="menu_leave" name="Leave" parent="menu_root" action="action_sedar_crew_leave" sequence="50"/>
+</odoo>

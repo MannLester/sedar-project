@@ -1,0 +1,10 @@
+<odoo>
+    <menuitem id="menu_root" name="Tug Operations" sequence="10"/>
+    <menuitem id="menu_vessel" name="Vessels" parent="menu_root" action="action_sedar_vessel" sequence="10"/>
+    <menuitem id="menu_job_order" name="Job Orders / Dispatch" parent="menu_root" action="action_sedar_job_order" sequence="20"/>
+    <menuitem id="menu_tug_schedule" name="Tug Scheduling" parent="menu_root" action="action_sedar_tug_schedule" sequence="30"/>
+    <menuitem id="menu_tracking_log" name="Fleet Tracking" parent="menu_root" action="action_sedar_vessel_tracking_log" sequence="40"/>
+    <menuitem id="menu_voyage_log" name="Voyage Log" parent="menu_root" action="action_sedar_voyage_log" sequence="50"/>
+    <menuitem id="menu_fuel_log" name="Fuel Monitoring" parent="menu_root" action="action_sedar_fuel_log" sequence="60"/>
+    <menuitem id="menu_towage_billing" name="Towage Billing" parent="menu_root" action="action_sedar_towage_billing" sequence="70"/>
+</odoo>

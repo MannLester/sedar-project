@@ -12,11 +12,13 @@ class SedarDashboardMetric(models.Model):
             ("finance", "Finance and Accounting"),
             ("operations", "Tug Operations"),
             ("maintenance", "Technical and Maintenance"),
-            ("hse", "Health, Safety, and Environment"),
+            ("hse", "Health, Safety, Security and Environment"),
             ("crewing", "Crewing"),
             ("procurement", "Procurement"),
             ("inventory", "Inventory"),
-            ("hr", "HR"),
+            ("hr", "Human Resources"),
+            ("marketing", "Marketing"),
+            ("corporate", "Corporate Management"),
             ("documents", "Document Control"),
             ("management", "Management Dashboard"),
         ],
@@ -66,6 +68,8 @@ class SedarVessel(models.Model):
     utilization_rate = fields.Float(string="Utilization %")
     availability_rate = fields.Float(string="Availability %")
     fuel_on_hand = fields.Float()
+    last_known_location = fields.Char()
+    ais_timestamp = fields.Datetime(string="GPS/AIS Timestamp")
     certificate_expiry = fields.Date()
     insurance_expiry = fields.Date()
     job_ids = fields.One2many("sedar.job.order", "vessel_id")
@@ -140,6 +144,8 @@ class SedarJobOrder(models.Model):
     billable_amount = fields.Float()
     direct_cost = fields.Float()
     gross_margin = fields.Float(compute="_compute_gross_margin", store=True)
+    expected_fuel_used = fields.Float()
+    fuel_variance = fields.Float(compute="_compute_fuel_variance", store=True)
     voyage_log_ids = fields.One2many("sedar.voyage.log", "job_id")
     invoice_ids = fields.One2many("sedar.finance.record", "job_id")
 
@@ -147,6 +153,12 @@ class SedarJobOrder(models.Model):
     def _compute_gross_margin(self):
         for record in self:
             record.gross_margin = record.billable_amount - record.direct_cost
+
+    @api.depends("expected_fuel_used", "voyage_log_ids.fuel_used")
+    def _compute_fuel_variance(self):
+        for record in self:
+            actual_fuel = sum(record.voyage_log_ids.mapped("fuel_used"))
+            record.fuel_variance = actual_fuel - record.expected_fuel_used
 
 
 class SedarVoyageLog(models.Model):
@@ -185,6 +197,14 @@ class SedarFinanceRecord(models.Model):
     )
     customer_id = fields.Many2one("sedar.customer")
     job_id = fields.Many2one("sedar.job.order")
+    supplier = fields.Char()
+    budget_category = fields.Char()
+    cash_impact = fields.Selection(
+        [("inflow", "Inflow"), ("outflow", "Outflow"), ("none", "No Cash Impact")],
+        default="none",
+    )
+    asset_category = fields.Char()
+    payroll_group = fields.Char()
     amount = fields.Float()
     invoice_date = fields.Date()
     due_date = fields.Date()
@@ -233,6 +253,9 @@ class SedarCrewMember(models.Model):
         default="valid",
     )
     payroll_group = fields.Char()
+    schedule_note = fields.Char()
+    leave_start = fields.Date()
+    leave_end = fields.Date()
     certificate_ids = fields.One2many("sedar.crew.certificate", "crew_id")
 
 
@@ -284,6 +307,8 @@ class SedarMaintenanceWorkOrder(models.Model):
         default="medium",
     )
     due_date = fields.Date()
+    dry_dock_window = fields.Char()
+    assigned_owner = fields.Char()
     downtime_hours = fields.Float()
     cost = fields.Float()
     status = fields.Selection(
@@ -325,6 +350,8 @@ class SedarHseRecord(models.Model):
         [("low", "Low"), ("medium", "Medium"), ("high", "High")], default="medium"
     )
     corrective_action = fields.Text()
+    training_participant = fields.Char()
+    audit_reference = fields.Char()
     responsible_person = fields.Char()
     due_date = fields.Date()
     status = fields.Selection(
@@ -351,6 +378,13 @@ class SedarProcurementRecord(models.Model):
     requested_by = fields.Char()
     request_date = fields.Date()
     amount = fields.Float()
+    expected_delivery = fields.Date()
+    approval_age_days = fields.Integer()
+    supplier_lead_days = fields.Integer()
+    delivery_performance = fields.Selection(
+        [("good", "Good"), ("watch", "Watch"), ("risk", "Risk")],
+        default="good",
+    )
     status = fields.Selection(
         [
             ("draft", "Draft"),
@@ -363,6 +397,7 @@ class SedarProcurementRecord(models.Model):
     )
     approval_owner = fields.Char()
     maintenance_id = fields.Many2one("sedar.maintenance.work.order")
+    inventory_id = fields.Many2one("sedar.inventory.item")
     note = fields.Text()
 
 
@@ -382,6 +417,7 @@ class SedarInventoryItem(models.Model):
         default="spare",
     )
     warehouse = fields.Char()
+    location_bin = fields.Char(string="Location/Bin")
     barcode = fields.Char()
     quantity_on_hand = fields.Float()
     reorder_point = fields.Float()
@@ -390,6 +426,8 @@ class SedarInventoryItem(models.Model):
     status = fields.Selection(
         [("ok", "OK"), ("low", "Low Stock"), ("critical", "Critical")], default="ok"
     )
+    maintenance_demand = fields.Char()
+    procurement_signal = fields.Char()
 
     @api.depends("quantity_on_hand", "unit_cost")
     def _compute_stock_value(self):
@@ -422,6 +460,13 @@ class SedarHrRecord(models.Model):
         ],
         default="active",
     )
+    attendance_date = fields.Date()
+    attendance_status = fields.Selection(
+        [("present", "Present"), ("absent", "Absent"), ("late", "Late"), ("review", "Pending Review")]
+    )
+    evaluation_due_date = fields.Date()
+    recruitment_role = fields.Char()
+    recruitment_stage = fields.Char()
     summary = fields.Text()
 
 
@@ -451,3 +496,93 @@ class SedarDocumentControl(models.Model):
         default="valid",
     )
     version = fields.Char(default="1.0")
+    approval_status = fields.Selection(
+        [("draft", "Draft"), ("approved", "Approved"), ("for_review", "For Review")],
+        default="approved",
+    )
+    document_link = fields.Char()
+
+
+class SedarMarketingRecord(models.Model):
+    _name = "sedar.marketing.record"
+    _description = "SEDAR Marketing Record"
+    _order = "name"
+
+    name = fields.Char(required=True)
+    record_type = fields.Selection(
+        [
+            ("customer_pipeline", "Customer Pipeline"),
+            ("customer_satisfaction", "Customer Satisfaction"),
+            ("service_proposal", "Service Proposal"),
+            ("client_feedback", "Client Feedback"),
+        ],
+        default="customer_pipeline",
+        required=True,
+    )
+    customer_id = fields.Many2one("sedar.customer")
+    service_type = fields.Selection(
+        [
+            ("ship_assist", "Ship Assist"),
+            ("barge_tow", "Barge Tow"),
+            ("escort", "Escort"),
+            ("standby", "Standby"),
+            ("emergency", "Emergency/Special Operation"),
+            ("terminal", "Terminal Support"),
+        ],
+    )
+    opportunity_value = fields.Float()
+    status = fields.Selection(
+        [
+            ("new", "New"),
+            ("in_progress", "In Progress"),
+            ("proposal", "Proposal"),
+            ("won", "Won"),
+            ("lost", "Lost"),
+            ("follow_up", "Follow Up"),
+        ],
+        default="new",
+    )
+    owner = fields.Char()
+    next_action_date = fields.Date()
+    satisfaction_score = fields.Float()
+    note = fields.Text()
+
+
+class SedarCorporateRecord(models.Model):
+    _name = "sedar.corporate.record"
+    _description = "SEDAR Corporate Management Record"
+    _order = "record_type, name"
+
+    name = fields.Char(required=True)
+    record_type = fields.Selection(
+        [
+            ("board_resolution", "Board Resolutions"),
+            ("legal_case", "Legal Cases"),
+            ("insurance", "Insurance"),
+            ("contract", "Contracts"),
+            ("internal_audit", "Internal Audit"),
+            ("kpi_dashboard", "KPI Dashboard"),
+            ("recommended_system", "Recommended System"),
+            ("essential_program", "Other Essential Program"),
+        ],
+        required=True,
+    )
+    owner_department = fields.Char()
+    responsible_person = fields.Char()
+    due_date = fields.Date()
+    status = fields.Selection(
+        [
+            ("active", "Active"),
+            ("for_review", "For Review"),
+            ("pending", "Pending"),
+            ("closed", "Closed"),
+            ("risk", "Risk"),
+        ],
+        default="active",
+    )
+    priority = fields.Selection(
+        [("low", "Low"), ("medium", "Medium"), ("high", "High")],
+        default="medium",
+    )
+    value = fields.Char()
+    note = fields.Text()

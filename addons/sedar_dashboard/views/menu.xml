@@ -1,0 +1,3 @@
+<odoo>
+    <menuitem id="menu_root" name="Management Dashboard" action="action_sedar_dashboard" sequence="50"/>
+</odoo>

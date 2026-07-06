@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_hr_applicant_form_sedar_hiring" model="ir.ui.view">
+        <field name="name">hr.applicant.form.sedar.hiring</field>
+        <field name="model">hr.applicant</field>
+        <field name="inherit_id" ref="hr_recruitment.hr_applicant_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_sedar_for_interview" string="Move to Interview" type="object" class="btn-primary" invisible="sedar_hiring_state != 'application'"/>
+                <button name="action_sedar_final_assessment" string="Move to Final Assessment" type="object" class="btn-primary" invisible="sedar_hiring_state != 'for_interview'"/>
+                <button name="action_sedar_contract_signing" string="Move to Contract Signing" type="object" class="btn-primary" invisible="sedar_hiring_state != 'final_assessment'"/>
+                <button name="action_sedar_hired" string="Mark Hired" type="object" invisible="sedar_hiring_state != 'contract_signing'"/>
+            </xpath>
+            <xpath expr="//sheet/div[@name='button_box']" position="inside">
+                <button name="action_sedar_view_documents" type="object" class="oe_stat_button" icon="fa-paperclip">
+                    <field name="sedar_attachment_count" widget="statinfo" string="Documents"/>
+                </button>
+            </xpath>
+            <xpath expr="//sheet/notebook" position="inside">
+                <page string="SEDAR Hiring">
+                    <group>
+                        <group>
+                            <field name="sedar_hiring_state"/>
+                            <field name="sedar_dispatch_id"/>
+                            <field name="sedar_target_role"/>
+                            <field name="sedar_vessel_id"/>
+                        </group>
+                        <group>
+                            <field name="sedar_interview_datetime"/>
+                            <field name="sedar_interview_mode"/>
+                            <field name="sedar_interview_location"/>
+                        </group>
+                    </group>
+                    <field name="sedar_requirements_summary" placeholder="Summarize submitted documents, licenses, certificates, and HR notes."/>
+                </page>
+                <page string="Submitted Documents">
+                    <field name="sedar_attachment_ids" context="{'default_res_model': 'hr.applicant', 'default_res_id': id}">
+                        <tree editable="bottom">
+                            <field name="name"/>
+                            <field name="mimetype"/>
+                            <field name="create_date"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_hr_applicant_tree_sedar_hiring" model="ir.ui.view">
+        <field name="name">hr.applicant.tree.sedar.hiring</field>
+        <field name="model">hr.applicant</field>
+        <field name="arch" type="xml">
+            <tree string="Job Applications" decoration-info="sedar_hiring_state == 'for_interview'" decoration-success="sedar_hiring_state in ('contract_signing', 'hired')">
+                <field name="partner_name"/>
+                <field name="job_id"/>
+                <field name="sedar_dispatch_id"/>
+                <field name="sedar_target_role"/>
+                <field name="sedar_vessel_id"/>
+                <field name="email_from"/>
+                <field name="partner_mobile"/>
+                <field name="sedar_interview_datetime"/>
+                <field name="sedar_interview_mode"/>
+                <field name="sedar_interview_location"/>
+                <field name="sedar_attachment_count"/>
+                <field name="sedar_hiring_state"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_hr_applicant_calendar_sedar_interviews" model="ir.ui.view">
+        <field name="name">hr.applicant.calendar.sedar.interviews</field>
+        <field name="model">hr.applicant</field>
+        <field name="arch" type="xml">
+            <calendar string="Pending Interviews" date_start="sedar_interview_datetime" date_stop="sedar_interview_end" color="sedar_calendar_color" mode="month" event_open_popup="true" quick_create="false">
+                <field name="partner_name"/>
+                <field name="job_id"/>
+                <field name="sedar_target_role"/>
+                <field name="sedar_interview_mode"/>
+                <field name="sedar_interview_location"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="action_sedar_job_applications" model="ir.actions.act_window">
+        <field name="name">Job Applications</field>
+        <field name="res_model">hr.applicant</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_hr_applicant_tree_sedar_hiring"/>
+        <field name="domain">[('sedar_hiring_state', '=', 'application')]</field>
+        <field name="context">{'default_sedar_hiring_state': 'application'}</field>
+    </record>
+
+    <record id="action_sedar_pending_interviews" model="ir.actions.act_window">
+        <field name="name">Pending Interviews</field>
+        <field name="res_model">hr.applicant</field>
+        <field name="view_mode">calendar,tree,form</field>
+        <field name="domain">[('sedar_hiring_state', '=', 'for_interview')]</field>
+        <field name="context">{'default_sedar_hiring_state': 'for_interview', 'calendar_default_mode': 'month'}</field>
+    </record>
+
+    <record id="action_sedar_pending_interviews_calendar_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">calendar</field>
+        <field name="view_id" ref="view_hr_applicant_calendar_sedar_interviews"/>
+        <field name="act_window_id" ref="action_sedar_pending_interviews"/>
+    </record>
+
+    <record id="action_sedar_pending_interviews_tree_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_hr_applicant_tree_sedar_hiring"/>
+        <field name="act_window_id" ref="action_sedar_pending_interviews"/>
+    </record>
+
+    <record id="action_sedar_pending_interviews_form_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="3"/>
+        <field name="view_mode">form</field>
+        <field name="act_window_id" ref="action_sedar_pending_interviews"/>
+    </record>
+
+    <record id="action_sedar_final_assessment" model="ir.actions.act_window">
+        <field name="name">Final Assessment</field>
+        <field name="res_model">hr.applicant</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_hr_applicant_tree_sedar_hiring"/>
+        <field name="domain">[('sedar_hiring_state', '=', 'final_assessment')]</field>
+        <field name="context">{'default_sedar_hiring_state': 'final_assessment'}</field>
+    </record>
+
+    <record id="action_sedar_contract_signing" model="ir.actions.act_window">
+        <field name="name">Contract Signing</field>
+        <field name="res_model">hr.applicant</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_hr_applicant_tree_sedar_hiring"/>
+        <field name="domain">[('sedar_hiring_state', '=', 'contract_signing')]</field>
+        <field name="context">{'default_sedar_hiring_state': 'contract_signing'}</field>
+    </record>
+</odoo>

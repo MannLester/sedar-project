@@ -1,0 +1,41 @@
+<odoo>
+    <record id="view_sedar_doc_insurance_tree" model="ir.ui.view">
+        <field name="name">sedar.doc.insurance.tree</field>
+        <field name="model">sedar.doc.insurance</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="policy_no"/>
+                <field name="insurer"/>
+                <field name="coverage_type"/>
+                <field name="vessel_id"/>
+                <field name="expiry_date"/>
+                <field name="expiry_status"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_sedar_doc_insurance_form" model="ir.ui.view">
+        <field name="name">sedar.doc.insurance.form</field>
+        <field name="model">sedar.doc.insurance</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="policy_no"/>
+                        <field name="insurer"/>
+                        <field name="coverage_type"/>
+                        <field name="vessel_id"/>
+                        <field name="expiry_date"/>
+                        <field name="expiry_status"/>
+                        <field name="attachment" filename="attachment_filename"/>
+                        <field name="attachment_filename" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_sedar_doc_insurance" model="ir.actions.act_window">
+        <field name="name">Insurance</field>
+        <field name="res_model">sedar.doc.insurance</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

@@ -1,0 +1,66 @@
+<odoo>
+    <record id="view_sedar_tug_schedule_tree" model="ir.ui.view">
+        <field name="name">sedar.tug.schedule.tree</field>
+        <field name="model">sedar.tug.schedule</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="start_datetime"/>
+                <field name="end_datetime"/>
+                <field name="name"/>
+                <field name="vessel_id"/>
+                <field name="job_order_id"/>
+                <field name="port_area"/>
+                <field name="assignment_type"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_sedar_tug_schedule_form" model="ir.ui.view">
+        <field name="name">sedar.tug.schedule.form</field>
+        <field name="model">sedar.tug.schedule</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object" invisible="state != 'planned'"/>
+                    <button name="action_start" string="Start" type="object" invisible="state != 'confirmed'"/>
+                    <button name="action_done" string="Done" type="object" invisible="state != 'in_progress'"/>
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state in ['done', 'cancelled']"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="vessel_id"/>
+                        <field name="job_order_id"/>
+                        <field name="start_datetime"/>
+                        <field name="end_datetime"/>
+                        <field name="port_area"/>
+                        <field name="assignment_type"/>
+                        <field name="notes"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_sedar_tug_schedule_calendar" model="ir.ui.view">
+        <field name="name">sedar.tug.schedule.calendar</field>
+        <field name="model">sedar.tug.schedule</field>
+        <field name="arch" type="xml">
+            <calendar string="Tug Schedule" date_start="start_datetime" date_stop="end_datetime" color="vessel_id">
+                <field name="name"/>
+                <field name="vessel_id"/>
+                <field name="port_area"/>
+                <field name="assignment_type"/>
+                <field name="state"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="action_sedar_tug_schedule" model="ir.actions.act_window">
+        <field name="name">Tug Scheduling</field>
+        <field name="res_model">sedar.tug.schedule</field>
+        <field name="view_mode">tree,calendar,form</field>
+    </record>
+</odoo>
