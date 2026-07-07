@@ -71,6 +71,99 @@
         </field>
     </record>
 
+    <record id="view_hr_applicant_kanban_sedar_hiring" model="ir.ui.view">
+        <field name="name">hr.applicant.kanban.sedar.hiring</field>
+        <field name="model">hr.applicant</field>
+        <field name="arch" type="xml">
+            <kanban string="Job Hiring" class="o_sedar_applicant_board" default_order="create_date desc" quick_create="false">
+                <field name="partner_name"/>
+                <field name="name"/>
+                <field name="job_id"/>
+                <field name="sedar_dispatch_id"/>
+                <field name="sedar_target_role"/>
+                <field name="sedar_vessel_id"/>
+                <field name="email_from"/>
+                <field name="partner_mobile"/>
+                <field name="sedar_requirements_summary"/>
+                <field name="sedar_attachment_count"/>
+                <field name="sedar_hiring_state"/>
+                <field name="sedar_interview_schedule_label"/>
+                <field name="sedar_interview_mode"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_global_click o_sedar_applicant_card o_sedar_applicant_state_#{record.sedar_hiring_state.raw_value}">
+                            <div class="o_sedar_applicant_card_header">
+                                <div>
+                                    <strong>
+                                        <field name="partner_name"/>
+                                    </strong>
+                                    <span>
+                                        <field name="sedar_target_role"/>
+                                        <t t-if="!record.sedar_target_role.raw_value">
+                                            <field name="job_id"/>
+                                        </t>
+                                    </span>
+                                </div>
+                                <div class="o_sedar_applicant_badge">
+                                    <field name="sedar_hiring_state"/>
+                                </div>
+                            </div>
+                            <div class="o_sedar_applicant_context">
+                                <span>
+                                    <i class="fa fa-ship" title="Boat"/>
+                                    <field name="sedar_vessel_id"/>
+                                    <t t-if="!record.sedar_vessel_id.raw_value">No boat assigned</t>
+                                </span>
+                                <span>
+                                    <i class="fa fa-briefcase" title="Dispatch"/>
+                                    <field name="sedar_dispatch_id"/>
+                                    <t t-if="!record.sedar_dispatch_id.raw_value">Direct application</t>
+                                </span>
+                            </div>
+                            <div class="o_sedar_applicant_summary">
+                                <field name="sedar_requirements_summary"/>
+                                <t t-if="!record.sedar_requirements_summary.raw_value">No requirements summary yet.</t>
+                            </div>
+                            <div class="o_sedar_applicant_meta">
+                                <span>
+                                    <i class="fa fa-paperclip" title="Documents"/>
+                                    <field name="sedar_attachment_count"/>
+                                    docs
+                                </span>
+                                <span t-if="record.email_from.raw_value">
+                                    <i class="fa fa-envelope" title="Email"/>
+                                    <field name="email_from"/>
+                                </span>
+                                <span t-if="record.partner_mobile.raw_value">
+                                    <i class="fa fa-phone" title="Mobile"/>
+                                    <field name="partner_mobile"/>
+                                </span>
+                            </div>
+                            <div t-if="record.sedar_interview_schedule_label.raw_value" class="o_sedar_applicant_interview">
+                                <i t-att-class="record.sedar_interview_mode.raw_value == 'online' ? 'fa fa-video-camera' : 'fa fa-calendar'" title="Interview"/>
+                                <field name="sedar_interview_schedule_label"/>
+                            </div>
+                            <div class="o_sedar_applicant_actions">
+                                <button name="action_sedar_view_documents" type="object" class="btn btn-secondary btn-sm">
+                                    Documents
+                                </button>
+                                <button name="action_sedar_for_interview" type="object" class="btn btn-primary btn-sm" invisible="sedar_hiring_state != 'application'">
+                                    Interview
+                                </button>
+                                <button name="action_sedar_final_assessment" type="object" class="btn btn-primary btn-sm" invisible="sedar_hiring_state != 'for_interview'">
+                                    Final
+                                </button>
+                                <button name="action_sedar_contract_signing" type="object" class="btn btn-primary btn-sm" invisible="sedar_hiring_state != 'final_assessment'">
+                                    Contract
+                                </button>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
     <record id="view_hr_applicant_kanban_sedar_interviews" model="ir.ui.view">
         <field name="name">hr.applicant.kanban.sedar.interviews</field>
         <field name="model">hr.applicant</field>
@@ -160,16 +253,37 @@
     <record id="action_sedar_job_applications" model="ir.actions.act_window">
         <field name="name">Job Applications</field>
         <field name="res_model">hr.applicant</field>
-        <field name="view_mode">tree,form</field>
-        <field name="view_id" ref="view_hr_applicant_tree_sedar_hiring"/>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="view_id" ref="view_hr_applicant_kanban_sedar_hiring"/>
         <field name="domain">[('sedar_hiring_state', '=', 'application')]</field>
         <field name="context">{'default_sedar_hiring_state': 'application'}</field>
+    </record>
+
+    <record id="action_sedar_job_applications_kanban_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">kanban</field>
+        <field name="view_id" ref="view_hr_applicant_kanban_sedar_hiring"/>
+        <field name="act_window_id" ref="action_sedar_job_applications"/>
+    </record>
+
+    <record id="action_sedar_job_applications_tree_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_hr_applicant_tree_sedar_hiring"/>
+        <field name="act_window_id" ref="action_sedar_job_applications"/>
+    </record>
+
+    <record id="action_sedar_job_applications_form_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="3"/>
+        <field name="view_mode">form</field>
+        <field name="act_window_id" ref="action_sedar_job_applications"/>
     </record>
 
     <record id="action_sedar_pending_interviews" model="ir.actions.act_window">
         <field name="name">Pending Interviews</field>
         <field name="res_model">hr.applicant</field>
         <field name="view_mode">kanban,tree,calendar,form</field>
+        <field name="view_id" ref="view_hr_applicant_kanban_sedar_interviews"/>
         <field name="domain">[('sedar_hiring_state', '=', 'for_interview')]</field>
         <field name="context">{'default_sedar_hiring_state': 'for_interview', 'calendar_default_mode': 'week'}</field>
     </record>
@@ -204,18 +318,58 @@
     <record id="action_sedar_final_assessment" model="ir.actions.act_window">
         <field name="name">Final Assessment</field>
         <field name="res_model">hr.applicant</field>
-        <field name="view_mode">tree,form</field>
-        <field name="view_id" ref="view_hr_applicant_tree_sedar_hiring"/>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="view_id" ref="view_hr_applicant_kanban_sedar_hiring"/>
         <field name="domain">[('sedar_hiring_state', '=', 'final_assessment')]</field>
         <field name="context">{'default_sedar_hiring_state': 'final_assessment'}</field>
+    </record>
+
+    <record id="action_sedar_final_assessment_kanban_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">kanban</field>
+        <field name="view_id" ref="view_hr_applicant_kanban_sedar_hiring"/>
+        <field name="act_window_id" ref="action_sedar_final_assessment"/>
+    </record>
+
+    <record id="action_sedar_final_assessment_tree_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_hr_applicant_tree_sedar_hiring"/>
+        <field name="act_window_id" ref="action_sedar_final_assessment"/>
+    </record>
+
+    <record id="action_sedar_final_assessment_form_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="3"/>
+        <field name="view_mode">form</field>
+        <field name="act_window_id" ref="action_sedar_final_assessment"/>
     </record>
 
     <record id="action_sedar_contract_signing" model="ir.actions.act_window">
         <field name="name">Contract Signing</field>
         <field name="res_model">hr.applicant</field>
-        <field name="view_mode">tree,form</field>
-        <field name="view_id" ref="view_hr_applicant_tree_sedar_hiring"/>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="view_id" ref="view_hr_applicant_kanban_sedar_hiring"/>
         <field name="domain">[('sedar_hiring_state', '=', 'contract_signing')]</field>
         <field name="context">{'default_sedar_hiring_state': 'contract_signing'}</field>
+    </record>
+
+    <record id="action_sedar_contract_signing_kanban_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">kanban</field>
+        <field name="view_id" ref="view_hr_applicant_kanban_sedar_hiring"/>
+        <field name="act_window_id" ref="action_sedar_contract_signing"/>
+    </record>
+
+    <record id="action_sedar_contract_signing_tree_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_hr_applicant_tree_sedar_hiring"/>
+        <field name="act_window_id" ref="action_sedar_contract_signing"/>
+    </record>
+
+    <record id="action_sedar_contract_signing_form_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="3"/>
+        <field name="view_mode">form</field>
+        <field name="act_window_id" ref="action_sedar_contract_signing"/>
     </record>
 </odoo>

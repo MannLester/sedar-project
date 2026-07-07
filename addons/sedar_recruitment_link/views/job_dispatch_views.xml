@@ -77,22 +77,83 @@
         <field name="name">sedar.job.dispatch.kanban</field>
         <field name="model">sedar.job.dispatch</field>
         <field name="arch" type="xml">
-            <kanban default_group_by="state">
+            <kanban class="o_sedar_dispatch_board" default_group_by="state" default_order="needed_by asc" quick_create="false">
                 <field name="name"/>
                 <field name="role_needed"/>
                 <field name="quantity"/>
                 <field name="vessel_id"/>
                 <field name="client_name"/>
+                <field name="requested_datetime"/>
                 <field name="needed_by"/>
                 <field name="applicant_count"/>
+                <field name="missing_reason"/>
+                <field name="requirements"/>
+                <field name="state"/>
                 <templates>
                     <t t-name="kanban-box">
-                        <div class="oe_kanban_global_click">
-                            <strong><field name="role_needed"/></strong>
-                            <div><field name="quantity"/> needed</div>
-                            <div><field name="vessel_id"/><field name="client_name"/></div>
-                            <div>Needed: <field name="needed_by"/></div>
-                            <div>Applicants: <field name="applicant_count"/></div>
+                        <div t-attf-class="oe_kanban_global_click o_sedar_applicant_card o_sedar_dispatch_card o_sedar_dispatch_state_#{record.state.raw_value}">
+                            <div class="o_sedar_applicant_card_header">
+                                <div>
+                                    <strong>
+                                        <field name="role_needed"/>
+                                    </strong>
+                                    <span>
+                                        <field name="quantity"/>
+                                        needed
+                                    </span>
+                                </div>
+                                <div class="o_sedar_applicant_badge">
+                                    <field name="state"/>
+                                </div>
+                            </div>
+                            <div class="o_sedar_applicant_context">
+                                <span>
+                                    <i class="fa fa-ship" title="Boat"/>
+                                    <field name="vessel_id"/>
+                                    <t t-if="!record.vessel_id.raw_value">No boat assigned</t>
+                                </span>
+                                <span>
+                                    <i class="fa fa-building-o" title="Client"/>
+                                    <field name="client_name"/>
+                                    <t t-if="!record.client_name.raw_value">Internal request</t>
+                                </span>
+                                <span>
+                                    <i class="fa fa-clipboard" title="Dispatch"/>
+                                    <field name="name"/>
+                                </span>
+                            </div>
+                            <div class="o_sedar_applicant_summary">
+                                <field name="missing_reason"/>
+                                <t t-if="!record.missing_reason.raw_value">No request reason yet.</t>
+                            </div>
+                            <div class="o_sedar_applicant_meta">
+                                <span>
+                                    <i class="fa fa-calendar-check-o" title="Needed By"/>
+                                    Needed
+                                    <field name="needed_by"/>
+                                </span>
+                                <span>
+                                    <i class="fa fa-users" title="Applicants"/>
+                                    <field name="applicant_count"/>
+                                    applicants
+                                </span>
+                            </div>
+                            <div class="o_sedar_applicant_summary o_sedar_dispatch_requirements">
+                                <i class="fa fa-check-square-o" title="Requirements"/>
+                                <field name="requirements"/>
+                                <t t-if="!record.requirements.raw_value">No requirements listed.</t>
+                            </div>
+                            <div class="o_sedar_applicant_actions">
+                                <button name="action_approve_publish" type="object" class="btn btn-primary btn-sm" invisible="state != 'draft'">
+                                    Approve
+                                </button>
+                                <button name="action_view_applicants" type="object" class="btn btn-secondary btn-sm">
+                                    Applicants
+                                </button>
+                                <button name="action_mark_filled" type="object" class="btn btn-secondary btn-sm" invisible="state not in ('approved', 'draft')">
+                                    Filled
+                                </button>
+                            </div>
                         </div>
                     </t>
                 </templates>
@@ -104,6 +165,28 @@
         <field name="name">Job Dispatch Orders</field>
         <field name="res_model">sedar.job.dispatch</field>
         <field name="view_mode">kanban,tree,form</field>
+        <field name="view_id" ref="view_sedar_job_dispatch_kanban"/>
         <field name="context">{'search_default_draft': 1}</field>
+    </record>
+
+    <record id="action_sedar_job_dispatch_kanban_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">kanban</field>
+        <field name="view_id" ref="view_sedar_job_dispatch_kanban"/>
+        <field name="act_window_id" ref="action_sedar_job_dispatch"/>
+    </record>
+
+    <record id="action_sedar_job_dispatch_tree_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_sedar_job_dispatch_tree"/>
+        <field name="act_window_id" ref="action_sedar_job_dispatch"/>
+    </record>
+
+    <record id="action_sedar_job_dispatch_form_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="3"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_sedar_job_dispatch_form"/>
+        <field name="act_window_id" ref="action_sedar_job_dispatch"/>
     </record>
 </odoo>

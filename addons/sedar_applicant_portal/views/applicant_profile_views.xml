@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_sedar_applicant_profile_tree" model="ir.ui.view">
+        <field name="name">sedar.applicant.profile.tree</field>
+        <field name="model">sedar.applicant.profile</field>
+        <field name="arch" type="xml">
+            <tree string="Applicant Portal Profiles" create="false" delete="false">
+                <field name="create_date"/>
+                <field name="applicant_id"/>
+                <field name="family_name"/>
+                <field name="given_name"/>
+                <field name="email"/>
+                <field name="mobile"/>
+                <field name="certification_date"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_sedar_applicant_profile_form" model="ir.ui.view">
+        <field name="name">sedar.applicant.profile.form</field>
+        <field name="model">sedar.applicant.profile</field>
+        <field name="arch" type="xml">
+            <form string="Applicant Portal Profile" create="false" delete="false">
+                <sheet>
+                    <group>
+                        <field name="applicant_id" readonly="1"/>
+                    </group>
+                    <notebook>
+                        <page string="Personal and Family">
+                            <group>
+                                <group>
+                                    <field name="family_name"/>
+                                    <field name="given_name"/>
+                                    <field name="middle_name"/>
+                                    <field name="father_name"/>
+                                    <field name="mother_name"/>
+                                    <field name="next_of_kin"/>
+                                </group>
+                                <group>
+                                    <field name="date_of_birth"/>
+                                    <field name="place_of_birth"/>
+                                    <field name="age"/>
+                                    <field name="height"/>
+                                    <field name="weight"/>
+                                    <field name="religion"/>
+                                    <field name="civil_status"/>
+                                </group>
+                            </group>
+                            <group string="Government Numbers">
+                                <field name="sss_no"/>
+                                <field name="tin_no"/>
+                                <field name="philhealth_no"/>
+                                <field name="pagibig_no"/>
+                            </group>
+                        </page>
+                        <page string="Contact">
+                            <group>
+                                <group>
+                                    <field name="email"/>
+                                    <field name="telephone"/>
+                                    <field name="mobile"/>
+                                </group>
+                                <group>
+                                    <field name="city_address"/>
+                                    <field name="provincial_address"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Documents">
+                            <group>
+                                <group string="SIRB">
+                                    <field name="sirb_number"/>
+                                    <field name="sirb_date_issued"/>
+                                    <field name="sirb_expiry_date"/>
+                                    <field name="sirb_attachment_id"/>
+                                </group>
+                                <group string="Driver's License">
+                                    <field name="drivers_license_number"/>
+                                    <field name="drivers_license_date_issued"/>
+                                    <field name="drivers_license_expiry_date"/>
+                                    <field name="drivers_license_attachment_id"/>
+                                </group>
+                            </group>
+                            <group>
+                                <field name="resume_attachment_id"/>
+                            </group>
+                        </page>
+                        <page string="Education and Skills">
+                            <group>
+                                <field name="college_school"/>
+                                <field name="course"/>
+                                <field name="education_from"/>
+                                <field name="education_to"/>
+                                <field name="english_knowledge"/>
+                            </group>
+                        </page>
+                        <page string="Training and Medical">
+                            <field name="training_ids">
+                                <tree editable="bottom" create="false" delete="false">
+                                    <field name="seminar_name"/>
+                                    <field name="cert_no"/>
+                                    <field name="inclusive_dates"/>
+                                    <field name="venue"/>
+                                    <field name="seminar_provider"/>
+                                </tree>
+                            </field>
+                            <group string="Medical">
+                                <field name="medical_date_exam"/>
+                                <field name="medical_clinic"/>
+                                <field name="medical_basic_result"/>
+                                <field name="medical_drug_alcohol_result"/>
+                                <field name="medical_ecg_result"/>
+                            </group>
+                        </page>
+                        <page string="Employment History">
+                            <field name="employment_ids">
+                                <tree editable="bottom" create="false" delete="false">
+                                    <field name="inclusive_dates"/>
+                                    <field name="company_address"/>
+                                    <field name="position"/>
+                                    <field name="reason_leaving"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Miscellaneous">
+                            <group>
+                                <group>
+                                    <field name="legal_case"/>
+                                    <field name="legal_case_details"/>
+                                    <field name="union_member"/>
+                                    <field name="union_member_details"/>
+                                </group>
+                                <group>
+                                    <field name="disability_benefits"/>
+                                    <field name="disability_benefits_details"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Beneficiary and Emergency">
+                            <group string="Beneficiary">
+                                <field name="beneficiary_name"/>
+                                <field name="beneficiary_date_of_birth"/>
+                                <field name="beneficiary_contact_number"/>
+                                <field name="beneficiary_address"/>
+                                <field name="dependent_count"/>
+                            </group>
+                            <field name="dependent_ids">
+                                <tree editable="bottom" create="false" delete="false">
+                                    <field name="name"/>
+                                    <field name="relation"/>
+                                    <field name="date_of_birth"/>
+                                    <field name="remarks"/>
+                                </tree>
+                            </field>
+                            <group string="Person to Notify">
+                                <field name="notify_name"/>
+                                <field name="notify_relationship"/>
+                                <field name="notify_contact_number"/>
+                                <field name="notify_address"/>
+                            </group>
+                        </page>
+                        <page string="Certification">
+                            <group>
+                                <field name="certification_agreed"/>
+                                <field name="certification_name"/>
+                                <field name="certification_date"/>
+                                <field name="signature_placeholder"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sedar_applicant_profiles" model="ir.actions.act_window">
+        <field name="name">Applicant Portal Profiles</field>
+        <field name="res_model">sedar.applicant.profile</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_sedar_applicant_profiles"
+              name="Applicant Portal Profiles"
+              parent="sedar_recruitment_link.menu_sedar_job_hiring_root"
+              action="action_sedar_applicant_profiles"
+              sequence="25"/>
+
+    <record id="view_hr_applicant_form_sedar_applicant_portal" model="ir.ui.view">
+        <field name="name">hr.applicant.form.sedar.applicant.portal</field>
+        <field name="model">hr.applicant</field>
+        <field name="inherit_id" ref="hr_recruitment.hr_applicant_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/div[@name='button_box']" position="inside">
+                <button name="action_sedar_view_applicant_profile" type="object" class="oe_stat_button" icon="fa-id-card-o">
+                    <span>Portal Profile</span>
+                </button>
+            </xpath>
+            <xpath expr="//sheet/notebook" position="inside">
+                <page string="Applicant Portal Profile">
+                    <field name="sedar_applicant_profile_ids" readonly="1">
+                        <tree>
+                            <field name="family_name"/>
+                            <field name="given_name"/>
+                            <field name="email"/>
+                            <field name="mobile"/>
+                            <field name="certification_date"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

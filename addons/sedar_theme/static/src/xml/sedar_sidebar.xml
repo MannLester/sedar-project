@@ -55,16 +55,16 @@
                                         <a class="o_sedar_nav_item" href="/web#action=sedar_recruitment_link.action_sedar_job_dispatch&amp;model=sedar.job.dispatch&amp;view_type=kanban">
                                             <span>Job Dispatch Orders</span>
                                         </a>
-                                        <a class="o_sedar_nav_item" href="/web#action=sedar_recruitment_link.action_sedar_job_applications&amp;model=hr.applicant&amp;view_type=list">
+                                        <a class="o_sedar_nav_item" href="/web#action=sedar_recruitment_link.action_sedar_job_applications&amp;model=hr.applicant&amp;view_type=kanban">
                                             <span>Job Applications</span>
                                         </a>
-                                        <a class="o_sedar_nav_item" href="/web#action=sedar_recruitment_link.action_sedar_pending_interviews&amp;model=hr.applicant&amp;view_type=calendar">
+                                        <a class="o_sedar_nav_item" href="/web#action=sedar_recruitment_link.action_sedar_pending_interviews&amp;model=hr.applicant&amp;view_type=kanban">
                                             <span>Pending Interviews</span>
                                         </a>
-                                        <a class="o_sedar_nav_item" href="/web#action=sedar_recruitment_link.action_sedar_final_assessment&amp;model=hr.applicant&amp;view_type=list">
+                                        <a class="o_sedar_nav_item" href="/web#action=sedar_recruitment_link.action_sedar_final_assessment&amp;model=hr.applicant&amp;view_type=kanban">
                                             <span>Final Assessment</span>
                                         </a>
-                                        <a class="o_sedar_nav_item" href="/web#action=sedar_recruitment_link.action_sedar_contract_signing&amp;model=hr.applicant&amp;view_type=list">
+                                        <a class="o_sedar_nav_item" href="/web#action=sedar_recruitment_link.action_sedar_contract_signing&amp;model=hr.applicant&amp;view_type=kanban">
                                             <span>Contract Signing</span>
                                         </a>
                                     </div>

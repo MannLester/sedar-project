@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="applicant_apply_form" name="SEDAR Applicant Application Form">
+        <t t-call="web.frontend_layout">
+            <div class="o_sedar_applicant_portal">
+                <section class="o_sedar_applicant_shell">
+                    <t t-if="not job and not dispatch">
+                        <div class="o_sedar_applicant_notice">
+                            <h1>Application link unavailable</h1>
+                            <p>This application form needs to be opened from an active job listing.</p>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <header class="o_sedar_applicant_header">
+                            <div>
+                                <p class="o_sedar_applicant_kicker">SEDAR Applicant Portal</p>
+                                <h1>Application Form</h1>
+                                <p t-if="job">Applying for: <strong t-esc="job.name"/></p>
+                                <p t-elif="dispatch">Applying for: <strong t-esc="dispatch.role_needed"/></p>
+                            </div>
+                        </header>
+
+                        <t t-if="errors">
+                            <div class="o_sedar_applicant_errors">
+                                <ul>
+                                    <t t-foreach="errors" t-as="error">
+                                        <li t-esc="error"/>
+                                    </t>
+                                </ul>
+                            </div>
+                        </t>
+
+                        <form class="o_sedar_applicant_form" action="/applicant/apply/submit" method="post" enctype="multipart/form-data">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <input type="hidden" name="job_id" t-att-value="job.id if job else values.get('job_id', '')"/>
+                            <input type="hidden" name="dispatch_id" t-att-value="dispatch.id if dispatch else values.get('dispatch_id', '')"/>
+
+                            <nav class="o_sedar_applicant_steps" aria-label="Application steps">
+                                <button type="button" class="is-active" data-step-target="0">Personal</button>
+                                <button type="button" data-step-target="1">Contact</button>
+                                <button type="button" data-step-target="2">Documents</button>
+                                <button type="button" data-step-target="3">Education</button>
+                                <button type="button" data-step-target="4">Training</button>
+                                <button type="button" data-step-target="5">Employment</button>
+                                <button type="button" data-step-target="6">Misc</button>
+                                <button type="button" data-step-target="7">Emergency</button>
+                                <button type="button" data-step-target="8">Certify</button>
+                            </nav>
+
+                            <section class="o_sedar_applicant_step is-active" data-step="0">
+                                <h2>Personal and Family Information</h2>
+                                <div class="o_sedar_grid">
+                                    <label>Family Name<input data-required="1" name="family_name" t-att-value="values.get('family_name', '')"/></label>
+                                    <label>Given Name<input data-required="1" name="given_name" t-att-value="values.get('given_name', '')"/></label>
+                                    <label>Middle Name<input data-required="1" name="middle_name" t-att-value="values.get('middle_name', '')"/></label>
+                                    <label>Father's Name<input data-required="1" name="father_name" t-att-value="values.get('father_name', '')"/></label>
+                                    <label>Date of Birth<input data-required="1" type="date" name="date_of_birth" t-att-value="values.get('date_of_birth', '')"/></label>
+                                    <label>Place of Birth<input data-required="1" name="place_of_birth" t-att-value="values.get('place_of_birth', '')"/></label>
+                                    <label>Religion<input data-required="1" name="religion" t-att-value="values.get('religion', '')"/></label>
+                                    <label>Mother's Name<input data-required="1" name="mother_name" t-att-value="values.get('mother_name', '')"/></label>
+                                    <label>Age<input data-required="1" type="number" min="1" name="age" t-att-value="values.get('age', '')"/></label>
+                                    <label>Height<input data-required="1" type="number" min="1" step="0.01" name="height" t-att-value="values.get('height', '')"/></label>
+                                    <label>Weight<input data-required="1" type="number" min="1" step="0.01" name="weight" t-att-value="values.get('weight', '')"/></label>
+                                    <label>Next of Kin<input data-required="1" name="next_of_kin" t-att-value="values.get('next_of_kin', '')"/></label>
+                                    <label>SSS #<input data-required="1" name="sss_no" t-att-value="values.get('sss_no', '')"/></label>
+                                    <label>TIN #<input data-required="1" name="tin_no" t-att-value="values.get('tin_no', '')"/></label>
+                                    <label>PHILHEALTH #<input data-required="1" name="philhealth_no" t-att-value="values.get('philhealth_no', '')"/></label>
+                                    <label>PAGIBIG #<input data-required="1" name="pagibig_no" t-att-value="values.get('pagibig_no', '')"/></label>
+                                    <label>Civil Status
+                                        <select data-required="1" name="civil_status">
+                                            <option value="">Select</option>
+                                            <option value="single" t-att-selected="values.get('civil_status') == 'single'">Single</option>
+                                            <option value="married" t-att-selected="values.get('civil_status') == 'married'">Married</option>
+                                            <option value="widowed" t-att-selected="values.get('civil_status') == 'widowed'">Widowed</option>
+                                            <option value="separated" t-att-selected="values.get('civil_status') == 'separated'">Separated</option>
+                                        </select>
+                                    </label>
+                                </div>
+                            </section>
+
+                            <section class="o_sedar_applicant_step" data-step="1">
+                                <h2>Contact Information</h2>
+                                <div class="o_sedar_grid">
+                                    <label>Email Address<input data-required="1" type="email" name="email" t-att-value="values.get('email', '')"/></label>
+                                    <label>Telephone No.<input data-required="1" name="telephone" t-att-value="values.get('telephone', '')"/></label>
+                                    <label>Mobile No.<input data-required="1" name="mobile" t-att-value="values.get('mobile', '')"/></label>
+                                    <label>City Address<textarea data-required="1" name="city_address"><t t-esc="values.get('city_address', '')"/></textarea></label>
+                                    <label>Provincial Address<textarea data-required="1" name="provincial_address"><t t-esc="values.get('provincial_address', '')"/></textarea></label>
+                                </div>
+                            </section>
+
+                            <section class="o_sedar_applicant_step" data-step="2">
+                                <h2>Documents</h2>
+                                <p class="o_sedar_muted">PDF, JPG, or PNG only. Maximum file size: <t t-esc="max_upload_mb"/> MB each.</p>
+                                <div class="o_sedar_grid">
+                                    <label>SIRB Number<input data-required="1" name="sirb_number" t-att-value="values.get('sirb_number', '')"/></label>
+                                    <label>SIRB Date Issued<input data-required="1" type="date" name="sirb_date_issued" t-att-value="values.get('sirb_date_issued', '')"/></label>
+                                    <label>SIRB Expiry Date<input data-required="1" type="date" name="sirb_expiry_date" t-att-value="values.get('sirb_expiry_date', '')"/></label>
+                                    <label>SIRB Attachment<input data-required="1" type="file" name="sirb_attachment" accept=".pdf,.jpg,.jpeg,.png"/></label>
+                                    <label>Driver's License Number<input data-required="1" name="drivers_license_number" t-att-value="values.get('drivers_license_number', '')"/></label>
+                                    <label>Driver's License Date Issued<input data-required="1" type="date" name="drivers_license_date_issued" t-att-value="values.get('drivers_license_date_issued', '')"/></label>
+                                    <label>Driver's License Expiry Date<input data-required="1" type="date" name="drivers_license_expiry_date" t-att-value="values.get('drivers_license_expiry_date', '')"/></label>
+                                    <label>Driver's License Attachment<input data-required="1" type="file" name="drivers_license_attachment" accept=".pdf,.jpg,.jpeg,.png"/></label>
+                                    <label>Resume<input data-required="1" type="file" name="resume_attachment" accept=".pdf,.jpg,.jpeg,.png"/></label>
+                                </div>
+                            </section>
+
+                            <section class="o_sedar_applicant_step" data-step="3">
+                                <h2>Education and Skills</h2>
+                                <div class="o_sedar_grid">
+                                    <label>College/School Last Attended<input data-required="1" name="college_school" t-att-value="values.get('college_school', '')"/></label>
+                                    <label>Course<input data-required="1" name="course" t-att-value="values.get('course', '')"/></label>
+                                    <label>From<input data-required="1" type="date" name="education_from" t-att-value="values.get('education_from', '')"/></label>
+                                    <label>To<input data-required="1" type="date" name="education_to" t-att-value="values.get('education_to', '')"/></label>
+                                    <label>English Knowledge<input data-required="1" name="english_knowledge" t-att-value="values.get('english_knowledge', '')"/></label>
+                                </div>
+                            </section>
+
+                            <section class="o_sedar_applicant_step" data-step="4">
+                                <h2>Trainings, Seminars, and Medical</h2>
+                                <div class="o_sedar_repeat" data-repeat-group="training">
+                                    <div class="o_sedar_repeat_row">
+                                        <label>Seminar Name<input data-required="1" name="training_seminar_name"/></label>
+                                        <label>Cert. No.<input data-required="1" name="training_cert_no"/></label>
+                                        <label>Inclusive Date/s<input data-required="1" name="training_inclusive_dates"/></label>
+                                        <label>Venue<input data-required="1" name="training_venue"/></label>
+                                        <label>Seminar Provider<input data-required="1" name="training_provider"/></label>
+                                    </div>
+                                </div>
+                                <button type="button" class="o_sedar_link_button" data-add-row="training">Add Training</button>
+                                <div class="o_sedar_grid o_sedar_gap_top">
+                                    <label>Date of Exam<input data-required="1" type="date" name="medical_date_exam" t-att-value="values.get('medical_date_exam', '')"/></label>
+                                    <label>Medical Clinic<input data-required="1" name="medical_clinic" t-att-value="values.get('medical_clinic', '')"/></label>
+                                    <label>Basic Result<input data-required="1" name="medical_basic_result" t-att-value="values.get('medical_basic_result', '')"/></label>
+                                    <label>Drug and Alcohol Result<input data-required="1" name="medical_drug_alcohol_result" t-att-value="values.get('medical_drug_alcohol_result', '')"/></label>
+                                    <label>ECG Result<input data-required="1" name="medical_ecg_result" t-att-value="values.get('medical_ecg_result', '')"/></label>
+                                </div>
+                            </section>
+
+                            <section class="o_sedar_applicant_step" data-step="5">
+                                <h2>Employment History</h2>
+                                <div class="o_sedar_repeat" data-repeat-group="employment">
+                                    <div class="o_sedar_repeat_row">
+                                        <label>Inclusive Dates<input data-required="1" name="employment_inclusive_dates"/></label>
+                                        <label>Name of Company/Address<textarea data-required="1" name="employment_company_address"></textarea></label>
+                                        <label>Position<input data-required="1" name="employment_position"/></label>
+                                        <label>Reason for Leaving<textarea data-required="1" name="employment_reason_leaving"></textarea></label>
+                                    </div>
+                                </div>
+                                <button type="button" class="o_sedar_link_button" data-add-row="employment">Add Employment</button>
+                            </section>
+
+                            <section class="o_sedar_applicant_step" data-step="6">
+                                <h2>Miscellaneous</h2>
+                                <div class="o_sedar_grid">
+                                    <label>Have you filed any legal case/claim against another company?
+                                        <select data-required="1" name="legal_case" data-detail-toggle="legal_case_details">
+                                            <option value="">Select</option>
+                                            <option value="no" t-att-selected="values.get('legal_case') == 'no'">No</option>
+                                            <option value="yes" t-att-selected="values.get('legal_case') == 'yes'">Yes</option>
+                                        </select>
+                                    </label>
+                                    <label class="o_sedar_detail">If yes, please specify<textarea name="legal_case_details"><t t-esc="values.get('legal_case_details', '')"/></textarea></label>
+                                    <label>Are you a member of union?
+                                        <select data-required="1" name="union_member" data-detail-toggle="union_member_details">
+                                            <option value="">Select</option>
+                                            <option value="no" t-att-selected="values.get('union_member') == 'no'">No</option>
+                                            <option value="yes" t-att-selected="values.get('union_member') == 'yes'">Yes</option>
+                                        </select>
+                                    </label>
+                                    <label class="o_sedar_detail">If yes, please specify<textarea name="union_member_details"><t t-esc="values.get('union_member_details', '')"/></textarea></label>
+                                    <label>Have you received any disability benefits?
+                                        <select data-required="1" name="disability_benefits" data-detail-toggle="disability_benefits_details">
+                                            <option value="">Select</option>
+                                            <option value="no" t-att-selected="values.get('disability_benefits') == 'no'">No</option>
+                                            <option value="yes" t-att-selected="values.get('disability_benefits') == 'yes'">Yes</option>
+                                        </select>
+                                    </label>
+                                    <label class="o_sedar_detail">If yes, please specify<textarea name="disability_benefits_details"><t t-esc="values.get('disability_benefits_details', '')"/></textarea></label>
+                                </div>
+                            </section>
+
+                            <section class="o_sedar_applicant_step" data-step="7">
+                                <h2>Beneficiary and Emergency Contact</h2>
+                                <div class="o_sedar_grid">
+                                    <label>Beneficiary Name<input data-required="1" name="beneficiary_name" t-att-value="values.get('beneficiary_name', '')"/></label>
+                                    <label>Beneficiary Date of Birth<input data-required="1" type="date" name="beneficiary_date_of_birth" t-att-value="values.get('beneficiary_date_of_birth', '')"/></label>
+                                    <label>Beneficiary Contact Number<input data-required="1" name="beneficiary_contact_number" t-att-value="values.get('beneficiary_contact_number', '')"/></label>
+                                    <label>Beneficiary Address<textarea data-required="1" name="beneficiary_address"><t t-esc="values.get('beneficiary_address', '')"/></textarea></label>
+                                    <label>No. of Dependent<input data-required="1" type="number" min="0" name="dependent_count" t-att-value="values.get('dependent_count', '')"/></label>
+                                </div>
+                                <div class="o_sedar_repeat" data-repeat-group="dependent">
+                                    <div class="o_sedar_repeat_row">
+                                        <label>Dependent Name<input data-required="1" name="dependent_name"/></label>
+                                        <label>Relation<input data-required="1" name="dependent_relation"/></label>
+                                        <label>Date of Birth<input data-required="1" type="date" name="dependent_date_of_birth"/></label>
+                                        <label>Remarks<textarea data-required="1" name="dependent_remarks"></textarea></label>
+                                    </div>
+                                </div>
+                                <button type="button" class="o_sedar_link_button" data-add-row="dependent">Add Dependent</button>
+                                <div class="o_sedar_grid o_sedar_gap_top">
+                                    <label>Person to Notify Name<input data-required="1" name="notify_name" t-att-value="values.get('notify_name', '')"/></label>
+                                    <label>Relationship<input data-required="1" name="notify_relationship" t-att-value="values.get('notify_relationship', '')"/></label>
+                                    <label>Contact Number<input data-required="1" name="notify_contact_number" t-att-value="values.get('notify_contact_number', '')"/></label>
+                                    <label>Address<textarea data-required="1" name="notify_address"><t t-esc="values.get('notify_address', '')"/></textarea></label>
+                                </div>
+                            </section>
+
+                            <section class="o_sedar_applicant_step" data-step="8">
+                                <h2>Certification</h2>
+                                <p class="o_sedar_certification">I DO HEREBY CERTIFY that the information and statements in this application are all true and correct to the best of my knowledge, and that I am fully aware that any false information or statement in this application is grounds for disqualification and criminal prosecution for falsification.</p>
+                                <label class="o_sedar_checkbox"><input data-required="1" type="checkbox" name="certification_agreed"/> I agree and certify the statement above.</label>
+                                <div class="o_sedar_grid">
+                                    <label>Typed Full Name<input data-required="1" name="certification_name" t-att-value="values.get('certification_name', '')"/></label>
+                                    <label>Date<input data-required="1" type="date" name="certification_date" t-att-value="values.get('certification_date', '')"/></label>
+                                    <label>Signature<input disabled="disabled" value="Placeholder for now"/></label>
+                                </div>
+                            </section>
+
+                            <div class="o_sedar_form_actions">
+                                <button type="button" class="btn btn-secondary" data-step-prev="1">Back</button>
+                                <button type="button" class="btn btn-primary" data-step-next="1">Next</button>
+                                <button type="submit" class="btn btn-primary o_sedar_submit">Submit Application</button>
+                            </div>
+                        </form>
+                    </t>
+                </section>
+            </div>
+        </t>
+    </template>
+
+    <template id="applicant_apply_success" name="SEDAR Applicant Application Submitted">
+        <t t-call="web.frontend_layout">
+            <div class="o_sedar_applicant_portal">
+                <section class="o_sedar_applicant_shell">
+                    <div class="o_sedar_applicant_notice">
+                        <h1>Application submitted</h1>
+                        <p>Your application has been received. Please wait for SEDAR HR to contact you.</p>
+                    </div>
+                </section>
+            </div>
+        </t>
+    </template>
+</odoo>

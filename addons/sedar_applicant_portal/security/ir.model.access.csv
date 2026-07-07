@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_sedar_applicant_profile_user,sedar.applicant.profile.user,model_sedar_applicant_profile,base.group_user,1,1,0,0
+access_sedar_applicant_training_user,sedar.applicant.training.user,model_sedar_applicant_training,base.group_user,1,1,0,0
+access_sedar_applicant_employment_user,sedar.applicant.employment.user,model_sedar_applicant_employment,base.group_user,1,1,0,0
+access_sedar_applicant_dependent_user,sedar.applicant.dependent.user,model_sedar_applicant_dependent,base.group_user,1,1,0,0
