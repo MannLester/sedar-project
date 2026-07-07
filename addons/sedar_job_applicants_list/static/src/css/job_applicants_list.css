@@ -1,0 +1,26 @@
+.o_sedar_job_applicant_card {
+    border-top-color: #0f5f6b;
+}
+
+.o_sedar_job_applicant_state_for_interview {
+    border-top-color: #0077b6;
+}
+
+.o_sedar_job_applicant_state_final_assessment {
+    border-top-color: #8a5a00;
+}
+
+.o_sedar_job_applicant_state_contract_signing,
+.o_sedar_job_applicant_state_hired {
+    border-top-color: #1b7a46;
+}
+
+.o_sedar_job_applicants_preview .o_kanban_renderer {
+    max-height: 520px;
+    overflow: auto;
+}
+
+.o_sedar_dashboard_applicant_preview {
+    display: block;
+    margin-top: 10px;
+}

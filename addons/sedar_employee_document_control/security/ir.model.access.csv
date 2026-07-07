@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_sedar_employee_document_control_user,sedar.employee.document.control.user,model_sedar_employee_document_control,base.group_user,1,0,0,0

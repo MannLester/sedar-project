@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_sedar_employee_records_tree" model="ir.ui.view">
+        <field name="name">hr.employee.tree.sedar.employee.records</field>
+        <field name="model">hr.employee.public</field>
+        <field name="arch" type="xml">
+            <tree string="Employee Records" create="false">
+                <field name="name" string="Employee"/>
+                <field name="sedar_crew_rank"/>
+                <field name="sedar_current_vessel_id"/>
+                <field name="department_id"/>
+                <field name="work_email"/>
+                <field name="mobile_phone"/>
+                <field name="work_phone"/>
+                <field name="sedar_payroll_reference"/>
+                <button name="action_sedar_email_placeholder" type="object" icon="fa-envelope" string="Email" class="btn-secondary"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_sedar_employee_records_form" model="ir.ui.view">
+        <field name="name">hr.employee.form.sedar.employee.records</field>
+        <field name="model">hr.employee.public</field>
+        <field name="arch" type="xml">
+            <form string="Employee Record" create="false" delete="false">
+                <header>
+                    <button name="action_sedar_email_placeholder" type="object" string="Email" class="btn-secondary"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group string="Employee">
+                        <group>
+                            <field name="name" readonly="1"/>
+                            <field name="job_title" readonly="1"/>
+                            <field name="department_id" readonly="1"/>
+                            <field name="parent_id" string="Manager" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="work_email" readonly="1"/>
+                            <field name="work_phone" readonly="1"/>
+                            <field name="mobile_phone" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Crewing">
+                        <group>
+                            <field name="sedar_crew_member_id" readonly="1"/>
+                            <field name="sedar_crew_rank" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="sedar_current_vessel_id" readonly="1"/>
+                            <field name="sedar_payroll_reference" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_sedar_employee_records_search" model="ir.ui.view">
+        <field name="name">hr.employee.search.sedar.employee.records</field>
+        <field name="model">hr.employee.public</field>
+        <field name="arch" type="xml">
+            <search string="Employee Records">
+                <field name="name"/>
+                <field name="work_email"/>
+                <field name="mobile_phone"/>
+                <field name="work_phone"/>
+                <field name="department_id"/>
+                <filter name="has_department" string="With Department" domain="[('department_id', '!=', False)]"/>
+                <filter name="has_work_email" string="With Email" domain="[('work_email', '!=', False)]"/>
+                <separator/>
+                <filter name="group_department" string="Department" context="{'group_by': 'department_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_sedar_employee_records" model="ir.actions.act_window">
+        <field name="name">Employee Records</field>
+        <field name="res_model">hr.employee.public</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_sedar_employee_records_tree"/>
+        <field name="search_view_id" ref="view_sedar_employee_records_search"/>
+        <field name="context">{}</field>
+    </record>
+
+    <record id="action_sedar_employee_records_tree_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_sedar_employee_records_tree"/>
+        <field name="act_window_id" ref="action_sedar_employee_records"/>
+    </record>
+
+    <record id="action_sedar_employee_records_form_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_sedar_employee_records_form"/>
+        <field name="act_window_id" ref="action_sedar_employee_records"/>
+    </record>
+</odoo>

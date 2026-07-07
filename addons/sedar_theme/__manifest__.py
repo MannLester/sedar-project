@@ -17,6 +17,8 @@
         'sedar_doccontrol',
         'sedar_dashboard',
         'sedar_recruitment_link',
+        'sedar_employee_records',
+        'sedar_employee_document_control',
     ],
     'assets': {
         'web.assets_backend': [

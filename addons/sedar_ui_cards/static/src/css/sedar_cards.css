@@ -1,0 +1,123 @@
+.o_sedar_card_grid .o_kanban_renderer,
+.o_sedar_card_grid.o_kanban_renderer {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 14px;
+    padding: 16px;
+}
+
+.o_sedar_card_grid .o_kanban_record {
+    width: auto;
+    margin: 0;
+    border: 0;
+    background: transparent;
+}
+
+.o_sedar_card {
+    display: grid;
+    gap: 12px;
+    min-height: 218px;
+    padding: 16px;
+    border: 1px solid #d8e1ea;
+    border-top: 4px solid #0f5f6b;
+    border-radius: 6px;
+    background: #ffffff;
+    box-shadow: 0 8px 22px rgba(11, 31, 52, 0.08);
+}
+
+.o_sedar_card:hover {
+    border-color: #b9ccdc;
+    box-shadow: 0 12px 28px rgba(11, 31, 52, 0.12);
+}
+
+.o_sedar_card_header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: start;
+}
+
+.o_sedar_card_title {
+    display: block;
+    color: #06182f;
+    font-size: 17px;
+    font-weight: 850;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+.o_sedar_card_subtitle {
+    display: block;
+    margin-top: 4px;
+    color: #526b84;
+    font-size: 13px;
+    font-weight: 750;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+.o_sedar_card_badge {
+    max-width: 132px;
+    padding: 6px 9px;
+    border-radius: 5px;
+    background: #eef6fb;
+    color: #08213d;
+    font-size: 11px;
+    font-weight: 850;
+    line-height: 1.15;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.o_sedar_card_chips,
+.o_sedar_card_meta,
+.o_sedar_card_actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.o_sedar_card_chip,
+.o_sedar_card_meta_item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    min-height: 28px;
+    padding: 5px 9px;
+    border-radius: 5px;
+    background: #f4f7fa;
+    color: #334d66;
+    font-size: 12px;
+    font-weight: 750;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+.o_sedar_card_chip {
+    background: #f7fbfe;
+}
+
+.o_sedar_card_summary {
+    min-height: 46px;
+    padding: 10px 12px;
+    border: 1px solid #edf1f5;
+    border-radius: 6px;
+    background: #fbfdff;
+    color: #334d66;
+    font-size: 13px;
+    font-weight: 650;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+.o_sedar_card_actions {
+    align-items: center;
+    padding-top: 2px;
+}
+
+.o_sedar_card_actions .btn {
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 800;
+}

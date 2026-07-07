@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_sedar_dashboard_form_job_applicants" model="ir.ui.view">
+        <field name="name">sedar.dashboard.form.job.applicants</field>
+        <field name="model">sedar.dashboard</field>
+        <field name="inherit_id" ref="sedar_dashboard.view_sedar_dashboard_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <separator string="Job Applicants"/>
+                <group>
+                    <group>
+                        <field name="sedar_job_applicant_count" string="Open Applicants"/>
+                    </group>
+                    <group>
+                        <button name="action_sedar_open_job_applicants" type="object" string="Open Job Applicants List" class="btn-primary"/>
+                    </group>
+                </group>
+                <field name="sedar_job_applicant_ids" nolabel="1" readonly="1" widget="kanban" class="o_sedar_dashboard_applicant_preview">
+                    <kanban class="o_sedar_card_grid o_sedar_job_applicants_board o_sedar_job_applicants_preview" quick_create="false" create="false">
+                        <field name="partner_name"/>
+                        <field name="name"/>
+                        <field name="job_id"/>
+                        <field name="sedar_target_role"/>
+                        <field name="sedar_hiring_state"/>
+                        <field name="email_from"/>
+                        <field name="partner_mobile"/>
+                        <field name="sedar_attachment_count"/>
+                        <field name="sedar_interview_schedule_label"/>
+                        <templates>
+                            <t t-name="kanban-box">
+                                <div t-attf-class="oe_kanban_global_click o_sedar_card o_sedar_job_applicant_card o_sedar_job_applicant_state_#{record.sedar_hiring_state.raw_value}">
+                                    <div class="o_sedar_card_header">
+                                        <div>
+                                            <strong class="o_sedar_card_title">
+                                                <field name="partner_name"/>
+                                                <t t-if="!record.partner_name.raw_value">
+                                                    <field name="name"/>
+                                                </t>
+                                            </strong>
+                                            <span class="o_sedar_card_subtitle">
+                                                <field name="sedar_target_role"/>
+                                                <t t-if="!record.sedar_target_role.raw_value">
+                                                    <field name="job_id"/>
+                                                </t>
+                                            </span>
+                                        </div>
+                                        <div class="o_sedar_card_badge">
+                                            <field name="sedar_hiring_state"/>
+                                        </div>
+                                    </div>
+                                    <div class="o_sedar_card_chips">
+                                        <span class="o_sedar_card_chip" t-if="record.email_from.raw_value">
+                                            <i class="fa fa-envelope" title="Email"/>
+                                            <field name="email_from"/>
+                                        </span>
+                                        <span class="o_sedar_card_chip" t-if="record.partner_mobile.raw_value">
+                                            <i class="fa fa-phone" title="Mobile"/>
+                                            <field name="partner_mobile"/>
+                                        </span>
+                                        <span class="o_sedar_card_chip">
+                                            <i class="fa fa-paperclip" title="Documents"/>
+                                            <field name="sedar_attachment_count"/>
+                                            docs
+                                        </span>
+                                    </div>
+                                    <div class="o_sedar_card_actions">
+                                        <button name="action_sedar_email_placeholder" type="object" class="btn btn-secondary btn-sm">
+                                            <i class="fa fa-envelope" title="Email"/>
+                                            Email
+                                        </button>
+                                        <button name="action_sedar_for_interview" type="object" class="btn btn-primary btn-sm" invisible="sedar_hiring_state != 'application'">
+                                            <i class="fa fa-calendar" title="Interview"/>
+                                            Interview
+                                        </button>
+                                    </div>
+                                </div>
+                            </t>
+                        </templates>
+                    </kanban>
+                </field>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,384 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <record id="seed_portal_applicant_carlo" model="hr.applicant">
+        <field name="name">Application - Carlo Santos Manalo</field>
+        <field name="partner_name">Carlo Santos Manalo</field>
+        <field name="email_from">carlo.manalo@example.com</field>
+        <field name="partner_phone">02 8555 0188</field>
+        <field name="partner_mobile">+63 917 310 4421</field>
+        <field name="job_id" ref="sedar_recruitment_link.demo_hr_job_cadet"/>
+        <field name="sedar_dispatch_id" ref="sedar_recruitment_link.demo_dispatch_cadets"/>
+        <field name="sedar_target_role">Cadet</field>
+        <field name="sedar_requirements_summary">Portal submission with SIRB, driver's license, resume, training history, medical details, and emergency contacts.</field>
+        <field name="description">Submitted through the public applicant portal.</field>
+        <field name="sedar_hiring_state">application</field>
+    </record>
+
+    <record id="seed_portal_applicant_aiza" model="hr.applicant">
+        <field name="name">Application - Aiza Reyes Navarro</field>
+        <field name="partner_name">Aiza Reyes Navarro</field>
+        <field name="email_from">aiza.navarro@example.com</field>
+        <field name="partner_phone">02 8555 0192</field>
+        <field name="partner_mobile">+63 918 654 1204</field>
+        <field name="job_id" ref="sedar_recruitment_link.demo_hr_job_engineer"/>
+        <field name="sedar_dispatch_id" ref="sedar_recruitment_link.demo_dispatch_engineer"/>
+        <field name="sedar_target_role">Chief Engineer</field>
+        <field name="sedar_requirements_summary">Portal submission with complete personal data, licenses, resume, medical records, and prior engine-room employment history.</field>
+        <field name="description">Submitted through the public applicant portal.</field>
+        <field name="sedar_hiring_state">application</field>
+    </record>
+
+    <record id="seed_portal_applicant_mark" model="hr.applicant">
+        <field name="name">Application - Mark Flores Villanueva</field>
+        <field name="partner_name">Mark Flores Villanueva</field>
+        <field name="email_from">mark.villanueva@example.com</field>
+        <field name="partner_phone">02 8555 0197</field>
+        <field name="partner_mobile">+63 919 777 2041</field>
+        <field name="job_id" ref="sedar_recruitment_link.demo_hr_job_deckhand"/>
+        <field name="sedar_dispatch_id" ref="sedar_recruitment_link.demo_dispatch_deckhand"/>
+        <field name="sedar_target_role">Deckhand</field>
+        <field name="sedar_requirements_summary">Portal submission with SIRB, driver's license, resume, deckhand training, medical results, and dependent details.</field>
+        <field name="description">Submitted through the public applicant portal.</field>
+        <field name="sedar_hiring_state">application</field>
+    </record>
+
+    <record id="seed_attachment_carlo_sirb" model="ir.attachment">
+        <field name="name">Carlo Santos Manalo - SIRB.pdf</field>
+        <field name="res_model">hr.applicant</field>
+        <field name="res_id" ref="seed_portal_applicant_carlo"/>
+        <field name="mimetype">application/pdf</field>
+        <field name="datas">U0VEQVIgUG9ydGFsIFNlZWQgRG9jdW1lbnQgLSBDYXJsbyBTaXJi</field>
+    </record>
+    <record id="seed_attachment_carlo_license" model="ir.attachment">
+        <field name="name">Carlo Santos Manalo - Driver License.pdf</field>
+        <field name="res_model">hr.applicant</field>
+        <field name="res_id" ref="seed_portal_applicant_carlo"/>
+        <field name="mimetype">application/pdf</field>
+        <field name="datas">U0VEQVIgUG9ydGFsIFNlZWQgRG9jdW1lbnQgLSBDYXJsbyBMaWNlbnNl</field>
+    </record>
+    <record id="seed_attachment_carlo_resume" model="ir.attachment">
+        <field name="name">Carlo Santos Manalo - Resume.pdf</field>
+        <field name="res_model">hr.applicant</field>
+        <field name="res_id" ref="seed_portal_applicant_carlo"/>
+        <field name="mimetype">application/pdf</field>
+        <field name="datas">U0VEQVIgUG9ydGFsIFNlZWQgRG9jdW1lbnQgLSBDYXJsbyBSZXN1bWU=</field>
+    </record>
+
+    <record id="seed_attachment_aiza_sirb" model="ir.attachment">
+        <field name="name">Aiza Reyes Navarro - SIRB.pdf</field>
+        <field name="res_model">hr.applicant</field>
+        <field name="res_id" ref="seed_portal_applicant_aiza"/>
+        <field name="mimetype">application/pdf</field>
+        <field name="datas">U0VEQVIgUG9ydGFsIFNlZWQgRG9jdW1lbnQgLSBBaXphIFNpcmI=</field>
+    </record>
+    <record id="seed_attachment_aiza_license" model="ir.attachment">
+        <field name="name">Aiza Reyes Navarro - Driver License.pdf</field>
+        <field name="res_model">hr.applicant</field>
+        <field name="res_id" ref="seed_portal_applicant_aiza"/>
+        <field name="mimetype">application/pdf</field>
+        <field name="datas">U0VEQVIgUG9ydGFsIFNlZWQgRG9jdW1lbnQgLSBBaXphIExpY2Vuc2U=</field>
+    </record>
+    <record id="seed_attachment_aiza_resume" model="ir.attachment">
+        <field name="name">Aiza Reyes Navarro - Resume.pdf</field>
+        <field name="res_model">hr.applicant</field>
+        <field name="res_id" ref="seed_portal_applicant_aiza"/>
+        <field name="mimetype">application/pdf</field>
+        <field name="datas">U0VEQVIgUG9ydGFsIFNlZWQgRG9jdW1lbnQgLSBBaXphIFJlc3VtZQ==</field>
+    </record>
+
+    <record id="seed_attachment_mark_sirb" model="ir.attachment">
+        <field name="name">Mark Flores Villanueva - SIRB.pdf</field>
+        <field name="res_model">hr.applicant</field>
+        <field name="res_id" ref="seed_portal_applicant_mark"/>
+        <field name="mimetype">application/pdf</field>
+        <field name="datas">U0VEQVIgUG9ydGFsIFNlZWQgRG9jdW1lbnQgLSBNYXJrIFNpcmI=</field>
+    </record>
+    <record id="seed_attachment_mark_license" model="ir.attachment">
+        <field name="name">Mark Flores Villanueva - Driver License.pdf</field>
+        <field name="res_model">hr.applicant</field>
+        <field name="res_id" ref="seed_portal_applicant_mark"/>
+        <field name="mimetype">application/pdf</field>
+        <field name="datas">U0VEQVIgUG9ydGFsIFNlZWQgRG9jdW1lbnQgLSBNYXJrIExpY2Vuc2U=</field>
+    </record>
+    <record id="seed_attachment_mark_resume" model="ir.attachment">
+        <field name="name">Mark Flores Villanueva - Resume.pdf</field>
+        <field name="res_model">hr.applicant</field>
+        <field name="res_id" ref="seed_portal_applicant_mark"/>
+        <field name="mimetype">application/pdf</field>
+        <field name="datas">U0VEQVIgUG9ydGFsIFNlZWQgRG9jdW1lbnQgLSBNYXJrIFJlc3VtZQ==</field>
+    </record>
+
+    <record id="seed_profile_carlo" model="sedar.applicant.profile">
+        <field name="applicant_id" ref="seed_portal_applicant_carlo"/>
+        <field name="family_name">Manalo</field>
+        <field name="given_name">Carlo</field>
+        <field name="middle_name">Santos</field>
+        <field name="father_name">Ramon Manalo</field>
+        <field name="date_of_birth">1999-02-18</field>
+        <field name="place_of_birth">Cavite City</field>
+        <field name="religion">Roman Catholic</field>
+        <field name="mother_name">Lorna Santos Manalo</field>
+        <field name="age">27</field>
+        <field name="height">171</field>
+        <field name="weight">68</field>
+        <field name="next_of_kin">Lorna Santos Manalo</field>
+        <field name="sss_no">34-9123456-7</field>
+        <field name="tin_no">245-881-903-000</field>
+        <field name="philhealth_no">12-345678901-2</field>
+        <field name="pagibig_no">1210-4455-9988</field>
+        <field name="civil_status">single</field>
+        <field name="email">carlo.manalo@example.com</field>
+        <field name="telephone">02 8555 0188</field>
+        <field name="mobile">+63 917 310 4421</field>
+        <field name="city_address">Blk 8 Lot 14 Bayview Subdivision, Cavite City</field>
+        <field name="provincial_address">Barangay San Roque, Cavite City</field>
+        <field name="sirb_number">SIRB-CA-2026-1044</field>
+        <field name="sirb_date_issued">2025-03-14</field>
+        <field name="sirb_expiry_date">2030-03-13</field>
+        <field name="sirb_attachment_id" ref="seed_attachment_carlo_sirb"/>
+        <field name="drivers_license_number">N04-22-001234</field>
+        <field name="drivers_license_date_issued">2024-09-03</field>
+        <field name="drivers_license_expiry_date">2029-09-02</field>
+        <field name="drivers_license_attachment_id" ref="seed_attachment_carlo_license"/>
+        <field name="resume_attachment_id" ref="seed_attachment_carlo_resume"/>
+        <field name="college_school">Philippine Merchant Marine School</field>
+        <field name="course">BS Marine Transportation</field>
+        <field name="education_from">2018-06-01</field>
+        <field name="education_to">2022-04-30</field>
+        <field name="english_knowledge">Good written and spoken English</field>
+        <field name="medical_date_exam">2026-06-12</field>
+        <field name="medical_clinic">Harbor Medical Clinic</field>
+        <field name="medical_basic_result">Fit to work</field>
+        <field name="medical_drug_alcohol_result">Negative</field>
+        <field name="medical_ecg_result">Normal</field>
+        <field name="legal_case">no</field>
+        <field name="union_member">no</field>
+        <field name="disability_benefits">no</field>
+        <field name="beneficiary_name">Lorna Santos Manalo</field>
+        <field name="beneficiary_date_of_birth">1974-11-02</field>
+        <field name="beneficiary_contact_number">+63 917 880 1134</field>
+        <field name="beneficiary_address">Barangay San Roque, Cavite City</field>
+        <field name="dependent_count">1</field>
+        <field name="notify_name">Ramon Manalo</field>
+        <field name="notify_relationship">Father</field>
+        <field name="notify_contact_number">+63 918 441 5521</field>
+        <field name="notify_address">Barangay San Roque, Cavite City</field>
+        <field name="certification_agreed" eval="True"/>
+        <field name="certification_name">Carlo Santos Manalo</field>
+        <field name="certification_date">2026-07-07</field>
+    </record>
+
+    <record id="seed_profile_aiza" model="sedar.applicant.profile">
+        <field name="applicant_id" ref="seed_portal_applicant_aiza"/>
+        <field name="family_name">Navarro</field>
+        <field name="given_name">Aiza</field>
+        <field name="middle_name">Reyes</field>
+        <field name="father_name">Arturo Navarro</field>
+        <field name="date_of_birth">1991-08-27</field>
+        <field name="place_of_birth">Iloilo City</field>
+        <field name="religion">Roman Catholic</field>
+        <field name="mother_name">Cecilia Reyes Navarro</field>
+        <field name="age">34</field>
+        <field name="height">164</field>
+        <field name="weight">59</field>
+        <field name="next_of_kin">Cecilia Reyes Navarro</field>
+        <field name="sss_no">34-7766554-1</field>
+        <field name="tin_no">308-441-220-000</field>
+        <field name="philhealth_no">03-987654321-4</field>
+        <field name="pagibig_no">1210-6677-8899</field>
+        <field name="civil_status">married</field>
+        <field name="email">aiza.navarro@example.com</field>
+        <field name="telephone">02 8555 0192</field>
+        <field name="mobile">+63 918 654 1204</field>
+        <field name="city_address">Unit 4B, Harbor View Residences, Manila</field>
+        <field name="provincial_address">Jaro District, Iloilo City</field>
+        <field name="sirb_number">SIRB-AN-2026-2217</field>
+        <field name="sirb_date_issued">2024-01-18</field>
+        <field name="sirb_expiry_date">2029-01-17</field>
+        <field name="sirb_attachment_id" ref="seed_attachment_aiza_sirb"/>
+        <field name="drivers_license_number">N01-18-887421</field>
+        <field name="drivers_license_date_issued">2023-05-04</field>
+        <field name="drivers_license_expiry_date">2028-05-03</field>
+        <field name="drivers_license_attachment_id" ref="seed_attachment_aiza_license"/>
+        <field name="resume_attachment_id" ref="seed_attachment_aiza_resume"/>
+        <field name="college_school">Maritime Academy of Asia and the Pacific</field>
+        <field name="course">BS Marine Engineering</field>
+        <field name="education_from">2008-06-01</field>
+        <field name="education_to">2012-04-30</field>
+        <field name="english_knowledge">Excellent written and spoken English</field>
+        <field name="medical_date_exam">2026-06-20</field>
+        <field name="medical_clinic">Seafarers Diagnostic Center</field>
+        <field name="medical_basic_result">Fit to work</field>
+        <field name="medical_drug_alcohol_result">Negative</field>
+        <field name="medical_ecg_result">Normal</field>
+        <field name="legal_case">no</field>
+        <field name="union_member">yes</field>
+        <field name="union_member_details">Member of a maritime officers association.</field>
+        <field name="disability_benefits">no</field>
+        <field name="beneficiary_name">Miguel Navarro</field>
+        <field name="beneficiary_date_of_birth">1989-04-16</field>
+        <field name="beneficiary_contact_number">+63 917 445 2090</field>
+        <field name="beneficiary_address">Unit 4B, Harbor View Residences, Manila</field>
+        <field name="dependent_count">2</field>
+        <field name="notify_name">Miguel Navarro</field>
+        <field name="notify_relationship">Spouse</field>
+        <field name="notify_contact_number">+63 917 445 2090</field>
+        <field name="notify_address">Unit 4B, Harbor View Residences, Manila</field>
+        <field name="certification_agreed" eval="True"/>
+        <field name="certification_name">Aiza Reyes Navarro</field>
+        <field name="certification_date">2026-07-07</field>
+    </record>
+
+    <record id="seed_profile_mark" model="sedar.applicant.profile">
+        <field name="applicant_id" ref="seed_portal_applicant_mark"/>
+        <field name="family_name">Villanueva</field>
+        <field name="given_name">Mark</field>
+        <field name="middle_name">Flores</field>
+        <field name="father_name">Benito Villanueva</field>
+        <field name="date_of_birth">1996-12-05</field>
+        <field name="place_of_birth">Batangas City</field>
+        <field name="religion">Roman Catholic</field>
+        <field name="mother_name">Norma Flores Villanueva</field>
+        <field name="age">29</field>
+        <field name="height">176</field>
+        <field name="weight">74</field>
+        <field name="next_of_kin">Norma Flores Villanueva</field>
+        <field name="sss_no">34-1239087-6</field>
+        <field name="tin_no">277-119-330-000</field>
+        <field name="philhealth_no">05-778899001-2</field>
+        <field name="pagibig_no">1210-9911-2277</field>
+        <field name="civil_status">single</field>
+        <field name="email">mark.villanueva@example.com</field>
+        <field name="telephone">02 8555 0197</field>
+        <field name="mobile">+63 919 777 2041</field>
+        <field name="city_address">Tondo, Manila</field>
+        <field name="provincial_address">Barangay Sta. Clara, Batangas City</field>
+        <field name="sirb_number">SIRB-MV-2026-4402</field>
+        <field name="sirb_date_issued">2025-11-21</field>
+        <field name="sirb_expiry_date">2030-11-20</field>
+        <field name="sirb_attachment_id" ref="seed_attachment_mark_sirb"/>
+        <field name="drivers_license_number">N03-20-552104</field>
+        <field name="drivers_license_date_issued">2022-02-10</field>
+        <field name="drivers_license_expiry_date">2027-02-09</field>
+        <field name="drivers_license_attachment_id" ref="seed_attachment_mark_license"/>
+        <field name="resume_attachment_id" ref="seed_attachment_mark_resume"/>
+        <field name="college_school">Batangas Maritime College</field>
+        <field name="course">Associate in Marine Transportation</field>
+        <field name="education_from">2014-06-01</field>
+        <field name="education_to">2016-04-30</field>
+        <field name="english_knowledge">Can communicate clearly with crew and port personnel</field>
+        <field name="medical_date_exam">2026-06-25</field>
+        <field name="medical_clinic">Portside Health Services</field>
+        <field name="medical_basic_result">Fit to work</field>
+        <field name="medical_drug_alcohol_result">Negative</field>
+        <field name="medical_ecg_result">Normal</field>
+        <field name="legal_case">yes</field>
+        <field name="legal_case_details">Filed a final pay claim in 2023; case closed by settlement.</field>
+        <field name="union_member">no</field>
+        <field name="disability_benefits">no</field>
+        <field name="beneficiary_name">Norma Flores Villanueva</field>
+        <field name="beneficiary_date_of_birth">1969-09-14</field>
+        <field name="beneficiary_contact_number">+63 918 234 9981</field>
+        <field name="beneficiary_address">Barangay Sta. Clara, Batangas City</field>
+        <field name="dependent_count">1</field>
+        <field name="notify_name">Benito Villanueva</field>
+        <field name="notify_relationship">Father</field>
+        <field name="notify_contact_number">+63 917 335 8211</field>
+        <field name="notify_address">Barangay Sta. Clara, Batangas City</field>
+        <field name="certification_agreed" eval="True"/>
+        <field name="certification_name">Mark Flores Villanueva</field>
+        <field name="certification_date">2026-07-07</field>
+    </record>
+
+    <record id="seed_training_carlo_bst" model="sedar.applicant.training">
+        <field name="profile_id" ref="seed_profile_carlo"/>
+        <field name="seminar_name">Basic Safety Training</field>
+        <field name="cert_no">BST-2026-CA-1180</field>
+        <field name="inclusive_dates">May 4-8, 2026</field>
+        <field name="venue">Manila Maritime Training Center</field>
+        <field name="seminar_provider">MMTC</field>
+    </record>
+    <record id="seed_training_carlo_watchkeeping" model="sedar.applicant.training">
+        <field name="profile_id" ref="seed_profile_carlo"/>
+        <field name="seminar_name">Deck Watchkeeping Familiarization</field>
+        <field name="cert_no">DWK-2026-2201</field>
+        <field name="inclusive_dates">June 1-3, 2026</field>
+        <field name="venue">Cavite Training Pier</field>
+        <field name="seminar_provider">Harbor Skills Institute</field>
+    </record>
+    <record id="seed_training_aiza_engine" model="sedar.applicant.training">
+        <field name="profile_id" ref="seed_profile_aiza"/>
+        <field name="seminar_name">Diesel Engine Troubleshooting</field>
+        <field name="cert_no">DET-2026-7740</field>
+        <field name="inclusive_dates">April 13-17, 2026</field>
+        <field name="venue">Makati Technical Center</field>
+        <field name="seminar_provider">Marine Engine Academy</field>
+    </record>
+    <record id="seed_training_aiza_leadership" model="sedar.applicant.training">
+        <field name="profile_id" ref="seed_profile_aiza"/>
+        <field name="seminar_name">Engine Room Resource Management</field>
+        <field name="cert_no">ERRM-2026-4012</field>
+        <field name="inclusive_dates">May 20-22, 2026</field>
+        <field name="venue">Manila</field>
+        <field name="seminar_provider">Officer Development Center</field>
+    </record>
+    <record id="seed_training_mark_mooring" model="sedar.applicant.training">
+        <field name="profile_id" ref="seed_profile_mark"/>
+        <field name="seminar_name">Mooring and Line Handling</field>
+        <field name="cert_no">MLH-2026-5511</field>
+        <field name="inclusive_dates">June 8-10, 2026</field>
+        <field name="venue">Batangas Port Training Yard</field>
+        <field name="seminar_provider">Port Skills Training Inc.</field>
+    </record>
+
+    <record id="seed_employment_carlo_ojt" model="sedar.applicant.employment">
+        <field name="profile_id" ref="seed_profile_carlo"/>
+        <field name="inclusive_dates">2023-2025</field>
+        <field name="company_address">Island Ferry Services, Batangas Port</field>
+        <field name="position">Deck Cadet</field>
+        <field name="reason_leaving">Contract completed.</field>
+    </record>
+    <record id="seed_employment_aiza_chief" model="sedar.applicant.employment">
+        <field name="profile_id" ref="seed_profile_aiza"/>
+        <field name="inclusive_dates">2020-2026</field>
+        <field name="company_address">Harbor Tug Services, Manila North Harbor</field>
+        <field name="position">Second Engineer</field>
+        <field name="reason_leaving">Seeking chief engineer assignment.</field>
+    </record>
+    <record id="seed_employment_mark_deck" model="sedar.applicant.employment">
+        <field name="profile_id" ref="seed_profile_mark"/>
+        <field name="inclusive_dates">2021-2025</field>
+        <field name="company_address">Bay Assist Marine Corp., Batangas</field>
+        <field name="position">Deckhand</field>
+        <field name="reason_leaving">End of project deployment.</field>
+    </record>
+
+    <record id="seed_dependent_carlo_sibling" model="sedar.applicant.dependent">
+        <field name="profile_id" ref="seed_profile_carlo"/>
+        <field name="name">Mika Manalo</field>
+        <field name="relation">Sister</field>
+        <field name="date_of_birth">2008-07-12</field>
+        <field name="remarks">Student</field>
+    </record>
+    <record id="seed_dependent_aiza_child_1" model="sedar.applicant.dependent">
+        <field name="profile_id" ref="seed_profile_aiza"/>
+        <field name="name">Nico Navarro</field>
+        <field name="relation">Son</field>
+        <field name="date_of_birth">2016-10-03</field>
+        <field name="remarks">Dependent child</field>
+    </record>
+    <record id="seed_dependent_aiza_child_2" model="sedar.applicant.dependent">
+        <field name="profile_id" ref="seed_profile_aiza"/>
+        <field name="name">Lia Navarro</field>
+        <field name="relation">Daughter</field>
+        <field name="date_of_birth">2019-02-21</field>
+        <field name="remarks">Dependent child</field>
+    </record>
+    <record id="seed_dependent_mark_mother" model="sedar.applicant.dependent">
+        <field name="profile_id" ref="seed_profile_mark"/>
+        <field name="name">Norma Villanueva</field>
+        <field name="relation">Mother</field>
+        <field name="date_of_birth">1969-09-14</field>
+        <field name="remarks">Primary beneficiary</field>
+    </record>
+</odoo>

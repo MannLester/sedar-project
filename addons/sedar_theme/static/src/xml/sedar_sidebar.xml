@@ -69,7 +69,20 @@
                                         </a>
                                     </div>
                                 </details>
-                                <span class="o_sedar_nav_item o_sedar_nav_placeholder">Placeholder 1</span>
+                                <details class="o_sedar_nav_subgroup" open="open">
+                                    <summary class="o_sedar_nav_item o_sedar_nav_subparent">
+                                        <span>Employee Records</span>
+                                        <i class="fa fa-angle-down o_sedar_nav_chevron"/>
+                                    </summary>
+                                    <div class="o_sedar_nav_subchildren">
+                                        <a class="o_sedar_nav_item" href="/web#action=sedar_employee_records.action_sedar_employee_records&amp;model=hr.employee.public&amp;view_type=list">
+                                            <span>Employee List</span>
+                                        </a>
+                                        <a class="o_sedar_nav_item" href="/web#action=sedar_employee_document_control.action_sedar_employee_document_control&amp;model=sedar.employee.document.control&amp;view_type=list">
+                                            <span>Document Control</span>
+                                        </a>
+                                    </div>
+                                </details>
                             </div>
                         </details>
 

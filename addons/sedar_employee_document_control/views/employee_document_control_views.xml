@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_sedar_employee_document_control_tree" model="ir.ui.view">
+        <field name="name">sedar.employee.document.control.tree</field>
+        <field name="model">sedar.employee.document.control</field>
+        <field name="arch" type="xml">
+            <tree string="Employee Document Control" create="false" edit="false" delete="false" default_order="expiry_date asc">
+                <field name="employee_id"/>
+                <field name="rank"/>
+                <field name="current_vessel_id"/>
+                <field name="document_type"/>
+                <field name="document_name"/>
+                <field name="document_no"/>
+                <field name="issue_date"/>
+                <field name="expiry_date"/>
+                <field name="days_to_expiry"/>
+                <field name="expiry_status"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_sedar_employee_document_control_form" model="ir.ui.view">
+        <field name="name">sedar.employee.document.control.form</field>
+        <field name="model">sedar.employee.document.control</field>
+        <field name="arch" type="xml">
+            <form string="Employee Document" create="false" edit="false" delete="false">
+                <sheet>
+                    <group string="Employee">
+                        <group>
+                            <field name="employee_id"/>
+                            <field name="crew_id"/>
+                            <field name="rank"/>
+                        </group>
+                        <group>
+                            <field name="current_vessel_id"/>
+                            <field name="expiry_status"/>
+                            <field name="days_to_expiry"/>
+                        </group>
+                    </group>
+                    <group string="Document">
+                        <group>
+                            <field name="document_type"/>
+                            <field name="document_name"/>
+                            <field name="document_no"/>
+                        </group>
+                        <group>
+                            <field name="issue_date"/>
+                            <field name="expiry_date"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_sedar_employee_document_control_search" model="ir.ui.view">
+        <field name="name">sedar.employee.document.control.search</field>
+        <field name="model">sedar.employee.document.control</field>
+        <field name="arch" type="xml">
+            <search string="Employee Document Control">
+                <field name="employee_id"/>
+                <field name="current_vessel_id"/>
+                <field name="document_name"/>
+                <filter name="warning" string="Expiring Soon" domain="[('expiry_status', '=', 'warning')]"/>
+                <filter name="expired" string="Expired" domain="[('expiry_status', '=', 'expired')]"/>
+                <separator/>
+                <filter name="group_employee" string="Employee" context="{'group_by': 'employee_id'}"/>
+                <filter name="group_boat" string="Current Boat" context="{'group_by': 'current_vessel_id'}"/>
+                <filter name="group_status" string="Status" context="{'group_by': 'expiry_status'}"/>
+                <filter name="group_document_type" string="Document Type" context="{'group_by': 'document_type'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_sedar_employee_document_control" model="ir.actions.act_window">
+        <field name="name">Document Control</field>
+        <field name="res_model">sedar.employee.document.control</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_sedar_employee_document_control_tree"/>
+        <field name="search_view_id" ref="view_sedar_employee_document_control_search"/>
+        <field name="context">{}</field>
+    </record>
+
+    <record id="action_sedar_employee_document_control_tree_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_sedar_employee_document_control_tree"/>
+        <field name="act_window_id" ref="action_sedar_employee_document_control"/>
+    </record>
+
+    <record id="action_sedar_employee_document_control_form_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_sedar_employee_document_control_form"/>
+        <field name="act_window_id" ref="action_sedar_employee_document_control"/>
+    </record>
+</odoo>

@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_sedar_dashboard_job_applicant_kanban" model="ir.ui.view">
+        <field name="name">hr.applicant.kanban.sedar.dashboard.job.applicants</field>
+        <field name="model">hr.applicant</field>
+        <field name="arch" type="xml">
+            <kanban string="Job Applicants" class="o_sedar_card_grid o_sedar_job_applicants_board" default_order="create_date desc" quick_create="false" create="false">
+                <field name="partner_name"/>
+                <field name="name"/>
+                <field name="job_id"/>
+                <field name="sedar_target_role"/>
+                <field name="sedar_hiring_state"/>
+                <field name="email_from"/>
+                <field name="partner_mobile"/>
+                <field name="sedar_attachment_count"/>
+                <field name="sedar_interview_schedule_label"/>
+                <field name="sedar_interview_mode"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_global_click o_sedar_card o_sedar_job_applicant_card o_sedar_job_applicant_state_#{record.sedar_hiring_state.raw_value}">
+                            <div class="o_sedar_card_header">
+                                <div>
+                                    <strong class="o_sedar_card_title">
+                                        <field name="partner_name"/>
+                                        <t t-if="!record.partner_name.raw_value">
+                                            <field name="name"/>
+                                        </t>
+                                    </strong>
+                                    <span class="o_sedar_card_subtitle">
+                                        <field name="sedar_target_role"/>
+                                        <t t-if="!record.sedar_target_role.raw_value">
+                                            <field name="job_id"/>
+                                        </t>
+                                    </span>
+                                </div>
+                                <div class="o_sedar_card_badge">
+                                    <field name="sedar_hiring_state"/>
+                                </div>
+                            </div>
+
+                            <div class="o_sedar_card_chips">
+                                <span class="o_sedar_card_chip" t-if="record.email_from.raw_value">
+                                    <i class="fa fa-envelope" title="Email"/>
+                                    <field name="email_from"/>
+                                </span>
+                                <span class="o_sedar_card_chip" t-if="record.partner_mobile.raw_value">
+                                    <i class="fa fa-phone" title="Mobile"/>
+                                    <field name="partner_mobile"/>
+                                </span>
+                                <span class="o_sedar_card_chip">
+                                    <i class="fa fa-paperclip" title="Documents"/>
+                                    <field name="sedar_attachment_count"/>
+                                    docs
+                                </span>
+                            </div>
+
+                            <div class="o_sedar_card_summary">
+                                <t t-if="record.sedar_interview_schedule_label.raw_value">
+                                    <i t-att-class="record.sedar_interview_mode.raw_value == 'online' ? 'fa fa-video-camera' : 'fa fa-calendar'" title="Interview"/>
+                                    <field name="sedar_interview_schedule_label"/>
+                                </t>
+                                <t t-else="">No interview scheduled yet.</t>
+                            </div>
+
+                            <div class="o_sedar_card_actions">
+                                <button name="action_sedar_email_placeholder" type="object" class="btn btn-secondary btn-sm">
+                                    <i class="fa fa-envelope" title="Email"/>
+                                    Email
+                                </button>
+                                <button name="action_sedar_for_interview" type="object" class="btn btn-primary btn-sm" invisible="sedar_hiring_state != 'application'">
+                                    <i class="fa fa-calendar" title="Interview"/>
+                                    Interview
+                                </button>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_sedar_dashboard_job_applicant_tree" model="ir.ui.view">
+        <field name="name">hr.applicant.tree.sedar.dashboard.job.applicants</field>
+        <field name="model">hr.applicant</field>
+        <field name="arch" type="xml">
+            <tree string="Job Applicants" create="false">
+                <field name="partner_name"/>
+                <field name="job_id"/>
+                <field name="sedar_target_role"/>
+                <field name="email_from"/>
+                <field name="partner_mobile"/>
+                <field name="sedar_attachment_count"/>
+                <field name="sedar_interview_datetime"/>
+                <field name="sedar_hiring_state"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_sedar_dashboard_job_applicant_form" model="ir.ui.view">
+        <field name="name">hr.applicant.form.sedar.dashboard.job.applicants</field>
+        <field name="model">hr.applicant</field>
+        <field name="arch" type="xml">
+            <form string="Applicant Review" create="false" delete="false">
+                <header>
+                    <button name="action_sedar_email_placeholder" string="Email" type="object" class="btn-secondary"/>
+                    <button name="action_sedar_for_interview" string="Interview" type="object" class="btn-primary" invisible="sedar_hiring_state != 'application'"/>
+                    <button name="action_sedar_final_assessment" string="Move to Final Assessment" type="object" class="btn-primary" invisible="sedar_hiring_state != 'for_interview'"/>
+                    <button name="action_sedar_contract_signing" string="Move to Contract Signing" type="object" class="btn-primary" invisible="sedar_hiring_state != 'final_assessment'"/>
+                    <button name="action_sedar_hired" string="Mark Hired" type="object" invisible="sedar_hiring_state != 'contract_signing'"/>
+                    <field name="sedar_hiring_state" widget="statusbar" statusbar_visible="application,for_interview,final_assessment,contract_signing,hired"/>
+                </header>
+                <sheet>
+                    <field name="sedar_portal_profile_id" invisible="1"/>
+                    <div name="button_box" class="oe_button_box">
+                        <button name="action_sedar_view_documents" type="object" class="oe_stat_button" icon="fa-paperclip">
+                            <field name="sedar_attachment_count" widget="statinfo" string="Documents"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="partner_name"/>
+                        <h1>
+                            <field name="partner_name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group string="Application">
+                        <group>
+                            <field name="name" readonly="1"/>
+                            <field name="job_id" readonly="1"/>
+                            <field name="sedar_target_role" readonly="1"/>
+                            <field name="sedar_dispatch_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="email_from" readonly="1"/>
+                            <field name="partner_phone" readonly="1"/>
+                            <field name="partner_mobile" readonly="1"/>
+                            <field name="create_date" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Interview">
+                        <group>
+                            <field name="sedar_interview_datetime"/>
+                            <field name="sedar_interview_duration" widget="float_time"/>
+                            <field name="sedar_interview_end" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="sedar_interview_mode"/>
+                            <field name="sedar_interview_location"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Personal and Family">
+                            <group>
+                                <group>
+                                    <field name="sedar_portal_family_name" string="Family Name" readonly="1"/>
+                                    <field name="sedar_portal_given_name" string="Given Name" readonly="1"/>
+                                    <field name="sedar_portal_middle_name" string="Middle Name" readonly="1"/>
+                                    <field name="sedar_portal_father_name" string="Father's Name" readonly="1"/>
+                                    <field name="sedar_portal_mother_name" string="Mother's Name" readonly="1"/>
+                                    <field name="sedar_portal_next_of_kin" string="Next of Kin" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="sedar_portal_date_of_birth" string="Date of Birth" readonly="1"/>
+                                    <field name="sedar_portal_place_of_birth" string="Place of Birth" readonly="1"/>
+                                    <field name="sedar_portal_age" string="Age" readonly="1"/>
+                                    <field name="sedar_portal_height" string="Height" readonly="1"/>
+                                    <field name="sedar_portal_weight" string="Weight" readonly="1"/>
+                                    <field name="sedar_portal_religion" string="Religion" readonly="1"/>
+                                    <field name="sedar_portal_civil_status" string="Civil Status" readonly="1"/>
+                                </group>
+                            </group>
+                            <group string="Government Numbers">
+                                <field name="sedar_portal_sss_no" string="SSS #" readonly="1"/>
+                                <field name="sedar_portal_tin_no" string="TIN #" readonly="1"/>
+                                <field name="sedar_portal_philhealth_no" string="PHILHEALTH #" readonly="1"/>
+                                <field name="sedar_portal_pagibig_no" string="PAGIBIG #" readonly="1"/>
+                            </group>
+                        </page>
+                        <page string="Contact">
+                            <group>
+                                <group>
+                                    <field name="sedar_portal_email" string="Email Address" readonly="1"/>
+                                    <field name="sedar_portal_telephone" string="Telephone No." readonly="1"/>
+                                    <field name="sedar_portal_mobile" string="Mobile No." readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="sedar_portal_city_address" string="City Address" readonly="1"/>
+                                    <field name="sedar_portal_provincial_address" string="Provincial Address" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Documents">
+                            <group>
+                                <group string="SIRB">
+                                    <field name="sedar_portal_sirb_number" string="Number" readonly="1"/>
+                                    <field name="sedar_portal_sirb_date_issued" string="Date Issued" readonly="1"/>
+                                    <field name="sedar_portal_sirb_expiry_date" string="Expiry Date" readonly="1"/>
+                                    <field name="sedar_portal_sirb_attachment_id" string="Attachment" readonly="1"/>
+                                </group>
+                                <group string="Driver's License">
+                                    <field name="sedar_portal_drivers_license_number" string="Number" readonly="1"/>
+                                    <field name="sedar_portal_drivers_license_date_issued" string="Date Issued" readonly="1"/>
+                                    <field name="sedar_portal_drivers_license_expiry_date" string="Expiry Date" readonly="1"/>
+                                    <field name="sedar_portal_drivers_license_attachment_id" string="Attachment" readonly="1"/>
+                                </group>
+                            </group>
+                            <group>
+                                <field name="sedar_portal_resume_attachment_id" string="Resume" readonly="1"/>
+                            </group>
+                            <field name="sedar_attachment_ids" string="All Submitted Documents" readonly="1">
+                                <tree>
+                                    <field name="name"/>
+                                    <field name="mimetype"/>
+                                    <field name="create_date"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Education and Skills">
+                            <group>
+                                <group>
+                                    <field name="sedar_portal_college_school" string="College/School Last Attended" readonly="1"/>
+                                    <field name="sedar_portal_course" string="Course" readonly="1"/>
+                                    <field name="sedar_portal_education_from" string="From" readonly="1"/>
+                                    <field name="sedar_portal_education_to" string="To" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="sedar_portal_english_knowledge" string="English Knowledge" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Training and Medical">
+                            <field name="sedar_portal_training_ids" string="Trainings and Seminars Attended" readonly="1">
+                                <tree>
+                                    <field name="seminar_name"/>
+                                    <field name="cert_no"/>
+                                    <field name="inclusive_dates"/>
+                                    <field name="venue"/>
+                                    <field name="seminar_provider"/>
+                                </tree>
+                            </field>
+                            <group string="Medical">
+                                <field name="sedar_portal_medical_date_exam" string="Date of Exam" readonly="1"/>
+                                <field name="sedar_portal_medical_clinic" string="Medical Clinic" readonly="1"/>
+                                <field name="sedar_portal_medical_basic_result" string="Basic Result" readonly="1"/>
+                                <field name="sedar_portal_medical_drug_alcohol_result" string="Drug and Alcohol Result" readonly="1"/>
+                                <field name="sedar_portal_medical_ecg_result" string="ECG Result" readonly="1"/>
+                            </group>
+                        </page>
+                        <page string="Employment History">
+                            <field name="sedar_portal_employment_ids" readonly="1">
+                                <tree>
+                                    <field name="inclusive_dates"/>
+                                    <field name="company_address"/>
+                                    <field name="position"/>
+                                    <field name="reason_leaving"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Miscellaneous">
+                            <group>
+                                <group>
+                                    <field name="sedar_portal_legal_case" string="Filed Legal Case/Claim" readonly="1"/>
+                                    <field name="sedar_portal_legal_case_details" string="Legal Case Details" readonly="1"/>
+                                    <field name="sedar_portal_union_member" string="Union Member" readonly="1"/>
+                                    <field name="sedar_portal_union_member_details" string="Union Details" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="sedar_portal_disability_benefits" string="Received Disability Benefits" readonly="1"/>
+                                    <field name="sedar_portal_disability_benefits_details" string="Disability Details" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Beneficiary and Emergency">
+                            <group string="Beneficiary">
+                                <field name="sedar_portal_beneficiary_name" string="Name" readonly="1"/>
+                                <field name="sedar_portal_beneficiary_date_of_birth" string="Date of Birth" readonly="1"/>
+                                <field name="sedar_portal_beneficiary_contact_number" string="Contact Number" readonly="1"/>
+                                <field name="sedar_portal_beneficiary_address" string="Address" readonly="1"/>
+                                <field name="sedar_portal_dependent_count" string="No. of Dependents" readonly="1"/>
+                            </group>
+                            <field name="sedar_portal_dependent_ids" string="Dependents" readonly="1">
+                                <tree>
+                                    <field name="name"/>
+                                    <field name="relation"/>
+                                    <field name="date_of_birth"/>
+                                    <field name="remarks"/>
+                                </tree>
+                            </field>
+                            <group string="Person to Notify in Case of Emergency">
+                                <field name="sedar_portal_notify_name" string="Name" readonly="1"/>
+                                <field name="sedar_portal_notify_relationship" string="Relationship" readonly="1"/>
+                                <field name="sedar_portal_notify_contact_number" string="Contact Number" readonly="1"/>
+                                <field name="sedar_portal_notify_address" string="Address" readonly="1"/>
+                            </group>
+                        </page>
+                        <page string="Certification">
+                            <group>
+                                <field name="sedar_portal_certification_agreed" string="Certified True and Correct" readonly="1"/>
+                                <field name="sedar_portal_certification_name" string="Name" readonly="1"/>
+                                <field name="sedar_portal_certification_date" string="Date" readonly="1"/>
+                                <field name="sedar_portal_signature_placeholder" string="Signature" readonly="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sedar_dashboard_job_applicants" model="ir.actions.act_window">
+        <field name="name">Job Applicants List</field>
+        <field name="res_model">hr.applicant</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="view_id" ref="view_sedar_dashboard_job_applicant_kanban"/>
+        <field name="domain">[('sedar_hiring_state', 'in', ['application', 'for_interview', 'final_assessment', 'contract_signing'])]</field>
+        <field name="context">{'default_sedar_hiring_state': 'application'}</field>
+    </record>
+
+    <record id="action_sedar_dashboard_job_applicants_kanban_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">kanban</field>
+        <field name="view_id" ref="view_sedar_dashboard_job_applicant_kanban"/>
+        <field name="act_window_id" ref="action_sedar_dashboard_job_applicants"/>
+    </record>
+
+    <record id="action_sedar_dashboard_job_applicants_tree_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_sedar_dashboard_job_applicant_tree"/>
+        <field name="act_window_id" ref="action_sedar_dashboard_job_applicants"/>
+    </record>
+
+    <record id="action_sedar_dashboard_job_applicants_form_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="3"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_sedar_dashboard_job_applicant_form"/>
+        <field name="act_window_id" ref="action_sedar_dashboard_job_applicants"/>
+    </record>
+
+    <menuitem id="menu_sedar_dashboard_job_applicants"
+              name="Job Applicants List"
+              parent="sedar_dashboard.menu_root"
+              action="action_sedar_dashboard_job_applicants"
+              sequence="20"/>
+</odoo>

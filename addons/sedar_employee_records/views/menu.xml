@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <menuitem id="menu_sedar_employee_records"
+              name="Employee Records"
+              parent="hr_recruitment.menu_hr_recruitment_root"
+              action="action_sedar_employee_records"
+              sequence="60"/>
+</odoo>
