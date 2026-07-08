@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <menuitem id="menu_sedar_marketing_app" name="Marketing" action="action_sedar_marketing_dashboard" sequence="85"/>
+    <menuitem id="menu_sedar_marketing_customer_support" name="Customer Support" parent="menu_sedar_marketing_app" action="action_sedar_marketing_record" sequence="1"/>
+    <menuitem id="menu_sedar_marketing_pipeline" name="Customer Pipeline and Proposals" parent="menu_sedar_marketing_app" action="action_sedar_marketing_record" sequence="2"/>
+    <menuitem id="menu_sedar_marketing_feedback" name="Customer Satisfaction and Feedback" parent="menu_sedar_marketing_app" action="action_sedar_marketing_record" sequence="3"/>
+</odoo>

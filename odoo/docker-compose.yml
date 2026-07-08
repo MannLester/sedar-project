@@ -22,8 +22,8 @@ services:
       - sedar-odoo-web:/var/lib/odoo
       - ./config/odoo.conf:/etc/odoo/odoo.conf
       - ./custom_addons:/mnt/extra-addons
+      - ../addons/sedar_marketing:/mnt/extra-addons/sedar_marketing
 
 volumes:
   sedar-odoo-db:
   sedar-odoo-web:
-

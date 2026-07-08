@@ -602,28 +602,6 @@
         <field name="approval_status">approved</field>
     </record>
 
-    <record id="marketing_001" model="sedar.marketing.record">
-        <field name="name">Pipeline: Harbor Gateway Terminal Expansion</field>
-        <field name="record_type">customer_pipeline</field>
-        <field name="customer_id" ref="customer_harbor_terminal"/>
-        <field name="service_type">terminal</field>
-        <field name="opportunity_value">2200000</field>
-        <field name="status">proposal</field>
-        <field name="owner">Commercial Manager</field>
-        <field name="next_action_date">2026-07-10</field>
-        <field name="note">Marketing coverage from Web System company-wide platform vision.</field>
-    </record>
-    <record id="marketing_002" model="sedar.marketing.record">
-        <field name="name">Customer Satisfaction: Oceanlink Shipping</field>
-        <field name="record_type">customer_satisfaction</field>
-        <field name="customer_id" ref="customer_oceanlink"/>
-        <field name="satisfaction_score">8.7</field>
-        <field name="status">follow_up</field>
-        <field name="owner">Account Manager</field>
-        <field name="next_action_date">2026-07-08</field>
-        <field name="note">Customer satisfaction supports the document objective to enhance client satisfaction.</field>
-    </record>
-
     <record id="corporate_board_001" model="sedar.corporate.record">
         <field name="name">Board Resolution: Fleet Expansion</field>
         <field name="record_type">board_resolution</field>

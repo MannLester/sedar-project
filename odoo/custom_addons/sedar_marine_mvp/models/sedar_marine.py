@@ -503,51 +503,6 @@ class SedarDocumentControl(models.Model):
     document_link = fields.Char()
 
 
-class SedarMarketingRecord(models.Model):
-    _name = "sedar.marketing.record"
-    _description = "SEDAR Marketing Record"
-    _order = "name"
-
-    name = fields.Char(required=True)
-    record_type = fields.Selection(
-        [
-            ("customer_pipeline", "Customer Pipeline"),
-            ("customer_satisfaction", "Customer Satisfaction"),
-            ("service_proposal", "Service Proposal"),
-            ("client_feedback", "Client Feedback"),
-        ],
-        default="customer_pipeline",
-        required=True,
-    )
-    customer_id = fields.Many2one("sedar.customer")
-    service_type = fields.Selection(
-        [
-            ("ship_assist", "Ship Assist"),
-            ("barge_tow", "Barge Tow"),
-            ("escort", "Escort"),
-            ("standby", "Standby"),
-            ("emergency", "Emergency/Special Operation"),
-            ("terminal", "Terminal Support"),
-        ],
-    )
-    opportunity_value = fields.Float()
-    status = fields.Selection(
-        [
-            ("new", "New"),
-            ("in_progress", "In Progress"),
-            ("proposal", "Proposal"),
-            ("won", "Won"),
-            ("lost", "Lost"),
-            ("follow_up", "Follow Up"),
-        ],
-        default="new",
-    )
-    owner = fields.Char()
-    next_action_date = fields.Date()
-    satisfaction_score = fields.Float()
-    note = fields.Text()
-
-
 class SedarCorporateRecord(models.Model):
     _name = "sedar.corporate.record"
     _description = "SEDAR Corporate Management Record"

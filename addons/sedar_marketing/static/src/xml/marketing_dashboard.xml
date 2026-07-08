@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sedar_marketing.MarketingDashboard">
+        <div class="o_sedar_marketing_dashboard">
+            <div class="o_sedar_marketing_topbar">
+                <div>
+                    <h1>Dashboard</h1>
+                    <p>Overview of marketing and service operations.</p>
+                </div>
+                <div class="o_sedar_marketing_actions">
+                    <button class="o_sedar_request_button" t-on-click="openNewServiceRequest">
+                        <i class="fa fa-plus"/> New Service Request
+                    </button>
+                    <button class="o_sedar_schedule_button">
+                        <i class="fa fa-calendar"/> Schedule Appointment
+                    </button>
+                </div>
+            </div>
+
+            <div class="o_sedar_kpi_grid">
+                <t t-foreach="state.kpis" t-as="kpi" t-key="kpi.label">
+                    <section class="o_sedar_kpi_card">
+                        <div>
+                            <h2 t-esc="kpi.label"/>
+                            <strong t-esc="kpi.value"/>
+                            <span t-if="kpi.note" t-esc="kpi.note"/>
+                        </div>
+                        <i t-att-class="'fa ' + kpi.icon"/>
+                    </section>
+                </t>
+            </div>
+
+            <div class="o_sedar_marketing_content">
+                <section class="o_sedar_request_panel">
+                    <div class="o_sedar_panel_header">
+                        <h2>Active Service Requests</h2>
+                        <select aria-label="Filter service requests">
+                            <option>All</option>
+                        </select>
+                    </div>
+                    <table class="o_sedar_request_table">
+                        <thead>
+                            <tr>
+                                <th>Ref No.</th>
+                                <th>Customer</th>
+                                <th>Service Type</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="state.requests" t-as="request" t-key="request.ref">
+                                <tr>
+                                    <td><strong t-esc="request.ref"/></td>
+                                    <td>
+                                        <strong t-esc="request.customer"/>
+                                        <small t-if="request.vessel" t-esc="request.vessel"/>
+                                    </td>
+                                    <td><span class="o_sedar_service_type" t-esc="request.service"/></td>
+                                    <td>
+                                        <span t-att-title="statusMeta(request.status).title" t-att-class="'o_sedar_status_pill ' + statusMeta(request.status).className" t-esc="statusMeta(request.status).label"/>
+                                    </td>
+                                </tr>
+                            </t>
+                            <tr t-if="!state.requests.length">
+                                <td colspan="4" class="o_sedar_empty_requests">No active service requests yet.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <section class="o_sedar_schedule_panel">
+                    <div class="o_sedar_panel_header">
+                        <h2>Today’s Schedule</h2>
+                    </div>
+                    <div class="o_sedar_timeline">
+                        <t t-foreach="schedule" t-as="item" t-key="item.time">
+                            <article class="o_sedar_schedule_item">
+                                <time t-esc="item.time"/>
+                                <span t-att-class="'o_sedar_timeline_dot ' + item.className"/>
+                                <div>
+                                    <span t-att-class="'o_sedar_schedule_tag ' + item.className" t-esc="item.type"/>
+                                    <h3 t-esc="item.title"/>
+                                    <p t-esc="item.customer"/>
+                                </div>
+                            </article>
+                        </t>
+                    </div>
+                    <button class="o_sedar_calendar_link">View Full Calendar</button>
+                </section>
+            </div>
+        </div>
+    </t>
+</templates>

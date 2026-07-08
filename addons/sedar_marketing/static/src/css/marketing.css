@@ -1,0 +1,775 @@
+.o_action_manager:has(.sedar_marketing_form) .o_control_panel,
+.o_action_manager:has(.sedar_marketing_form) .o-mail-Form-chatter,
+.o_action_manager:has(.sedar_marketing_form) .o_FormRenderer_chatterContainer,
+.o_action_manager:has(.sedar_marketing_form) .o_FormRenderer_chatterContainerOuter {
+    display: none !important;
+}
+
+body:has(.sedar_marketing_form) .o_tooltip,
+body:has(.sedar_marketing_form) .o-tooltip {
+    display: none !important;
+}
+
+.o_action_manager:has(.sedar_marketing_form) .o_content,
+.o_action_manager:has(.sedar_marketing_form) .o_form_view,
+.o_action_manager:has(.sedar_marketing_form) .o_form_sheet_bg {
+    height: calc(100vh - 46px);
+    overflow: hidden;
+    background: #fff;
+}
+
+.sedar_marketing_form .o_form_sheet_bg {
+    padding: 0 !important;
+}
+
+.sedar_marketing_form .o_form_sheet {
+    max-width: none !important;
+    width: 100% !important;
+    height: calc(100vh - 46px);
+    overflow: hidden;
+    margin: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+}
+
+.sedar_stepper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin: 38px auto 34px;
+    color: #111827;
+    font-weight: 700;
+}
+
+.sedar_step {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    min-width: 210px;
+}
+
+.sedar_step:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    top: 33px;
+    left: calc(50% + 33px);
+    width: 144px;
+    height: 1px;
+    background: #242424;
+}
+
+.sedar_step .fa {
+    display: grid;
+    place-items: center;
+    width: 66px;
+    height: 66px;
+    border: 2px solid #c7c7c7;
+    border-radius: 50%;
+    color: #0b1d33;
+    font-size: 28px;
+    background: #fff;
+}
+
+.sedar_step.active .fa {
+    background: #07182d;
+    color: #fff;
+}
+
+.sedar_customer_card {
+    overflow: hidden;
+    border: 1px solid #d7d7d7;
+    border-radius: 18px;
+    background: #fff;
+    width: min(868px, calc(100vw - 180px));
+    margin: 0 auto;
+}
+
+.sedar_review_card {
+    width: min(1120px, calc(100vw - 150px));
+}
+
+.sedar_customer_card_header {
+    padding: 24px 38px;
+    background: #1d3a56;
+    color: #fff;
+}
+
+.sedar_customer_card_header h2 {
+    margin: 0 0 4px;
+    color: #fff;
+    font-size: 24px;
+    font-weight: 800;
+}
+
+.sedar_customer_card_header p {
+    margin: 0;
+    color: #fff;
+}
+
+.sedar_customer_fields {
+    padding: 26px 38px 28px;
+}
+
+.sedar_customer_fields .o_field_widget,
+.sedar_customer_fields .o_input,
+.sedar_customer_fields input {
+    width: 100% !important;
+}
+
+.sedar_field {
+    margin-bottom: 20px;
+}
+
+.sedar_field label {
+    display: block;
+    margin-bottom: 8px;
+    color: #6d6d6d;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.sedar_field label sup {
+    display: none !important;
+}
+
+.sedar_field_grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 20px;
+}
+
+.sedar_field_grid_four {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.sedar_optional_label {
+    color: #9a9a9a;
+    letter-spacing: 0.18em;
+}
+
+.sedar_customer_fields .o_input,
+.sedar_customer_fields .o-autocomplete--input {
+    min-height: 39px;
+    border: 1px solid #cfcfcf !important;
+    border-radius: 9px !important;
+    padding: 8px 34px 8px 10px !important;
+    box-shadow: none !important;
+}
+
+.sedar_customer_fields .o_field_many2one {
+    position: relative;
+}
+
+.sedar_customer_fields .o_field_many2one .o_external_button,
+.sedar_customer_fields .o_field_many2one .o_external_button_internal,
+.sedar_customer_fields .o_field_many2one a.o_form_uri {
+    display: none !important;
+}
+
+.sedar_customer_fields .o-autocomplete--dropdown-menu,
+.sedar_customer_fields .o-autocomplete--dropdown {
+    right: 10px !important;
+}
+
+.sedar_customer_fields .o_field_many2one input.o-autocomplete--input {
+    padding-right: 42px !important;
+}
+
+.sedar_radio_field .o_field_radio {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 22px;
+}
+
+.sedar_field .o_field_radio {
+    display: flex !important;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+}
+
+.sedar_field .o_field_radio .form-check,
+.sedar_field .o_field_radio .o_radio_item {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 7px;
+    margin: 0 !important;
+}
+
+.sedar_field .o_field_radio input[type="radio"] {
+    width: 16px !important;
+    min-width: 16px !important;
+    height: 16px !important;
+    min-height: 16px !important;
+    margin: 0 !important;
+}
+
+.sedar_field .o_field_radio .form-check-label {
+    margin: 0 !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+    font-size: 14px !important;
+    line-height: 16px !important;
+    font-weight: 700;
+}
+
+.sedar_radio_field .form-check,
+.sedar_radio_field .o_radio_item {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 8px;
+    margin: 0 !important;
+    color: #111;
+    font-weight: 800;
+}
+
+.sedar_radio_field input[type="radio"] {
+    width: 16px !important;
+    min-width: 16px !important;
+    height: 16px !important;
+    min-height: 16px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    flex: 0 0 16px;
+}
+
+.sedar_radio_field .form-check-label {
+    margin: 0 !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+    font-size: 15px !important;
+    line-height: 16px !important;
+}
+
+.sedar_customer_actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 18px;
+    margin-top: 4px;
+}
+
+.sedar_customer_actions_split {
+    justify-content: flex-start;
+}
+
+.sedar_vessel_actions {
+    margin-top: 118px;
+}
+
+.sedar_review_card .sedar_customer_fields {
+    padding-top: 22px;
+    padding-bottom: 20px;
+}
+
+.sedar_review_grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 12px;
+}
+
+.sedar_review_section {
+    border: 1px solid #e1e1e1;
+    border-radius: 14px;
+    background: #fbfbfb;
+    padding: 13px 18px;
+}
+
+.sedar_review_section_wide {
+    grid-column: 1 / -1;
+}
+
+.sedar_review_section h3 {
+    margin: 0 0 10px;
+    color: #1d3a56;
+    font-size: 15px;
+    font-weight: 900;
+}
+
+.sedar_review_columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 22px;
+}
+
+.sedar_review_row {
+    display: flex;
+    align-items: center;
+    min-height: 26px;
+    gap: 8px;
+    border-top: 1px solid #ededed;
+    padding: 5px 0;
+    color: #111827;
+    font-weight: 800;
+}
+
+.sedar_review_row_route {
+    display: grid;
+    grid-template-columns: 132px minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+}
+
+.sedar_review_row:first-of-type {
+    border-top: 0;
+}
+
+.sedar_review_row > span:first-child {
+    flex: 0 0 132px;
+    color: #747474;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.sedar_review_row .o_field_widget,
+.sedar_review_row .o_field_empty,
+.sedar_review_row .o_form_uri,
+.sedar_review_row .o_field_many2one_selection {
+    min-width: 0;
+    color: #111827;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.sedar_review_row_route .o_field_widget {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    overflow-wrap: anywhere;
+}
+
+.sedar_review_arrow {
+    flex: 0 0 auto !important;
+    color: #8a8a8a !important;
+    font-size: 11px !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+}
+
+.sedar_review_actions {
+    margin-top: 12px;
+}
+
+.sedar_action_spacer {
+    flex: 1 1 auto;
+}
+
+.sedar_draft_button,
+.sedar_next_button,
+.sedar_previous_button {
+    min-width: 148px;
+    border-radius: 9px !important;
+    padding: 12px 20px !important;
+    font-weight: 900 !important;
+}
+
+.sedar_draft_button,
+.sedar_next_button {
+    border: 0 !important;
+    border-radius: 9px !important;
+    padding: 12px 20px !important;
+    color: #fff !important;
+    font-weight: 900 !important;
+}
+
+.sedar_previous_button {
+    border: 1px solid #d0d0d0 !important;
+    background: #fff !important;
+    color: #666 !important;
+}
+
+.sedar_draft_button {
+    background: #a8a6a6 !important;
+}
+
+.sedar_next_button {
+    background: #1d3a56 !important;
+}
+
+.o_sedar_marketing_dashboard {
+    height: calc(100vh - 46px);
+    overflow: hidden;
+    overflow-x: hidden;
+    padding: 34px 44px 50px;
+    background: #fbfbfa;
+    color: #101010;
+    font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+}
+
+.o_sedar_marketing_topbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 34px;
+}
+
+.o_sedar_marketing_topbar h1 {
+    margin: 0;
+    color: #070707;
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    text-shadow: 0 4px 5px rgba(0, 0, 0, 0.2);
+}
+
+.o_sedar_marketing_topbar p {
+    margin: 4px 0 0;
+    color: #5d5d5d;
+    font-size: 17px;
+    font-weight: 400;
+}
+
+.o_sedar_marketing_actions {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.o_sedar_request_button,
+.o_sedar_schedule_button,
+.o_sedar_calendar_link {
+    border: 1px solid #cfcfcf;
+    border-radius: 8px;
+    padding: 11px 18px;
+    font-weight: 700;
+    transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.o_sedar_request_button:hover,
+.o_sedar_schedule_button:hover,
+.o_sedar_calendar_link:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+}
+
+.o_sedar_request_button {
+    border-color: #ff5125;
+    background: #ff5125;
+    color: #fff;
+}
+
+.o_sedar_schedule_button,
+.o_sedar_calendar_link {
+    background: #fff;
+    color: #3d3d3d;
+}
+
+.o_sedar_kpi_grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(170px, 1fr));
+    gap: 30px;
+    margin-bottom: 50px;
+}
+
+.o_sedar_kpi_card {
+    position: relative;
+    min-height: 154px;
+    overflow: hidden;
+    border: 1px solid #cdcdcd;
+    border-radius: 18px;
+    background: #fff;
+    padding: 30px 34px;
+}
+
+.o_sedar_kpi_card h2 {
+    margin: 0 0 14px;
+    color: #696969;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+}
+
+.o_sedar_kpi_card strong {
+    display: block;
+    color: #000;
+    font-size: 46px;
+    line-height: 0.95;
+    font-weight: 800;
+    text-shadow: 0 5px 6px rgba(0, 0, 0, 0.25);
+}
+
+.o_sedar_kpi_card span {
+    display: block;
+    margin-top: 14px;
+    color: #ff1428;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.o_sedar_kpi_card > .fa {
+    position: absolute;
+    right: -8px;
+    bottom: -22px;
+    color: #4b6076;
+    font-size: 96px;
+    transform: rotate(-14deg);
+}
+
+.o_sedar_marketing_content {
+    display: grid;
+    grid-template-columns: minmax(540px, 1.9fr) minmax(330px, 0.98fr);
+    gap: 34px;
+    min-height: 0;
+    height: calc(100vh - 46px - 34px - 93px - 34px - 154px - 50px - 50px);
+}
+
+.o_sedar_request_panel,
+.o_sedar_schedule_panel {
+    overflow: hidden;
+    border: 1px solid #cdcdcd;
+    border-radius: 18px;
+    background: #fff;
+}
+
+.o_sedar_request_panel {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.o_sedar_schedule_panel {
+    align-self: start;
+}
+
+.o_sedar_panel_header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 72px;
+    border-bottom: 1px solid #dedede;
+    padding: 0 20px;
+}
+
+.o_sedar_panel_header h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.o_sedar_panel_header select {
+    min-width: 116px;
+    border: 1px solid #d0d0d0;
+    border-radius: 9px;
+    padding: 8px 14px;
+    background: #fff;
+}
+
+.o_sedar_request_table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.o_sedar_request_table tbody {
+    display: block;
+    max-height: calc(100vh - 46px - 34px - 93px - 34px - 154px - 50px - 50px - 72px - 56px);
+    overflow-y: auto;
+}
+
+.o_sedar_request_table thead,
+.o_sedar_request_table tbody tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+.o_sedar_request_table tbody::-webkit-scrollbar {
+    width: 8px;
+}
+
+.o_sedar_request_table tbody::-webkit-scrollbar-thumb {
+    border: 2px solid #fff;
+    border-radius: 999px;
+    background: #aeb8c4;
+}
+
+.o_sedar_request_table th,
+.o_sedar_request_table td {
+    padding: 22px 20px;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.o_sedar_request_table th {
+    color: #111;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.o_sedar_request_table td strong {
+    display: block;
+    color: #161616;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.o_sedar_empty_requests {
+    padding: 48px 20px !important;
+    color: #777;
+    text-align: center !important;
+    font-weight: 800;
+}
+
+.o_sedar_request_table td small {
+    display: block;
+    margin-top: 4px;
+    color: #666;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.o_sedar_service_type {
+    color: #00a844;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.o_sedar_status_pill,
+.o_sedar_schedule_tag {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 5px 10px;
+    font-size: 10px;
+    line-height: 1;
+    font-weight: 700;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.o_sedar_status_pill.is-gray { background: #eef1f5; color: #475569; }
+.o_sedar_status_pill.is-blue { background: #dbeafe; color: #1d4ed8; }
+.o_sedar_status_pill.is-yellow { background: #fef3c7; color: #d97706; }
+.o_sedar_status_pill.is-orange { background: #ffedd5; color: #ea580c; }
+.o_sedar_status_pill.is-green { background: #d1fae5; color: #059669; }
+.o_sedar_status_pill.is-purple { background: #e0e7ff; color: #4f46e5; }
+.o_sedar_status_pill.is-red { background: #fee2e2; color: #dc2626; }
+
+.o_sedar_timeline {
+    position: relative;
+    padding: 36px 24px 28px;
+}
+
+.o_sedar_timeline::before {
+    content: "";
+    position: absolute;
+    top: 54px;
+    bottom: 54px;
+    left: 111px;
+    width: 1px;
+    background: #8c8c8c;
+}
+
+.o_sedar_schedule_item {
+    position: relative;
+    display: grid;
+    grid-template-columns: 72px 20px 1fr;
+    gap: 12px;
+    min-height: 76px;
+}
+
+.o_sedar_schedule_item time {
+    color: #6a6a6a;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.o_sedar_timeline_dot {
+    z-index: 1;
+    width: 10px;
+    height: 10px;
+    margin-top: 4px;
+    border-radius: 50%;
+}
+
+.o_sedar_schedule_item h3 {
+    max-width: 270px;
+    margin: 6px 0 2px;
+    overflow: hidden;
+    color: #111;
+    font-size: 15px;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.o_sedar_schedule_item p {
+    margin: 0;
+    color: #666;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.o_sedar_schedule_tag.is-meeting,
+.o_sedar_timeline_dot.is-meeting { background: #dbeafe; color: #2563eb; }
+.o_sedar_schedule_tag.is-call,
+.o_sedar_timeline_dot.is-call { background: #cffafe; color: #0891b2; }
+.o_sedar_schedule_tag.is-online,
+.o_sedar_timeline_dot.is-online { background: #e0e7ff; color: #4f46e5; }
+.o_sedar_schedule_tag.is-site,
+.o_sedar_timeline_dot.is-site { background: #ffedd5; color: #f97316; }
+.o_sedar_schedule_tag.is-quote,
+.o_sedar_timeline_dot.is-quote { background: #fef3c7; color: #d97706; }
+.o_sedar_schedule_tag.is-contract,
+.o_sedar_timeline_dot.is-contract { background: #f3e8ff; color: #9333ea; }
+.o_sedar_schedule_tag.is-followup,
+.o_sedar_timeline_dot.is-followup { background: #ffe4e6; color: #e11d48; }
+.o_sedar_schedule_tag.is-internal,
+.o_sedar_timeline_dot.is-internal { background: #f1f5f9; color: #475569; }
+
+.o_sedar_timeline_dot.is-meeting { background: #2f7df6; }
+.o_sedar_timeline_dot.is-site { background: #ff5b27; }
+.o_sedar_timeline_dot.is-contract { background: #8b35ef; }
+
+.o_sedar_calendar_link {
+    width: 100%;
+    border-width: 1px 0 0;
+    border-radius: 0;
+    padding: 17px;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+@media (max-width: 1200px) {
+    .o_sedar_kpi_grid {
+        grid-template-columns: repeat(2, minmax(220px, 1fr));
+    }
+
+    .o_sedar_marketing_content {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 760px) {
+    .o_sedar_marketing_dashboard {
+        padding: 24px 16px 36px;
+    }
+
+    .o_sedar_marketing_topbar {
+        flex-direction: column;
+    }
+
+    .o_sedar_kpi_grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .o_sedar_request_panel {
+        overflow-x: auto;
+    }
+
+    .o_sedar_request_table {
+        min-width: 720px;
+    }
+}

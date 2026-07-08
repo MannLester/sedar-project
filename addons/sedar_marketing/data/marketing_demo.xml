@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="marketing_001" model="sedar.marketing.record">
+        <field name="name">Pipeline: Harbor Gateway Terminal Expansion</field>
+        <field name="record_type">customer_pipeline</field>
+        <field name="customer_id" ref="sedar_marine_mvp.customer_harbor_terminal"/>
+        <field name="company_name">Harbor Gateway Terminal</field>
+        <field name="contact_person">Port Operations Desk</field>
+        <field name="mobile_number">+63 917 555 0184</field>
+        <field name="telephone_number">+63 2 8555 0184</field>
+        <field name="company_address">Harbor Gateway Terminal, Manila Bay</field>
+        <field name="communication_method">phone</field>
+        <field name="service_type">terminal</field>
+        <field name="opportunity_value">2200000</field>
+        <field name="status">proposal</field>
+        <field name="owner">Commercial Manager</field>
+        <field name="next_action_date">2026-07-10</field>
+        <field name="note">Marketing coverage from Web System company-wide platform vision.</field>
+    </record>
+    <record id="marketing_002" model="sedar.marketing.record">
+        <field name="name">Customer Satisfaction: Oceanlink Shipping</field>
+        <field name="record_type">customer_satisfaction</field>
+        <field name="customer_id" ref="sedar_marine_mvp.customer_oceanlink"/>
+        <field name="company_name">Oceanlink Shipping</field>
+        <field name="contact_person">Fleet Service Coordinator</field>
+        <field name="mobile_number">+63 917 555 0127</field>
+        <field name="telephone_number">+63 2 8555 0127</field>
+        <field name="company_address">Oceanlink Shipping Office, Manila</field>
+        <field name="communication_method">email</field>
+        <field name="satisfaction_score">8.7</field>
+        <field name="status">follow_up</field>
+        <field name="owner">Account Manager</field>
+        <field name="next_action_date">2026-07-08</field>
+        <field name="note">Customer satisfaction supports the document objective to enhance client satisfaction.</field>
+    </record>
+</odoo>

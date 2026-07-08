@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_sedar_marketing_record_list" model="ir.ui.view">
+        <field name="name">sedar.marketing.record.list</field>
+        <field name="model">sedar.marketing.record</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="flow_step"/>
+                <field name="company_name"/>
+                <field name="contact_person"/>
+                <field name="communication_method"/>
+                <field name="status"/>
+                <field name="owner"/>
+                <field name="next_action_date"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sedar_marketing_record_form" model="ir.ui.view">
+        <field name="name">sedar.marketing.record.form</field>
+        <field name="model">sedar.marketing.record</field>
+        <field name="arch" type="xml">
+            <form class="sedar_marketing_form" create="false" edit="true">
+                <sheet>
+                    <field name="flow_step" invisible="1"/>
+                    <div class="sedar_stepper" aria-label="Marketing customer support steps">
+                        <div class="sedar_step active"><span class="fa fa-user"/>Customer</div>
+                        <div class="sedar_step active" invisible="flow_step == 'customer'"><span class="fa fa-file-text"/>Requirements</div>
+                        <div class="sedar_step" invisible="flow_step != 'customer'"><span class="fa fa-file-text"/>Requirements</div>
+                        <div class="sedar_step active" invisible="flow_step in ['customer', 'requirements']"><span class="fa fa-ship"/>Vessel Info</div>
+                        <div class="sedar_step" invisible="flow_step not in ['customer', 'requirements']"><span class="fa fa-ship"/>Vessel Info</div>
+                        <div class="sedar_step active" invisible="flow_step != 'review'"><span class="fa fa-check-circle"/>Review</div>
+                        <div class="sedar_step" invisible="flow_step == 'review'"><span class="fa fa-check-circle"/>Review</div>
+                    </div>
+                    <div class="sedar_customer_card" invisible="flow_step != 'customer'">
+                        <div class="sedar_customer_card_header">
+                            <h2>Customer Information</h2>
+                            <p>Search for an existing customer or register a new one to auto-fill their details.</p>
+                        </div>
+                        <div class="sedar_customer_fields">
+                            <div class="sedar_field sedar_field_full">
+                                <label for="customer_id">Search Existing Customer</label>
+                                <field name="customer_id" nolabel="1" placeholder="Start typing company name..." options="{'no_open': True}"/>
+                            </div>
+                            <div class="sedar_field_grid">
+                                <div class="sedar_field">
+                                    <label for="company_name">Company Name</label>
+                                    <field name="company_name" nolabel="1"/>
+                                </div>
+                                <div class="sedar_field">
+                                    <label for="contact_person">Contact Person</label>
+                                    <field name="contact_person" nolabel="1"/>
+                                </div>
+                                <div class="sedar_field">
+                                    <label for="mobile_number">Mobile Number</label>
+                                    <field name="mobile_number" nolabel="1"/>
+                                </div>
+                                <div class="sedar_field">
+                                    <label for="telephone_number">Telephone Number</label>
+                                    <field name="telephone_number" nolabel="1"/>
+                                </div>
+                            </div>
+                            <div class="sedar_field sedar_field_full">
+                                <label for="company_address">Company Address</label>
+                                <field name="company_address" nolabel="1" placeholder="Start typing company name..."/>
+                            </div>
+                            <div class="sedar_field sedar_field_full sedar_radio_field">
+                                <label for="communication_method">Preferred Communication Method</label>
+                                <field name="communication_method" nolabel="1" widget="radio"/>
+                            </div>
+                            <div class="sedar_customer_actions">
+                                <button name="action_save_draft" type="object" string="Save as Draft" class="sedar_draft_button"/>
+                                <button name="action_next_step" type="object" string="Next Step" class="sedar_next_button"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sedar_customer_card" invisible="flow_step != 'requirements'">
+                        <div class="sedar_customer_card_header">
+                            <h2>Service Requirements</h2>
+                            <p>Record the customer's requested assistance for Marine Operations planning.</p>
+                        </div>
+                        <div class="sedar_customer_fields">
+                            <div class="sedar_field_grid">
+                                <div class="sedar_field">
+                                    <label for="service_type">Service Type</label>
+                                    <field name="service_type" nolabel="1" widget="radio"/>
+                                </div>
+                                <div class="sedar_field">
+                                    <label for="purpose_of_request">Purpose of Request</label>
+                                    <field name="purpose_of_request" nolabel="1"/>
+                                </div>
+                                <div class="sedar_field">
+                                    <label for="requested_date">Requested Date</label>
+                                    <field name="requested_date" nolabel="1" widget="date"/>
+                                </div>
+                                <div class="sedar_field">
+                                    <label for="requested_time">Requested Time</label>
+                                    <field name="requested_time" nolabel="1"/>
+                                </div>
+                                <div class="sedar_field">
+                                    <label for="pickup_location">Pickup Location</label>
+                                    <field name="pickup_location" nolabel="1"/>
+                                </div>
+                                <div class="sedar_field">
+                                    <label for="destination">Destination</label>
+                                    <field name="destination" nolabel="1"/>
+                                </div>
+                                <div class="sedar_field">
+                                    <label for="estimated_duration">Estimated Duration</label>
+                                    <field name="estimated_duration" nolabel="1"/>
+                                </div>
+                                <div class="sedar_field">
+                                    <label for="tugboats_requested">Tugboats Requested</label>
+                                    <field name="tugboats_requested" nolabel="1"/>
+                                </div>
+                            </div>
+                            <div class="sedar_field sedar_field_full sedar_radio_field">
+                                <label for="priority_level">Priority Level</label>
+                                <field name="priority_level" nolabel="1" widget="radio"/>
+                            </div>
+                            <div class="sedar_customer_actions sedar_customer_actions_split">
+                                <button name="action_previous_step" type="object" string="Previous" class="sedar_previous_button"/>
+                                <span class="sedar_action_spacer"/>
+                                <button name="action_save_draft" type="object" string="Save as Draft" class="sedar_draft_button"/>
+                                <button name="action_next_step" type="object" string="Next Step" class="sedar_next_button"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sedar_customer_card" invisible="flow_step != 'vessel_info'">
+                        <div class="sedar_customer_card_header">
+                            <h2>Client Vessel Information</h2>
+                            <p>Enter the specifications of the customer's vessel (for operational planning only).</p>
+                        </div>
+                        <div class="sedar_customer_fields">
+                            <div class="sedar_field_grid">
+                                <div class="sedar_field">
+                                    <label for="vessel_name">Vessel Name</label>
+                                    <field name="vessel_name" nolabel="1"/>
+                                </div>
+                                <div class="sedar_field">
+                                    <label for="vessel_type">Vessel Type</label>
+                                    <field name="vessel_type" nolabel="1"/>
+                                </div>
+                                <div class="sedar_field">
+                                    <label for="imo_number">IMO Number <span class="sedar_optional_label">(Optional)</span></label>
+                                    <field name="imo_number" nolabel="1"/>
+                                </div>
+                                <div class="sedar_field">
+                                    <label for="cargo_type">Cargo Type</label>
+                                    <field name="cargo_type" nolabel="1"/>
+                                </div>
+                            </div>
+                            <div class="sedar_field_grid sedar_field_grid_four">
+                                <div class="sedar_field">
+                                    <label for="gross_tonnage">Gross Tonnage</label>
+                                    <field name="gross_tonnage" nolabel="1"/>
+                                </div>
+                                <div class="sedar_field">
+                                    <label for="length_overall">Length Overall</label>
+                                    <field name="length_overall" nolabel="1"/>
+                                </div>
+                                <div class="sedar_field">
+                                    <label for="beam">Beam</label>
+                                    <field name="beam" nolabel="1"/>
+                                </div>
+                                <div class="sedar_field">
+                                    <label for="draft">Draft</label>
+                                    <field name="draft" nolabel="1"/>
+                                </div>
+                            </div>
+                            <div class="sedar_field_grid">
+                                <div class="sedar_field">
+                                    <label for="current_location">Current Location</label>
+                                    <field name="current_location" nolabel="1"/>
+                                </div>
+                                <div class="sedar_field">
+                                    <label for="destination_location">Destination Location</label>
+                                    <field name="destination_location" nolabel="1"/>
+                                </div>
+                            </div>
+                            <div class="sedar_customer_actions sedar_customer_actions_split sedar_vessel_actions">
+                                <button name="action_previous_step" type="object" string="Previous" class="sedar_previous_button"/>
+                                <span class="sedar_action_spacer"/>
+                                <button name="action_save_draft" type="object" string="Save as Draft" class="sedar_draft_button"/>
+                                <button name="action_next_step" type="object" string="Next Step" class="sedar_next_button"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sedar_customer_card sedar_review_card" invisible="flow_step != 'review'">
+                        <div class="sedar_customer_card_header">
+                            <h2>Review Service Request</h2>
+                            <p>Confirm the customer, service requirements, and vessel details before sending to Operations.</p>
+                        </div>
+                        <div class="sedar_customer_fields sedar_review_fields">
+                            <div class="sedar_review_grid">
+                                <section class="sedar_review_section">
+                                    <h3>Customer Information</h3>
+                                    <div class="sedar_review_row"><span>Company</span><field name="company_name" nolabel="1" readonly="1"/></div>
+                                    <div class="sedar_review_row"><span>Contact Person</span><field name="contact_person" nolabel="1" readonly="1"/></div>
+                                    <div class="sedar_review_row"><span>Mobile Number</span><field name="mobile_number" nolabel="1" readonly="1"/></div>
+                                    <div class="sedar_review_row"><span>Telephone Number</span><field name="telephone_number" nolabel="1" readonly="1"/></div>
+                                    <div class="sedar_review_row"><span>Address</span><field name="company_address" nolabel="1" readonly="1"/></div>
+                                    <div class="sedar_review_row"><span>Communication</span><field name="communication_method" nolabel="1" readonly="1"/></div>
+                                </section>
+                                <section class="sedar_review_section">
+                                    <h3>Service Requirements</h3>
+                                    <div class="sedar_review_row"><span>Service Type</span><field name="service_type" nolabel="1" readonly="1"/></div>
+                                    <div class="sedar_review_row"><span>Purpose</span><field name="purpose_of_request" nolabel="1" readonly="1"/></div>
+                                    <div class="sedar_review_row"><span>Requested Date</span><field name="requested_date" nolabel="1" readonly="1"/></div>
+                                    <div class="sedar_review_row"><span>Requested Time</span><field name="requested_time" nolabel="1" readonly="1"/></div>
+                                    <div class="sedar_review_row sedar_review_row_route"><span>Route</span><field name="pickup_location" nolabel="1" readonly="1"/><span class="sedar_review_arrow">to</span><field name="destination" nolabel="1" readonly="1"/></div>
+                                    <div class="sedar_review_row"><span>Priority</span><field name="priority_level" nolabel="1" readonly="1"/></div>
+                                </section>
+                                <section class="sedar_review_section sedar_review_section_wide">
+                                    <h3>Client Vessel Information</h3>
+                                    <div class="sedar_review_columns">
+                                        <div class="sedar_review_row"><span>Vessel Name</span><field name="vessel_name" nolabel="1" readonly="1"/></div>
+                                        <div class="sedar_review_row"><span>Vessel Type</span><field name="vessel_type" nolabel="1" readonly="1"/></div>
+                                        <div class="sedar_review_row"><span>IMO Number</span><field name="imo_number" nolabel="1" readonly="1"/></div>
+                                        <div class="sedar_review_row"><span>Cargo Type</span><field name="cargo_type" nolabel="1" readonly="1"/></div>
+                                        <div class="sedar_review_row"><span>Gross Tonnage</span><field name="gross_tonnage" nolabel="1" readonly="1"/></div>
+                                        <div class="sedar_review_row"><span>LOA / Beam / Draft</span><field name="length_overall" nolabel="1" readonly="1"/><span class="sedar_review_arrow">/</span><field name="beam" nolabel="1" readonly="1"/><span class="sedar_review_arrow">/</span><field name="draft" nolabel="1" readonly="1"/></div>
+                                        <div class="sedar_review_row"><span>Current Location</span><field name="current_location" nolabel="1" readonly="1"/></div>
+                                        <div class="sedar_review_row"><span>Destination Location</span><field name="destination_location" nolabel="1" readonly="1"/></div>
+                                    </div>
+                                </section>
+                            </div>
+                            <div class="sedar_customer_actions sedar_customer_actions_split sedar_review_actions">
+                                <button name="action_previous_step" type="object" string="Previous" class="sedar_previous_button"/>
+                                <span class="sedar_action_spacer"/>
+                                <button name="action_save_draft" type="object" string="Save as Draft" class="sedar_draft_button"/>
+                                <button name="action_submit_request" type="object" string="Submit Request" class="sedar_next_button"/>
+                            </div>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sedar_marketing_record" model="ir.actions.act_window">
+        <field name="name">Marketing</field>
+        <field name="res_model">sedar.marketing.record</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'default_flow_step': 'customer', 'default_record_type': 'customer_pipeline'}</field>
+    </record>
+
+    <record id="action_sedar_marketing_dashboard" model="ir.actions.client">
+        <field name="name">Marketing Dashboard</field>
+        <field name="tag">sedar_marketing_dashboard</field>
+    </record>
+</odoo>
