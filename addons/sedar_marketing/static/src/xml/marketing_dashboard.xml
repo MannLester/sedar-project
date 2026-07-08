@@ -88,4 +88,53 @@
             </div>
         </div>
     </t>
+
+    <t t-name="sedar_marketing.MarketingDraftsBoard">
+        <div class="o_sedar_marketing_dashboard o_sedar_marketing_drafts">
+            <div class="o_sedar_marketing_topbar">
+                <div>
+                    <h1>Saved Drafts</h1>
+                    <p>Continue incomplete service requests without using the raw Odoo list.</p>
+                </div>
+                <div class="o_sedar_marketing_actions">
+                    <button class="o_sedar_schedule_button" t-on-click="openDashboard"><i class="fa fa-arrow-left"/> Back to Dashboard</button>
+                    <button class="o_sedar_request_button" t-on-click="openNewServiceRequest"><i class="fa fa-plus"/> New Service Request</button>
+                </div>
+            </div>
+
+            <section class="o_sedar_request_panel o_sedar_drafts_panel">
+                <div class="o_sedar_panel_header">
+                    <h2>Marketing Draft Register</h2>
+                    <span><t t-esc="state.drafts.length"/> drafts</span>
+                </div>
+                <div class="o_sedar_drafts_list">
+                    <t t-foreach="state.drafts" t-as="draft" t-key="draft.id">
+                        <article class="o_sedar_draft_row" t-att-data-id="draft.id" t-on-click="openDraft">
+                            <div class="o_sedar_draft_ref">
+                                <strong t-esc="draft.ref"/>
+                                <span t-esc="draft.stepLabel"/>
+                            </div>
+                            <div class="o_sedar_draft_main">
+                                <h3 t-esc="draft.customer"/>
+                                <p t-esc="draft.contact"/>
+                            </div>
+                            <div class="o_sedar_draft_service">
+                                <span t-esc="draft.service"/>
+                                <small t-esc="draft.communication_method || 'No method'"/>
+                            </div>
+                            <div class="o_sedar_draft_status">
+                                <span>Draft</span>
+                                <small>Updated <t t-esc="draft.updated"/></small>
+                            </div>
+                        </article>
+                    </t>
+                    <div t-if="!state.drafts.length" class="o_sedar_empty_drafts">
+                        <i class="fa fa-folder-open-o"/>
+                        <h3>No saved drafts</h3>
+                        <p>Draft service requests will appear here after you save them.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </t>
 </templates>

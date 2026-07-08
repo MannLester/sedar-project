@@ -73,7 +73,7 @@ class SedarMarketingRecord(models.Model):
         required=True,
     )
     customer_id = fields.Many2one("sedar.customer", string="Search Existing Customer")
-    company_name = fields.Char(required=True)
+    company_name = fields.Char()
     contact_person = fields.Char()
     mobile_number = fields.Char()
     telephone_number = fields.Char()
@@ -186,7 +186,7 @@ class SedarMarketingRecord(models.Model):
     def action_save_draft(self):
         self._sync_customer()
         self.write({"status": "draft"})
-        return True
+        return self.env.ref("sedar_marketing.action_sedar_marketing_drafts_board").read()[0]
 
     def action_next_step(self):
         next_steps = {

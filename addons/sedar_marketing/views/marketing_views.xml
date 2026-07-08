@@ -314,4 +314,9 @@
         <field name="name">Marketing Dashboard</field>
         <field name="tag">sedar_marketing_dashboard</field>
     </record>
+
+    <record id="action_sedar_marketing_drafts_board" model="ir.actions.client">
+        <field name="name">Saved Marketing Drafts</field>
+        <field name="tag">sedar_marketing_drafts_board</field>
+    </record>
 </odoo>

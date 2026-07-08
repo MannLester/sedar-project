@@ -128,3 +128,83 @@ export class SedarMarketingDashboard extends Component {
 }
 
 registry.category("actions").add("sedar_marketing_dashboard", SedarMarketingDashboard);
+
+export class SedarMarketingDraftsBoard extends Component {
+    static template = "sedar_marketing.MarketingDraftsBoard";
+    static props = { "*": true };
+
+    setup() {
+        this.orm = useService("orm");
+        this.action = useService("action");
+        this.state = useState({ drafts: [] });
+
+        onWillStart(async () => {
+            await this.loadDrafts();
+        });
+    }
+
+    async loadDrafts() {
+        const records = await this.orm.searchRead(
+            "sedar.marketing.record",
+            [["status", "=", "draft"]],
+            ["id", "name", "flow_step", "company_name", "contact_person", "communication_method", "service_type", "purpose_of_request", "write_date"],
+            { order: "write_date desc, id desc", limit: 80 }
+        );
+        this.state.drafts = records.map((record) => ({
+            ...record,
+            ref: `REQ-${String(record.id).padStart(4, "0")}`,
+            customer: record.company_name || "Unnamed draft",
+            contact: record.contact_person || "No contact yet",
+            stepLabel: this.formatStep(record.flow_step),
+            service: SERVICE_LABELS[record.service_type] || record.purpose_of_request || "Service not set",
+            updated: this.formatDate(record.write_date),
+        }));
+    }
+
+    formatStep(value) {
+        return { customer: "Customer", requirements: "Requirements", vessel_info: "Vessel Info", review: "Review" }[value] || "Customer";
+    }
+
+    formatDate(value) {
+        if (!value) {
+            return "No date";
+        }
+        return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(new Date(value));
+    }
+
+    openDraft(ev) {
+        const recordId = Number(ev.currentTarget.dataset.id);
+        if (!recordId) {
+            return;
+        }
+        this.action.doAction({
+            type: "ir.actions.act_window",
+            res_model: "sedar.marketing.record",
+            res_id: recordId,
+            views: [[false, "form"]],
+            target: "current",
+        });
+    }
+
+    openDashboard() {
+        this.action.doAction("sedar_marketing.action_sedar_marketing_dashboard");
+    }
+
+    openNewServiceRequest() {
+        this.action.doAction({
+            type: "ir.actions.act_window",
+            name: "New Service Request",
+            res_model: "sedar.marketing.record",
+            views: [[false, "form"]],
+            target: "current",
+            context: {
+                default_name: "New Service Request",
+                default_flow_step: "customer",
+                default_record_type: "customer_pipeline",
+                default_status: "new",
+            },
+        });
+    }
+}
+
+registry.category("actions").add("sedar_marketing_drafts_board", SedarMarketingDraftsBoard);
