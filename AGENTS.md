@@ -1,0 +1,1 @@
+- Prioritize the use of Odoo Community Modules as a scaffold. If you need more functionalities on top of that module, write an addon instead of direct edit.
