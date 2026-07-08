@@ -33,7 +33,12 @@
             <div class="o_sedar_marketing_content">
                 <section class="o_sedar_request_panel">
                     <div class="o_sedar_panel_header">
-                        <h2>Active Service Requests</h2>
+                        <h2 t-esc="requestPanelTitle"/>
+                        <div class="o_sedar_request_filters">
+                            <t t-foreach="requestFilters" t-as="filter" t-key="filter.key">
+                                <button t-att-class="requestFilterClass(filter.key)" t-att-data-filter="filter.key" t-on-click="setRequestFilter" t-esc="filter.label"/>
+                            </t>
+                        </div>
                     </div>
                     <table class="o_sedar_request_table">
                         <thead>
@@ -45,8 +50,8 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <t t-foreach="state.requests" t-as="request" t-key="request.ref">
-                                <tr>
+                            <t t-foreach="filteredRequests" t-as="request" t-key="request.ref">
+                                <tr class="o_sedar_request_row" t-att-data-id="request.id" t-on-click="openRequest">
                                     <td><strong t-esc="request.ref"/></td>
                                     <td>
                                         <strong t-esc="request.customer"/>
@@ -58,8 +63,8 @@
                                     </td>
                                 </tr>
                             </t>
-                            <tr t-if="!state.requests.length">
-                                <td colspan="4" class="o_sedar_empty_requests">No active service requests yet.</td>
+                            <tr t-if="!filteredRequests.length">
+                                <td colspan="4" class="o_sedar_empty_requests" t-esc="emptyRequestMessage"/>
                             </tr>
                         </tbody>
                     </table>

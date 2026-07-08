@@ -5,6 +5,7 @@ import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 
 const STATUS_META = {
+    draft: { label: "Draft", className: "is-draft", title: "Saved but not submitted yet." },
     pending_review: { label: "Pending Review", className: "is-gray", title: "Ops is reviewing feasibility." },
     drafting_quote: { label: "Drafting Quote", className: "is-blue", title: "Ops is calculating costs." },
     pending_approval: { label: "Pending Approval", className: "is-yellow", title: "Waiting for client to say yes/no." },
@@ -15,6 +16,13 @@ const STATUS_META = {
 };
 
 const ACTIVE_STATUSES = ["pending_review", "drafting_quote", "pending_approval", "for_signature", "scheduled", "completed", "cancelled"];
+const DASHBOARD_STATUSES = ["draft", ...ACTIVE_STATUSES];
+
+const REQUEST_FILTERS = [
+    { key: "all", label: "All" },
+    { key: "active", label: "Active" },
+    { key: "draft", label: "Drafts" },
+];
 
 const SERVICE_LABELS = {
     ship_assist: "Ship Assist",
@@ -38,7 +46,7 @@ export class SedarMarketingDashboard extends Component {
     setup() {
         this.orm = useService("orm");
         this.action = useService("action");
-        this.state = useState({ requests: [], schedule: [], kpis: this.buildKpis([], []) });
+        this.state = useState({ requests: [], schedule: [], kpis: this.buildKpis([], []), requestFilter: "all" });
 
         onWillStart(async () => {
             await this.loadDashboard();
@@ -48,7 +56,7 @@ export class SedarMarketingDashboard extends Component {
     async loadDashboard() {
         const records = await this.orm.searchRead(
             "sedar.marketing.record",
-            [["status", "in", ACTIVE_STATUSES]],
+            [["status", "in", DASHBOARD_STATUSES]],
             ["id", "company_name", "vessel_name", "service_type", "purpose_of_request", "status", "priority_level", "next_action_date"],
             { order: "id desc", limit: 50 }
         );
@@ -60,8 +68,9 @@ export class SedarMarketingDashboard extends Component {
             { order: "start_datetime", limit: 8 }
         );
         this.state.requests = records.map((record) => ({
+            id: record.id,
             ref: `REQ-${String(record.id).padStart(4, "0")}`,
-            customer: record.company_name || "Unnamed Customer",
+            customer: record.company_name || "Unnamed draft",
             vessel: record.vessel_name || "No vessel name yet",
             service: SERVICE_LABELS[record.service_type] || record.service_type || record.purpose_of_request || "Service not set",
             status: record.status || "pending_review",
@@ -77,7 +86,33 @@ export class SedarMarketingDashboard extends Component {
                 customer: appointment.company_name || "No customer set",
             };
         });
-        this.state.kpis = this.buildKpis(this.state.requests, this.state.schedule);
+        this.state.kpis = this.buildKpis(this.activeRequests, this.state.schedule);
+    }
+
+    get requestFilters() {
+        return REQUEST_FILTERS;
+    }
+
+    get activeRequests() {
+        return this.state.requests.filter((request) => request.status !== "draft");
+    }
+
+    get filteredRequests() {
+        if (this.state.requestFilter === "draft") {
+            return this.state.requests.filter((request) => request.status === "draft");
+        }
+        if (this.state.requestFilter === "active") {
+            return this.activeRequests;
+        }
+        return this.state.requests;
+    }
+
+    get requestPanelTitle() {
+        return this.state.requestFilter === "draft" ? "Saved Drafts" : "Service Requests";
+    }
+
+    get emptyRequestMessage() {
+        return this.state.requestFilter === "draft" ? "No saved drafts yet." : "No service requests found.";
     }
 
     buildKpis(requests, schedule) {
@@ -102,6 +137,14 @@ export class SedarMarketingDashboard extends Component {
         return STATUS_META[status] || STATUS_META.pending_review;
     }
 
+    setRequestFilter(ev) {
+        this.state.requestFilter = ev.currentTarget.dataset.filter;
+    }
+
+    requestFilterClass(filterKey) {
+        return `o_sedar_filter_button${this.state.requestFilter === filterKey ? " is-active" : ""}`;
+    }
+
     openNewServiceRequest() {
         this.action.doAction({
             type: "ir.actions.act_window",
@@ -120,6 +163,20 @@ export class SedarMarketingDashboard extends Component {
 
     openRequests() {
         this.action.doAction("sedar_marketing.action_sedar_marketing_record");
+    }
+
+    openRequest(ev) {
+        const recordId = Number(ev.currentTarget.dataset.id);
+        if (!recordId) {
+            return;
+        }
+        this.action.doAction({
+            type: "ir.actions.act_window",
+            res_model: "sedar.marketing.record",
+            res_id: recordId,
+            views: [[false, "form"]],
+            target: "current",
+        });
     }
 
     openCalendar() {

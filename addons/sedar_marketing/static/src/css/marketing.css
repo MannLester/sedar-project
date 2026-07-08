@@ -558,6 +558,32 @@ body:has(.sedar_marketing_form) .o-tooltip {
     letter-spacing: -0.02em;
 }
 
+.o_sedar_request_filters {
+    display: inline-flex;
+    gap: 6px;
+    border-radius: 999px;
+    padding: 4px;
+    background: #f2f5f8;
+}
+
+.o_sedar_filter_button {
+    border: 0;
+    border-radius: 999px;
+    padding: 7px 12px;
+    background: transparent;
+    color: #667085;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.o_sedar_filter_button.is-active {
+    background: #1d3a56;
+    color: #fff;
+    box-shadow: 0 8px 16px rgba(29, 58, 86, 0.18);
+}
+
 .o_sedar_request_table {
     width: 100%;
     border-collapse: collapse;
@@ -584,6 +610,15 @@ body:has(.sedar_marketing_form) .o-tooltip {
     border: 2px solid #fff;
     border-radius: 999px;
     background: #aeb8c4;
+}
+
+.o_sedar_request_row {
+    cursor: pointer;
+    transition: background 140ms ease;
+}
+
+.o_sedar_request_row:hover {
+    background: #f8fbff;
 }
 
 .o_sedar_request_table th,
@@ -649,6 +684,7 @@ body:has(.sedar_marketing_form) .o-tooltip {
 }
 
 .o_sedar_status_pill.is-gray { background: #eef1f5; color: #475569; }
+.o_sedar_status_pill.is-draft { background: #eef4ff; color: #1d3a56; }
 .o_sedar_status_pill.is-blue { background: #dbeafe; color: #1d4ed8; }
 .o_sedar_status_pill.is-yellow { background: #fef3c7; color: #d97706; }
 .o_sedar_status_pill.is-orange { background: #ffedd5; color: #ea580c; }
