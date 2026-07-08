@@ -25,12 +25,12 @@ const SERVICE_LABELS = {
     terminal: "Terminal Support",
 };
 
-const SCHEDULE = [
-    { time: "09:00", type: "Client Meeting", className: "is-meeting", title: "Discuss Harbor Towage Requireme...", customer: "Maersk Philippines" },
-    { time: "12:00", type: "Site Visit", className: "is-site", title: "Service Discussion for MT Ocean Tr...", customer: "NYK Line" },
-    { time: "14:30", type: "Client Meeting", className: "is-meeting", title: "Fleet Expansion Sync", customer: "Evergreen Marine" },
-    { time: "16:00", type: "Contract Signing", className: "is-contract", title: "Contract Renewal", customer: "AGS Philippines" },
-];
+const APPOINTMENT_META = {
+    client_meeting: { label: "Client Meeting", className: "is-meeting" },
+    site_visit: { label: "Site Visit", className: "is-site" },
+    contract_signing: { label: "Contract Signing", className: "is-contract" },
+    follow_up: { label: "Follow-up", className: "is-follow-up" },
+};
 
 export class SedarMarketingDashboard extends Component {
     static template = "sedar_marketing.MarketingDashboard";
@@ -38,8 +38,7 @@ export class SedarMarketingDashboard extends Component {
     setup() {
         this.orm = useService("orm");
         this.action = useService("action");
-        this.schedule = SCHEDULE;
-        this.state = useState({ requests: [], kpis: this.buildKpis([]) });
+        this.state = useState({ requests: [], schedule: [], kpis: this.buildKpis([], []) });
 
         onWillStart(async () => {
             await this.loadDashboard();
@@ -53,6 +52,13 @@ export class SedarMarketingDashboard extends Component {
             ["id", "company_name", "vessel_name", "service_type", "purpose_of_request", "status", "priority_level", "next_action_date"],
             { order: "id desc", limit: 50 }
         );
+        const today = new Date().toISOString().slice(0, 10);
+        const appointments = await this.orm.searchRead(
+            "sedar.marketing.appointment",
+            [["start_datetime", ">=", `${today} 00:00:00`], ["start_datetime", "<=", `${today} 23:59:59`]],
+            ["name", "company_name", "appointment_type", "start_datetime"],
+            { order: "start_datetime", limit: 8 }
+        );
         this.state.requests = records.map((record) => ({
             ref: `REQ-${String(record.id).padStart(4, "0")}`,
             customer: record.company_name || "Unnamed Customer",
@@ -61,17 +67,35 @@ export class SedarMarketingDashboard extends Component {
             status: record.status || "pending_review",
             priority: record.priority_level || "normal",
         }));
-        this.state.kpis = this.buildKpis(this.state.requests);
+        this.state.schedule = appointments.map((appointment) => {
+            const meta = APPOINTMENT_META[appointment.appointment_type] || APPOINTMENT_META.client_meeting;
+            return {
+                time: this.formatTime(appointment.start_datetime),
+                type: meta.label,
+                className: meta.className,
+                title: appointment.name || "Marketing appointment",
+                customer: appointment.company_name || "No customer set",
+            };
+        });
+        this.state.kpis = this.buildKpis(this.state.requests, this.state.schedule);
     }
 
-    buildKpis(requests) {
+    buildKpis(requests, schedule) {
         const urgentCount = requests.filter((request) => ["urgent", "emergency"].includes(request.priority)).length;
         return [
             { label: "Pending Request", value: requests.filter((request) => request.status === "pending_review").length, note: `${urgentCount} Urgent`, icon: "fa-file-text" },
             { label: "Customer Approval", value: requests.filter((request) => request.status === "pending_approval").length, note: "", icon: "fa-clock-o" },
             { label: "Pending Contracts", value: requests.filter((request) => request.status === "for_signature").length, note: "", icon: "fa-file-text-o" },
-            { label: "Today’s Schedule", value: this.schedule.length, note: "", icon: "fa-calendar" },
+            { label: "Today’s Schedule", value: schedule.length, note: "", icon: "fa-calendar" },
         ];
+    }
+
+    formatTime(value) {
+        if (!value) {
+            return "--:--";
+        }
+        const date = new Date(`${value.replace(" ", "T")}Z`);
+        return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
     }
 
     statusMeta(status) {
@@ -96,6 +120,10 @@ export class SedarMarketingDashboard extends Component {
 
     openRequests() {
         this.action.doAction("sedar_marketing.action_sedar_marketing_record");
+    }
+
+    openCalendar() {
+        this.action.doAction("sedar_marketing.action_sedar_marketing_appointment");
     }
 }
 

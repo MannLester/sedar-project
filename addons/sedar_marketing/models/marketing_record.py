@@ -215,4 +215,57 @@ class SedarMarketingRecord(models.Model):
     def action_submit_request(self):
         self._sync_customer()
         self.write({"flow_step": "review", "status": "pending_review"})
-        return True
+        return self.env.ref("sedar_marketing.action_sedar_marketing_dashboard").read()[0]
+
+
+class SedarMarketingAppointment(models.Model):
+    _name = "sedar.marketing.appointment"
+    _description = "SEDAR Marketing Appointment"
+    _order = "start_datetime"
+
+    name = fields.Char(required=True, default="Client Appointment")
+    request_id = fields.Many2one("sedar.marketing.record", string="Service Request")
+    customer_id = fields.Many2one("sedar.customer", string="Customer")
+    company_name = fields.Char(required=True)
+    contact_person = fields.Char()
+    appointment_type = fields.Selection(
+        [
+            ("client_meeting", "Client Meeting"),
+            ("site_visit", "Site Visit"),
+            ("contract_signing", "Contract Signing"),
+            ("follow_up", "Follow-up"),
+        ],
+        default="client_meeting",
+        required=True,
+    )
+    start_datetime = fields.Datetime(required=True)
+    end_datetime = fields.Datetime(required=True)
+    location = fields.Char()
+    notes = fields.Text()
+    color = fields.Integer(compute="_compute_color")
+
+    @api.onchange("request_id")
+    def _onchange_request_id(self):
+        for appointment in self:
+            if appointment.request_id:
+                appointment.customer_id = appointment.request_id.customer_id
+                appointment.company_name = appointment.request_id.company_name
+                appointment.contact_person = appointment.request_id.contact_person
+                appointment.name = appointment.request_id.purpose_of_request or appointment.request_id.name
+
+    @api.onchange("customer_id")
+    def _onchange_customer_id(self):
+        for appointment in self:
+            if appointment.customer_id and not appointment.company_name:
+                appointment.company_name = appointment.customer_id.name
+
+    @api.depends("appointment_type")
+    def _compute_color(self):
+        colors = {
+            "client_meeting": 10,
+            "site_visit": 4,
+            "contract_signing": 2,
+            "follow_up": 3,
+        }
+        for appointment in self:
+            appointment.color = colors.get(appointment.appointment_type, 0)

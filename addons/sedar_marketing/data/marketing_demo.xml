@@ -33,4 +33,37 @@
         <field name="next_action_date">2026-07-08</field>
         <field name="note">Customer satisfaction supports the document objective to enhance client satisfaction.</field>
     </record>
+    <record id="appointment_001" model="sedar.marketing.appointment">
+        <field name="name">Harbor Towage Requirements</field>
+        <field name="request_id" ref="marketing_001"/>
+        <field name="customer_id" ref="sedar_marine_mvp.customer_harbor_terminal"/>
+        <field name="company_name">Harbor Gateway Terminal</field>
+        <field name="contact_person">Port Operations Desk</field>
+        <field name="appointment_type">client_meeting</field>
+        <field name="start_datetime">2026-07-08 01:00:00</field>
+        <field name="end_datetime">2026-07-08 02:00:00</field>
+        <field name="location">SEDAR Main Office</field>
+    </record>
+    <record id="appointment_002" model="sedar.marketing.appointment">
+        <field name="name">Terminal Site Visit</field>
+        <field name="request_id" ref="marketing_001"/>
+        <field name="customer_id" ref="sedar_marine_mvp.customer_harbor_terminal"/>
+        <field name="company_name">Harbor Gateway Terminal</field>
+        <field name="contact_person">Port Operations Desk</field>
+        <field name="appointment_type">site_visit</field>
+        <field name="start_datetime">2026-07-08 05:30:00</field>
+        <field name="end_datetime">2026-07-08 07:00:00</field>
+        <field name="location">Manila Bay Terminal</field>
+    </record>
+    <record id="appointment_003" model="sedar.marketing.appointment">
+        <field name="name">Oceanlink Follow-up Call</field>
+        <field name="request_id" ref="marketing_002"/>
+        <field name="customer_id" ref="sedar_marine_mvp.customer_oceanlink"/>
+        <field name="company_name">Oceanlink Shipping</field>
+        <field name="contact_person">Fleet Service Coordinator</field>
+        <field name="appointment_type">follow_up</field>
+        <field name="start_datetime">2026-07-09 02:30:00</field>
+        <field name="end_datetime">2026-07-09 03:00:00</field>
+        <field name="location">Phone Call</field>
+    </record>
 </odoo>

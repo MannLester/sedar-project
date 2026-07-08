@@ -84,7 +84,7 @@
                             <div class="sedar_field_grid">
                                 <div class="sedar_field">
                                     <label for="service_type">Service Type</label>
-                                    <field name="service_type" nolabel="1" widget="radio"/>
+                                    <field name="service_type" nolabel="1"/>
                                 </div>
                                 <div class="sedar_field">
                                     <label for="purpose_of_request">Purpose of Request</label>
@@ -230,7 +230,7 @@
                                 <button name="action_previous_step" type="object" string="Previous" class="sedar_previous_button"/>
                                 <span class="sedar_action_spacer"/>
                                 <button name="action_save_draft" type="object" string="Save as Draft" class="sedar_draft_button"/>
-                                <button name="action_submit_request" type="object" string="Submit Request" class="sedar_next_button"/>
+                                <button name="action_submit_request" type="object" string="Submit Request" class="sedar_next_button" confirm="Submit this service request to Operations?"/>
                             </div>
                         </div>
                     </div>
@@ -244,6 +244,70 @@
         <field name="res_model">sedar.marketing.record</field>
         <field name="view_mode">list,form</field>
         <field name="context">{'default_flow_step': 'customer', 'default_record_type': 'customer_pipeline'}</field>
+    </record>
+
+    <record id="view_sedar_marketing_appointment_calendar" model="ir.ui.view">
+        <field name="name">sedar.marketing.appointment.calendar</field>
+        <field name="model">sedar.marketing.appointment</field>
+        <field name="arch" type="xml">
+            <calendar string="Marketing Calendar" date_start="start_datetime" date_stop="end_datetime" color="color" mode="week" event_open_popup="true" quick_create="false">
+                <field name="name"/>
+                <field name="company_name"/>
+                <field name="appointment_type"/>
+                <field name="location"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="view_sedar_marketing_appointment_list" model="ir.ui.view">
+        <field name="name">sedar.marketing.appointment.list</field>
+        <field name="model">sedar.marketing.appointment</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="start_datetime"/>
+                <field name="end_datetime"/>
+                <field name="name"/>
+                <field name="company_name"/>
+                <field name="appointment_type"/>
+                <field name="location"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sedar_marketing_appointment_form" model="ir.ui.view">
+        <field name="name">sedar.marketing.appointment.form</field>
+        <field name="model">sedar.marketing.appointment</field>
+        <field name="arch" type="xml">
+            <form string="Marketing Appointment">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="request_id"/>
+                            <field name="customer_id"/>
+                            <field name="company_name"/>
+                            <field name="contact_person"/>
+                        </group>
+                        <group>
+                            <field name="appointment_type"/>
+                            <field name="start_datetime"/>
+                            <field name="end_datetime"/>
+                            <field name="location"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="notes"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sedar_marketing_appointment" model="ir.actions.act_window">
+        <field name="name">Marketing Calendar</field>
+        <field name="res_model">sedar.marketing.appointment</field>
+        <field name="view_mode">calendar,list,form</field>
+        <field name="context">{'calendar_default_mode': 'week'}</field>
     </record>
 
     <record id="action_sedar_marketing_dashboard" model="ir.actions.client">
