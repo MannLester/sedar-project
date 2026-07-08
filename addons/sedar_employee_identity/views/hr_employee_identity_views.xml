@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_sedar_employee_records_tree_identity" model="ir.ui.view">
+        <field name="name">hr.employee.public.tree.sedar.employee.identity</field>
+        <field name="model">hr.employee.public</field>
+        <field name="inherit_id" ref="sedar_employee_records.view_sedar_employee_records_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="sedar_employee_code"/>
+            </xpath>
+            <xpath expr="//button[@name='action_sedar_email_placeholder']" position="before">
+                <button name="action_sedar_print_employee_badge" type="object" icon="fa-id-card-o" string="Badge" class="btn-secondary"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_sedar_employee_records_form_identity" model="ir.ui.view">
+        <field name="name">hr.employee.public.form.sedar.employee.identity</field>
+        <field name="model">hr.employee.public</field>
+        <field name="inherit_id" ref="sedar_employee_records.view_sedar_employee_records_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='action_sedar_email_placeholder']" position="before">
+                <button name="action_sedar_print_employee_badge" type="object" string="Print Badge" class="btn-primary"/>
+            </xpath>
+            <xpath expr="//sheet/group[1]" position="before">
+                <group string="Identity">
+                    <group>
+                        <field name="sedar_employee_code" readonly="1"/>
+                    </group>
+                    <group>
+                        <field name="sedar_barcode_value" readonly="1"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_sedar_employee_records_search_identity" model="ir.ui.view">
+        <field name="name">hr.employee.public.search.sedar.employee.identity</field>
+        <field name="model">hr.employee.public</field>
+        <field name="inherit_id" ref="sedar_employee_records.view_sedar_employee_records_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="sedar_employee_code"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

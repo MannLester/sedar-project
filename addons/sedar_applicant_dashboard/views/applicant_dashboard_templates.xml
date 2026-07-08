@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="applicant_apply_success_dashboard_link" inherit_id="sedar_applicant_portal.applicant_apply_success" name="SEDAR Applicant Dashboard Success Link">
+        <xpath expr="//div[hasclass('o_sedar_applicant_notice')]" position="inside">
+            <t t-set="dashboard_token" t-value="applicant._sedar_ensure_dashboard_token().sedar_dashboard_token"/>
+            <div class="o_sedar_dashboard_success_actions">
+                <a class="btn btn-primary" t-att-href="'/applicant/dashboard/%s' % dashboard_token">Open Applicant Dashboard</a>
+                <p class="o_sedar_muted">Keep this page link so you can track your application and upload additional documents later.</p>
+            </div>
+        </xpath>
+    </template>
+
+    <template id="applicant_dashboard" name="SEDAR Applicant Dashboard">
+        <t t-call="web.frontend_layout">
+            <div class="o_sedar_applicant_dashboard">
+                <section class="o_sedar_dashboard_shell">
+                    <header class="o_sedar_dashboard_header">
+                        <div>
+                            <p class="o_sedar_dashboard_kicker">SEDAR Applicant Dashboard</p>
+                            <h1 t-esc="applicant.partner_name or applicant.name"/>
+                            <p>
+                                <span>Position Applied For:</span>
+                                <strong t-esc="applicant.sedar_target_role or (applicant.job_id.name if applicant.job_id else 'Not specified')"/>
+                            </p>
+                        </div>
+                        <div class="o_sedar_dashboard_status">
+                            <span>Current Status</span>
+                            <strong t-esc="public_status"/>
+                        </div>
+                    </header>
+
+                    <div class="o_sedar_dashboard_grid">
+                        <section class="o_sedar_dashboard_panel o_sedar_dashboard_panel_wide">
+                            <h2>Application Progress</h2>
+                            <ol class="o_sedar_progress">
+                                <t t-foreach="progress_steps" t-as="step">
+                                    <li t-att-class="'is-done' if step['is_done'] else ('is-current' if step['is_current'] else '')">
+                                        <span></span>
+                                        <strong t-esc="step['label']"/>
+                                    </li>
+                                </t>
+                            </ol>
+                        </section>
+
+                        <section class="o_sedar_dashboard_panel">
+                            <h2>Application Summary</h2>
+                            <dl class="o_sedar_summary_list">
+                                <dt>Reference</dt>
+                                <dd t-esc="applicant.id"/>
+                                <dt>Submitted</dt>
+                                <dd t-esc="applicant.create_date.strftime('%b %d, %Y') if applicant.create_date else ''"/>
+                                <dt>Email</dt>
+                                <dd t-esc="applicant.email_from or (profile.email if profile else '')"/>
+                                <dt>Mobile</dt>
+                                <dd t-esc="applicant.partner_mobile or (profile.mobile if profile else '')"/>
+                            </dl>
+                        </section>
+
+                        <section class="o_sedar_dashboard_panel">
+                            <h2>Interview</h2>
+                            <t t-if="applicant.sedar_interview_datetime">
+                                <dl class="o_sedar_summary_list">
+                                    <dt>Schedule</dt>
+                                    <dd t-esc="applicant.sedar_interview_schedule_label"/>
+                                    <dt>Mode</dt>
+                                    <dd t-esc="dict(applicant._fields['sedar_interview_mode'].selection).get(applicant.sedar_interview_mode, '')"/>
+                                    <dt>Venue or Link</dt>
+                                    <dd t-esc="applicant.sedar_interview_location"/>
+                                </dl>
+                            </t>
+                            <t t-else="">
+                                <p class="o_sedar_dashboard_empty">No interview schedule has been posted yet.</p>
+                            </t>
+                        </section>
+
+                        <section class="o_sedar_dashboard_panel o_sedar_dashboard_panel_wide">
+                            <div class="o_sedar_panel_header">
+                                <h2>Documents</h2>
+                                <span>PDF, JPG, or PNG up to <t t-esc="max_upload_mb"/> MB</span>
+                            </div>
+
+                            <t t-if="upload_status == 'uploaded'">
+                                <div class="o_sedar_dashboard_alert is-success">Document uploaded.</div>
+                            </t>
+                            <t t-elif="upload_status == 'too_large'">
+                                <div class="o_sedar_dashboard_alert is-error">The file is larger than the upload limit.</div>
+                            </t>
+                            <t t-elif="upload_status == 'invalid_type'">
+                                <div class="o_sedar_dashboard_alert is-error">Only PDF, JPG, and PNG files are accepted.</div>
+                            </t>
+                            <t t-elif="upload_status == 'missing'">
+                                <div class="o_sedar_dashboard_alert is-error">Please choose a document to upload.</div>
+                            </t>
+
+                            <div class="o_sedar_document_table">
+                                <div class="o_sedar_document_row o_sedar_document_head">
+                                    <span>Document</span>
+                                    <span>Status</span>
+                                    <span>Expiry</span>
+                                    <span>File</span>
+                                </div>
+                                <t t-foreach="document_rows" t-as="row">
+                                    <div class="o_sedar_document_row">
+                                        <span t-esc="row['name']"/>
+                                        <span>
+                                            <em t-att-class="row['status_class']" t-esc="row['status']"/>
+                                        </span>
+                                        <span t-esc="row['expiry_date'] or '-'"/>
+                                        <span>
+                                            <t t-if="row['attachment']">
+                                                <a t-att-href="'/applicant/dashboard/%s/documents/%s' % (applicant.sedar_dashboard_token, row['attachment'].id)">Download</a>
+                                            </t>
+                                            <t t-else="">-</t>
+                                        </span>
+                                    </div>
+                                </t>
+                            </div>
+
+                            <form class="o_sedar_upload_form" t-att-action="'/applicant/dashboard/%s/documents/upload' % applicant.sedar_dashboard_token" method="post" enctype="multipart/form-data">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                <label>Upload Additional Document<input type="file" name="document" accept=".pdf,.jpg,.jpeg,.png"/></label>
+                                <label>Note<input name="description" placeholder="Optional description"/></label>
+                                <button type="submit" class="btn btn-primary">Upload</button>
+                            </form>
+                        </section>
+
+                        <section class="o_sedar_dashboard_panel o_sedar_dashboard_panel_wide">
+                            <h2>Submitted Information</h2>
+                            <t t-if="profile">
+                                <div class="o_sedar_info_grid">
+                                    <dl>
+                                        <dt>Full Name</dt>
+                                        <dd><t t-esc="'%s %s %s' % (profile.given_name, profile.middle_name, profile.family_name)"/></dd>
+                                        <dt>Date of Birth</dt>
+                                        <dd t-esc="profile.date_of_birth"/>
+                                        <dt>Place of Birth</dt>
+                                        <dd t-esc="profile.place_of_birth"/>
+                                        <dt>Civil Status</dt>
+                                        <dd t-esc="dict(profile._fields['civil_status'].selection).get(profile.civil_status, '')"/>
+                                    </dl>
+                                    <dl>
+                                        <dt>City Address</dt>
+                                        <dd t-esc="profile.city_address"/>
+                                        <dt>Provincial Address</dt>
+                                        <dd t-esc="profile.provincial_address"/>
+                                        <dt>Emergency Contact</dt>
+                                        <dd t-esc="profile.notify_name"/>
+                                        <dt>Emergency Contact No.</dt>
+                                        <dd t-esc="profile.notify_contact_number"/>
+                                    </dl>
+                                </div>
+                            </t>
+                            <t t-else="">
+                                <p class="o_sedar_dashboard_empty">The submitted applicant profile is not available.</p>
+                            </t>
+                        </section>
+                    </div>
+                </section>
+            </div>
+        </t>
+    </template>
+</odoo>
