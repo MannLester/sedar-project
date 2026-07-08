@@ -508,63 +508,6 @@
         <field name="view_mode">list,form</field>
     </record>
 
-    <record id="view_sedar_procurement_record_list" model="ir.ui.view">
-        <field name="name">sedar.procurement.record.list</field>
-        <field name="model">sedar.procurement.record</field>
-        <field name="arch" type="xml">
-            <list>
-                <field name="name"/>
-                <field name="record_type"/>
-                <field name="supplier"/>
-                <field name="requested_by"/>
-                <field name="request_date"/>
-                <field name="amount"/>
-                <field name="status"/>
-                <field name="approval_owner"/>
-                <field name="approval_age_days"/>
-                <field name="expected_delivery"/>
-                <field name="supplier_lead_days"/>
-                <field name="delivery_performance"/>
-                <field name="maintenance_id"/>
-                <field name="inventory_id"/>
-            </list>
-        </field>
-    </record>
-
-    <record id="view_sedar_procurement_record_form" model="ir.ui.view">
-        <field name="name">sedar.procurement.record.form</field>
-        <field name="model">sedar.procurement.record</field>
-        <field name="arch" type="xml">
-            <form>
-                <sheet>
-                    <group>
-                        <field name="name"/>
-                        <field name="record_type"/>
-                        <field name="supplier"/>
-                        <field name="requested_by"/>
-                        <field name="request_date"/>
-                        <field name="amount"/>
-                        <field name="status"/>
-                        <field name="approval_owner"/>
-                        <field name="approval_age_days"/>
-                        <field name="expected_delivery"/>
-                        <field name="supplier_lead_days"/>
-                        <field name="delivery_performance"/>
-                        <field name="maintenance_id"/>
-                        <field name="inventory_id"/>
-                        <field name="note"/>
-                    </group>
-                </sheet>
-            </form>
-        </field>
-    </record>
-
-    <record id="action_sedar_procurement_record" model="ir.actions.act_window">
-        <field name="name">Procurement</field>
-        <field name="res_model">sedar.procurement.record</field>
-        <field name="view_mode">list,form</field>
-    </record>
-
     <record id="view_sedar_inventory_item_list" model="ir.ui.view">
         <field name="name">sedar.inventory.item.list</field>
         <field name="model">sedar.inventory.item</field>
@@ -790,10 +733,6 @@
     <menuitem id="menu_sedar_hse_records" name="Incidents, Near Misses, Permits, Audits" parent="menu_sedar_hse_app" action="action_sedar_hse_record" sequence="1"/>
     <menuitem id="menu_sedar_hse_vessels" name="Vessel Risk Context" parent="menu_sedar_hse_app" action="action_sedar_vessel" sequence="2"/>
     <menuitem id="menu_sedar_hse_training" name="Risk Assessments, Safety Meetings, Training" parent="menu_sedar_hse_app" action="action_sedar_hse_record" sequence="3"/>
-
-    <menuitem id="menu_sedar_procurement_app" name="Procurement" action="action_sedar_procurement_record" sequence="60"/>
-    <menuitem id="menu_sedar_procurement_records" name="Requests and Orders" parent="menu_sedar_procurement_app" action="action_sedar_procurement_record" sequence="1"/>
-    <menuitem id="menu_sedar_procurement_inventory" name="Stock Reorder Signals" parent="menu_sedar_procurement_app" action="action_sedar_inventory_item" sequence="2"/>
 
     <menuitem id="menu_sedar_inventory_app" name="Inventory Management" action="action_sedar_inventory_item" sequence="70"/>
     <menuitem id="menu_sedar_inventory_items" name="Warehouse, Barcode, Fuel, Lubricants, Supplies" parent="menu_sedar_inventory_app" action="action_sedar_inventory_item" sequence="1"/>

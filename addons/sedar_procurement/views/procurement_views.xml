@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_sedar_procurement_record_list" model="ir.ui.view">
+        <field name="name">sedar.procurement.record.list</field>
+        <field name="model">sedar.procurement.record</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="record_type"/>
+                <field name="supplier"/>
+                <field name="supplier_contact"/>
+                <field name="requested_by"/>
+                <field name="priority"/>
+                <field name="item_name"/>
+                <field name="quantity"/>
+                <field name="request_date"/>
+                <field name="amount"/>
+                <field name="status"/>
+                <field name="approval_owner"/>
+                <field name="approval_age_days"/>
+                <field name="expected_delivery"/>
+                <field name="supplier_lead_days"/>
+                <field name="delivery_performance"/>
+                <field name="maintenance_id"/>
+                <field name="inventory_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sedar_procurement_record_form" model="ir.ui.view">
+        <field name="name">sedar.procurement.record.form</field>
+        <field name="model">sedar.procurement.record</field>
+        <field name="arch" type="xml">
+            <form class="sedar_procurement_form" create="false" edit="true">
+                <sheet>
+                    <field name="flow_step" invisible="1"/>
+                    <field name="record_type" invisible="1"/>
+                    <field name="status" invisible="1"/>
+                    <div class="sedar_pr_stepper" aria-label="Purchase request steps" invisible="status != 'draft' or record_type in ['rfq', 'po'] or flow_step in ['supplier_info', 'rfq_details', 'terms', 'po_details']">
+                        <div class="sedar_pr_step active"><span class="fa fa-clipboard"/>Request Info</div>
+                        <div class="sedar_pr_step active" invisible="flow_step == 'request_info'"><span class="fa fa-cubes"/>Items</div>
+                        <div class="sedar_pr_step" invisible="flow_step != 'request_info'"><span class="fa fa-cubes"/>Items</div>
+                        <div class="sedar_pr_step active" invisible="flow_step in ['request_info', 'items']"><span class="fa fa-money"/>Supplier / Budget</div>
+                        <div class="sedar_pr_step" invisible="flow_step not in ['request_info', 'items']"><span class="fa fa-money"/>Supplier / Budget</div>
+                        <div class="sedar_pr_step active" invisible="flow_step != 'review'"><span class="fa fa-check-circle"/>Review</div>
+                        <div class="sedar_pr_step" invisible="flow_step == 'review'"><span class="fa fa-check-circle"/>Review</div>
+                    </div>
+
+                    <div class="sedar_pr_stepper" aria-label="RFQ steps" invisible="status != 'draft' or record_type != 'rfq' or flow_step in ['request_info', 'items', 'supplier_budget']">
+                        <div class="sedar_pr_step active"><span class="fa fa-truck"/>Supplier Info</div>
+                        <div class="sedar_pr_step active" invisible="flow_step == 'supplier_info'"><span class="fa fa-file-text-o"/>RFQ Details</div>
+                        <div class="sedar_pr_step" invisible="flow_step != 'supplier_info'"><span class="fa fa-file-text-o"/>RFQ Details</div>
+                        <div class="sedar_pr_step active" invisible="flow_step in ['supplier_info', 'rfq_details']"><span class="fa fa-handshake-o"/>Terms</div>
+                        <div class="sedar_pr_step" invisible="flow_step not in ['supplier_info', 'rfq_details']"><span class="fa fa-handshake-o"/>Terms</div>
+                        <div class="sedar_pr_step active" invisible="flow_step != 'review'"><span class="fa fa-check-circle"/>Review</div>
+                        <div class="sedar_pr_step" invisible="flow_step == 'review'"><span class="fa fa-check-circle"/>Review</div>
+                    </div>
+
+                    <div class="sedar_pr_stepper" aria-label="Purchase order steps" invisible="status != 'draft' or record_type != 'po'">
+                        <div class="sedar_pr_step active"><span class="fa fa-file-text-o"/>PO Details</div>
+                        <div class="sedar_pr_step active" invisible="flow_step != 'review'"><span class="fa fa-check-circle"/>Review</div>
+                        <div class="sedar_pr_step" invisible="flow_step == 'review'"><span class="fa fa-check-circle"/>Review</div>
+                    </div>
+
+                    <div class="sedar_pr_card" invisible="status != 'draft' or flow_step != 'request_info'">
+                        <div class="sedar_pr_header">
+                            <h2>Purchase Request Info</h2>
+                            <p>Start with the requester, date, purpose, and urgency.</p>
+                        </div>
+                        <div class="sedar_pr_fields">
+                            <div class="sedar_pr_grid">
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Request Title</span><field name="name" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Requested By</span><field name="requested_by" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Request Date</span><field name="request_date" nolabel="1" widget="date"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Priority</span><field name="priority" nolabel="1" widget="radio"/></div>
+                            </div>
+                            <div class="sedar_pr_field sedar_pr_full"><span class="sedar_pr_label">Purpose</span><field name="purpose" nolabel="1" placeholder="Why do we need this purchase?"/></div>
+                            <div class="sedar_pr_actions">
+                                <button name="action_save_draft" type="object" string="Save as Draft" class="sedar_pr_secondary"/>
+                                <button name="action_next_step" type="object" string="Next Step" class="sedar_pr_primary"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sedar_pr_card" invisible="status != 'draft' or flow_step != 'items'">
+                        <div class="sedar_pr_header">
+                            <h2>Requested Item</h2>
+                            <p>Keep the first version simple: one main item per request.</p>
+                        </div>
+                        <div class="sedar_pr_fields">
+                            <div class="sedar_pr_grid">
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Item Name</span><field name="item_name" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Quantity</span><field name="quantity" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Unit</span><field name="unit_of_measure" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Needed By</span><field name="needed_by" nolabel="1" widget="date"/></div>
+                            </div>
+                            <div class="sedar_pr_field sedar_pr_full"><span class="sedar_pr_label">Item Description</span><field name="item_description" nolabel="1" placeholder="Specs, brand, size, part number, or other details."/></div>
+                            <div class="sedar_pr_grid">
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Related Maintenance</span><field name="maintenance_id" nolabel="1" options="{'no_open': True}"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Related Inventory Item</span><field name="inventory_id" nolabel="1" options="{'no_open': True}"/></div>
+                            </div>
+                            <div class="sedar_pr_actions sedar_pr_actions_split">
+                                <button name="action_previous_step" type="object" string="Previous" class="sedar_pr_previous"/>
+                                <span class="sedar_pr_spacer"/>
+                                <button name="action_save_draft" type="object" string="Save as Draft" class="sedar_pr_secondary"/>
+                                <button name="action_next_step" type="object" string="Next Step" class="sedar_pr_primary"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sedar_pr_card" invisible="status != 'draft' or flow_step != 'supplier_budget'">
+                        <div class="sedar_pr_header">
+                            <h2>Supplier and Budget</h2>
+                            <p>Add the likely supplier, budget, approval owner, and delivery target.</p>
+                        </div>
+                        <div class="sedar_pr_fields">
+                            <div class="sedar_pr_grid">
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Preferred Supplier</span><field name="supplier" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Estimated Amount</span><field name="amount" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Budget Source</span><field name="budget_source" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Payment Terms</span><field name="payment_terms" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Approval Owner</span><field name="approval_owner" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Expected Delivery</span><field name="expected_delivery" nolabel="1" widget="date"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Supplier Lead Days</span><field name="supplier_lead_days" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Supplier Reliability</span><field name="delivery_performance" nolabel="1"/></div>
+                            </div>
+                            <div class="sedar_pr_actions sedar_pr_actions_split">
+                                <button name="action_previous_step" type="object" string="Previous" class="sedar_pr_previous"/>
+                                <span class="sedar_pr_spacer"/>
+                                <button name="action_save_draft" type="object" string="Save as Draft" class="sedar_pr_secondary"/>
+                                <button name="action_next_step" type="object" string="Review" class="sedar_pr_primary"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sedar_pr_card" invisible="status != 'draft' or flow_step != 'supplier_info'">
+                        <div class="sedar_pr_header">
+                            <h2>Supplier Info</h2>
+                            <p>Pick the vendor and add the contact details for the RFQ.</p>
+                        </div>
+                        <div class="sedar_pr_fields">
+                            <div class="sedar_pr_grid">
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">RFQ Title</span><field name="name" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Supplier</span><field name="supplier" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Contact Person</span><field name="supplier_contact" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Email</span><field name="supplier_email" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Phone</span><field name="supplier_phone" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Requested By</span><field name="requested_by" nolabel="1"/></div>
+                            </div>
+                            <div class="sedar_pr_actions">
+                                <button name="action_save_draft" type="object" string="Save as Draft" class="sedar_pr_secondary"/>
+                                <button name="action_next_step" type="object" string="Next Step" class="sedar_pr_primary"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sedar_pr_card" invisible="status != 'draft' or flow_step != 'rfq_details'">
+                        <div class="sedar_pr_header">
+                            <h2>RFQ Details</h2>
+                            <p>Tell the supplier what needs to be quoted.</p>
+                        </div>
+                        <div class="sedar_pr_fields">
+                            <div class="sedar_pr_grid">
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Item Name</span><field name="item_name" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Quantity</span><field name="quantity" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Unit</span><field name="unit_of_measure" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Quote Deadline</span><field name="quote_deadline" nolabel="1" widget="date"/></div>
+                            </div>
+                            <div class="sedar_pr_field sedar_pr_full"><span class="sedar_pr_label">Scope / Specs</span><field name="rfq_scope" nolabel="1" placeholder="Specs, brand, part number, quantity notes, and quote requirements."/></div>
+                            <div class="sedar_pr_actions sedar_pr_actions_split">
+                                <button name="action_previous_step" type="object" string="Previous" class="sedar_pr_previous"/>
+                                <span class="sedar_pr_spacer"/>
+                                <button name="action_save_draft" type="object" string="Save as Draft" class="sedar_pr_secondary"/>
+                                <button name="action_next_step" type="object" string="Next Step" class="sedar_pr_primary"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sedar_pr_card" invisible="status != 'draft' or flow_step != 'terms'">
+                        <div class="sedar_pr_header">
+                            <h2>RFQ Terms</h2>
+                            <p>Add delivery, payment, warranty, and supplier reliability details.</p>
+                        </div>
+                        <div class="sedar_pr_fields">
+                            <div class="sedar_pr_grid">
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Delivery Location</span><field name="delivery_location" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Expected Delivery</span><field name="expected_delivery" nolabel="1" widget="date"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Payment Terms</span><field name="payment_terms" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Warranty Terms</span><field name="warranty_terms" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Supplier Lead Days</span><field name="supplier_lead_days" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Supplier Reliability</span><field name="delivery_performance" nolabel="1"/></div>
+                            </div>
+                            <div class="sedar_pr_actions sedar_pr_actions_split">
+                                <button name="action_previous_step" type="object" string="Previous" class="sedar_pr_previous"/>
+                                <span class="sedar_pr_spacer"/>
+                                <button name="action_save_draft" type="object" string="Save as Draft" class="sedar_pr_secondary"/>
+                                <button name="action_next_step" type="object" string="Review" class="sedar_pr_primary"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sedar_pr_card sedar_po_card" invisible="status != 'draft' or flow_step != 'po_details'">
+                        <div class="sedar_pr_header">
+                            <h2>Create Purchase Order</h2>
+                            <p>Add the supplier, item, amount, and delivery details for this PO.</p>
+                        </div>
+                        <div class="sedar_pr_fields">
+                            <div class="sedar_pr_grid">
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">PO Title</span><field name="name" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Supplier</span><field name="supplier" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Requested By</span><field name="requested_by" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Order Date</span><field name="request_date" nolabel="1" widget="date"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Item Name</span><field name="item_name" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Quantity</span><field name="quantity" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Unit</span><field name="unit_of_measure" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Amount</span><field name="amount" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Expected Delivery</span><field name="expected_delivery" nolabel="1" widget="date"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Payment Terms</span><field name="payment_terms" nolabel="1"/></div>
+                            </div>
+                            <div class="sedar_pr_field sedar_pr_full"><span class="sedar_pr_label">Item Description</span><field name="item_description" nolabel="1" placeholder="Specs, brand, size, part number, or order notes."/></div>
+                            <div class="sedar_pr_actions">
+                                <button name="action_save_draft" type="object" string="Save as Draft" class="sedar_pr_secondary"/>
+                                <button name="action_next_step" type="object" string="Review" class="sedar_pr_primary"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sedar_pr_card sedar_pr_review_card" invisible="status == 'draft' and flow_step != 'review'">
+                        <div class="sedar_pr_header">
+                            <h2 invisible="record_type in ['rfq', 'po']">Review Purchase Request</h2>
+                            <h2 invisible="record_type != 'rfq'">Review RFQ</h2>
+                            <h2 invisible="record_type != 'po'">Review Purchase Order</h2>
+                            <p invisible="record_type in ['rfq', 'po']">Check the request before sending it for approval.</p>
+                            <p invisible="record_type != 'rfq'">Check supplier, quote details, and terms before sending the RFQ.</p>
+                            <p invisible="record_type != 'po'">Check supplier, item, amount, and delivery details before creating the PO.</p>
+                        </div>
+                        <div class="sedar_pr_review_grid" invisible="record_type in ['rfq', 'po']">
+                            <section><h3>Request</h3><div><span>Title</span><field name="name" nolabel="1" readonly="1"/></div><div><span>Requested By</span><field name="requested_by" nolabel="1" readonly="1"/></div><div><span>Priority</span><field name="priority" nolabel="1" readonly="1"/></div><div><span>Purpose</span><field name="purpose" nolabel="1" readonly="1"/></div></section>
+                            <section><h3>Item</h3><div><span>Item</span><field name="item_name" nolabel="1" readonly="1"/></div><div><span>Qty</span><field name="quantity" nolabel="1" readonly="1"/><field name="unit_of_measure" nolabel="1" readonly="1"/></div><div><span>Needed By</span><field name="needed_by" nolabel="1" readonly="1"/></div><div><span>Details</span><field name="item_description" nolabel="1" readonly="1"/></div></section>
+                            <section><h3>Supplier / Budget</h3><div><span>Supplier</span><field name="supplier" nolabel="1" readonly="1"/></div><div><span>Amount</span><field name="amount" nolabel="1" readonly="1"/></div><div><span>Budget</span><field name="budget_source" nolabel="1" readonly="1"/></div><div><span>Approver</span><field name="approval_owner" nolabel="1" readonly="1"/></div></section>
+                        </div>
+                        <div class="sedar_pr_review_grid" invisible="record_type != 'rfq'">
+                            <section><h3>Supplier</h3><div><span>Supplier</span><field name="supplier" nolabel="1" readonly="1"/></div><div><span>Contact</span><field name="supplier_contact" nolabel="1" readonly="1"/></div><div><span>Email</span><field name="supplier_email" nolabel="1" readonly="1"/></div><div><span>Phone</span><field name="supplier_phone" nolabel="1" readonly="1"/></div></section>
+                            <section><h3>RFQ Details</h3><div><span>Item</span><field name="item_name" nolabel="1" readonly="1"/></div><div><span>Qty</span><field name="quantity" nolabel="1" readonly="1"/><field name="unit_of_measure" nolabel="1" readonly="1"/></div><div><span>Deadline</span><field name="quote_deadline" nolabel="1" readonly="1"/></div><div><span>Specs</span><field name="rfq_scope" nolabel="1" readonly="1"/></div></section>
+                            <section><h3>Terms</h3><div><span>Delivery</span><field name="delivery_location" nolabel="1" readonly="1"/></div><div><span>Payment</span><field name="payment_terms" nolabel="1" readonly="1"/></div><div><span>Warranty</span><field name="warranty_terms" nolabel="1" readonly="1"/></div><div><span>Reliability</span><field name="delivery_performance" nolabel="1" readonly="1"/></div></section>
+                        </div>
+                        <div class="sedar_pr_review_grid sedar_po_review_grid" invisible="record_type != 'po'">
+                            <section><h3>Supplier</h3><div><span>Supplier</span><field name="supplier" nolabel="1" readonly="1"/></div><div><span>Requested By</span><field name="requested_by" nolabel="1" readonly="1"/></div><div><span>Order Date</span><field name="request_date" nolabel="1" readonly="1"/></div><div><span>Payment</span><field name="payment_terms" nolabel="1" readonly="1"/></div></section>
+                            <section><h3>Item</h3><div><span>Item</span><field name="item_name" nolabel="1" readonly="1"/></div><div><span>Qty</span><field name="quantity" nolabel="1" readonly="1"/><field name="unit_of_measure" nolabel="1" readonly="1"/></div><div><span>Amount</span><field name="amount" nolabel="1" readonly="1"/></div><div><span>Details</span><field name="item_description" nolabel="1" readonly="1"/></div></section>
+                            <section><h3>Delivery</h3><div><span>Expected</span><field name="expected_delivery" nolabel="1" readonly="1"/></div><div><span>Reliability</span><field name="delivery_performance" nolabel="1" readonly="1"/></div><div><span>Lead Days</span><field name="supplier_lead_days" nolabel="1" readonly="1"/></div><div><span>Owner</span><field name="approval_owner" nolabel="1" readonly="1"/></div></section>
+                        </div>
+                        <div class="sedar_pr_actions sedar_pr_actions_split sedar_pr_review_actions">
+                            <button name="action_previous_step" type="object" string="Previous" class="sedar_pr_previous" invisible="status != 'draft'"/>
+                            <span class="sedar_pr_spacer"/>
+                            <button name="action_save_draft" type="object" string="Save as Draft" class="sedar_pr_secondary" invisible="status != 'draft'"/>
+                            <button name="action_submit_request" type="object" string="Submit Request" class="sedar_pr_primary" invisible="status != 'draft' or record_type == 'po'" confirm="Submit this purchase request for approval?"/>
+                            <button name="action_create_po_from_record" type="object" string="Create PO from This" class="sedar_pr_primary" invisible="record_type == 'po' or status == 'draft'"/>
+                            <button name="action_submit_request" type="object" string="Create PO" class="sedar_pr_primary" invisible="status not in ['draft', 'approved'] or record_type != 'po'" confirm="Create this purchase order?"/>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sedar_procurement_new_request" model="ir.actions.act_window">
+        <field name="name">New Purchase Request</field>
+        <field name="res_model">sedar.procurement.record</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{'default_name': 'New Purchase Request', 'default_record_type': 'pr', 'default_flow_step': 'request_info', 'default_status': 'draft'}</field>
+    </record>
+
+    <record id="action_sedar_procurement_send_rfq" model="ir.actions.act_window">
+        <field name="name">Send RFQ</field>
+        <field name="res_model">sedar.procurement.record</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{'default_name': 'New RFQ', 'default_record_type': 'rfq', 'default_flow_step': 'supplier_info', 'default_status': 'draft'}</field>
+    </record>
+
+    <record id="action_sedar_procurement_create_po" model="ir.actions.act_window">
+        <field name="name">Create Purchase Order</field>
+        <field name="res_model">sedar.procurement.record</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{'default_name': 'New Purchase Order', 'default_record_type': 'po', 'default_flow_step': 'po_details', 'default_status': 'draft'}</field>
+    </record>
+
+    <record id="action_sedar_procurement_record" model="ir.actions.act_window">
+        <field name="name">Requests and Orders</field>
+        <field name="res_model">sedar.procurement.record</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_sedar_procurement_records_board" model="ir.actions.client">
+        <field name="name">Requests and Orders</field>
+        <field name="tag">sedar_procurement_records_board</field>
+    </record>
+
+    <record id="action_sedar_procurement_dashboard" model="ir.actions.client">
+        <field name="name">Procurement</field>
+        <field name="tag">sedar_procurement_dashboard</field>
+    </record>
+
+    <menuitem id="menu_sedar_procurement_app" name="Procurement" action="action_sedar_procurement_dashboard" sequence="60"/>
+    <menuitem id="menu_sedar_procurement_dashboard" name="Dashboard" parent="menu_sedar_procurement_app" action="action_sedar_procurement_dashboard" sequence="1"/>
+    <menuitem id="menu_sedar_procurement_records" name="Requests and Orders" parent="menu_sedar_procurement_app" action="action_sedar_procurement_record" sequence="2"/>
+    <menuitem id="menu_sedar_procurement_inventory" name="Stock Reorder Signals" parent="menu_sedar_procurement_app" action="sedar_marine_mvp.action_sedar_inventory_item" sequence="3"/>
+</odoo>

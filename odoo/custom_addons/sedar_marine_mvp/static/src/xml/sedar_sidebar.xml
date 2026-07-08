@@ -60,7 +60,7 @@
                     <div class="o_sedar_nav_group">
                         <div class="o_sedar_nav_heading">Resources and Finance</div>
                         <t t-foreach="menuService.getApps()" t-as="app" t-key="app.id">
-                            <a t-if="app.xmlid and (app.xmlid.startsWith('sedar_marine_mvp.') or app.xmlid.startsWith('sedar_marketing.')) and ['Finance and Accounting', 'Procurement', 'Inventory Management', 'Marketing'].includes(app.name)"
+                            <a t-if="app.xmlid and (app.xmlid.startsWith('sedar_marine_mvp.') or app.xmlid.startsWith('sedar_marketing.') or app.xmlid.startsWith('sedar_procurement.')) and ['Finance and Accounting', 'Procurement', 'Inventory Management', 'Marketing'].includes(app.name)"
                                 t-att-href="getMenuItemHref(app)"
                                 t-att-data-menu-xmlid="app.xmlid"
                                 t-att-class="{'o_sedar_nav_item': true, 'active': currentApp and currentApp.id === app.id}"

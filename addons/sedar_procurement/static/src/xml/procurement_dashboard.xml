@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sedar_procurement.ProcurementDashboard">
+        <div class="o_sedar_procurement_dashboard">
+            <div class="o_procurement_hero">
+                <div>
+                    <span class="o_procurement_eyebrow">Buying Control Room</span>
+                    <h1>Procurement</h1>
+                    <p>Track requests, approvals, suppliers, and delivery risk in one place.</p>
+                </div>
+                <div class="o_procurement_actions">
+                    <button class="o_procurement_primary" t-on-click="openNewPurchaseRequest"><i class="fa fa-plus"/> New Purchase Request</button>
+                    <button t-on-click="openSendRfq"><i class="fa fa-send"/> Send RFQ</button>
+                    <button t-on-click="openCreatePo"><i class="fa fa-file-text-o"/> Create PO</button>
+                </div>
+            </div>
+
+            <div class="o_procurement_kpis">
+                <t t-foreach="state.kpis" t-as="kpi" t-key="kpi.label">
+                    <section class="o_procurement_kpi">
+                        <div>
+                            <h2 t-esc="kpi.label"/>
+                            <strong t-esc="kpi.value"/>
+                            <span t-esc="kpi.note"/>
+                        </div>
+                        <i t-att-class="'fa ' + kpi.icon"/>
+                    </section>
+                </t>
+            </div>
+
+            <section class="o_procurement_flow_panel">
+                <div class="o_procurement_panel_header">
+                    <h2>Procurement Flow</h2>
+                    <button t-on-click="openRecords">View Requests</button>
+                </div>
+                <div class="o_procurement_flow">
+                    <t t-foreach="state.flow" t-as="column" t-key="column.key">
+                        <div class="o_procurement_lane">
+                            <h3><span t-esc="column.label"/><b t-esc="column.items.length"/></h3>
+                            <div class="o_procurement_lane_body">
+                                <t t-foreach="column.items" t-as="item" t-key="item.id">
+                                    <article t-att-class="'o_procurement_card ' + item.typeClass" t-att-data-id="item.id" t-on-click="openRecord">
+                                        <div class="o_procurement_card_top"><span t-esc="item.ref"/><strong t-esc="item.amountLabel"/></div>
+                                        <h4 t-esc="item.title"/>
+                                        <p t-esc="item.supplier || item.requested_by || 'Supplier not set'"/>
+                                        <div class="o_procurement_card_meta"><small t-att-class="item.performanceClass" t-esc="item.performanceLabel"/><time t-esc="item.dateLabel"/></div>
+                                    </article>
+                                </t>
+                                <p t-if="!column.items.length" class="o_procurement_empty_lane">No items</p>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </section>
+
+            <div class="o_procurement_bottom_grid">
+                <section class="o_procurement_quote_panel">
+                    <div class="o_procurement_panel_header"><h2>Quote Comparison</h2></div>
+                    <table>
+                        <thead><tr><th>Vendor</th><th>Price</th><th>Lead Time</th><th>Signal</th></tr></thead>
+                        <tbody>
+                            <t t-foreach="state.records.slice(0, 4)" t-as="record" t-key="record.id">
+                                <tr>
+                                    <td t-esc="record.supplier || 'Vendor TBD'"/>
+                                    <td t-esc="record.amountLabel"/>
+                                    <td><t t-esc="record.supplier_lead_days || 0"/> days</td>
+                                    <td><span t-att-class="record.performanceClass" t-esc="record.performanceLabel"/></td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </section>
+
+                <section class="o_procurement_action_panel">
+                    <div class="o_procurement_panel_header"><h2>Needs Action Today</h2></div>
+                    <t t-foreach="state.actions" t-as="action" t-key="action.label + action.title">
+                        <article class="o_procurement_action_item">
+                            <span t-esc="action.label"/>
+                            <h3 t-esc="action.title"/>
+                            <p t-esc="action.detail"/>
+                        </article>
+                    </t>
+                </section>
+
+                <section class="o_procurement_delivery_panel">
+                    <div class="o_procurement_panel_header"><h2>Delivery Schedule</h2></div>
+                    <div class="o_procurement_delivery_strip">
+                        <t t-foreach="state.delivery" t-as="item" t-key="item.id">
+                            <article>
+                                <time t-esc="item.expected_delivery"/>
+                                <strong t-esc="item.title"/>
+                                <span t-att-class="item.performanceClass" t-esc="item.performanceLabel"/>
+                            </article>
+                        </t>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="sedar_procurement.ProcurementRecordsBoard">
+        <div class="o_sedar_procurement_dashboard">
+            <div class="o_procurement_hero">
+                <div>
+                    <span class="o_procurement_eyebrow">Requests Desk</span>
+                    <h1>Requests and Orders</h1>
+                    <p>Track purchase requests, RFQs, and purchase orders from one clean board.</p>
+                </div>
+                <div class="o_procurement_actions">
+                    <button t-on-click="openDashboard"><i class="fa fa-arrow-left"/> Back to Dashboard</button>
+                    <button class="o_procurement_primary" t-on-click="openNewPurchaseRequest"><i class="fa fa-plus"/> New PR</button>
+                    <button t-on-click="openSendRfq"><i class="fa fa-send"/> Send RFQ</button>
+                    <button t-on-click="openCreatePo"><i class="fa fa-file-text-o"/> Create PO</button>
+                </div>
+            </div>
+
+            <section class="o_procurement_flow_panel o_records_board_panel">
+                <div class="o_procurement_panel_header">
+                    <h2>Procurement Register</h2>
+                    <div class="o_records_filters">
+                        <button t-att-class="state.activeType === 'all' ? 'active' : ''" data-type="all" t-on-click="setType">All <t t-esc="summary.total"/></button>
+                        <button t-att-class="state.activeType === 'pr' ? 'active' : ''" data-type="pr" t-on-click="setType">PR <t t-esc="summary.pr"/></button>
+                        <button t-att-class="state.activeType === 'rfq' ? 'active' : ''" data-type="rfq" t-on-click="setType">RFQ <t t-esc="summary.rfq"/></button>
+                        <button t-att-class="state.activeType === 'po' ? 'active' : ''" data-type="po" t-on-click="setType">PO <t t-esc="summary.po"/></button>
+                    </div>
+                </div>
+                <div class="o_records_list">
+                    <t t-foreach="filteredRecords" t-as="record" t-key="record.id">
+                        <article t-att-class="'o_records_card type-' + record.record_type" t-att-data-id="record.id" t-on-click="openRecord">
+                            <div class="o_records_card_top">
+                                <span t-esc="record.ref"/>
+                                <b t-esc="record.statusLabel"/>
+                            </div>
+                            <h3 t-esc="record.title"/>
+                            <div class="o_records_card_bottom">
+                                <strong t-esc="record.amountLabel"/>
+                                <span t-att-class="'o_records_status ' + record.performanceClass" t-esc="record.performanceLabel"/>
+                            </div>
+                            <div class="o_records_progress">
+                                <span t-esc="record.supplier || record.requested_by || 'Supplier not set'"/>
+                                <small t-esc="record.typeLabel"/>
+                            </div>
+                        </article>
+                    </t>
+                    <div t-if="!filteredRecords.length" class="o_records_empty">
+                        <i class="fa fa-folder-open-o"/>
+                        <h3>No records here yet</h3>
+                        <p>Try another filter or create a new procurement record.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </t>
+</templates>

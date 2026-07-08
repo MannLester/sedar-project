@@ -9,7 +9,6 @@ access_sedar_crew_member,sedar.crew.member,model_sedar_crew_member,base.group_us
 access_sedar_crew_certificate,sedar.crew.certificate,model_sedar_crew_certificate,base.group_user,1,1,1,1
 access_sedar_maintenance_work_order,sedar.maintenance.work.order,model_sedar_maintenance_work_order,base.group_user,1,1,1,1
 access_sedar_hse_record,sedar.hse.record,model_sedar_hse_record,base.group_user,1,1,1,1
-access_sedar_procurement_record,sedar.procurement.record,model_sedar_procurement_record,base.group_user,1,1,1,1
 access_sedar_inventory_item,sedar.inventory.item,model_sedar_inventory_item,base.group_user,1,1,1,1
 access_sedar_hr_record,sedar.hr.record,model_sedar_hr_record,base.group_user,1,1,1,1
 access_sedar_document_control,sedar.document.control,model_sedar_document_control,base.group_user,1,1,1,1

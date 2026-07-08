@@ -23,6 +23,7 @@ services:
       - ./config/odoo.conf:/etc/odoo/odoo.conf
       - ./custom_addons:/mnt/extra-addons
       - ../addons/sedar_marketing:/mnt/extra-addons/sedar_marketing
+      - ../addons/sedar_procurement:/mnt/extra-addons/sedar_procurement
 
 volumes:
   sedar-odoo-db:

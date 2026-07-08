@@ -427,37 +427,6 @@
         <field name="corrective_action">Update permit binder and close evidence gap.</field>
     </record>
 
-    <record id="procurement_001" model="sedar.procurement.record">
-        <field name="name">PR-2026-001 Fuel Injector Kit</field>
-        <field name="record_type">pr</field>
-        <field name="supplier">Marine Parts PH</field>
-        <field name="requested_by">Technical Department</field>
-        <field name="request_date">2026-07-05</field>
-        <field name="amount">185000</field>
-        <field name="expected_delivery">2026-07-09</field>
-        <field name="approval_age_days">3</field>
-        <field name="supplier_lead_days">5</field>
-        <field name="delivery_performance">watch</field>
-        <field name="status">pending_approval</field>
-        <field name="approval_owner">Operations Director</field>
-        <field name="maintenance_id" ref="maintenance_001"/>
-        <field name="note">Urgent part needed for vessel availability.</field>
-    </record>
-    <record id="procurement_002" model="sedar.procurement.record">
-        <field name="name">PO-2026-004 Lubricants</field>
-        <field name="record_type">po</field>
-        <field name="supplier">Harbor Oil Supply</field>
-        <field name="requested_by">Inventory</field>
-        <field name="request_date">2026-07-02</field>
-        <field name="amount">320000</field>
-        <field name="expected_delivery">2026-07-08</field>
-        <field name="approval_age_days">0</field>
-        <field name="supplier_lead_days">4</field>
-        <field name="delivery_performance">good</field>
-        <field name="status">ordered</field>
-        <field name="approval_owner">Finance Manager</field>
-    </record>
-
     <record id="inventory_001" model="sedar.inventory.item">
         <field name="name">Fuel Injector Kit</field>
         <field name="category">spare</field>

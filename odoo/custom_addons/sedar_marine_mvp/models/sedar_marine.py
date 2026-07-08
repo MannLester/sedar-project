@@ -365,42 +365,6 @@ class SedarHseRecord(models.Model):
     )
 
 
-class SedarProcurementRecord(models.Model):
-    _name = "sedar.procurement.record"
-    _description = "SEDAR Procurement Record"
-    _order = "request_date desc, name"
-
-    name = fields.Char(required=True)
-    record_type = fields.Selection(
-        [("pr", "Purchase Request"), ("po", "Purchase Order")], default="pr"
-    )
-    supplier = fields.Char()
-    requested_by = fields.Char()
-    request_date = fields.Date()
-    amount = fields.Float()
-    expected_delivery = fields.Date()
-    approval_age_days = fields.Integer()
-    supplier_lead_days = fields.Integer()
-    delivery_performance = fields.Selection(
-        [("good", "Good"), ("watch", "Watch"), ("risk", "Risk")],
-        default="good",
-    )
-    status = fields.Selection(
-        [
-            ("draft", "Draft"),
-            ("pending_approval", "Pending Approval"),
-            ("approved", "Approved"),
-            ("ordered", "Ordered"),
-            ("received", "Received"),
-        ],
-        default="draft",
-    )
-    approval_owner = fields.Char()
-    maintenance_id = fields.Many2one("sedar.maintenance.work.order")
-    inventory_id = fields.Many2one("sedar.inventory.item")
-    note = fields.Text()
-
-
 class SedarInventoryItem(models.Model):
     _name = "sedar.inventory.item"
     _description = "SEDAR Inventory Item"

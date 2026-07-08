@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="procurement_001" model="sedar.procurement.record">
+        <field name="name">PR-2026-001 Fuel Injector Kit</field>
+        <field name="record_type">pr</field>
+        <field name="supplier">Marine Parts PH</field>
+        <field name="requested_by">Technical Department</field>
+        <field name="request_date">2026-07-05</field>
+        <field name="amount">185000</field>
+        <field name="expected_delivery">2026-07-09</field>
+        <field name="approval_age_days">3</field>
+        <field name="supplier_lead_days">5</field>
+        <field name="delivery_performance">watch</field>
+        <field name="status">pending_approval</field>
+        <field name="approval_owner">Operations Director</field>
+        <field name="maintenance_id" ref="sedar_marine_mvp.maintenance_001"/>
+        <field name="note">Urgent part needed for vessel availability.</field>
+    </record>
+    <record id="procurement_002" model="sedar.procurement.record">
+        <field name="name">PO-2026-004 Lubricants</field>
+        <field name="record_type">po</field>
+        <field name="supplier">Harbor Oil Supply</field>
+        <field name="requested_by">Inventory</field>
+        <field name="request_date">2026-07-02</field>
+        <field name="amount">320000</field>
+        <field name="expected_delivery">2026-07-08</field>
+        <field name="approval_age_days">0</field>
+        <field name="supplier_lead_days">4</field>
+        <field name="delivery_performance">good</field>
+        <field name="status">ordered</field>
+        <field name="approval_owner">Finance Manager</field>
+    </record>
+    <record id="procurement_003" model="sedar.procurement.record">
+        <field name="name">PR-2026-008 Safety Gloves and PPE</field>
+        <field name="record_type">pr</field>
+        <field name="supplier">Cebu Industrial Supply</field>
+        <field name="requested_by">HSE</field>
+        <field name="request_date">2026-07-07</field>
+        <field name="amount">76000</field>
+        <field name="expected_delivery">2026-07-11</field>
+        <field name="approval_age_days">1</field>
+        <field name="supplier_lead_days">3</field>
+        <field name="delivery_performance">good</field>
+        <field name="status">draft</field>
+        <field name="approval_owner">Procurement Lead</field>
+    </record>
+    <record id="procurement_004" model="sedar.procurement.record">
+        <field name="name">PO-2026-010 Mooring Rope Replacement</field>
+        <field name="record_type">po</field>
+        <field name="supplier">Pacific Rope Works</field>
+        <field name="requested_by">Tug Operations</field>
+        <field name="request_date">2026-07-01</field>
+        <field name="amount">142000</field>
+        <field name="expected_delivery">2026-07-07</field>
+        <field name="approval_age_days">0</field>
+        <field name="supplier_lead_days">6</field>
+        <field name="delivery_performance">risk</field>
+        <field name="status">ordered</field>
+        <field name="approval_owner">Finance Manager</field>
+    </record>
+</odoo>
