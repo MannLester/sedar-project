@@ -71,7 +71,7 @@ class SedarProcurementRecord(models.Model):
 
     def action_save_draft(self):
         self.write({"status": "draft"})
-        return True
+        return self.env.ref("sedar_procurement.action_sedar_procurement_records_board").read()[0]
 
     def action_next_step(self):
         next_steps = {
