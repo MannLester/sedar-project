@@ -1,14 +1,17 @@
 {
     "name": "SEDAR Procurement",
-    "summary": "Procurement dashboard, requests, purchase orders, and reorder signals",
+    "summary": "SEDAR procurement UI backed by native Purchase and Inventory",
     "version": "19.0.1.0.0",
     "category": "Operations/Purchase",
     "author": "Mann, Edrian, and Clarenz",
     "license": "LGPL-3",
-    "depends": ["base", "web", "sedar_marine_mvp"],
+    "depends": ["base", "web", "purchase", "stock", "sedar_marine_mvp"],
     "data": [
         "security/ir.model.access.csv",
+        "data/company_config.xml",
+        "data/currency_config.xml",
         "views/procurement_views.xml",
+        "reports/canvas_sheet_report.xml",
         "data/procurement_demo.xml",
     ],
     "assets": {

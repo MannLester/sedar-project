@@ -814,6 +814,636 @@ body:has(.sedar_procurement_form) .o-tooltip {
     }
 }
 
+/* Final custom procurement form polish, aligned with the Marketing custom UI. */
+.o_action_manager:has(.sedar_procurement_form) .o_control_panel,
+.o_action_manager:has(.sedar_procurement_form) .o_form_statusbar,
+.o_action_manager:has(.sedar_procurement_form) .o-mail-Form-chatter,
+.o_action_manager:has(.sedar_procurement_form) .o_FormRenderer_chatterContainer,
+.o_action_manager:has(.sedar_procurement_form) .o_FormRenderer_chatterContainerOuter {
+    display: none !important;
+}
+
+.o_action_manager:has(.sedar_procurement_form),
+.o_action_manager:has(.sedar_procurement_form) .o_action,
+.o_action_manager:has(.sedar_procurement_form) .o_content,
+.o_action_manager:has(.sedar_procurement_form) .o_form_view,
+.o_action_manager:has(.sedar_procurement_form) .o_form_sheet_bg {
+    height: auto !important;
+    min-height: calc(100vh - 46px) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    background: #fff !important;
+}
+
+.o_action_manager:has(.sedar_procurement_form) .o_form_sheet_bg {
+    padding: 14px 0 40px !important;
+}
+
+.sedar_procurement_form .o_form_sheet {
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    border: 0 !important;
+    padding: 0 0 80px !important;
+    box-shadow: none !important;
+    background: #fff !important;
+}
+
+.sedar_procurement_form .sedar_pr_card,
+.sedar_procurement_form .sedar_po_card,
+.sedar_procurement_form .sedar_canvas_card {
+    width: min(1120px, calc(100vw - 92px)) !important;
+    margin: 0 auto 36px !important;
+    overflow: hidden !important;
+    border: 1px solid #d7d7d7 !important;
+    border-radius: 24px !important;
+    background: #fff !important;
+    box-shadow: none !important;
+}
+
+.sedar_procurement_form .sedar_pr_header {
+    padding: 16px 34px 14px !important;
+    border: 0 !important;
+    border-radius: 24px 24px 0 0 !important;
+    background: #1d3a56 !important;
+    color: #fff !important;
+}
+
+.sedar_procurement_form .sedar_pr_header h2 {
+    margin: 0 0 6px !important;
+    color: #fff !important;
+    font-size: 23px !important;
+    line-height: 1.05 !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.03em !important;
+}
+
+.sedar_procurement_form .sedar_pr_header p {
+    max-width: 920px;
+    margin: 0 !important;
+    color: #fff !important;
+    font-size: 13px !important;
+    line-height: 1.4 !important;
+    font-weight: 500 !important;
+}
+
+.sedar_procurement_form .sedar_pr_fields {
+    padding: 16px 34px 22px !important;
+}
+
+.sedar_procurement_form .sedar_pr_section_title {
+    margin: 14px 0 8px;
+    color: #6d6d6d;
+    font-size: 13px;
+    line-height: 1;
+    font-weight: 900;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+}
+
+.sedar_procurement_form .sedar_pr_section_title:first-of-type {
+    margin-top: 0;
+}
+
+.sedar_procurement_form .sedar_pr_grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px 20px !important;
+}
+
+.sedar_procurement_form .sedar_po_card .sedar_pr_grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+.sedar_procurement_form .sedar_pr_grid_four {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+
+.sedar_procurement_form .sedar_pr_field {
+    display: block !important;
+    margin: 0 !important;
+}
+
+.sedar_procurement_form .sedar_pr_label {
+    display: block !important;
+    margin: 0 0 6px !important;
+    color: #6d6d6d !important;
+    font-size: 11px !important;
+    line-height: 1.1 !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.2em !important;
+    text-transform: uppercase !important;
+}
+
+.sedar_procurement_form .sedar_pr_field .o_field_widget,
+.sedar_procurement_form .sedar_pr_field .o_input,
+.sedar_procurement_form .sedar_pr_field input,
+.sedar_procurement_form .sedar_pr_field textarea,
+.sedar_procurement_form .sedar_pr_field select,
+.sedar_procurement_form .sedar_pr_field .o-autocomplete,
+.sedar_procurement_form .sedar_pr_field .o-autocomplete--input,
+.sedar_procurement_form .sedar_pr_field .o_field_many2one,
+.sedar_procurement_form .sedar_pr_field .o_field_many2one_selection {
+    width: 100% !important;
+    max-width: none !important;
+}
+
+.sedar_procurement_form .sedar_pr_field .o_input,
+.sedar_procurement_form .sedar_pr_field input,
+.sedar_procurement_form .sedar_pr_field textarea,
+.sedar_procurement_form .sedar_pr_field select,
+.sedar_procurement_form .sedar_pr_field .o-autocomplete--input {
+    min-height: 34px !important;
+    border: 1px solid #cfcfcf !important;
+    border-radius: 9px !important;
+    padding: 5px 10px !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    color: #252a31 !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+}
+
+.sedar_procurement_form .sedar_pr_field textarea,
+.sedar_procurement_form .sedar_pr_field .o_field_text textarea {
+    min-height: 78px !important;
+}
+
+.sedar_procurement_form .sedar_pr_field .o_field_many2one .o_external_button,
+.sedar_procurement_form .sedar_pr_field .o_field_many2one .o_external_button_internal,
+.sedar_procurement_form .sedar_pr_field .o_field_many2one a.o_form_uri {
+    display: none !important;
+}
+
+.sedar_procurement_form .sedar_pr_readonly .o_field_widget,
+.sedar_procurement_form .sedar_pr_readonly .o_field_monetary,
+.sedar_procurement_form .sedar_pr_readonly .o_field_selection,
+.sedar_procurement_form .sedar_pr_readonly span:not(.sedar_pr_label) {
+    display: flex;
+    align-items: center;
+    min-height: 38px;
+    border-radius: 9px;
+    padding: 7px 12px;
+    background: #f7f8fa;
+    color: #252a31;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.sedar_procurement_form .sedar_budget_amounts .sedar_pr_field .o_input,
+.sedar_procurement_form .sedar_budget_amounts .sedar_pr_field input,
+.sedar_procurement_form .sedar_budget_amounts .sedar_pr_readonly .o_field_widget,
+.sedar_procurement_form .sedar_budget_amounts .sedar_pr_readonly .o_field_monetary,
+.sedar_procurement_form .sedar_budget_amounts .sedar_pr_readonly span:not(.sedar_pr_label) {
+    min-height: 34px !important;
+    height: 34px !important;
+    border-radius: 9px !important;
+    padding: 5px 10px !important;
+    box-sizing: border-box !important;
+}
+
+.sedar_procurement_form .sedar_budget_amounts .sedar_pr_field > .o_field_widget {
+    height: 34px !important;
+    min-height: 34px !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.sedar_procurement_form .sedar_budget_amounts .sedar_pr_field:not(.sedar_pr_readonly) > .o_field_widget {
+    border: 0 !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+}
+
+.sedar_procurement_form .sedar_budget_amounts .sedar_pr_field:not(.sedar_pr_readonly) input {
+    border: 1px solid #cfcfcf !important;
+    border-radius: 9px !important;
+    padding: 5px 10px !important;
+    min-height: 34px !important;
+    height: 34px !important;
+    background: #fff !important;
+}
+
+.sedar_procurement_form .sedar_pr_check .o_field_boolean,
+.sedar_procurement_form .sedar_pr_check .form-check,
+.sedar_procurement_form .sedar_pr_check .o-checkbox {
+    display: flex !important;
+    align-items: center !important;
+    min-height: 34px !important;
+}
+
+.sedar_procurement_form .sedar_pr_check input[type="checkbox"] {
+    width: 19px !important;
+    min-width: 19px !important;
+    height: 19px !important;
+    min-height: 19px !important;
+    margin: 0 !important;
+    border-radius: 7px !important;
+}
+
+.sedar_procurement_form .sedar_budget_panel {
+    display: block;
+}
+
+.sedar_procurement_form .sedar_budget_amounts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 20px;
+}
+
+.sedar_procurement_form .sedar_budget_checks {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 14px;
+}
+
+.sedar_procurement_form .sedar_check_row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    min-height: 42px;
+    border-bottom: 1px solid #e4e4e4;
+    padding: 0 2px;
+}
+
+.sedar_procurement_form .sedar_check_row span {
+    color: #333;
+    font-size: 11px;
+    line-height: 1.2;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.sedar_procurement_form .sedar_check_row .o_field_boolean,
+.sedar_procurement_form .sedar_check_row .form-check,
+.sedar_procurement_form .sedar_check_row .o-checkbox {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    width: auto !important;
+    min-width: 22px !important;
+    margin: 0 !important;
+}
+
+.sedar_procurement_form .sedar_check_row input[type="checkbox"] {
+    width: 24px !important;
+    min-width: 24px !important;
+    height: 24px !important;
+    min-height: 24px !important;
+    margin: 0 !important;
+    border: 2px solid #7d8794 !important;
+    border-radius: 8px !important;
+    background-color: #f4f6f8 !important;
+    box-shadow: inset 0 0 0 2px #fff !important;
+    cursor: pointer;
+}
+
+.sedar_procurement_form .sedar_check_row input[type="checkbox"]:checked {
+    border-color: #1d3a56 !important;
+    background-color: #1d3a56 !important;
+}
+
+.sedar_procurement_form .sedar_check_row input[type="checkbox"]:focus-visible {
+    outline: 3px solid rgba(29, 58, 86, 0.25) !important;
+    outline-offset: 2px !important;
+}
+
+.sedar_procurement_form .sedar_exception_box {
+    display: block;
+    margin-top: 14px;
+}
+
+.sedar_procurement_form .sedar_exception_box .sedar_pr_label {
+    margin-top: 0 !important;
+}
+
+.sedar_procurement_form .sedar_exception_box .o_field_widget,
+.sedar_procurement_form .sedar_exception_box textarea,
+.sedar_procurement_form .sedar_exception_box .o_input {
+    width: 100% !important;
+}
+
+.sedar_procurement_form .sedar_exception_box textarea,
+.sedar_procurement_form .sedar_exception_box .o_input {
+    min-height: 48px !important;
+    border: 1px solid #cfcfcf !important;
+    border-radius: 10px !important;
+    padding: 10px 12px !important;
+    color: #252a31 !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+}
+
+.sedar_procurement_form .sedar_pr_table {
+    overflow: hidden;
+    border: 1px solid #dedede;
+    border-radius: 14px;
+    background: #fff;
+}
+
+.sedar_procurement_form .sedar_pr_table .o_list_renderer,
+.sedar_procurement_form .sedar_pr_table table {
+    margin: 0 !important;
+    border: 0 !important;
+}
+
+.sedar_procurement_form .sedar_pr_table th {
+    padding: 12px 16px !important;
+    background: #fff !important;
+    color: #111827 !important;
+    font-size: 13px !important;
+    font-weight: 900 !important;
+}
+
+.sedar_procurement_form .sedar_pr_table td {
+    padding: 9px 16px !important;
+    border-top: 1px solid #e5e7eb !important;
+    font-size: 13px !important;
+}
+
+.sedar_procurement_form .sedar_pr_table .o_field_x2many_list_row_add,
+.sedar_procurement_form .sedar_pr_table .o_field_x2many_list_row_add a {
+    color: #1d3a56 !important;
+    font-weight: 900 !important;
+}
+
+.sedar_procurement_form .sedar_pr_table tr:has(.o_field_x2many_list_row_add) {
+    display: table-row !important;
+}
+
+.sedar_procurement_form .sedar_po_links_grid {
+    align-items: stretch !important;
+}
+
+.sedar_procurement_form .sedar_po_links_grid .sedar_pr_field,
+.sedar_procurement_form .sedar_po_links_grid .sedar_pr_field .o_field_widget,
+.sedar_procurement_form .sedar_po_links_grid .sedar_pr_field .o_field_many2one,
+.sedar_procurement_form .sedar_po_links_grid .sedar_pr_field .o_field_many2one_selection,
+.sedar_procurement_form .sedar_po_links_grid .sedar_pr_field .o-autocomplete,
+.sedar_procurement_form .sedar_po_links_grid .sedar_pr_field .o-autocomplete--input,
+.sedar_procurement_form .sedar_po_links_grid .sedar_pr_readonly .o_field_widget,
+.sedar_procurement_form .sedar_po_links_grid .sedar_pr_readonly span:not(.sedar_pr_label) {
+    min-height: 34px !important;
+}
+
+.sedar_procurement_form .sedar_po_links_grid .sedar_pr_readonly .o_field_widget {
+    display: flex !important;
+    align-items: center !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    border: 1px solid #cfcfcf !important;
+    border-radius: 9px !important;
+    padding: 5px 10px !important;
+    box-sizing: border-box !important;
+}
+
+.sedar_procurement_form .sedar_po_links_grid .sedar_pr_field input,
+.sedar_procurement_form .sedar_po_links_grid .sedar_pr_field .o_input,
+.sedar_procurement_form .sedar_po_links_grid .sedar_pr_field .o-autocomplete--input {
+    height: 34px !important;
+    min-height: 34px !important;
+}
+
+.sedar_procurement_form .sedar_po_links_grid .sedar_pr_readonly span:not(.sedar_pr_label) {
+    display: inline !important;
+    height: auto !important;
+    min-height: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    box-sizing: border-box !important;
+}
+
+.sedar_procurement_form .sedar_canvas_reference_grid .sedar_pr_field .o_field_widget,
+.sedar_procurement_form .sedar_canvas_reference_grid .sedar_pr_field input,
+.sedar_procurement_form .sedar_canvas_reference_grid .sedar_pr_field .o_input,
+.sedar_procurement_form .sedar_canvas_reference_grid .sedar_pr_field .o-autocomplete--input {
+    height: 34px !important;
+    min-height: 34px !important;
+}
+
+.sedar_procurement_form .sedar_canvas_reference_grid .sedar_pr_readonly .o_field_widget {
+    display: flex !important;
+    align-items: center !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    border: 1px solid #cfcfcf !important;
+    border-radius: 9px !important;
+    padding: 5px 10px !important;
+    box-sizing: border-box !important;
+}
+
+.sedar_procurement_form .sedar_canvas_reference_grid .sedar_pr_readonly span:not(.sedar_pr_label) {
+    display: inline !important;
+    height: auto !important;
+    min-height: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+}
+
+.sedar_procurement_form .sedar_canvas_summary_panel {
+    overflow: hidden;
+    border: 1px solid #dedede;
+    border-radius: 14px;
+    background: #fff;
+}
+
+.sedar_procurement_form .sedar_canvas_summary_panel .o_field_html,
+.sedar_procurement_form .sedar_canvas_summary_panel .o_readonly {
+    width: 100%;
+}
+
+.sedar_canvas_summary {
+    padding: 16px;
+}
+
+.sedar_canvas_brief {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.sedar_canvas_brief section {
+    border: 1px solid #e1e5ea;
+    border-radius: 12px;
+    padding: 12px;
+    background: #f8fafc;
+}
+
+.sedar_canvas_brief span,
+.sedar_canvas_brief small,
+.sedar_canvas_supplier_card span,
+.sedar_canvas_supplier_card dt {
+    display: block;
+    color: #6d6d6d;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.sedar_canvas_brief strong {
+    display: block;
+    margin-top: 5px;
+    color: #111827;
+    font-size: 16px;
+    font-weight: 900;
+}
+
+.sedar_canvas_supplier_cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.sedar_canvas_supplier_card {
+    min-height: 270px;
+    border: 1px solid #d9dee7;
+    border-radius: 16px;
+    padding: 16px;
+    background: #fff;
+    box-shadow: 0 12px 24px rgba(17, 24, 39, 0.06);
+}
+
+.sedar_canvas_supplier_card > div:first-child {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 24px;
+}
+
+.sedar_canvas_supplier_card h3 {
+    min-height: 44px;
+    margin: 10px 0 8px;
+    color: #111827;
+    font-size: 18px;
+    font-weight: 900;
+    line-height: 1.2;
+}
+
+.sedar_canvas_supplier_card > strong {
+    display: block;
+    margin-bottom: 14px;
+    color: #1d3a56;
+    font-size: 26px;
+    font-weight: 900;
+}
+
+.sedar_canvas_supplier_card dl {
+    margin: 0;
+}
+
+.sedar_canvas_supplier_card dd {
+    margin: 3px 0 12px;
+    color: #111827;
+    font-size: 13px;
+    line-height: 1.35;
+}
+
+.sedar_canvas_supplier_card.is-empty {
+    border-style: dashed;
+    background: #fbfcfe;
+    box-shadow: none;
+}
+
+.sedar_canvas_supplier_card.is-empty h3,
+.sedar_canvas_supplier_card.is-empty strong,
+.sedar_canvas_supplier_card.is-empty p {
+    color: #9aa3af;
+}
+
+.sedar_canvas_badge {
+    display: inline-block !important;
+    border-radius: 999px;
+    padding: 3px 7px !important;
+    background: #e7f8ef !important;
+    color: #087443 !important;
+    font-size: 10px !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.sedar_canvas_lowest {
+    display: inline-block !important;
+    border-radius: 999px;
+    padding: 3px 7px !important;
+    background: #eef3ff !important;
+    color: #244c9a !important;
+    font-size: 10px !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.sedar_procurement_form .sedar_pr_actions {
+    display: flex !important;
+    justify-content: flex-end !important;
+    gap: 16px !important;
+    margin-top: 14px !important;
+}
+
+.sedar_procurement_form .sedar_pr_primary,
+.sedar_procurement_form .sedar_pr_secondary {
+    min-width: 150px !important;
+    min-height: 40px !important;
+    border-radius: 10px !important;
+    padding: 8px 18px !important;
+    font-size: 14px !important;
+    font-weight: 900 !important;
+}
+
+.sedar_procurement_form .sedar_pr_primary {
+    border: 0 !important;
+    background: #1d3a56 !important;
+    color: #fff !important;
+}
+
+.sedar_procurement_form .sedar_pr_secondary {
+    border: 0 !important;
+    background: #aaa8a8 !important;
+    color: #fff !important;
+}
+
+@media (max-width: 1100px) {
+    .sedar_procurement_form .sedar_pr_card,
+    .sedar_procurement_form .sedar_po_card,
+    .sedar_procurement_form .sedar_canvas_card {
+        width: calc(100vw - 32px) !important;
+    }
+
+    .sedar_procurement_form .sedar_pr_header,
+    .sedar_procurement_form .sedar_pr_fields {
+        padding-left: 24px !important;
+        padding-right: 24px !important;
+    }
+
+    .sedar_procurement_form .sedar_pr_grid,
+    .sedar_procurement_form .sedar_pr_grid_four,
+    .sedar_procurement_form .sedar_po_card .sedar_pr_grid,
+    .sedar_procurement_form .sedar_budget_panel,
+    .sedar_procurement_form .sedar_budget_amounts,
+    .sedar_procurement_form .sedar_budget_checks,
+    .sedar_procurement_form .sedar_exception_box,
+    .sedar_canvas_brief,
+    .sedar_canvas_supplier_cards {
+        grid-template-columns: 1fr !important;
+    }
+
+    .sedar_procurement_form .sedar_pr_actions {
+        flex-direction: column !important;
+    }
+}
+
 .o_action_manager:has(.sedar_procurement_form) {
     height: calc(100vh - 46px) !important;
     overflow: hidden !important;
@@ -1295,4 +1925,31 @@ body:has(.sedar_procurement_form) .o-tooltip {
     .sedar_pr_review_grid {
         grid-template-columns: 1fr;
     }
+}
+
+.o_action_manager:has(.sedar_procurement_form),
+.o_action_manager:has(.sedar_procurement_form) .o_action,
+.o_action_manager:has(.sedar_procurement_form) .o_content,
+.o_action_manager:has(.sedar_procurement_form) .o_form_view,
+.o_action_manager:has(.sedar_procurement_form) .o_form_sheet_bg {
+    height: auto !important;
+    min-height: calc(100vh - 46px) !important;
+    overflow-y: visible !important;
+    overflow-x: hidden !important;
+}
+
+.o_action_manager:has(.sedar_procurement_form) {
+    overflow-y: auto !important;
+}
+
+.sedar_procurement_form .o_form_sheet,
+.sedar_procurement_form .sedar_pr_card,
+.sedar_procurement_form .sedar_po_card {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+}
+
+.sedar_procurement_form .o_form_sheet {
+    padding-bottom: 180px !important;
 }

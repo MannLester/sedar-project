@@ -263,33 +263,485 @@
         </field>
     </record>
 
-    <record id="action_sedar_procurement_new_request" model="ir.actions.act_window">
-        <field name="name">New Purchase Request</field>
-        <field name="res_model">sedar.procurement.record</field>
+    <record id="view_sedar_purchase_order_form_inherit" model="ir.ui.view">
+        <field name="name">purchase.order.form.sedar.procurement</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/notebook" position="inside">
+                <page string="SEDAR Procurement">
+                    <group>
+                        <group string="Budget and Canvassing">
+                            <field name="sedar_budget_amount_display"/>
+                            <field name="sedar_over_budget" readonly="1"/>
+                            <field name="sedar_canvassing_required" readonly="1"/>
+                            <field name="sedar_canvassing_done"/>
+                            <field name="sedar_urgent_exception"/>
+                            <field name="sedar_exception_reason" placeholder="Reason for skipping canvassing on urgent single-supplier cases."/>
+                        </group>
+                        <group string="Links">
+                            <field name="sedar_inventory_product_id"/>
+                            <field name="sedar_vessel_id"/>
+                            <field name="sedar_maintenance_id"/>
+                            <field name="sedar_quote_count" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Canvas Sheet Quotes">
+                        <field name="sedar_quote_ids" nolabel="1">
+                            <list editable="bottom">
+                                <field name="quote_received_at"/>
+                                <field name="partner_id"/>
+                                <field name="product_id"/>
+                                <field name="price_total"/>
+                                <field name="lead_time_days"/>
+                                <field name="selected"/>
+                                <field name="discount_notes"/>
+                                <field name="reliability_notes"/>
+                            </list>
+                        </field>
+                    </group>
+                    <button name="action_sedar_print_canvas" type="object" string="Print Canvas Sheet" class="btn-primary"/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_sedar_product_template_form_inherit" model="ir.ui.view">
+        <field name="name">product.template.form.sedar.procurement</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/notebook" position="inside">
+                <page string="SEDAR Item Details">
+                    <group>
+                        <field name="default_code" string="Item Code"/>
+                        <field name="sedar_item_size"/>
+                        <field name="sedar_tug_use"/>
+                        <field name="sedar_vessel_id" invisible="sedar_tug_use != 'specific'"/>
+                        <field name="sedar_critical_part"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_sedar_partner_form_inherit" model="ir.ui.view">
+        <field name="name">res.partner.form.sedar.supplier.accreditation</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/notebook" position="inside">
+                <page string="SEDAR Supplier">
+                    <group>
+                        <field name="sedar_supplier_accreditation"/>
+                        <field name="sedar_discount_notes"/>
+                        <field name="sedar_reliability_notes"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_sedar_stock_picking_form_inherit" model="ir.ui.view">
+        <field name="name">stock.picking.form.sedar.tug.issue</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group" position="inside">
+                <group string="SEDAR Tugboat Issue">
+                    <field name="sedar_vessel_id"/>
+                    <field name="sedar_issue_reason"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_sedar_purchase_rfq_form" model="ir.ui.view">
+        <field name="name">purchase.order.form.sedar.rfq</field>
+        <field name="model">purchase.order</field>
+        <field name="arch" type="xml">
+            <form string="SEDAR RFQ" class="sedar_procurement_form">
+                <sheet>
+                    <div class="sedar_pr_card sedar_po_card">
+                        <div class="sedar_pr_header">
+                            <h2>New RFQ</h2>
+                            <p>Create a supplier quote request, connect it to inventory or a tugboat, then check it against budget.</p>
+                        </div>
+                        <div class="sedar_pr_fields">
+                            <field name="currency_id" invisible="1"/>
+                            <field name="company_id" invisible="1"/>
+                            <field name="tax_country_id" invisible="1"/>
+                            <div class="sedar_pr_section_title">Supplier</div>
+                            <div class="sedar_pr_grid">
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Supplier</span><field name="partner_id" nolabel="1" options="{'no_open': True}" placeholder="Search accredited supplier..."/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Supplier Reference</span><field name="partner_ref" nolabel="1" placeholder="Quote no., email ref, or contact note"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Procurement Officer</span><field name="user_id" nolabel="1" options="{'no_open': True}"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">RFQ Date</span><field name="date_order" nolabel="1"/></div>
+                            </div>
+                            <div class="sedar_pr_section_title">Need</div>
+                            <div class="sedar_pr_grid">
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Needed By</span><field name="date_planned" nolabel="1" placeholder="Target delivery date"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Supplied Tugboat</span><field name="sedar_vessel_id" nolabel="1" options="{'no_open': True}"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Related Maintenance</span><field name="sedar_maintenance_id" nolabel="1" options="{'no_open': True}"/></div>
+                            </div>
+                            <div class="sedar_pr_section_title">Budget Check</div>
+                            <div class="sedar_budget_panel">
+                                <div class="sedar_budget_amounts">
+                                    <div class="sedar_pr_field"><span class="sedar_pr_label">Budget Amount</span><field name="sedar_budget_amount" nolabel="1" widget="float"/></div>
+                                    <div class="sedar_pr_field sedar_pr_readonly"><span class="sedar_pr_label">Total</span><field name="sedar_amount_total_display" nolabel="1" readonly="1"/></div>
+                                </div>
+                                <div class="sedar_budget_checks">
+                                    <div class="sedar_check_row"><span>Over Budget</span><field name="sedar_over_budget" nolabel="1" readonly="1"/></div>
+                                    <div class="sedar_check_row"><span>Canvassing Required</span><field name="sedar_canvassing_required" nolabel="1" readonly="1"/></div>
+                                </div>
+                            </div>
+                            <div class="sedar_pr_section_title">Items</div>
+                            <div class="sedar_pr_table">
+                                <field name="order_line" nolabel="1" context="{'default_state': 'draft'}">
+                                    <list editable="bottom">
+                                        <control>
+                                            <create name="add_product_control" string="Add a product"/>
+                                        </control>
+                                        <field name="tax_calculation_rounding_method" column_invisible="True"/>
+                                        <field name="display_type" column_invisible="True"/>
+                                        <field name="company_id" column_invisible="True"/>
+                                        <field name="currency_id" column_invisible="True"/>
+                                        <field name="state" column_invisible="True"/>
+                                        <field name="product_type" column_invisible="True"/>
+                                        <field name="technical_price_unit" column_invisible="True"/>
+                                        <field name="product_id" context="{'partner_id': parent.partner_id, 'quantity': product_qty, 'company_id': parent.company_id}" domain="[('purchase_ok', '=', True), '|', ('company_id', '=', False), ('company_id', 'parent_of', parent.company_id)]"/>
+                                        <field name="name" string="Description"/>
+                                        <field name="product_qty"/>
+                                        <field name="price_unit"/>
+                                        <field name="date_planned" required="not display_type"/>
+                                        <field name="tax_ids" widget="many2many_tax_tags" domain="[('type_tax_use', '=', 'purchase'), ('company_id', 'parent_of', parent.company_id), ('country_id', '=', parent.tax_country_id), ('active', '=', True)]" context="{'default_type_tax_use': 'purchase', 'search_view_ref': 'account.account_tax_view_search'}" options="{'no_create': True}"/>
+                                        <field name="sedar_price_subtotal_display" readonly="1"/>
+                                    </list>
+                                </field>
+                            </div>
+                            <div class="sedar_pr_actions">
+                                <button name="action_sedar_save_draft" type="object" string="Save as Draft" class="sedar_pr_secondary"/>
+                                <button name="action_sedar_save_draft" type="object" string="Done" class="sedar_pr_primary" confirm="Save this RFQ and return to the Procurement dashboard?"/>
+                            </div>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_sedar_purchase_po_form" model="ir.ui.view">
+        <field name="name">purchase.order.form.sedar.po</field>
+        <field name="model">purchase.order</field>
+        <field name="arch" type="xml">
+            <form string="SEDAR Purchase Order" class="sedar_procurement_form">
+                <sheet>
+                    <div class="sedar_pr_card sedar_po_card">
+                        <div class="sedar_pr_header">
+                            <h2>Create Purchase Order</h2>
+                            <p>Create the PO in SEDAR style while Odoo handles the real purchase workflow, receipts, and logs.</p>
+                        </div>
+                        <div class="sedar_pr_fields">
+                            <field name="currency_id" invisible="1"/>
+                            <field name="company_id" invisible="1"/>
+                            <field name="tax_country_id" invisible="1"/>
+                            <div class="sedar_pr_section_title">Supplier And Delivery</div>
+                            <div class="sedar_pr_grid">
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Supplier</span><field name="partner_id" nolabel="1" options="{'no_open': True}"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Supplier Reference</span><field name="partner_ref" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Order Date</span><field name="date_order" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Expected Arrival</span><field name="date_planned" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Deliver To</span><field name="picking_type_id" nolabel="1" options="{'no_open': True}"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Procurement Officer</span><field name="user_id" nolabel="1" options="{'no_open': True}"/></div>
+                            </div>
+                            <div class="sedar_pr_section_title">SEDAR Links</div>
+                            <div class="sedar_pr_grid sedar_po_links_grid">
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Supplied Tugboat</span><field name="sedar_vessel_id" nolabel="1" options="{'no_open': True}"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Related Maintenance</span><field name="sedar_maintenance_id" nolabel="1" options="{'no_open': True}"/></div>
+                                <div class="sedar_pr_field sedar_pr_readonly"><span class="sedar_pr_label">Status</span><field name="state" nolabel="1" readonly="1"/></div>
+                            </div>
+                            <div class="sedar_pr_section_title">Budget And Exception</div>
+                            <div class="sedar_budget_panel">
+                                <div class="sedar_budget_amounts">
+                                    <div class="sedar_pr_field"><span class="sedar_pr_label">Budget Amount</span><field name="sedar_budget_amount" nolabel="1" widget="float"/></div>
+                                    <div class="sedar_pr_field sedar_pr_readonly"><span class="sedar_pr_label">Total</span><field name="sedar_amount_total_display" nolabel="1" readonly="1"/></div>
+                                </div>
+                                <div class="sedar_budget_checks">
+                                    <div class="sedar_check_row"><span>Over Budget</span><field name="sedar_over_budget" nolabel="1" readonly="1"/></div>
+                                    <div class="sedar_check_row"><span>Canvassing Done</span><field name="sedar_canvassing_done" nolabel="1"/></div>
+                                    <div class="sedar_check_row"><span>Urgent Single Supplier</span><field name="sedar_urgent_exception" nolabel="1"/></div>
+                                </div>
+                                <div class="sedar_exception_box">
+                                    <span class="sedar_pr_label">Exception Reason</span>
+                                    <field name="sedar_exception_reason" nolabel="1" placeholder="Required only if this urgent PO skips canvassing."/>
+                                </div>
+                            </div>
+                            <div class="sedar_pr_section_title">Order Lines</div>
+                            <div class="sedar_pr_table">
+                                <field name="order_line" nolabel="1" context="{'default_state': 'draft'}">
+                                    <list editable="bottom">
+                                        <control>
+                                            <create name="add_product_control" string="Add a product"/>
+                                        </control>
+                                        <field name="tax_calculation_rounding_method" column_invisible="True"/>
+                                        <field name="display_type" column_invisible="True"/>
+                                        <field name="company_id" column_invisible="True"/>
+                                        <field name="currency_id" column_invisible="True"/>
+                                        <field name="state" column_invisible="True"/>
+                                        <field name="product_type" column_invisible="True"/>
+                                        <field name="technical_price_unit" column_invisible="True"/>
+                                        <field name="product_id" context="{'partner_id': parent.partner_id, 'quantity': product_qty, 'company_id': parent.company_id}" domain="[('purchase_ok', '=', True), '|', ('company_id', '=', False), ('company_id', 'parent_of', parent.company_id)]"/>
+                                        <field name="name" string="Description"/>
+                                        <field name="product_qty"/>
+                                        <field name="price_unit"/>
+                                        <field name="date_planned" required="not display_type"/>
+                                        <field name="tax_ids" widget="many2many_tax_tags" domain="[('type_tax_use', '=', 'purchase'), ('company_id', 'parent_of', parent.company_id), ('country_id', '=', parent.tax_country_id), ('active', '=', True)]" context="{'default_type_tax_use': 'purchase', 'search_view_ref': 'account.account_tax_view_search'}" options="{'no_create': True}"/>
+                                        <field name="sedar_price_subtotal_display" readonly="1"/>
+                                    </list>
+                                </field>
+                            </div>
+                            <div class="sedar_pr_actions">
+                                <button name="action_sedar_save_draft" type="object" string="Save as Draft" class="sedar_pr_secondary"/>
+                                <button name="action_sedar_confirm_po" type="object" string="Confirm PO" class="sedar_pr_primary" invisible="state not in ['draft', 'sent', 'to approve']" confirm="Confirm this purchase order and return to the Procurement dashboard?"/>
+                            </div>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_sedar_purchase_canvas_list" model="ir.ui.view">
+        <field name="name">purchase.order.list.sedar.canvas</field>
+        <field name="model">purchase.order</field>
+        <field name="arch" type="xml">
+            <list string="Canvas Sheets">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="sedar_amount_total_display"/>
+                <field name="sedar_budget_amount_display"/>
+                <field name="sedar_over_budget"/>
+                <field name="sedar_canvassing_required"/>
+                <field name="sedar_canvassing_done"/>
+                <field name="sedar_quote_count"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sedar_purchase_canvas_form" model="ir.ui.view">
+        <field name="name">purchase.order.form.sedar.canvas</field>
+        <field name="model">purchase.order</field>
+        <field name="arch" type="xml">
+            <form string="SEDAR Canvas Sheet" class="sedar_procurement_form">
+                <sheet>
+                    <div class="sedar_pr_card sedar_po_card sedar_canvas_card">
+                        <div class="sedar_pr_header">
+                            <h2>Canvas Sheet</h2>
+                            <p>Compare suppliers by first quote received, price, lead time, discounts, and notes.</p>
+                        </div>
+                        <div class="sedar_pr_fields">
+                            <field name="currency_id" invisible="1"/>
+                            <div class="sedar_pr_section_title">Canvas Context</div>
+                            <div class="sedar_pr_grid sedar_canvas_reference_grid">
+                                <div class="sedar_pr_field sedar_pr_readonly"><span class="sedar_pr_label">Reference</span><field name="name" nolabel="1" readonly="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Budget Amount</span><field name="sedar_budget_amount" nolabel="1" widget="float"/></div>
+                                <div class="sedar_pr_field sedar_pr_readonly"><span class="sedar_pr_label">Current PO Total</span><field name="sedar_amount_total_display" nolabel="1" readonly="1"/></div>
+                            </div>
+                            <div class="sedar_pr_section_title">Quote Comparison Summary</div>
+                            <div class="sedar_canvas_summary_panel">
+                                <field name="sedar_canvas_summary_html" nolabel="1" readonly="1"/>
+                            </div>
+                            <div class="sedar_pr_section_title">Supplier Quote Entry</div>
+                            <div class="sedar_pr_table sedar_canvas_table">
+                                <field name="sedar_quote_ids" nolabel="1">
+                                    <list editable="bottom" default_order="quote_received_at,price_total">
+                                        <control>
+                                            <create name="add_quote_control" string="Add a supplier quote"/>
+                                        </control>
+                                        <field name="quote_received_at"/>
+                                        <field name="partner_id"/>
+                                        <field name="product_id"/>
+                                        <field name="price_total"/>
+                                        <field name="lead_time_days"/>
+                                        <field name="selected"/>
+                                        <field name="discount_notes"/>
+                                        <field name="reliability_notes"/>
+                                    </list>
+                                </field>
+                            </div>
+                            <div class="sedar_pr_actions">
+                                <button name="action_sedar_save_draft" type="object" string="Save as Draft" class="sedar_pr_secondary"/>
+                                <button name="action_sedar_print_canvas" type="object" string="Print Canvas Sheet" class="sedar_pr_primary"/>
+                            </div>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_sedar_purchase_flow_form" model="ir.ui.view">
+        <field name="name">purchase.order.form.sedar.flow</field>
+        <field name="model">purchase.order</field>
+        <field name="arch" type="xml">
+            <form string="SEDAR Procurement Item" class="sedar_procurement_form">
+                <sheet>
+                    <div class="sedar_pr_card sedar_po_card sedar_flow_card">
+                        <div class="sedar_pr_header">
+                            <h2>Procurement Item</h2>
+                            <p>Review the RFQ or purchase order from the procurement flow without leaving the SEDAR workspace.</p>
+                        </div>
+                        <div class="sedar_pr_fields">
+                            <field name="currency_id" invisible="1"/>
+                            <field name="company_id" invisible="1"/>
+                            <field name="tax_country_id" invisible="1"/>
+                            <div class="sedar_pr_section_title">Record Context</div>
+                            <div class="sedar_pr_grid sedar_po_links_grid">
+                                <div class="sedar_pr_field sedar_pr_readonly"><span class="sedar_pr_label">Reference</span><field name="name" nolabel="1" readonly="1"/></div>
+                                <div class="sedar_pr_field sedar_pr_readonly"><span class="sedar_pr_label">Status</span><field name="state" nolabel="1" readonly="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Supplier</span><field name="partner_id" nolabel="1" options="{'no_open': True}"/></div>
+                            </div>
+
+                            <div class="sedar_pr_section_title">Supplier And Delivery</div>
+                            <div class="sedar_pr_grid">
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Supplier Reference</span><field name="partner_ref" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Order Date</span><field name="date_order" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Expected Arrival</span><field name="date_planned" nolabel="1"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Procurement Officer</span><field name="user_id" nolabel="1" options="{'no_open': True}"/></div>
+                            </div>
+
+                            <div class="sedar_pr_section_title">SEDAR Links</div>
+                            <div class="sedar_pr_grid sedar_po_links_grid">
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Supplied Tugboat</span><field name="sedar_vessel_id" nolabel="1" options="{'no_open': True}"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Related Maintenance</span><field name="sedar_maintenance_id" nolabel="1" options="{'no_open': True}"/></div>
+                                <div class="sedar_pr_field"><span class="sedar_pr_label">Deliver To</span><field name="picking_type_id" nolabel="1" options="{'no_open': True}"/></div>
+                            </div>
+
+                            <div class="sedar_pr_section_title">Budget Check</div>
+                            <div class="sedar_budget_panel">
+                                <div class="sedar_budget_amounts">
+                                    <div class="sedar_pr_field"><span class="sedar_pr_label">Budget Amount</span><field name="sedar_budget_amount" nolabel="1" widget="float"/></div>
+                                    <div class="sedar_pr_field sedar_pr_readonly"><span class="sedar_pr_label">Total</span><field name="sedar_amount_total_display" nolabel="1" readonly="1"/></div>
+                                </div>
+                                <div class="sedar_budget_checks">
+                                    <div class="sedar_check_row"><span>Over Budget</span><field name="sedar_over_budget" nolabel="1" readonly="1"/></div>
+                                    <div class="sedar_check_row"><span>Canvassing Done</span><field name="sedar_canvassing_done" nolabel="1"/></div>
+                                    <div class="sedar_check_row"><span>Urgent Single Supplier</span><field name="sedar_urgent_exception" nolabel="1"/></div>
+                                </div>
+                                <div class="sedar_exception_box">
+                                    <span class="sedar_pr_label">Exception Reason</span>
+                                    <field name="sedar_exception_reason" nolabel="1" placeholder="Required only if this urgent PO skips canvassing."/>
+                                </div>
+                            </div>
+
+                            <div class="sedar_pr_section_title">Items</div>
+                            <div class="sedar_pr_table">
+                                <field name="order_line" nolabel="1" context="{'default_state': 'draft'}">
+                                    <list editable="bottom">
+                                        <control>
+                                            <create name="add_product_control" string="Add a product"/>
+                                        </control>
+                                        <field name="tax_calculation_rounding_method" column_invisible="True"/>
+                                        <field name="display_type" column_invisible="True"/>
+                                        <field name="company_id" column_invisible="True"/>
+                                        <field name="currency_id" column_invisible="True"/>
+                                        <field name="state" column_invisible="True"/>
+                                        <field name="product_type" column_invisible="True"/>
+                                        <field name="technical_price_unit" column_invisible="True"/>
+                                        <field name="product_id" context="{'partner_id': parent.partner_id, 'quantity': product_qty, 'company_id': parent.company_id}" domain="[('purchase_ok', '=', True), '|', ('company_id', '=', False), ('company_id', 'parent_of', parent.company_id)]"/>
+                                        <field name="name" string="Description"/>
+                                        <field name="product_qty"/>
+                                        <field name="price_unit"/>
+                                        <field name="date_planned" required="not display_type"/>
+                                        <field name="tax_ids" widget="many2many_tax_tags" domain="[('type_tax_use', '=', 'purchase'), ('company_id', 'parent_of', parent.company_id), ('country_id', '=', parent.tax_country_id), ('active', '=', True)]" context="{'default_type_tax_use': 'purchase', 'search_view_ref': 'account.account_tax_view_search'}" options="{'no_create': True}"/>
+                                        <field name="sedar_price_subtotal_display" readonly="1"/>
+                                    </list>
+                                </field>
+                            </div>
+
+                            <div class="sedar_pr_actions">
+                                <button name="action_sedar_save_draft" type="object" string="Back to Dashboard" class="sedar_pr_secondary"/>
+                                <button name="action_sedar_print_canvas" type="object" string="Print Canvas Sheet" class="sedar_pr_secondary"/>
+                                <button name="action_sedar_confirm_po" type="object" string="Confirm PO" class="sedar_pr_primary" invisible="state not in ['draft', 'sent', 'to approve']" confirm="Confirm this purchase order and return to the Procurement dashboard?"/>
+                            </div>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sedar_purchase_rfq" model="ir.actions.act_window">
+        <field name="name">New RFQ</field>
+        <field name="res_model">purchase.order</field>
         <field name="view_mode">form</field>
+        <field name="view_id" ref="view_sedar_purchase_rfq_form"/>
         <field name="target">current</field>
-        <field name="context">{'default_name': 'New Purchase Request', 'default_record_type': 'pr', 'default_flow_step': 'request_info', 'default_status': 'draft'}</field>
+        <field name="context">{'default_state': 'draft'}</field>
+    </record>
+
+    <record id="action_sedar_purchase_po" model="ir.actions.act_window">
+        <field name="name">Create Purchase Order</field>
+        <field name="res_model">purchase.order</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_sedar_purchase_po_form"/>
+        <field name="target">current</field>
+        <field name="context">{'default_state': 'draft'}</field>
+    </record>
+
+    <record id="action_sedar_purchase_canvas" model="ir.actions.act_window">
+        <field name="name">Canvas Sheets</field>
+        <field name="res_model">purchase.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="target">current</field>
+        <field name="domain">[('state', 'in', ['draft', 'sent', 'to_approve', 'purchase'])]</field>
+        <field name="context">{}</field>
+    </record>
+
+    <record id="action_sedar_purchase_canvas_list_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_sedar_purchase_canvas_list"/>
+        <field name="act_window_id" ref="action_sedar_purchase_canvas"/>
+    </record>
+
+    <record id="action_sedar_purchase_canvas_form_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_sedar_purchase_canvas_form"/>
+        <field name="act_window_id" ref="action_sedar_purchase_canvas"/>
+    </record>
+
+    <record id="action_sedar_procurement_new_request" model="ir.actions.act_window">
+        <field name="name">New RFQ</field>
+        <field name="res_model">purchase.order</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_sedar_purchase_rfq_form"/>
+        <field name="target">current</field>
+        <field name="context">{'default_state': 'draft'}</field>
     </record>
 
     <record id="action_sedar_procurement_send_rfq" model="ir.actions.act_window">
-        <field name="name">Send RFQ</field>
-        <field name="res_model">sedar.procurement.record</field>
-        <field name="view_mode">form</field>
+        <field name="name">Canvas Sheet</field>
+        <field name="res_model">purchase.order</field>
+        <field name="view_mode">list,form</field>
         <field name="target">current</field>
-        <field name="context">{'default_name': 'New RFQ', 'default_record_type': 'rfq', 'default_flow_step': 'supplier_info', 'default_status': 'draft'}</field>
+        <field name="domain">[('state', 'in', ['draft', 'sent', 'to_approve', 'purchase'])]</field>
     </record>
 
     <record id="action_sedar_procurement_create_po" model="ir.actions.act_window">
         <field name="name">Create Purchase Order</field>
-        <field name="res_model">sedar.procurement.record</field>
+        <field name="res_model">purchase.order</field>
         <field name="view_mode">form</field>
+        <field name="view_id" ref="view_sedar_purchase_po_form"/>
         <field name="target">current</field>
-        <field name="context">{'default_name': 'New Purchase Order', 'default_record_type': 'po', 'default_flow_step': 'po_details', 'default_status': 'draft'}</field>
+        <field name="context">{'default_state': 'draft'}</field>
     </record>
 
     <record id="action_sedar_procurement_record" model="ir.actions.act_window">
-        <field name="name">Requests and Orders</field>
-        <field name="res_model">sedar.procurement.record</field>
+        <field name="name">RFQs and Purchase Orders</field>
+        <field name="res_model">purchase.order</field>
         <field name="view_mode">list,form</field>
     </record>
 

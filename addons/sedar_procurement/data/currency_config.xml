@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <function model="purchase.order" name="action_sedar_use_php_currency"/>
+</odoo>

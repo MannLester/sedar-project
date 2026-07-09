@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="base.main_company" model="res.company">
+        <field name="name">Sedar Tug Services Corp.</field>
+        <field name="street">G/F LS Bldg., Rizal Avenue Ext., Brgy. Sta Clara</field>
+        <field name="street2" eval="False"/>
+        <field name="city">Batangas City</field>
+        <field name="state_id" eval="False"/>
+        <field name="zip" eval="False"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="phone">(043) 722-1263 / Telefax: (043) 786-1354</field>
+        <field name="email">sedar@sedartug.com</field>
+        <field name="website">https://www.sedartug.com/</field>
+        <field name="report_footer">(043) 722-1263 / Telefax: (043) 786-1354 | sedar@sedartug.com | https://www.sedartug.com/</field>
+    </record>
+    <record id="base.main_partner" model="res.partner">
+        <field name="name">Sedar Tug Services Corp.</field>
+        <field name="street">G/F LS Bldg., Rizal Avenue Ext., Brgy. Sta Clara</field>
+        <field name="street2" eval="False"/>
+        <field name="city">Batangas City</field>
+        <field name="state_id" eval="False"/>
+        <field name="zip" eval="False"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="phone">(043) 722-1263 / Telefax: (043) 786-1354</field>
+        <field name="email">sedar@sedartug.com</field>
+        <field name="website">https://www.sedartug.com/</field>
+    </record>
+    <function model="res.company" name="action_sedar_apply_company_profile"/>
+</odoo>

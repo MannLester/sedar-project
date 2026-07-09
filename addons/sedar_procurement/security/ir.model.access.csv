@@ -1,2 +1,3 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_sedar_procurement_record,sedar.procurement.record,model_sedar_procurement_record,base.group_user,1,1,1,1
+access_sedar_supplier_quote,sedar.supplier.quote,model_sedar_supplier_quote,base.group_user,1,1,1,1

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="action_report_sedar_canvas_sheet" model="ir.actions.report">
+        <field name="name">SEDAR Canvas Sheet</field>
+        <field name="model">purchase.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">sedar_procurement.report_sedar_canvas_sheet</field>
+        <field name="report_file">sedar_procurement.report_sedar_canvas_sheet</field>
+        <field name="print_report_name">'Canvas Sheet - %s' % (object.name)</field>
+    </record>
+
+    <template id="report_sedar_canvas_sheet">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <div class="page" style="font-family: Arial, sans-serif; color: #111827; padding: 28px 34px;">
+                    <t t-set="company" t-value="doc.company_id"/>
+                    <t t-set="quotes" t-value="doc.sedar_quote_ids.sorted(lambda quote: (quote.price_total, quote.quote_received_at or ''))"/>
+                    <t t-set="suppliers" t-value="quotes.mapped('partner_id')[:3]"/>
+                    <t t-set="lowest_quote" t-value="quotes[:1]"/>
+                    <t t-set="lines" t-value="doc.order_line.filtered(lambda line: not line.display_type)"/>
+                    <t t-set="first_line" t-value="lines[:1]"/>
+                    <div style="display: table; width: 100%; border-bottom: 3px solid #1d3a56; padding-bottom: 18px; margin-bottom: 26px;">
+                        <div style="display: table-cell; width: 58%; vertical-align: top;">
+                            <img t-if="company.logo" t-att-src="'/web/image/res.company/%s/logo' % company.id" style="max-height: 70px; max-width: 260px; margin-bottom: 12px;"/>
+                            <h2 style="margin: 0 0 8px; color: #1d3a56; font-size: 24px; font-weight: 800;"><span t-field="company.name"/></h2>
+                            <p style="margin: 0; line-height: 1.45; font-size: 12px;">
+                                <span t-field="company.street"/><br/>
+                                <span t-field="company.city"/><span t-if="company.country_id">, <span t-field="company.country_id"/></span><br/>
+                                <span t-field="company.phone"/><br/>
+                                <span t-field="company.email"/> | <span t-field="company.website"/>
+                            </p>
+                        </div>
+                        <div style="display: table-cell; width: 42%; vertical-align: top; text-align: right;">
+                            <h1 style="margin: 0; color: #1d3a56; font-size: 34px; font-weight: 800;">Canvas Sheet</h1>
+                            <p style="margin: 8px 0 0; font-size: 13px; color: #4b5563;">Supplier quote comparison</p>
+                        </div>
+                    </div>
+
+                    <table style="width: 100%; border-collapse: separate; border-spacing: 10px; margin: 0 -10px 24px;">
+                        <tr>
+                            <td style="width: 33%; border: 1px solid #d9dee7; border-radius: 10px; padding: 12px;">
+                                <span style="display: block; color: #6b7280; font-size: 10px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;">Reference</span>
+                                <strong style="display: block; margin-top: 5px; font-size: 18px;"><span t-field="doc.name"/></strong>
+                            </td>
+                            <td style="width: 33%; border: 1px solid #d9dee7; border-radius: 10px; padding: 12px;">
+                                <span style="display: block; color: #6b7280; font-size: 10px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;">Budget Amount</span>
+                                <strong style="display: block; margin-top: 5px; font-size: 18px;">PHP <span t-esc="'{:,.2f}'.format(doc.sedar_budget_amount or 0.0)"/></strong>
+                            </td>
+                            <td style="width: 33%; border: 1px solid #d9dee7; border-radius: 10px; padding: 12px;">
+                                <span style="display: block; color: #6b7280; font-size: 10px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;">Current PO Total</span>
+                                <strong style="display: block; margin-top: 5px; font-size: 18px;">PHP <span t-esc="'{:,.2f}'.format(doc.amount_total or 0.0)"/></strong>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <div style="margin-bottom: 14px;">
+                        <span style="display: block; color: #6b7280; font-size: 10px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;">Item</span>
+                        <strong style="font-size: 16px;"><span t-if="first_line" t-field="first_line.product_id"/><span t-else="">No item selected</span></strong>
+                        <span t-if="first_line" style="display: block; margin-top: 4px; color: #4b5563;">Quantity: <span t-field="first_line.product_qty"/></span>
+                    </div>
+
+                    <h3 style="margin: 0 0 12px; color: #1d3a56; font-size: 22px; font-weight: 800;">Supplier Quote Comparison</h3>
+                    <table style="width: 100%; border-collapse: separate; border-spacing: 12px; margin: 0 -12px;">
+                        <tr>
+                            <t t-foreach="[0, 1, 2]" t-as="index">
+                                <t t-set="supplier" t-value="suppliers[index] if index &lt; len(suppliers) else False"/>
+                                <t t-set="supplier_quotes" t-value="quotes.filtered(lambda quote: quote.partner_id == supplier) if supplier else quotes.browse()"/>
+                                <t t-set="quote" t-value="supplier_quotes[:1]"/>
+                                <td style="width: 33%; min-height: 220px; border: 1px solid #d9dee7; border-radius: 14px; padding: 14px; vertical-align: top;">
+                                    <div style="min-height: 24px;">
+                                        <span style="color: #6b7280; font-size: 10px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;">Supplier <span t-esc="index + 1"/></span>
+                                        <span t-if="quote and quote.selected" style="margin-left: 5px; border-radius: 12px; padding: 3px 7px; background: #e7f8ef; color: #087443; font-size: 9px; font-weight: 800;">Selected</span>
+                                        <span t-if="lowest_quote and quote == lowest_quote" style="margin-left: 5px; border-radius: 12px; padding: 3px 7px; background: #eef3ff; color: #244c9a; font-size: 9px; font-weight: 800;">Lowest</span>
+                                    </div>
+                                    <t t-if="quote">
+                                        <h4 style="margin: 10px 0 8px; font-size: 17px; color: #111827;"><span t-field="quote.partner_id"/></h4>
+                                        <strong style="display: block; margin-bottom: 14px; color: #1d3a56; font-size: 24px;">PHP <span t-esc="'{:,.2f}'.format(quote.price_total or 0.0)"/></strong>
+                                        <p style="margin: 0 0 8px;"><strong>Item:</strong><br/><span t-field="quote.product_id"/></p>
+                                        <p style="margin: 0 0 8px;"><strong>Lead Time:</strong><br/><span t-if="quote.lead_time_days"><span t-field="quote.lead_time_days"/> days</span><span t-else="">Not stated</span></p>
+                                        <p style="margin: 0 0 8px;"><strong>Discount / Terms:</strong><br/><span t-if="quote.discount_notes" t-field="quote.discount_notes"/><span t-else="">No discount noted</span></p>
+                                        <p style="margin: 0;"><strong>Reliability:</strong><br/><span t-if="quote.reliability_notes" t-field="quote.reliability_notes"/><span t-else="">No reliability note</span></p>
+                                    </t>
+                                    <t t-else="">
+                                        <h4 style="margin: 10px 0 8px; color: #9aa3af;">No quote yet</h4>
+                                        <p style="color: #6b7280;">Add this supplier quote in the Canvas Sheet entry table.</p>
+                                    </t>
+                                </td>
+                            </t>
+                        </tr>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

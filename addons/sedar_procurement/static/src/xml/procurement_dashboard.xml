@@ -9,8 +9,8 @@
                     <p>Track requests, approvals, suppliers, and delivery risk in one place.</p>
                 </div>
                 <div class="o_procurement_actions">
-                    <button class="o_procurement_primary" t-on-click="openNewPurchaseRequest"><i class="fa fa-plus"/> New Purchase Request</button>
-                    <button t-on-click="openSendRfq"><i class="fa fa-send"/> Send RFQ</button>
+                    <button class="o_procurement_primary" t-on-click="openNewPurchaseRequest"><i class="fa fa-plus"/> New RFQ</button>
+                    <button t-on-click="openCanvasSheet"><i class="fa fa-table"/> Canvas Sheet</button>
                     <button t-on-click="openCreatePo"><i class="fa fa-file-text-o"/> Create PO</button>
                 </div>
             </div>
@@ -104,12 +104,12 @@
                 <div>
                     <span class="o_procurement_eyebrow">Requests Desk</span>
                     <h1>Requests and Orders</h1>
-                    <p>Track purchase requests, RFQs, and purchase orders from one clean board.</p>
+                    <p>Track RFQs and purchase orders from one clean board.</p>
                 </div>
                 <div class="o_procurement_actions">
                     <button t-on-click="openDashboard"><i class="fa fa-arrow-left"/> Back to Dashboard</button>
-                    <button class="o_procurement_primary" t-on-click="openNewPurchaseRequest"><i class="fa fa-plus"/> New PR</button>
-                    <button t-on-click="openSendRfq"><i class="fa fa-send"/> Send RFQ</button>
+                    <button class="o_procurement_primary" t-on-click="openNewPurchaseRequest"><i class="fa fa-plus"/> New RFQ</button>
+                    <button t-on-click="openCanvasSheet"><i class="fa fa-table"/> Canvas Sheet</button>
                     <button t-on-click="openCreatePo"><i class="fa fa-file-text-o"/> Create PO</button>
                 </div>
             </div>
@@ -119,7 +119,6 @@
                     <h2>Procurement Register</h2>
                     <div class="o_records_filters">
                         <button t-att-class="state.activeType === 'all' ? 'active' : ''" data-type="all" t-on-click="setType">All <t t-esc="summary.total"/></button>
-                        <button t-att-class="state.activeType === 'pr' ? 'active' : ''" data-type="pr" t-on-click="setType">PR <t t-esc="summary.pr"/></button>
                         <button t-att-class="state.activeType === 'rfq' ? 'active' : ''" data-type="rfq" t-on-click="setType">RFQ <t t-esc="summary.rfq"/></button>
                         <button t-att-class="state.activeType === 'po' ? 'active' : ''" data-type="po" t-on-click="setType">PO <t t-esc="summary.po"/></button>
                     </div>
