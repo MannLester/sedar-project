@@ -150,4 +150,53 @@
             </section>
         </div>
     </t>
+
+    <t t-name="sedar_procurement.StockReorderSignalsBoard">
+        <div class="o_sedar_procurement_dashboard">
+            <div class="o_procurement_hero">
+                <div>
+                    <span class="o_procurement_eyebrow">Inventory Watch</span>
+                    <h1>Stock Reorder Signals</h1>
+                    <p>Review low and critical stock before it blocks maintenance or vessel work.</p>
+                </div>
+                <div class="o_procurement_actions">
+                    <button t-on-click="openDashboard"><i class="fa fa-arrow-left"/> Back to Procurement</button>
+                    <button class="o_procurement_primary" t-on-click="openInventoryList"><i class="fa fa-list"/> Full Inventory</button>
+                </div>
+            </div>
+
+            <section class="o_procurement_flow_panel o_stock_signals_panel">
+                <div class="o_procurement_panel_header">
+                    <h2>Reorder Register</h2>
+                    <div class="o_records_filters">
+                        <button t-att-class="state.activeStatus === 'watch' ? 'active' : ''" data-status="watch" t-on-click="setStatus">Watch <t t-esc="summary.watch"/></button>
+                        <button t-att-class="state.activeStatus === 'critical' ? 'active' : ''" data-status="critical" t-on-click="setStatus">Critical <t t-esc="summary.critical"/></button>
+                        <button t-att-class="state.activeStatus === 'all' ? 'active' : ''" data-status="all" t-on-click="setStatus">All <t t-esc="summary.total"/></button>
+                    </div>
+                </div>
+                <div class="o_stock_signal_grid">
+                    <t t-foreach="filteredItems" t-as="item" t-key="item.id">
+                        <article t-att-class="'o_stock_signal_card ' + item.statusClass" t-att-data-id="item.id" t-on-click="openItem">
+                            <div class="o_records_card_top">
+                                <span t-esc="item.categoryLabel"/>
+                                <b t-esc="item.statusLabel"/>
+                            </div>
+                            <h3 t-esc="item.name"/>
+                            <div class="o_stock_signal_numbers">
+                                <strong><t t-esc="item.quantityLabel"/> on hand</strong>
+                                <span>Reorder at <t t-esc="item.reorderLabel"/></span>
+                            </div>
+                            <p t-esc="item.locationLabel"/>
+                            <small t-esc="item.procurement_signal || item.maintenance_demand || 'No linked request yet'"/>
+                        </article>
+                    </t>
+                    <div t-if="!filteredItems.length" class="o_records_empty">
+                        <i class="fa fa-check-circle-o"/>
+                        <h3>No stock signals here</h3>
+                        <p>Switch filters or review the full inventory list.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </t>
 </templates>

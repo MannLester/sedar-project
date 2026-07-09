@@ -747,6 +747,11 @@
         <field name="tag">sedar_procurement_records_board</field>
     </record>
 
+    <record id="action_sedar_stock_reorder_signals_board" model="ir.actions.client">
+        <field name="name">Stock Reorder Signals</field>
+        <field name="tag">sedar_stock_reorder_signals_board</field>
+    </record>
+
     <record id="action_sedar_procurement_dashboard" model="ir.actions.client">
         <field name="name">Procurement</field>
         <field name="tag">sedar_procurement_dashboard</field>
@@ -754,6 +759,6 @@
 
     <menuitem id="menu_sedar_procurement_app" name="Procurement" action="action_sedar_procurement_dashboard" sequence="60"/>
     <menuitem id="menu_sedar_procurement_dashboard" name="Dashboard" parent="menu_sedar_procurement_app" action="action_sedar_procurement_dashboard" sequence="1"/>
-    <menuitem id="menu_sedar_procurement_records" name="Requests and Orders" parent="menu_sedar_procurement_app" action="action_sedar_procurement_record" sequence="2"/>
-    <menuitem id="menu_sedar_procurement_inventory" name="Stock Reorder Signals" parent="menu_sedar_procurement_app" action="sedar_marine_mvp.action_sedar_inventory_item" sequence="3"/>
+    <menuitem id="menu_sedar_procurement_records" name="Requests and Orders" parent="menu_sedar_procurement_app" action="action_sedar_procurement_records_board" sequence="2"/>
+    <menuitem id="menu_sedar_procurement_inventory" name="Stock Reorder Signals" parent="menu_sedar_procurement_app" action="action_sedar_stock_reorder_signals_board" sequence="3"/>
 </odoo>

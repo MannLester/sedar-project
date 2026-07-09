@@ -315,3 +315,119 @@ export class SedarProcurementRecordsBoard extends Component {
 }
 
 registry.category("actions").add("sedar_procurement_records_board", SedarProcurementRecordsBoard);
+
+const INVENTORY_STATUS_META = {
+    ok: { label: "OK", className: "is-good" },
+    low: { label: "Low Stock", className: "is-watch" },
+    critical: { label: "Critical", className: "is-risk" },
+};
+
+const INVENTORY_CATEGORY_LABELS = {
+    spare: "Spare Parts",
+    fuel: "Fuel",
+    lubricant: "Lubricants",
+    office: "Office Supplies",
+};
+
+export class SedarStockReorderSignalsBoard extends Component {
+    static template = "sedar_procurement.StockReorderSignalsBoard";
+
+    setup() {
+        this.orm = useService("orm");
+        this.action = useService("action");
+        this.state = useState({ items: [], activeStatus: "watch" });
+
+        onWillStart(async () => {
+            await this.loadItems();
+        });
+    }
+
+    async loadItems() {
+        const items = await this.orm.searchRead(
+            "sedar.inventory.item",
+            [],
+            ["id", "name", "category", "warehouse", "location_bin", "quantity_on_hand", "reorder_point", "status", "maintenance_demand", "procurement_signal"],
+            { order: "status, category, name", limit: 100 }
+        );
+        this.state.items = items.map((item) => this.normalizeItem(item));
+    }
+
+    normalizeItem(item) {
+        const meta = INVENTORY_STATUS_META[item.status] || INVENTORY_STATUS_META.ok;
+        return {
+            ...item,
+            statusLabel: meta.label,
+            statusClass: meta.className,
+            categoryLabel: INVENTORY_CATEGORY_LABELS[item.category] || item.category || "Inventory",
+            quantityLabel: this.formatNumber(item.quantity_on_hand),
+            reorderLabel: this.formatNumber(item.reorder_point),
+            locationLabel: [item.warehouse, item.location_bin].filter(Boolean).join(" / ") || "No location set",
+        };
+    }
+
+    get watchItems() {
+        return this.state.items.filter((item) => item.status !== "ok" || item.quantity_on_hand <= item.reorder_point);
+    }
+
+    get filteredItems() {
+        if (this.state.activeStatus === "all") {
+            return this.state.items;
+        }
+        if (this.state.activeStatus === "critical") {
+            return this.state.items.filter((item) => item.status === "critical");
+        }
+        return this.watchItems;
+    }
+
+    get summary() {
+        return {
+            total: this.state.items.length,
+            watch: this.watchItems.length,
+            critical: this.state.items.filter((item) => item.status === "critical").length,
+        };
+    }
+
+    get stockKpis() {
+        const low = this.state.items.filter((item) => item.status === "low").length;
+        const critical = this.state.items.filter((item) => item.status === "critical").length;
+        const linked = this.watchItems.filter((item) => item.procurement_signal || item.maintenance_demand).length;
+        return [
+            { label: "Watch List", value: this.summary.watch, note: "at or below reorder point", icon: "fa-archive" },
+            { label: "Critical", value: critical, note: "needs fast action", icon: "fa-exclamation-triangle" },
+            { label: "Low Stock", value: low, note: "plan replenishment", icon: "fa-level-down" },
+            { label: "Linked Demand", value: linked, note: "maintenance or PR signal", icon: "fa-link" },
+        ];
+    }
+
+    setStatus(ev) {
+        this.state.activeStatus = ev.currentTarget.dataset.status;
+    }
+
+    openDashboard() {
+        this.action.doAction("sedar_procurement.action_sedar_procurement_dashboard");
+    }
+
+    openInventoryList() {
+        this.action.doAction("sedar_marine_mvp.action_sedar_inventory_item");
+    }
+
+    openItem(ev) {
+        const recordId = Number(ev.currentTarget.dataset.id);
+        if (!recordId) {
+            return;
+        }
+        this.action.doAction({
+            type: "ir.actions.act_window",
+            res_model: "sedar.inventory.item",
+            res_id: recordId,
+            views: [[false, "form"]],
+            target: "current",
+        });
+    }
+
+    formatNumber(value) {
+        return new Intl.NumberFormat("en-PH", { maximumFractionDigits: 2 }).format(value || 0);
+    }
+}
+
+registry.category("actions").add("sedar_stock_reorder_signals_board", SedarStockReorderSignalsBoard);

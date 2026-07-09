@@ -235,6 +235,88 @@
     border-left-color: #11a36a;
 }
 
+.o_stock_signal_grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 14px;
+    padding: 20px;
+}
+
+.o_stock_signal_card {
+    border-left: 5px solid #11a36a;
+    border-radius: 16px;
+    padding: 16px;
+    background: #fff;
+    cursor: pointer;
+    box-shadow: 0 12px 24px rgba(16, 36, 61, 0.09);
+    transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.o_stock_signal_card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 32px rgba(16, 36, 61, 0.14);
+}
+
+.o_stock_signal_card.is-watch {
+    border-left-color: #ff8a00;
+}
+
+.o_stock_signal_card.is-risk {
+    border-left-color: #d92d20;
+}
+
+.o_stock_signal_card h3 {
+    margin: 10px 0 12px;
+    color: #10243d;
+    font-size: 18px;
+    line-height: 1.16;
+    font-weight: 800;
+}
+
+.o_stock_signal_numbers {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    border-top: 1px solid rgba(16, 36, 61, 0.12);
+    border-bottom: 1px solid rgba(16, 36, 61, 0.12);
+    padding: 12px 0;
+}
+
+.o_stock_signal_numbers strong {
+    color: #10243d;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.o_stock_signal_numbers span,
+.o_stock_signal_card p,
+.o_stock_signal_card small {
+    color: #667085;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.o_stock_signal_card p {
+    margin: 12px 0 4px;
+}
+
+.o_stock_signal_card small {
+    display: block;
+    color: #b56d00;
+    font-weight: 600;
+}
+
+.o_stock_signal_card .o_records_card_top {
+    color: #667085;
+    font-weight: 500;
+}
+
+.o_stock_signal_card .o_records_card_top b {
+    color: #10243d;
+    font-weight: 700;
+}
+
 .o_procurement_card_top {
     display: flex;
     align-items: center;
