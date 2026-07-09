@@ -111,10 +111,10 @@
                                         <span>Dashboard</span>
                                     </a>
                                 </t>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_procurement.action_sedar_procurement_record&amp;model=sedar.procurement.record&amp;view_type=tree">
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_procurement.action_sedar_procurement_records_board">
                                     <span>Requests and Orders</span>
                                 </a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_marine_mvp.action_sedar_inventory_item&amp;model=sedar.inventory.item&amp;view_type=tree">
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_procurement.action_sedar_stock_reorder_signals_board">
                                     <span>Stock Reorder Signals</span>
                                 </a>
                             </div>
@@ -145,19 +145,10 @@
                                 <i class="fa fa-angle-down o_sedar_nav_chevron"/>
                             </summary>
                             <div class="o_sedar_nav_children">
-                                <t t-foreach="menuService.getApps()" t-as="app" t-key="app.id">
-                                    <a t-if="app.xmlid === 'sedar_marketing.menu_sedar_marketing_app'"
-                                       t-att-href="getMenuItemHref(app)"
-                                       t-att-data-menu-xmlid="app.xmlid"
-                                       t-att-class="{'o_sedar_nav_item': true, 'active': currentApp and currentApp.id === app.id}"
-                                       t-on-click.prevent="() => this.onNavBarDropdownItemSelection(app)">
-                                        <span>Marketing Dashboard</span>
-                                    </a>
-                                </t>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_marketing.action_sedar_marketing_record&amp;model=sedar.marketing.record&amp;view_type=tree">
-                                    <span>Customer Support</span>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_marketing.action_sedar_marketing_dashboard">
+                                    <span>Dashboard</span>
                                 </a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_marketing.action_sedar_marketing_appointment&amp;model=sedar.marketing.appointment&amp;view_type=tree">
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_marketing.action_sedar_marketing_appointment&amp;model=sedar.marketing.appointment&amp;view_type=calendar">
                                     <span>Appointments</span>
                                 </a>
                             </div>
