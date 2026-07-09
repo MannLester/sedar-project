@@ -1,7 +1,7 @@
 {
     "name": "SEDAR Marketing Customer Support",
     "summary": "Customer support intake flow for Marketing",
-    "version": "19.0.1.0.0",
+    "version": "17.0.1.0.0",
     "category": "Sales/CRM",
     "author": "Mann, Edrian, and Clarenz",
     "license": "LGPL-3",

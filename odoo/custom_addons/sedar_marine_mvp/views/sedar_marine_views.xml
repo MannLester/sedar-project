@@ -36,14 +36,14 @@
         <field name="name">sedar.dashboard.metric.list</field>
         <field name="model">sedar.dashboard.metric</field>
         <field name="arch" type="xml">
-            <list>
+            <tree>
                 <field name="sequence"/>
                 <field name="module_area"/>
                 <field name="name"/>
                 <field name="value"/>
                 <field name="unit"/>
                 <field name="status"/>
-            </list>
+            </tree>
         </field>
     </record>
 
@@ -72,14 +72,14 @@
     <record id="action_sedar_dashboard_metric" model="ir.actions.act_window">
         <field name="name">Management Dashboard</field>
         <field name="res_model">sedar.dashboard.metric</field>
-        <field name="view_mode">kanban,list,form</field>
+        <field name="view_mode">kanban,tree,form</field>
     </record>
 
     <record id="view_sedar_vessel_list" model="ir.ui.view">
         <field name="name">sedar.vessel.list</field>
         <field name="model">sedar.vessel</field>
         <field name="arch" type="xml">
-            <list>
+            <tree>
                 <field name="name"/>
                 <field name="status"/>
                 <field name="home_port"/>
@@ -92,7 +92,7 @@
                 <field name="ais_timestamp"/>
                 <field name="certificate_expiry"/>
                 <field name="insurance_expiry"/>
-            </list>
+            </tree>
         </field>
     </record>
 
@@ -136,21 +136,21 @@
     <record id="action_sedar_vessel" model="ir.actions.act_window">
         <field name="name">Vessels</field>
         <field name="res_model">sedar.vessel</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">tree,form</field>
     </record>
 
     <record id="view_sedar_customer_list" model="ir.ui.view">
         <field name="name">sedar.customer.list</field>
         <field name="model">sedar.customer</field>
         <field name="arch" type="xml">
-            <list>
+            <tree>
                 <field name="name"/>
                 <field name="customer_type"/>
                 <field name="billing_terms"/>
                 <field name="contract_status"/>
                 <field name="receivable_balance"/>
                 <field name="margin_rate"/>
-            </list>
+            </tree>
         </field>
     </record>
 
@@ -176,14 +176,14 @@
     <record id="action_sedar_customer" model="ir.actions.act_window">
         <field name="name">Customers</field>
         <field name="res_model">sedar.customer</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">tree,form</field>
     </record>
 
     <record id="view_sedar_job_order_list" model="ir.ui.view">
         <field name="name">sedar.job.order.list</field>
         <field name="model">sedar.job.order</field>
         <field name="arch" type="xml">
-            <list>
+            <tree>
                 <field name="name"/>
                 <field name="customer_id"/>
                 <field name="service_type"/>
@@ -196,7 +196,7 @@
                 <field name="gross_margin"/>
                 <field name="expected_fuel_used"/>
                 <field name="fuel_variance"/>
-            </list>
+            </tree>
         </field>
     </record>
 
@@ -241,14 +241,14 @@
     <record id="action_sedar_job_order" model="ir.actions.act_window">
         <field name="name">Job Dispatch and Scheduling</field>
         <field name="res_model">sedar.job.order</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">tree,form</field>
     </record>
 
     <record id="view_sedar_voyage_log_list" model="ir.ui.view">
         <field name="name">sedar.voyage.log.list</field>
         <field name="model">sedar.voyage.log</field>
         <field name="arch" type="xml">
-            <list>
+            <tree>
                 <field name="name"/>
                 <field name="job_id"/>
                 <field name="vessel_id"/>
@@ -257,7 +257,7 @@
                 <field name="voyage_hours"/>
                 <field name="fuel_used"/>
                 <field name="waiting_hours"/>
-            </list>
+            </tree>
         </field>
     </record>
 
@@ -286,14 +286,14 @@
     <record id="action_sedar_voyage_log" model="ir.actions.act_window">
         <field name="name">Voyage and Fuel Logs</field>
         <field name="res_model">sedar.voyage.log</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">tree,form</field>
     </record>
 
     <record id="view_sedar_finance_record_list" model="ir.ui.view">
         <field name="name">sedar.finance.record.list</field>
         <field name="model">sedar.finance.record</field>
         <field name="arch" type="xml">
-            <list>
+            <tree>
                 <field name="name"/>
                 <field name="record_type"/>
                 <field name="customer_id"/>
@@ -308,7 +308,7 @@
                 <field name="due_date"/>
                 <field name="status"/>
                 <field name="aging_bucket"/>
-            </list>
+            </tree>
         </field>
     </record>
 
@@ -343,14 +343,14 @@
     <record id="action_sedar_finance_record" model="ir.actions.act_window">
         <field name="name">Finance and Accounting</field>
         <field name="res_model">sedar.finance.record</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">tree,form</field>
     </record>
 
     <record id="view_sedar_crew_member_list" model="ir.ui.view">
         <field name="name">sedar.crew.member.list</field>
         <field name="model">sedar.crew.member</field>
         <field name="arch" type="xml">
-            <list>
+            <tree>
                 <field name="name"/>
                 <field name="rank"/>
                 <field name="availability"/>
@@ -362,7 +362,7 @@
                 <field name="schedule_note"/>
                 <field name="leave_start"/>
                 <field name="leave_end"/>
-            </list>
+            </tree>
         </field>
     </record>
 
@@ -398,14 +398,14 @@
     <record id="action_sedar_crew_member" model="ir.actions.act_window">
         <field name="name">Crewing</field>
         <field name="res_model">sedar.crew.member</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">tree,form</field>
     </record>
 
     <record id="view_sedar_maintenance_work_order_list" model="ir.ui.view">
         <field name="name">sedar.maintenance.work.order.list</field>
         <field name="model">sedar.maintenance.work.order</field>
         <field name="arch" type="xml">
-            <list>
+            <tree>
                 <field name="name"/>
                 <field name="vessel_id"/>
                 <field name="work_type"/>
@@ -417,7 +417,7 @@
                 <field name="downtime_hours"/>
                 <field name="cost"/>
                 <field name="status"/>
-            </list>
+            </tree>
         </field>
     </record>
 
@@ -452,14 +452,14 @@
     <record id="action_sedar_maintenance_work_order" model="ir.actions.act_window">
         <field name="name">Technical and Maintenance</field>
         <field name="res_model">sedar.maintenance.work.order</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">tree,form</field>
     </record>
 
     <record id="view_sedar_hse_record_list" model="ir.ui.view">
         <field name="name">sedar.hse.record.list</field>
         <field name="model">sedar.hse.record</field>
         <field name="arch" type="xml">
-            <list>
+            <tree>
                 <field name="name"/>
                 <field name="record_type"/>
                 <field name="vessel_id"/>
@@ -471,7 +471,7 @@
                 <field name="audit_reference"/>
                 <field name="due_date"/>
                 <field name="status"/>
-            </list>
+            </tree>
         </field>
     </record>
 
@@ -505,14 +505,14 @@
     <record id="action_sedar_hse_record" model="ir.actions.act_window">
         <field name="name">HSE</field>
         <field name="res_model">sedar.hse.record</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">tree,form</field>
     </record>
 
     <record id="view_sedar_inventory_item_list" model="ir.ui.view">
         <field name="name">sedar.inventory.item.list</field>
         <field name="model">sedar.inventory.item</field>
         <field name="arch" type="xml">
-            <list>
+            <tree>
                 <field name="name"/>
                 <field name="category"/>
                 <field name="warehouse"/>
@@ -525,7 +525,7 @@
                 <field name="status"/>
                 <field name="maintenance_demand"/>
                 <field name="procurement_signal"/>
-            </list>
+            </tree>
         </field>
     </record>
 
@@ -557,14 +557,14 @@
     <record id="action_sedar_inventory_item" model="ir.actions.act_window">
         <field name="name">Inventory</field>
         <field name="res_model">sedar.inventory.item</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">tree,form</field>
     </record>
 
     <record id="view_sedar_hr_record_list" model="ir.ui.view">
         <field name="name">sedar.hr.record.list</field>
         <field name="model">sedar.hr.record</field>
         <field name="arch" type="xml">
-            <list>
+            <tree>
                 <field name="name"/>
                 <field name="department"/>
                 <field name="record_type"/>
@@ -574,7 +574,7 @@
                 <field name="evaluation_due_date"/>
                 <field name="recruitment_role"/>
                 <field name="recruitment_stage"/>
-            </list>
+            </tree>
         </field>
     </record>
 
@@ -604,14 +604,14 @@
     <record id="action_sedar_hr_record" model="ir.actions.act_window">
         <field name="name">HR</field>
         <field name="res_model">sedar.hr.record</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">tree,form</field>
     </record>
 
     <record id="view_sedar_document_control_list" model="ir.ui.view">
         <field name="name">sedar.document.control.list</field>
         <field name="model">sedar.document.control</field>
         <field name="arch" type="xml">
-            <list>
+            <tree>
                 <field name="name"/>
                 <field name="document_type"/>
                 <field name="owner_department"/>
@@ -622,7 +622,7 @@
                 <field name="version"/>
                 <field name="approval_status"/>
                 <field name="document_link"/>
-            </list>
+            </tree>
         </field>
     </record>
 
@@ -652,7 +652,7 @@
     <record id="action_sedar_document_control" model="ir.actions.act_window">
         <field name="name">Document Control</field>
         <field name="res_model">sedar.document.control</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">tree,form</field>
     </record>
 
     <record id="action_sedar_document_risk_dashboard" model="ir.actions.client">
@@ -664,7 +664,7 @@
         <field name="name">sedar.corporate.record.list</field>
         <field name="model">sedar.corporate.record</field>
         <field name="arch" type="xml">
-            <list>
+            <tree>
                 <field name="name"/>
                 <field name="record_type"/>
                 <field name="owner_department"/>
@@ -673,7 +673,7 @@
                 <field name="status"/>
                 <field name="priority"/>
                 <field name="value"/>
-            </list>
+            </tree>
         </field>
     </record>
 
@@ -702,7 +702,7 @@
     <record id="action_sedar_corporate_record" model="ir.actions.act_window">
         <field name="name">Corporate Management</field>
         <field name="res_model">sedar.corporate.record</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">tree,form</field>
     </record>
 
     <menuitem id="menu_sedar_president_app" name="Management Dashboard" action="action_sedar_dashboard_metric" sequence="5"/>

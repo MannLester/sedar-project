@@ -75,10 +75,10 @@
                                         <i class="fa fa-angle-down o_sedar_nav_chevron"/>
                                     </summary>
                                     <div class="o_sedar_nav_subchildren">
-                                        <a class="o_sedar_nav_item" href="/web#action=sedar_employee_records.action_sedar_employee_records&amp;model=hr.employee.public&amp;view_type=list">
+                                        <a class="o_sedar_nav_item" href="/web#action=sedar_employee_records.action_sedar_employee_records&amp;model=hr.employee.public&amp;view_type=tree">
                                             <span>Employee List</span>
                                         </a>
-                                        <a class="o_sedar_nav_item" href="/web#action=sedar_employee_document_control.action_sedar_employee_document_control&amp;model=sedar.employee.document.control&amp;view_type=list">
+                                        <a class="o_sedar_nav_item" href="/web#action=sedar_employee_document_control.action_sedar_employee_document_control&amp;model=sedar.employee.document.control&amp;view_type=tree">
                                             <span>Document Control</span>
                                         </a>
                                     </div>
@@ -103,15 +103,20 @@
                             </summary>
                             <div class="o_sedar_nav_children">
                                 <t t-foreach="menuService.getApps()" t-as="app" t-key="app.id">
-                                    <a t-if="app.xmlid === 'stock.menu_stock_root'"
+                                    <a t-if="app.xmlid === 'sedar_procurement.menu_sedar_procurement_app'"
                                        t-att-href="getMenuItemHref(app)"
                                        t-att-data-menu-xmlid="app.xmlid"
                                        t-att-class="{'o_sedar_nav_item': true, 'active': currentApp and currentApp.id === app.id}"
                                        t-on-click.prevent="() => this.onNavBarDropdownItemSelection(app)">
-                                        <span>Inventory</span>
+                                        <span>Dashboard</span>
                                     </a>
                                 </t>
-                                <span class="o_sedar_nav_item o_sedar_nav_placeholder">Placeholder 1</span>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_procurement.action_sedar_procurement_record&amp;model=sedar.procurement.record&amp;view_type=tree">
+                                    <span>Requests and Orders</span>
+                                </a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_marine_mvp.action_sedar_inventory_item&amp;model=sedar.inventory.item&amp;view_type=tree">
+                                    <span>Stock Reorder Signals</span>
+                                </a>
                             </div>
                         </details>
 
@@ -140,8 +145,21 @@
                                 <i class="fa fa-angle-down o_sedar_nav_chevron"/>
                             </summary>
                             <div class="o_sedar_nav_children">
-                                <span class="o_sedar_nav_item o_sedar_nav_placeholder">Help Desk</span>
-                                <span class="o_sedar_nav_item o_sedar_nav_placeholder">Placeholder 1</span>
+                                <t t-foreach="menuService.getApps()" t-as="app" t-key="app.id">
+                                    <a t-if="app.xmlid === 'sedar_marketing.menu_sedar_marketing_app'"
+                                       t-att-href="getMenuItemHref(app)"
+                                       t-att-data-menu-xmlid="app.xmlid"
+                                       t-att-class="{'o_sedar_nav_item': true, 'active': currentApp and currentApp.id === app.id}"
+                                       t-on-click.prevent="() => this.onNavBarDropdownItemSelection(app)">
+                                        <span>Marketing Dashboard</span>
+                                    </a>
+                                </t>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_marketing.action_sedar_marketing_record&amp;model=sedar.marketing.record&amp;view_type=tree">
+                                    <span>Customer Support</span>
+                                </a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_marketing.action_sedar_marketing_appointment&amp;model=sedar.marketing.appointment&amp;view_type=tree">
+                                    <span>Appointments</span>
+                                </a>
                             </div>
                         </details>
 

@@ -19,6 +19,8 @@
         'sedar_recruitment_link',
         'sedar_employee_records',
         'sedar_employee_document_control',
+        'sedar_marketing',
+        'sedar_procurement',
     ],
     'assets': {
         'web.assets_backend': [

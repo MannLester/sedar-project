@@ -1,7 +1,7 @@
 {
     "name": "SEDAR Marine MVP",
     "summary": "Dashboard-first tug ERP and marine fleet management MVP for Odoo Community",
-    "version": "19.0.1.0.0",
+    "version": "17.0.1.0.0",
     "category": "Operations",
     "author": "Mann, Edrian, and Clarenz",
     "license": "LGPL-3",
@@ -13,10 +13,8 @@
     ],
     "assets": {
         "web.assets_backend": [
-            "sedar_marine_mvp/static/src/xml/sedar_sidebar.xml",
             "sedar_marine_mvp/static/src/xml/document_risk_dashboard.xml",
             "sedar_marine_mvp/static/src/js/document_risk_dashboard.js",
-            "sedar_marine_mvp/static/src/css/sedar_backend_theme.css",
         ],
     },
     "application": True,

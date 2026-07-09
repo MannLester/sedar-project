@@ -4,7 +4,7 @@
         <field name="name">sedar.procurement.record.list</field>
         <field name="model">sedar.procurement.record</field>
         <field name="arch" type="xml">
-            <list>
+            <tree>
                 <field name="name"/>
                 <field name="record_type"/>
                 <field name="supplier"/>
@@ -23,7 +23,7 @@
                 <field name="delivery_performance"/>
                 <field name="maintenance_id"/>
                 <field name="inventory_id"/>
-            </list>
+            </tree>
         </field>
     </record>
 
@@ -288,7 +288,7 @@
                     </group>
                     <group string="Canvas Sheet Quotes">
                         <field name="sedar_quote_ids" nolabel="1">
-                            <list editable="bottom">
+                            <tree editable="bottom">
                                 <field name="quote_received_at"/>
                                 <field name="partner_id"/>
                                 <field name="product_id"/>
@@ -297,7 +297,7 @@
                                 <field name="selected"/>
                                 <field name="discount_notes"/>
                                 <field name="reliability_notes"/>
-                            </list>
+                            </tree>
                         </field>
                     </group>
                     <button name="action_sedar_print_canvas" type="object" string="Print Canvas Sheet" class="btn-primary"/>
@@ -398,7 +398,7 @@
                             <div class="sedar_pr_section_title">Items</div>
                             <div class="sedar_pr_table">
                                 <field name="order_line" nolabel="1" context="{'default_state': 'draft'}">
-                                    <list editable="bottom">
+                                    <tree editable="bottom">
                                         <control>
                                             <create name="add_product_control" string="Add a product"/>
                                         </control>
@@ -408,15 +408,14 @@
                                         <field name="currency_id" column_invisible="True"/>
                                         <field name="state" column_invisible="True"/>
                                         <field name="product_type" column_invisible="True"/>
-                                        <field name="technical_price_unit" column_invisible="True"/>
                                         <field name="product_id" context="{'partner_id': parent.partner_id, 'quantity': product_qty, 'company_id': parent.company_id}" domain="[('purchase_ok', '=', True), '|', ('company_id', '=', False), ('company_id', 'parent_of', parent.company_id)]"/>
                                         <field name="name" string="Description"/>
                                         <field name="product_qty"/>
                                         <field name="price_unit"/>
                                         <field name="date_planned" required="not display_type"/>
-                                        <field name="tax_ids" widget="many2many_tax_tags" domain="[('type_tax_use', '=', 'purchase'), ('company_id', 'parent_of', parent.company_id), ('country_id', '=', parent.tax_country_id), ('active', '=', True)]" context="{'default_type_tax_use': 'purchase', 'search_view_ref': 'account.account_tax_view_search'}" options="{'no_create': True}"/>
+                                        <field name="taxes_id" widget="many2many_tags" domain="[('type_tax_use', '=', 'purchase'), ('company_id', 'parent_of', parent.company_id), ('country_id', '=', parent.tax_country_id), ('active', '=', True)]" context="{'default_type_tax_use': 'purchase', 'search_view_ref': 'account.account_tax_view_search'}" options="{'no_create': True}"/>
                                         <field name="sedar_price_subtotal_display" readonly="1"/>
-                                    </list>
+                                    </tree>
                                 </field>
                             </div>
                             <div class="sedar_pr_actions">
@@ -479,7 +478,7 @@
                             <div class="sedar_pr_section_title">Order Lines</div>
                             <div class="sedar_pr_table">
                                 <field name="order_line" nolabel="1" context="{'default_state': 'draft'}">
-                                    <list editable="bottom">
+                                    <tree editable="bottom">
                                         <control>
                                             <create name="add_product_control" string="Add a product"/>
                                         </control>
@@ -489,15 +488,14 @@
                                         <field name="currency_id" column_invisible="True"/>
                                         <field name="state" column_invisible="True"/>
                                         <field name="product_type" column_invisible="True"/>
-                                        <field name="technical_price_unit" column_invisible="True"/>
                                         <field name="product_id" context="{'partner_id': parent.partner_id, 'quantity': product_qty, 'company_id': parent.company_id}" domain="[('purchase_ok', '=', True), '|', ('company_id', '=', False), ('company_id', 'parent_of', parent.company_id)]"/>
                                         <field name="name" string="Description"/>
                                         <field name="product_qty"/>
                                         <field name="price_unit"/>
                                         <field name="date_planned" required="not display_type"/>
-                                        <field name="tax_ids" widget="many2many_tax_tags" domain="[('type_tax_use', '=', 'purchase'), ('company_id', 'parent_of', parent.company_id), ('country_id', '=', parent.tax_country_id), ('active', '=', True)]" context="{'default_type_tax_use': 'purchase', 'search_view_ref': 'account.account_tax_view_search'}" options="{'no_create': True}"/>
+                                        <field name="taxes_id" widget="many2many_tags" domain="[('type_tax_use', '=', 'purchase'), ('company_id', 'parent_of', parent.company_id), ('country_id', '=', parent.tax_country_id), ('active', '=', True)]" context="{'default_type_tax_use': 'purchase', 'search_view_ref': 'account.account_tax_view_search'}" options="{'no_create': True}"/>
                                         <field name="sedar_price_subtotal_display" readonly="1"/>
-                                    </list>
+                                    </tree>
                                 </field>
                             </div>
                             <div class="sedar_pr_actions">
@@ -515,7 +513,7 @@
         <field name="name">purchase.order.list.sedar.canvas</field>
         <field name="model">purchase.order</field>
         <field name="arch" type="xml">
-            <list string="Canvas Sheets">
+            <tree string="Canvas Sheets">
                 <field name="name"/>
                 <field name="partner_id"/>
                 <field name="sedar_amount_total_display"/>
@@ -525,7 +523,7 @@
                 <field name="sedar_canvassing_done"/>
                 <field name="sedar_quote_count"/>
                 <field name="state"/>
-            </list>
+            </tree>
         </field>
     </record>
 
@@ -555,7 +553,7 @@
                             <div class="sedar_pr_section_title">Supplier Quote Entry</div>
                             <div class="sedar_pr_table sedar_canvas_table">
                                 <field name="sedar_quote_ids" nolabel="1">
-                                    <list editable="bottom" default_order="quote_received_at,price_total">
+                                    <tree editable="bottom" default_order="quote_received_at,price_total">
                                         <control>
                                             <create name="add_quote_control" string="Add a supplier quote"/>
                                         </control>
@@ -567,7 +565,7 @@
                                         <field name="selected"/>
                                         <field name="discount_notes"/>
                                         <field name="reliability_notes"/>
-                                    </list>
+                                    </tree>
                                 </field>
                             </div>
                             <div class="sedar_pr_actions">
@@ -638,7 +636,7 @@
                             <div class="sedar_pr_section_title">Items</div>
                             <div class="sedar_pr_table">
                                 <field name="order_line" nolabel="1" context="{'default_state': 'draft'}">
-                                    <list editable="bottom">
+                                    <tree editable="bottom">
                                         <control>
                                             <create name="add_product_control" string="Add a product"/>
                                         </control>
@@ -648,15 +646,14 @@
                                         <field name="currency_id" column_invisible="True"/>
                                         <field name="state" column_invisible="True"/>
                                         <field name="product_type" column_invisible="True"/>
-                                        <field name="technical_price_unit" column_invisible="True"/>
                                         <field name="product_id" context="{'partner_id': parent.partner_id, 'quantity': product_qty, 'company_id': parent.company_id}" domain="[('purchase_ok', '=', True), '|', ('company_id', '=', False), ('company_id', 'parent_of', parent.company_id)]"/>
                                         <field name="name" string="Description"/>
                                         <field name="product_qty"/>
                                         <field name="price_unit"/>
                                         <field name="date_planned" required="not display_type"/>
-                                        <field name="tax_ids" widget="many2many_tax_tags" domain="[('type_tax_use', '=', 'purchase'), ('company_id', 'parent_of', parent.company_id), ('country_id', '=', parent.tax_country_id), ('active', '=', True)]" context="{'default_type_tax_use': 'purchase', 'search_view_ref': 'account.account_tax_view_search'}" options="{'no_create': True}"/>
+                                        <field name="taxes_id" widget="many2many_tags" domain="[('type_tax_use', '=', 'purchase'), ('company_id', 'parent_of', parent.company_id), ('country_id', '=', parent.tax_country_id), ('active', '=', True)]" context="{'default_type_tax_use': 'purchase', 'search_view_ref': 'account.account_tax_view_search'}" options="{'no_create': True}"/>
                                         <field name="sedar_price_subtotal_display" readonly="1"/>
-                                    </list>
+                                    </tree>
                                 </field>
                             </div>
 
@@ -693,7 +690,7 @@
     <record id="action_sedar_purchase_canvas" model="ir.actions.act_window">
         <field name="name">Canvas Sheets</field>
         <field name="res_model">purchase.order</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">tree,form</field>
         <field name="target">current</field>
         <field name="domain">[('state', 'in', ['draft', 'sent', 'to_approve', 'purchase'])]</field>
         <field name="context">{}</field>
@@ -701,7 +698,7 @@
 
     <record id="action_sedar_purchase_canvas_list_view" model="ir.actions.act_window.view">
         <field name="sequence" eval="1"/>
-        <field name="view_mode">list</field>
+        <field name="view_mode">tree</field>
         <field name="view_id" ref="view_sedar_purchase_canvas_list"/>
         <field name="act_window_id" ref="action_sedar_purchase_canvas"/>
     </record>
@@ -725,7 +722,7 @@
     <record id="action_sedar_procurement_send_rfq" model="ir.actions.act_window">
         <field name="name">Canvas Sheet</field>
         <field name="res_model">purchase.order</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">tree,form</field>
         <field name="target">current</field>
         <field name="domain">[('state', 'in', ['draft', 'sent', 'to_approve', 'purchase'])]</field>
     </record>
@@ -742,7 +739,7 @@
     <record id="action_sedar_procurement_record" model="ir.actions.act_window">
         <field name="name">RFQs and Purchase Orders</field>
         <field name="res_model">purchase.order</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">tree,form</field>
     </record>
 
     <record id="action_sedar_procurement_records_board" model="ir.actions.client">

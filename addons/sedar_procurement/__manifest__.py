@@ -1,7 +1,7 @@
 {
     "name": "SEDAR Procurement",
     "summary": "SEDAR procurement UI backed by native Purchase and Inventory",
-    "version": "19.0.1.0.0",
+    "version": "17.0.1.0.0",
     "category": "Operations/Purchase",
     "author": "Mann, Edrian, and Clarenz",
     "license": "LGPL-3",

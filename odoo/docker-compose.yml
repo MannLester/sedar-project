@@ -9,7 +9,7 @@ services:
       - sedar-odoo-db:/var/lib/postgresql/data
 
   odoo:
-    image: odoo:19.0
+    image: odoo:17.0
     depends_on:
       - db
     ports:
@@ -22,6 +22,16 @@ services:
       - sedar-odoo-web:/var/lib/odoo
       - ./config/odoo.conf:/etc/odoo/odoo.conf
       - ./custom_addons:/mnt/extra-addons
+      - ../addons/sedar_base:/mnt/extra-addons/sedar_base
+      - ../addons/sedar_crewing:/mnt/extra-addons/sedar_crewing
+      - ../addons/sedar_dashboard:/mnt/extra-addons/sedar_dashboard
+      - ../addons/sedar_doccontrol:/mnt/extra-addons/sedar_doccontrol
+      - ../addons/sedar_employee_document_control:/mnt/extra-addons/sedar_employee_document_control
+      - ../addons/sedar_employee_records:/mnt/extra-addons/sedar_employee_records
+      - ../addons/sedar_hsse:/mnt/extra-addons/sedar_hsse
+      - ../addons/sedar_recruitment_link:/mnt/extra-addons/sedar_recruitment_link
+      - ../addons/sedar_theme:/mnt/extra-addons/sedar_theme
+      - ../addons/sedar_tug_ops:/mnt/extra-addons/sedar_tug_ops
       - ../addons/sedar_marketing:/mnt/extra-addons/sedar_marketing
       - ../addons/sedar_procurement:/mnt/extra-addons/sedar_procurement
 

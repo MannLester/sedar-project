@@ -4,7 +4,7 @@
         <field name="name">sedar.marketing.record.list</field>
         <field name="model">sedar.marketing.record</field>
         <field name="arch" type="xml">
-            <list>
+            <tree>
                 <field name="name"/>
                 <field name="flow_step"/>
                 <field name="company_name"/>
@@ -13,7 +13,7 @@
                 <field name="status"/>
                 <field name="owner"/>
                 <field name="next_action_date"/>
-            </list>
+            </tree>
         </field>
     </record>
 
@@ -242,7 +242,7 @@
     <record id="action_sedar_marketing_record" model="ir.actions.act_window">
         <field name="name">Marketing</field>
         <field name="res_model">sedar.marketing.record</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">tree,form</field>
         <field name="context">{'default_flow_step': 'customer', 'default_record_type': 'customer_pipeline'}</field>
     </record>
 
@@ -263,14 +263,14 @@
         <field name="name">sedar.marketing.appointment.list</field>
         <field name="model">sedar.marketing.appointment</field>
         <field name="arch" type="xml">
-            <list>
+            <tree>
                 <field name="start_datetime"/>
                 <field name="end_datetime"/>
                 <field name="name"/>
                 <field name="company_name"/>
                 <field name="appointment_type"/>
                 <field name="location"/>
-            </list>
+            </tree>
         </field>
     </record>
 
@@ -306,7 +306,7 @@
     <record id="action_sedar_marketing_appointment" model="ir.actions.act_window">
         <field name="name">Marketing Calendar</field>
         <field name="res_model">sedar.marketing.appointment</field>
-        <field name="view_mode">calendar,list,form</field>
+        <field name="view_mode">calendar,tree,form</field>
         <field name="context">{'calendar_default_mode': 'week'}</field>
     </record>
 
