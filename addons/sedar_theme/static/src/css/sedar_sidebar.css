@@ -42,7 +42,10 @@
     z-index: 1040;
     display: block;
     width: var(--sedar-sidebar-total);
+    height: 100vh;
+    height: 100dvh;
     min-height: 100vh;
+    overflow: hidden;
     background: var(--sedar-navy-980);
     color: var(--sedar-ink);
     font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
@@ -66,6 +69,7 @@
 
 .o_sedar_icon_rail {
     display: flex;
+    height: 100%;
     flex-direction: column;
     align-items: center;
     gap: 22px;
@@ -137,8 +141,10 @@
 
 .o_sedar_sidebar {
     display: flex;
+    height: 100%;
     min-width: 0;
-    min-height: 100vh;
+    min-height: 0;
+    overflow: hidden;
     flex-direction: column;
     background: var(--sedar-navy-920);
     border-right: 1px solid rgba(255, 255, 255, 0.12);
@@ -185,10 +191,21 @@
 
 .o_sedar_sidebar_nav {
     flex: 1 1 auto;
+    min-height: 0;
     overflow-y: auto;
+    overscroll-behavior: contain;
     padding: 18px 20px 14px;
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.28) transparent;
+}
+
+.o_sedar_sidebar_nav::-webkit-scrollbar {
+    width: 6px;
+}
+
+.o_sedar_sidebar_nav::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.28);
 }
 
 .o_sedar_nav_group {
