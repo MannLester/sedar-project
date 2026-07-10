@@ -40,7 +40,7 @@ Status meanings:
 | Planned Maintenance System | Partial | Native Community maintenance requests and schedules are used. Meter triggers, reusable job plans, and detailed checklists are missing. |
 | Dry docking | Partial | Dry-dock dates, blocking state, downtime, and costs exist. Scope, milestones, contractors, and dock project control are missing. |
 | Work orders | Working | Native maintenance requests are linked to vessels, severity, costs, downtime, parts, RFQs, receipts, and dispatch blocking. |
-| Spare parts | Partial | Native products, stock availability, shortages, RFQs, and receipts are linked. Reservation, issue, and consumption per work order are missing. |
+| Spare parts | Working | Native products, stock availability, shortages, RFQs, receipts, warehouse-to-vessel issues, and work-order consumption moves are linked. |
 | Equipment history | Partial | Native equipment and maintenance request history work. Meter readings and a locked service-history ledger are missing. |
 
 ## HSE
@@ -69,17 +69,17 @@ Status meanings:
 
 | Requirement | Status | Current backend and gap |
 |---|---|---|
-| Purchase Requests | Partial | A request record and flow exist, but real product request lines and dependable conversion to native RFQs are missing. |
+| Purchase Requests | Working | Product request lines, budget checks, submit, approve, reject, accredited supplier selection, native RFQ conversion, ordering, and receipt status work. |
 | Purchase Orders | Working | Native Community RFQs and purchase orders are used with budget, vessel, maintenance, canvassing, and receipt links. |
 | Supplier management | Working | Native suppliers include accreditation, discount, reliability, and quote comparison data. |
-| Approval workflow | Partial | Budget and canvassing checks block purchase confirmation. Role-based request and purchase approvers with approval history are missing. |
+| Approval workflow | Working | Purchase Manager approval, rejection reasons, budget and canvassing checks, supplier accreditation, and permanent request history work. |
 
 ## Inventory
 
 | Requirement | Status | Current backend and gap |
 |---|---|---|
 | Spare parts | Working | Native products, quantities, warehouses, receipts, and reorder signals work. |
-| Fuel and lubricants | Partial | They can be native stock products, but operational fuel logs do not yet create stock consumption moves. |
+| Fuel and lubricants | Working | Native stock products can be issued to vessel locations, and operational fuel logs create linked vessel consumption moves. |
 | Office supplies | Working | Native stock products and categories support office supplies. |
 | Warehouse management | Working | Native Community warehouses, locations, stock moves, receipts, and transfers are used. |
 | Barcode support | Partial | Native product barcodes exist. A verified scanner workflow is not configured. |

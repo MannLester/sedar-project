@@ -7,3 +7,12 @@ access_sedar_cash_forecast_user,sedar.cash.forecast user,model_sedar_cash_foreca
 access_sedar_fixed_asset_user,sedar.fixed.asset user,model_sedar_fixed_asset,base.group_user,1,1,1,1
 access_sedar_asset_depreciation_line_user,sedar.asset.depreciation.line user,model_sedar_asset_depreciation_line,base.group_user,1,1,1,1
 access_sedar_payroll_allocation_user,sedar.payroll.allocation user,model_sedar_payroll_allocation,base.group_user,1,1,1,1
+access_sedar_purchase_request_user,sedar.purchase.request user,model_sedar_purchase_request,purchase.group_purchase_user,1,1,1,0
+access_sedar_purchase_request_manager,sedar.purchase.request manager,model_sedar_purchase_request,purchase.group_purchase_manager,1,1,1,1
+access_sedar_purchase_request_line_user,sedar.purchase.request.line user,model_sedar_purchase_request_line,purchase.group_purchase_user,1,1,1,0
+access_sedar_purchase_request_line_manager,sedar.purchase.request.line manager,model_sedar_purchase_request_line,purchase.group_purchase_manager,1,1,1,1
+access_sedar_purchase_approval_history_user,sedar.purchase.approval.history user,model_sedar_purchase_approval_history,purchase.group_purchase_user,1,0,0,0
+access_sedar_stock_issue_user,sedar.stock.issue user,model_sedar_stock_issue,stock.group_stock_user,1,1,1,0
+access_sedar_stock_issue_manager,sedar.stock.issue manager,model_sedar_stock_issue,stock.group_stock_manager,1,1,1,1
+access_sedar_stock_issue_line_user,sedar.stock.issue.line user,model_sedar_stock_issue_line,stock.group_stock_user,1,1,1,0
+access_sedar_stock_issue_line_manager,sedar.stock.issue.line manager,model_sedar_stock_issue_line,stock.group_stock_manager,1,1,1,1

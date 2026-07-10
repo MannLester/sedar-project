@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <record id="sequence_sedar_purchase_request" model="ir.sequence">
+        <field name="name">SEDAR Purchase Request</field>
+        <field name="code">sedar.purchase.request</field>
+        <field name="prefix">PR/%(year)s/</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+</odoo>

@@ -21,6 +21,8 @@
         'data/legacy_view_cleanup.xml',
         'data/maintenance_data.xml',
         'data/finance_data.xml',
+        'data/procurement_data.xml',
+        'data/inventory_data.xml',
         'views/workflow_views.xml',
         'views/hse_workflow_views.xml',
         'views/document_workflow_views.xml',
