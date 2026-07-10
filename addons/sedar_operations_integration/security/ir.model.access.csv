@@ -2,3 +2,8 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_sedar_hsse_corrective_action_user,sedar.hsse.corrective.action user,model_sedar_hsse_corrective_action,base.group_user,1,1,1,1
 access_sedar_hsse_training_user,sedar.hsse.training user,model_sedar_hsse_training,base.group_user,1,1,1,1
 access_sedar_maintenance_part_line_user,sedar.maintenance.part.line user,model_sedar_maintenance_part_line,base.group_user,1,1,1,1
+access_sedar_finance_budget_user,sedar.finance.budget user,model_sedar_finance_budget,base.group_user,1,1,1,1
+access_sedar_cash_forecast_user,sedar.cash.forecast user,model_sedar_cash_forecast,base.group_user,1,1,1,1
+access_sedar_fixed_asset_user,sedar.fixed.asset user,model_sedar_fixed_asset,base.group_user,1,1,1,1
+access_sedar_asset_depreciation_line_user,sedar.asset.depreciation.line user,model_sedar_asset_depreciation_line,base.group_user,1,1,1,1
+access_sedar_payroll_allocation_user,sedar.payroll.allocation user,model_sedar_payroll_allocation,base.group_user,1,1,1,1

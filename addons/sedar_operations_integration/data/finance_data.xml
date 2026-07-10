@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <record id="product_towage_service" model="product.product">
+        <field name="name">Towage Service</field>
+        <field name="detailed_type">service</field>
+        <field name="sale_ok">True</field>
+        <field name="purchase_ok">False</field>
+    </record>
+</odoo>

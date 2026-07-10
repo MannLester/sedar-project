@@ -12,6 +12,7 @@ The demo goal is simple:
 
 - Planning documents for the MVP scope and build phases.
 - A PDF-to-dashboard coverage matrix.
+- A live backend requirement status in [docs/REQUIREMENT_IMPLEMENTATION_STATUS.md](docs/REQUIREMENT_IMPLEMENTATION_STATUS.md).
 - An Odoo Community Docker setup.
 - A custom Odoo addon named `sedar_marine_mvp`.
 - Seed data for dashboard, vessel, operations, finance, maintenance, HSE, crew, procurement, inventory, HR, and document control records.

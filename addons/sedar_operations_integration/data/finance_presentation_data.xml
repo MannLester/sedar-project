@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <record id="cash_forecast_customer_collection" model="sedar.cash.forecast">
+        <field name="name">Pacific Harbor Shipping collection</field>
+        <field name="forecast_date" eval="(datetime.now() + timedelta(days=12)).strftime('%Y-%m-%d')"/>
+        <field name="flow_type">inflow</field><field name="category">customer</field><field name="amount">185000</field>
+        <field name="partner_id" ref="partner_presentation_customer"/>
+    </record>
+    <record id="cash_forecast_supplier_payment" model="sedar.cash.forecast">
+        <field name="name">Steering seal kit supplier payment</field>
+        <field name="forecast_date" eval="(datetime.now() + timedelta(days=20)).strftime('%Y-%m-%d')"/>
+        <field name="flow_type">outflow</field><field name="category">supplier</field><field name="amount">42550</field>
+        <field name="partner_id" ref="maintenance_vendor_presentation"/>
+    </record>
+    <record id="fixed_asset_guardian_engine" model="sedar.fixed.asset">
+        <field name="code">FA-VSL-ENG-017</field><field name="name">MT SEDAR Guardian Main Engine</field>
+        <field name="vessel_id" ref="vessel_presentation_tug"/><field name="acquisition_date" eval="(datetime.now() - timedelta(days=365)).strftime('%Y-%m-%d')"/>
+        <field name="original_value">8500000</field><field name="salvage_value">500000</field><field name="useful_life_months">120</field>
+    </record>
+    <record id="payroll_allocation_guardian_master" model="sedar.payroll.allocation">
+        <field name="work_date" eval="datetime.now().strftime('%Y-%m-%d')"/><field name="job_order_id" ref="job_presentation_ready"/>
+        <field name="crew_id" ref="crew_presentation_master"/><field name="regular_hours">8</field><field name="overtime_hours">2</field>
+        <field name="hourly_rate">625</field><field name="overtime_rate">937.5</field><field name="state">posted</field>
+    </record>
+</odoo>

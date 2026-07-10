@@ -20,6 +20,7 @@
         'security/ir.model.access.csv',
         'data/legacy_view_cleanup.xml',
         'data/maintenance_data.xml',
+        'data/finance_data.xml',
         'views/workflow_views.xml',
         'views/hse_workflow_views.xml',
         'views/document_workflow_views.xml',
@@ -27,6 +28,7 @@
         'data/presentation_data.xml',
         'data/hse_presentation_data.xml',
         'data/maintenance_presentation_data.xml',
+        'data/finance_presentation_data.xml',
     ],
     'assets': {
         'web.assets_backend': [

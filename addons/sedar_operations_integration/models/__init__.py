@@ -2,3 +2,5 @@ from . import workflow
 from . import hse_workflow
 from . import document_workflow
 from . import maintenance_workflow
+from . import finance_workflow
+from . import tug_reliability
