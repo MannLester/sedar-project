@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sedar_finance_operations.FinanceDashboard">
+        <main class="o_sedar_finance_dashboard">
+            <div t-if="state.loading" class="sfd_loading" role="status" aria-live="polite">
+                <span class="sfd_loader" aria-hidden="true"/> Loading finance data...
+            </div>
+            <div t-elif="state.error" class="sfd_error" role="alert">
+                <i class="fa fa-exclamation-circle" aria-hidden="true"/>
+                <strong>Finance data is unavailable.</strong>
+                <span t-esc="state.error"/>
+                <button type="button" t-on-click="loadDashboard">Try again</button>
+            </div>
+            <div t-else="" class="sfd_page">
+                <header class="sfd_header">
+                    <div>
+                        <h1>Finance</h1>
+                        <p>Keep cash, approvals, billing, and collections moving in one place.</p>
+                    </div>
+                    <div class="sfd_header_actions" aria-label="Finance actions">
+                        <button type="button" class="sfd_primary_button" t-on-click="() => openNew('sedar.finance.petty.cash')"><i class="fa fa-plus" aria-hidden="true"/> Petty Expense</button>
+                        <button type="button" t-on-click="() => openNew('sedar.finance.collection')"><i class="fa fa-check-square-o" aria-hidden="true"/> Match Collection</button>
+                        <button type="button" t-on-click="() => openNew('sedar.finance.disbursement')"><i class="fa fa-file-text-o" aria-hidden="true"/> PO Disbursement</button>
+                    </div>
+                </header>
+
+                <section class="sfd_metrics" aria-label="Finance summary">
+                    <article class="sfd_metric">
+                        <div><h2>Available Cash</h2><strong t-esc="formatBook(state.metrics.available)"/><span>After outstanding checks</span></div>
+                        <i class="fa fa-money" aria-hidden="true"/>
+                    </article>
+                    <article class="sfd_metric">
+                        <div><h2>Pending Approvals</h2><strong t-esc="state.metrics.pending"/><span>Items waiting for review</span></div>
+                        <i class="fa fa-check-square-o" aria-hidden="true"/>
+                    </article>
+                    <article class="sfd_metric">
+                        <div><h2>Advances Out</h2><strong t-esc="formatBook(state.metrics.advances)"/><span>Released and partly cleared</span></div>
+                        <i class="fa fa-users" aria-hidden="true"/>
+                    </article>
+                    <article class="sfd_metric">
+                        <div><h2>Outstanding Checks</h2><strong t-esc="formatBook(state.metrics.checks)"/><span>Checks not yet cleared</span></div>
+                        <i class="fa fa-pencil-square-o" aria-hidden="true"/>
+                    </article>
+                    <article class="sfd_metric">
+                        <div><h2>Open Receivables</h2><strong t-esc="formatBook(state.metrics.ar)"/><span>Customer invoices due</span></div>
+                        <i class="fa fa-arrow-circle-down" aria-hidden="true"/>
+                    </article>
+                    <article class="sfd_metric">
+                        <div><h2>Open Payables</h2><strong t-esc="formatBook(state.metrics.ap)"/><span>Vendor bills due</span></div>
+                        <i class="fa fa-arrow-circle-up" aria-hidden="true"/>
+                    </article>
+                </section>
+
+                <div class="sfd_top_grid">
+                    <section class="sfd_panel sfd_approvals">
+                        <div class="sfd_panel_header">
+                            <div><h2>Pending Approvals</h2><p>Petty cash, advances, and disbursements</p></div>
+                            <button type="button" t-on-click="() => openAction(ACTIONS.disbursement)">View Disbursements</button>
+                        </div>
+                        <div t-if="!state.approvals.length" class="sfd_empty"><i class="fa fa-check-circle" aria-hidden="true"/><strong>All caught up</strong><span>No records are waiting for approval.</span></div>
+                        <div t-else="" class="sfd_table_wrap">
+                            <table class="sfd_table sfd_approval_table">
+                                <thead><tr><th>Type</th><th>Reference</th><th>Date</th><th class="num">Amount</th><th><span class="visually-hidden">Open</span></th></tr></thead>
+                                <tbody>
+                                    <tr t-foreach="state.approvals" t-as="item" t-key="item.model + item.id" t-on-click="() => openRecord(item.model, item.id)" t-on-keydown="(event) => openRecordByKey(event, item.model, item.id)" tabindex="0" role="button">
+                                        <td><span t-att-class="'sfd_status ' + (item.type === 'Petty cash' ? 'is-green' : (item.type === 'Advance' ? 'is-orange' : 'is-blue'))" t-esc="item.type"/></td>
+                                        <td><strong t-esc="item.reference"/><small t-esc="item.detail"/></td>
+                                        <td t-esc="shortDate(item.date)"/>
+                                        <td class="num" t-esc="formatMoney(item.amount, item.currencyId)"/>
+                                        <td><i class="fa fa-angle-right" aria-hidden="true"/></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <aside class="sfd_panel sfd_quick">
+                        <div class="sfd_panel_header"><div><h2>Quick Actions</h2><p>Start a finance task</p></div></div>
+                        <div class="sfd_quick_list">
+                            <button t-foreach="quickEntries" t-as="entry" t-key="entry.action" type="button" class="sfd_quick_link" t-on-click="() => openNew(entry.model)">
+                                <i t-att-class="'fa ' + entry.icon" aria-hidden="true"/>
+                                <span><strong t-esc="entry.label"/><small t-esc="entry.note"/></span>
+                                <i class="fa fa-angle-right" aria-hidden="true"/>
+                            </button>
+                        </div>
+                    </aside>
+                </div>
+
+                <section class="sfd_panel sfd_banks">
+                    <div class="sfd_panel_header">
+                        <div><h2>Bank Position</h2><p>Balances are shown in each journal currency</p></div>
+                        <span class="sfd_currency"><i class="fa fa-building-o" aria-hidden="true"/> Company currency: <strong t-esc="state.currency.name || 'Not set'"/></span>
+                    </div>
+                    <div t-if="!state.banks.length" class="sfd_empty"><i class="fa fa-university" aria-hidden="true"/><strong>No cash journals</strong><span>Bank and cash journals will appear here.</span></div>
+                    <div t-else="" class="sfd_table_wrap">
+                        <table class="sfd_table">
+                            <thead><tr><th>Journal</th><th>Statement Date</th><th class="num">Book Balance</th><th class="num">Statement</th><th class="num">Checks Out</th><th class="num">Available</th></tr></thead>
+                            <tbody>
+                                <tr t-foreach="state.banks" t-as="bank" t-key="bank.id" t-on-click="() => openRecord('account.journal', bank.id)" t-on-keydown="(event) => openRecordByKey(event, 'account.journal', bank.id)" tabindex="0" role="button">
+                                    <td><strong t-esc="bank.name"/><small t-esc="currencyCode(idOf(bank.currency_id))"/></td>
+                                    <td t-esc="shortDate(bank.sedar_statement_date)"/>
+                                    <td class="num" t-esc="formatMoney(bank.sedar_posted_book_balance, idOf(bank.currency_id))"/>
+                                    <td class="num" t-esc="formatMoney(bank.sedar_statement_balance, idOf(bank.currency_id))"/>
+                                    <td class="num sfd_negative" t-esc="formatMoney(bank.sedar_outstanding_checks, idOf(bank.currency_id))"/>
+                                    <td class="num sfd_positive" t-esc="formatMoney(bank.sedar_available_cash, idOf(bank.currency_id))"/>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <div class="sfd_lower_grid">
+                    <section class="sfd_panel">
+                        <div class="sfd_panel_header"><div><h2>Employee Advances</h2><p>Oldest open advances first</p></div></div>
+                        <div t-if="!state.advances.length" class="sfd_empty"><i class="fa fa-flag-o" aria-hidden="true"/><strong>No advances out</strong><span>Released employee advances will appear here.</span></div>
+                        <div t-else="" class="sfd_list">
+                            <button t-foreach="state.advances" t-as="advance" t-key="advance.id" type="button" class="sfd_list_row" t-on-click="() => openRecord('sedar.finance.cash.advance', advance.id)">
+                                <span t-att-class="'sfd_age ' + (ageInDays(advance.date) > 30 ? 'is-red' : 'is-orange')"><strong t-esc="ageInDays(advance.date)"/><small>days</small></span>
+                                <span class="sfd_record"><strong t-esc="labelOf(advance.employee_id, 'Employee not set')"/><small><t t-esc="advance.name"/> · <t t-esc="advance.purpose || 'No purpose'"/></small></span>
+                                <span class="sfd_row_amount"><strong t-esc="formatMoney(advance.outstanding_amount, idOf(advance.currency_id))"/><small>Outstanding</small></span>
+                                <i class="fa fa-angle-right" aria-hidden="true"/>
+                            </button>
+                        </div>
+                    </section>
+                    <section class="sfd_panel">
+                        <div class="sfd_panel_header"><div><h2>Recent Money Activity</h2><p>Latest collections, billings, and releases</p></div></div>
+                        <div t-if="!state.activity.length" class="sfd_empty"><i class="fa fa-exchange" aria-hidden="true"/><strong>No recent activity</strong><span>Collections, billings, and releases will appear here.</span></div>
+                        <div t-else="" class="sfd_list">
+                            <button t-foreach="state.activity" t-as="item" t-key="item.model + item.id" type="button" class="sfd_list_row" t-on-click="() => openRecord(item.model, item.id)">
+                                <span t-att-class="'sfd_flow sfd_flow_' + item.tone"><i t-att-class="item.tone === 'out' ? 'fa fa-arrow-up' : (item.tone === 'in' ? 'fa fa-arrow-down' : 'fa fa-file-text-o')" aria-hidden="true"/></span>
+                                <span class="sfd_record"><strong><t t-esc="item.type"/> · <t t-esc="item.reference"/></strong><small><t t-esc="item.partner"/> · <t t-esc="item.date"/></small></span>
+                                <strong class="sfd_row_amount" t-esc="formatMoney(item.amount, item.currencyId)"/>
+                                <i class="fa fa-angle-right" aria-hidden="true"/>
+                            </button>
+                        </div>
+                    </section>
+                </div>
+
+                <section class="sfd_panel sfd_reports" aria-label="Finance reports">
+                    <div class="sfd_panel_header"><div><h2>Financial Reports</h2><p>Open a standard finance report</p></div></div>
+                    <div class="sfd_report_buttons">
+                        <button t-foreach="reports" t-as="report" t-key="report.action" type="button" t-on-click="() => openAction(report.action)">
+                            <span class="sfd_report_icon"><i class="fa fa-bar-chart" aria-hidden="true"/></span><strong t-esc="report.label"/><i class="fa fa-angle-right" aria-hidden="true"/>
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </t>
+</templates>

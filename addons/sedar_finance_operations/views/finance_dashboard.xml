@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="action_finance_dashboard" model="ir.actions.client">
+        <field name="name">Finance Control Room</field>
+        <field name="tag">sedar_finance_operations.finance_dashboard</field>
+    </record>
+</odoo>

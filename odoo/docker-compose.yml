@@ -35,6 +35,7 @@ services:
       - ../addons/sedar_marketing:/mnt/extra-addons/sedar_marketing
       - ../addons/sedar_procurement:/mnt/extra-addons/sedar_procurement
       - ../addons/sedar_operations_integration:/mnt/extra-addons/sedar_operations_integration
+      - ../addons/sedar_finance_operations:/mnt/extra-addons/sedar_finance_operations
       - ./community/account-financial-reporting/account_financial_report:/mnt/extra-addons/account_financial_report
       - ./community/server-ux/date_range:/mnt/extra-addons/date_range
       - ./community/reporting-engine/report_xlsx:/mnt/extra-addons/report_xlsx

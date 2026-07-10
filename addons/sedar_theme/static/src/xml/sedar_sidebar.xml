@@ -108,7 +108,20 @@
                                 <i class="fa fa-angle-down o_sedar_nav_chevron"/>
                             </summary>
                             <div class="o_sedar_nav_children">
-                                <a class="o_sedar_nav_item" href="/web#action=account.action_move_journal_line"><span>General Ledger</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_finance_operations.action_finance_dashboard"><span>Finance Control Room</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=account_financial_report.action_general_ledger_wizard"><span>General Ledger</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=account_financial_report.action_trial_balance_wizard"><span>Trial Balance</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_finance_operations.action_petty_cash"><span>Petty Cash</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_finance_operations.action_cash_advance"><span>Cash Advances</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_finance_operations.action_liquidation"><span>Advance Liquidations</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_finance_operations.action_disbursement"><span>Disbursements</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_finance_operations.action_collection"><span>Collections</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_tug_ops.action_sedar_towage_billing"><span>Towage Billing</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_finance_operations.action_tariff"><span>Client Tariffs</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_finance_operations.action_bank_adjustment"><span>Bank Adjustments</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_finance_operations.action_profit_loss_comparison"><span>Profit and Loss</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_finance_operations.action_balance_sheet_comparison"><span>Balance Sheet</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_finance_operations.action_cash_flow_report"><span>Cash Flow</span></a>
                                 <a class="o_sedar_nav_item" href="/web#action=account.action_move_out_invoice_type"><span>Customer Invoices</span></a>
                                 <a class="o_sedar_nav_item" href="/web#action=account.action_move_in_invoice_type"><span>Vendor Bills</span></a>
                             </div>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <function model="res.currency" name="write">
+        <value eval="[ref('base.PHP')]"/>
+        <value eval="{'active': True}"/>
+    </function>
+    <function model="res.company" name="_sedar_set_book_currency">
+        <value eval="[ref('base.main_company')]"/>
+        <value eval="ref('base.PHP')"/>
+    </function>
+</odoo>

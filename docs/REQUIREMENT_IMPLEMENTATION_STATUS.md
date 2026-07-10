@@ -14,13 +14,15 @@ Status meanings:
 
 | Requirement | Status | Current backend and gap |
 |---|---|---|
-| General Ledger | Partial | Native Odoo Community journal entries and journal items work. Full Trial Balance, Balance Sheet, Profit and Loss, and Cash Flow reports are missing. |
-| Accounts Payable | Working | Native vendor bills and payments work. Purchase bills can carry SEDAR job, vessel, and budget links. |
-| Accounts Receivable | Working | Native customer invoices and payments work. Towage billing creates linked customer invoices. |
+| General Ledger | Working | OCA General Ledger and Trial Balance reports work from native journal items with date, posting state, account, partner, journal, analytic, hierarchy, and currency filters; running balances, drill-down links, and HTML, PDF, and XLSX output were verified. |
+| Accounts Payable | Working | Native vendor bills and payments work. Cash/check release requires an approved PO and matching posted bill; vouchers carry supplier, vessel, job, maintenance, and check-clearing links. |
+| Accounts Receivable | Working | Approved client/terminal/service tariffs calculate towage billing and post linked customer invoices. Collections match the correct invoice and bank, while bounced receipts reopen the invoice. |
 | Budgeting | Partial | Department budgets calculate planned, committed, actual, available, and use percentage. Budget assignment and approval access still need a production process. |
-| Cash Flow | Partial | Manual inflow and outflow forecasts and 30-day totals work. Automatic forecasts and a formal cash-flow statement are missing. |
+| Cash Flow | Working | OCA Cash Flow uses open accounting items and forecast lines. Per-bank statement, book, outstanding-check, and available-cash figures support daily cash control. Live bank feeds remain external. |
 | Fixed Assets | Partial | Asset register, straight-line schedule, and depreciation journal posting work. Purchase capitalization and disposal accounting are missing. |
 | Payroll | Partial | Crew hours, rates, overtime, approval, and job-cost allocation work. Payslips, deductions, Philippine taxes, payroll payments, and payroll journal posting are missing. |
+| Finance operations | Working | Petty cash auto-posting, employee advances, oldest-first liquidation, PO-backed disbursements, check status, tariff billing, rebates, collections, bank adjustments, and role-based approvals use the native ledger. |
+| Financial statements | Working | General Ledger, Trial Balance, comparative Profit and Loss, comparative Balance Sheet, Cash Flow, and customer/supplier statements provide browser, PDF, and XLSX reporting through OCA modules. |
 
 ## Tug Operations
 

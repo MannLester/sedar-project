@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <record id="seq_petty_cash" model="ir.sequence"><field name="name">Petty Cash Expense</field><field name="code">sedar.finance.petty.cash</field><field name="prefix">PC-%(year)s-</field><field name="padding">5</field></record>
+    <record id="seq_cash_advance" model="ir.sequence"><field name="name">Cash Advance</field><field name="code">sedar.finance.cash.advance</field><field name="prefix">CA-%(year)s-</field><field name="padding">5</field></record>
+    <record id="seq_liquidation" model="ir.sequence"><field name="name">Advance Liquidation</field><field name="code">sedar.finance.liquidation</field><field name="prefix">LIQ-%(year)s-</field><field name="padding">5</field></record>
+    <record id="seq_disbursement" model="ir.sequence"><field name="name">Disbursement</field><field name="code">sedar.finance.disbursement</field><field name="prefix">DV-%(year)s-</field><field name="padding">5</field></record>
+    <record id="seq_collection" model="ir.sequence"><field name="name">Collection Receipt</field><field name="code">sedar.finance.collection</field><field name="prefix">OR-%(year)s-</field><field name="padding">5</field></record>
+    <record id="seq_tariff" model="ir.sequence"><field name="name">Client Tariff</field><field name="code">sedar.finance.tariff</field><field name="prefix">TAR-%(year)s-</field><field name="padding">5</field></record>
+    <record id="seq_rebate" model="ir.sequence"><field name="name">Agent Rebate Rate</field><field name="code">sedar.finance.rebate</field><field name="prefix">REB-%(year)s-</field><field name="padding">5</field></record>
+    <record id="seq_bank_adjustment" model="ir.sequence"><field name="name">Bank Adjustment</field><field name="code">sedar.finance.bank.adjustment</field><field name="prefix">BA-%(year)s-</field><field name="padding">5</field></record>
+</odoo>

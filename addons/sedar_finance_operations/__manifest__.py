@@ -1,0 +1,36 @@
+{
+    "name": "SEDAR Finance Operations",
+    "version": "17.0.1.0.0",
+    "summary": "Petty cash, advances, disbursements, billing, collections, and bank control",
+    "category": "Accounting/Accounting",
+    "license": "LGPL-3",
+    "depends": [
+        "sedar_operations_integration",
+        "account",
+        "purchase",
+        "mail",
+        "mis_template_financial_report",
+        "mis_builder_cash_flow",
+        "partner_statement",
+    ],
+    "data": [
+        "security/finance_security.xml",
+        "security/ir.model.access.csv",
+        "data/sequence_data.xml",
+        "data/company_currency_data.xml",
+        "data/finance_master_data.xml",
+        "data/financial_report_data.xml",
+        "views/finance_views.xml",
+        "views/finance_dashboard.xml",
+        "views/finance_menus.xml",
+    ],
+    "assets": {
+        "web.assets_backend": [
+            "sedar_finance_operations/static/src/js/finance_dashboard.js",
+            "sedar_finance_operations/static/src/xml/finance_dashboard.xml",
+            "sedar_finance_operations/static/src/css/finance_dashboard.css",
+        ],
+    },
+    "installable": True,
+    "application": True,
+}
