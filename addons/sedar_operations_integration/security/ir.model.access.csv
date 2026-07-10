@@ -16,3 +16,10 @@ access_sedar_stock_issue_user,sedar.stock.issue user,model_sedar_stock_issue,sto
 access_sedar_stock_issue_manager,sedar.stock.issue manager,model_sedar_stock_issue,stock.group_stock_manager,1,1,1,1
 access_sedar_stock_issue_line_user,sedar.stock.issue.line user,model_sedar_stock_issue_line,stock.group_stock_user,1,1,1,0
 access_sedar_stock_issue_line_manager,sedar.stock.issue.line manager,model_sedar_stock_issue_line,stock.group_stock_manager,1,1,1,1
+access_sedar_maintenance_plan_user,sedar.maintenance.plan user,model_sedar_maintenance_plan,maintenance.group_equipment_manager,1,1,1,1
+access_sedar_maintenance_plan_check_user,sedar.maintenance.plan.check user,model_sedar_maintenance_plan_check,maintenance.group_equipment_manager,1,1,1,1
+access_sedar_maintenance_plan_part_user,sedar.maintenance.plan.part user,model_sedar_maintenance_plan_part,maintenance.group_equipment_manager,1,1,1,1
+access_sedar_equipment_meter_user,sedar.equipment.meter user,model_sedar_equipment_meter,maintenance.group_equipment_manager,1,1,1,0
+access_sedar_maintenance_check_user,sedar.maintenance.check user,model_sedar_maintenance_check,maintenance.group_equipment_manager,1,1,1,0
+access_sedar_maintenance_labor_user,sedar.maintenance.labor user,model_sedar_maintenance_labor,maintenance.group_equipment_manager,1,1,1,0
+access_sedar_maintenance_service_log_user,sedar.maintenance.service.log user,model_sedar_maintenance_service_log,maintenance.group_equipment_manager,1,0,0,0

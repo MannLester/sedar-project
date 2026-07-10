@@ -6,3 +6,4 @@ from . import finance_workflow
 from . import tug_reliability
 from . import procurement_workflow
 from . import inventory_workflow
+from . import maintenance_pms

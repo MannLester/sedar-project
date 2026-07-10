@@ -5,4 +5,13 @@
         <field name="sequence">2</field>
         <field name="done">False</field>
     </record>
+    <record id="cron_generate_due_maintenance_work" model="ir.cron">
+        <field name="name">SEDAR: Generate Due Maintenance Work</field>
+        <field name="model_id" ref="model_sedar_maintenance_plan"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_generate_due_work_orders()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active">True</field>
+    </record>
 </odoo>

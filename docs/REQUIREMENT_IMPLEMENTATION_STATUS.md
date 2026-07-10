@@ -37,11 +37,11 @@ Status meanings:
 
 | Requirement | Status | Current backend and gap |
 |---|---|---|
-| Planned Maintenance System | Partial | Native Community maintenance requests and schedules are used. Meter triggers, reusable job plans, and detailed checklists are missing. |
+| Planned Maintenance System | Working | Native Community work orders now support reusable plans, daily calendar triggers, running-hour meters, copied checklists and parts, labor costs, and automatic next-due advancement. |
 | Dry docking | Partial | Dry-dock dates, blocking state, downtime, and costs exist. Scope, milestones, contractors, and dock project control are missing. |
 | Work orders | Working | Native maintenance requests are linked to vessels, severity, costs, downtime, parts, RFQs, receipts, and dispatch blocking. |
 | Spare parts | Working | Native products, stock availability, shortages, RFQs, receipts, warehouse-to-vessel issues, and work-order consumption moves are linked. |
-| Equipment history | Partial | Native equipment and maintenance request history work. Meter readings and a locked service-history ledger are missing. |
+| Equipment history | Working | Native equipment history includes permanent running-hour readings and a locked completion snapshot with work, downtime, labor, parts, meter, and total cost. |
 
 ## HSE
 
