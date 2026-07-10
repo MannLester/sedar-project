@@ -17,6 +17,7 @@
         'sedar_procurement',
         'hr_attendance',
         'hr_holidays',
+        'account_financial_report',
     ],
     'data': [
         'security/ir.model.access.csv',

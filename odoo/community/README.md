@@ -1,11 +1,11 @@
 # Odoo Community Source Boundary
 
-This folder is intentionally documentation-only for now.
+This folder contains pinned OCA repositories used to extend Odoo Community without editing upstream modules.
 
 The Odoo Community code and standard Community apps are provided by the Docker image:
 
 ```text
-odoo:19.0
+odoo:17.0
 ```
 
 Inside the running container, Odoo's standard addons live at:
@@ -14,21 +14,28 @@ Inside the running container, Odoo's standard addons live at:
 /usr/lib/python3/dist-packages/odoo/addons
 ```
 
-We do not copy the full Odoo Community source tree into this repository because it is large, noisy, and not necessary for an MVP. The project-owned code belongs in:
+We do not copy the full Odoo Community source tree into this repository because it is large and not needed. Project-owned addons live in:
 
 ```text
-custom_addons/
+../addons/
 ```
 
-Current project addon:
+The legacy MVP addon lives in:
 
 ```text
 custom_addons/sedar_marine_mvp
 ```
 
-If we later need to modify or vendor specific Community modules, we can add them here deliberately. For now, the cleaner architecture is:
+Pinned OCA 17 repositories:
+
+- `account-financial-reporting` provides General Ledger, Trial Balance, Open Items, Aged Partner Balance, VAT, and Journal Ledger reports.
+- `server-ux` provides the required `date_range` module.
+- `reporting-engine` provides the required XLSX report engine.
+
+The architecture is:
 
 - Docker image provides Odoo Community.
-- `custom_addons` provides SEDAR-specific MVP features.
+- Pinned OCA submodules provide selected Community extensions.
+- `../addons` provides current SEDAR-specific features.
+- `custom_addons` contains the legacy MVP addon.
 - `config` provides local Odoo configuration.
-

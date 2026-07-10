@@ -1,0 +1,16 @@
+[submodule "odoo/community/account-financial-reporting"]
+	path = odoo/community/account-financial-reporting
+	url = https://github.com/OCA/account-financial-reporting.git
+	branch = 17.0
+[submodule "odoo/community/server-ux"]
+	path = odoo/community/server-ux
+	url = https://github.com/OCA/server-ux.git
+	branch = 17.0
+[submodule "odoo/community/reporting-engine"]
+	path = odoo/community/reporting-engine
+	url = https://github.com/OCA/reporting-engine.git
+	branch = 17.0
+[submodule "odoo/community/mis-builder"]
+	path = odoo/community/mis-builder
+	url = https://github.com/OCA/mis-builder.git
+	branch = 17.0
