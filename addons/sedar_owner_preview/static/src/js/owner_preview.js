@@ -1,0 +1,279 @@
+/** @odoo-module **/
+
+import { Component, useState } from "@odoo/owl";
+import { registry } from "@web/core/registry";
+import { useService } from "@web/core/utils/hooks";
+
+const VESSELS = [
+    {
+        name: "MT SEDAR Aurora",
+        role: "Harbor assist tug",
+        lat: 56,
+        lng: 42,
+        status: "Underway",
+        statusClass: "is-good",
+        location: "Batangas Anchorage",
+        speed: "7.8 kn",
+        heading: "142 deg",
+        eta: "14:40",
+        engine: "Caterpillar 3516B",
+        horsepower: "4,200 HP",
+        bollard: "52 t",
+        fuel: 68,
+        availability: 94,
+        parts: [
+            { name: "Main engine oil filter", stock: "18 pcs", state: "OK", className: "is-good" },
+            { name: "Steering pump seal kit", stock: "2 pcs", state: "Low", className: "is-watch" },
+            { name: "Fire pump impeller", stock: "6 pcs", state: "OK", className: "is-good" },
+        ],
+    },
+    {
+        name: "MT SEDAR Marikit",
+        role: "Terminal standby tug",
+        lat: 34,
+        lng: 62,
+        status: "Standby",
+        statusClass: "is-watch",
+        location: "Manila Bay Terminal",
+        speed: "0.0 kn",
+        heading: "Docked",
+        eta: "On berth",
+        engine: "Niigata 6L28HX",
+        horsepower: "3,600 HP",
+        bollard: "45 t",
+        fuel: 51,
+        availability: 88,
+        parts: [
+            { name: "Radar scanner belt", stock: "0 pcs", state: "Reorder", className: "is-risk" },
+            { name: "Generator AVR", stock: "4 pcs", state: "OK", className: "is-good" },
+            { name: "Air compressor kit", stock: "1 set", state: "Watch", className: "is-watch" },
+        ],
+    },
+    {
+        name: "MT SEDAR Lakan",
+        role: "Towage support tug",
+        lat: 69,
+        lng: 70,
+        status: "Dry dock",
+        statusClass: "is-risk",
+        location: "Navotas Yard",
+        speed: "N/A",
+        heading: "N/A",
+        eta: "Jul 18",
+        engine: "Yanmar 6EY26W",
+        horsepower: "3,200 HP",
+        bollard: "38 t",
+        fuel: 22,
+        availability: 61,
+        parts: [
+            { name: "Port propeller repair", stock: "In yard", state: "In yard", className: "is-risk" },
+            { name: "Shaft bearing", stock: "Ordered", state: "Ordered", className: "is-watch" },
+            { name: "Hull coating", stock: "In progress", state: "In progress", className: "is-watch" },
+        ],
+    },
+];
+
+const WORKFLOWS = [
+    { label: "Payroll Preview", value: "PHP 1.42M", note: "crew payroll estimate, deductions pending", icon: "fa-id-badge", className: "is-watch" },
+    { label: "Dry Dock Control", value: "1 Tug", note: "Lakan: 63% yard progress", icon: "fa-wrench", className: "is-risk" },
+    { label: "Audit / ISO", value: "7 Open", note: "3 evidence packets due this week", icon: "fa-check-square-o", className: "is-watch" },
+    { label: "Bank Feed Preview", value: "PHP 8.7M", note: "book cash after uncleared checks", icon: "fa-university", className: "is-good" },
+];
+
+const TIMELINE = [
+    { time: "08:10", title: "AIS ping received", detail: "Aurora reported 7.8 kn near Batangas Anchorage.", className: "is-good" },
+    { time: "09:25", title: "Inventory barcode scan", detail: "Steering pump seal kit issued to MT SEDAR Marikit.", className: "is-watch" },
+    { time: "10:00", title: "Payroll batch drafted", detail: "23 crew records included; statutory deductions are in preview mode.", className: "is-watch" },
+    { time: "11:30", title: "Dry dock milestone updated", detail: "Lakan hull coating moved to in-progress.", className: "is-risk" },
+    { time: "13:15", title: "ISO evidence request", detail: "Safety meeting record requested from HSSE owner.", className: "is-watch" },
+];
+
+const KPI_TRENDS = [
+    { label: "Fleet Availability", value: "86%", points: [72, 78, 81, 84, 82, 86], note: "Target 90%" },
+    { label: "Utilization", value: "71%", points: [58, 61, 67, 63, 69, 71], note: "Job hours / available hours" },
+    { label: "Gross Margin", value: "34%", points: [24, 28, 29, 31, 33, 34], note: "Towage after fuel, crew, vendor bills" },
+    { label: "Compliance", value: "92%", points: [84, 86, 89, 91, 90, 92], note: "Certificates, medicals, ISO, permits" },
+];
+
+const MODULES = [
+    { title: "AIS / GPS Control", text: "Map-style vessel location, speed, heading, stale signal warning, and dispatch context.", status: "Visualization ready" },
+    { title: "Owner Vessel Card", text: "Engine, horsepower, bollard pull, fuel, availability, and critical parts per tug.", status: "Visualization ready" },
+    { title: "Payroll", text: "Crew payroll batch, overtime, deductions, contributions, and journal posting preview.", status: "General flow" },
+    { title: "Dry Dock", text: "Yard timeline, contractor status, scope, cost exposure, and dispatch blocking.", status: "General flow" },
+    { title: "Audit / ISO", text: "Audit plan, evidence checklist, document revision, retention, and sign-off.", status: "General flow" },
+    { title: "Inventory Barcode", text: "Scan part, identify vessel/bin, issue to maintenance or tug operation.", status: "General flow" },
+    { title: "Bank Feed", text: "Imported transactions, matching status, book balance, and outstanding checks.", status: "Preview only" },
+    { title: "KPI Trends", text: "Targets and trends for availability, utilization, margin, and compliance.", status: "Visualization ready" },
+];
+
+const ACTION_FOCUS = {
+    "sedar_owner_preview.dashboard": "Owner Preview",
+    "sedar_owner_preview.fleet_map": "AIS / GPS Control",
+    "sedar_owner_preview.vessel_health": "Owner Vessel Card",
+    "sedar_owner_preview.payroll": "Payroll",
+    "sedar_owner_preview.dry_dock": "Dry Dock",
+    "sedar_owner_preview.audit_iso": "Audit / ISO",
+    "sedar_owner_preview.inventory_barcode": "Inventory Barcode",
+    "sedar_owner_preview.bank_feed": "Bank Feed",
+    "sedar_owner_preview.kpi_trends": "KPI Trends",
+};
+
+const ACTION_VESSEL = {
+    "sedar_owner_preview.dry_dock": 2,
+    "sedar_owner_preview.vessel_health": 1,
+};
+
+const FOCUS_COPY = {
+    "Owner Preview": {
+        kicker: "Executive Dashboard",
+        title: "Owner Command Preview",
+        intro: "A board-ready visualization of the final tug-company ERP: fleet position, vessel health, finance, compliance, dry dock, payroll, inventory, and operational risk in one owner-friendly view.",
+    },
+    "AIS / GPS Control": {
+        kicker: "Marine Operations",
+        title: "AIS / GPS Map Preview",
+        intro: "A map-style command screen for tug locations, GPS signal age, speed, heading, job assignment, and dispatch risk. This is the expected final direction once real GPS trackers are connected.",
+    },
+    "Owner Vessel Card": {
+        kicker: "Marine Operations",
+        title: "Vessel Health Preview",
+        intro: "A tug-owner view of each boat: engine, horsepower, bollard pull, fuel, availability, running status, and critical spare parts.",
+    },
+    Payroll: {
+        kicker: "Human Resources",
+        title: "Payroll Preview",
+        intro: "A general payroll flow for tug crew: vessel assignment, hours, overtime, allowances, deductions, statutory contributions, approval, and posting preview.",
+    },
+    "Dry Dock": {
+        kicker: "Technical / Maintenance",
+        title: "Dry Dock Preview",
+        intro: "A dry dock control page showing yard progress, scope, contractor accountability, cost exposure, and the reason a tug is blocked from dispatch.",
+    },
+    "Audit / ISO": {
+        kicker: "HSSE / Document Control",
+        title: "Audit / ISO Preview",
+        intro: "A compliance workflow for audit plans, evidence packets, ISO revision control, document retention, and management sign-off.",
+    },
+    "Inventory Barcode": {
+        kicker: "Procurement / Inventory",
+        title: "Inventory Barcode Preview",
+        intro: "A scanner-style flow for issuing parts to a tug, connecting stock movement to maintenance, vessel, and job context.",
+    },
+    "Bank Feed": {
+        kicker: "Finance and Accounting",
+        title: "Bank Feed Preview",
+        intro: "A finance preview for imported bank transactions, matching status, book balance, statement balance, and outstanding checks.",
+    },
+    "KPI Trends": {
+        kicker: "Executive Dashboard",
+        title: "KPI Trends Preview",
+        intro: "A board-level trend view for availability, utilization, profitability, compliance, and operating exceptions.",
+    },
+};
+
+const PAYROLL_ROWS = [
+    { crew: "Capt. Jun Mercado", vessel: "MT SEDAR Aurora", hours: "176", overtime: "18", gross: "PHP 78,400", deductions: "PHP 9,820", net: "PHP 68,580", state: "For HR review" },
+    { crew: "Engr. Paolo Reyes", vessel: "MT SEDAR Marikit", hours: "168", overtime: "12", gross: "PHP 64,700", deductions: "PHP 8,140", net: "PHP 56,560", state: "Ready" },
+    { crew: "Bosun Mark Flores", vessel: "MT SEDAR Lakan", hours: "154", overtime: "6", gross: "PHP 42,600", deductions: "PHP 5,380", net: "PHP 37,220", state: "Dry dock costed" },
+];
+
+const DRY_DOCK_MILESTONES = [
+    { name: "Hull inspection", owner: "Navotas Yard", progress: 100, state: "Done" },
+    { name: "Port propeller repair", owner: "Propulsion contractor", progress: 72, state: "In progress" },
+    { name: "Shaft bearing replacement", owner: "Procurement + Yard", progress: 45, state: "Waiting part" },
+    { name: "Sea trial and clearance", owner: "Technical Manager", progress: 0, state: "Next" },
+];
+
+const AUDIT_ROWS = [
+    { item: "ISO 9001 vessel maintenance procedure", owner: "Document Control", due: "Jul 15", state: "For review" },
+    { item: "Safety meeting attendance evidence", owner: "HSSE", due: "Jul 13", state: "Missing evidence" },
+    { item: "Permit renewal sign-off", owner: "Operations", due: "Jul 18", state: "Ready" },
+    { item: "Internal audit corrective action", owner: "Technical", due: "Jul 20", state: "Open" },
+];
+
+const BARCODE_STEPS = [
+    { label: "Scan", value: "SP-STEER-SEAL-002", note: "Steering pump seal kit" },
+    { label: "Identify", value: "Bin B-04 / Main Store", note: "2 pcs available before issue" },
+    { label: "Assign", value: "MT SEDAR Marikit", note: "Linked to maintenance request MR-0241" },
+    { label: "Post", value: "1 pc issued", note: "Creates stock move and vessel cost" },
+];
+
+const BANK_ROWS = [
+    { date: "Jul 10", bank: "BDO Operating", detail: "Harbor Gateway Terminal payment", amount: "PHP 1,250,000", match: "Matched to invoice" },
+    { date: "Jul 10", bank: "BPI Payroll", detail: "Crew payroll funding", amount: "PHP -1,420,000", match: "For approval" },
+    { date: "Jul 09", bank: "BDO Operating", detail: "Check 004218 cleared", amount: "PHP -318,500", match: "Matched to PO disbursement" },
+    { date: "Jul 09", bank: "Metrobank", detail: "Unknown deposit", amount: "PHP 85,000", match: "Needs review" },
+];
+
+export class OwnerPreviewDashboard extends Component {
+    static template = "sedar_owner_preview.OwnerPreviewDashboard";
+    static props = ["action", "actionId", "className"];
+
+    setup() {
+        this.action = useService("action");
+        const tag = this.props.action?.tag || "sedar_owner_preview.dashboard";
+        this.selectVessel = this.selectVessel.bind(this);
+        this.selectModule = this.selectModule.bind(this);
+        this.sparkline = this.sparkline.bind(this);
+        this.openAction = this.openAction.bind(this);
+        this.state = useState({
+            activeVessel: ACTION_VESSEL[tag] || 0,
+            activeModule: ACTION_FOCUS[tag] || "Owner Preview",
+        });
+        this.vessels = VESSELS;
+        this.workflows = WORKFLOWS;
+        this.timeline = TIMELINE;
+        this.trends = KPI_TRENDS;
+        this.modules = MODULES;
+        this.payrollRows = PAYROLL_ROWS;
+        this.dryDockMilestones = DRY_DOCK_MILESTONES;
+        this.auditRows = AUDIT_ROWS;
+        this.barcodeSteps = BARCODE_STEPS;
+        this.bankRows = BANK_ROWS;
+    }
+
+    get focusCopy() {
+        return FOCUS_COPY[this.state.activeModule] || FOCUS_COPY["Owner Preview"];
+    }
+
+    get isOverview() {
+        return this.state.activeModule === "Owner Preview";
+    }
+
+    get selectedVessel() {
+        return this.vessels[this.state.activeVessel] || this.vessels[0];
+    }
+
+    selectVessel(index) {
+        this.state.activeVessel = index;
+    }
+
+    selectModule(module) {
+        this.state.activeModule = module.title;
+    }
+
+    sparkline(points) {
+        const max = Math.max(...points);
+        const min = Math.min(...points);
+        const span = max - min || 1;
+        return points.map((value, index) => {
+            const x = (index / (points.length - 1 || 1)) * 100;
+            const y = 100 - ((value - min) / span) * 78 - 10;
+            return `${x},${y}`;
+        }).join(" ");
+    }
+
+    openAction(action) {
+        this.action.doAction(action);
+    }
+}
+
+registry.category("actions").add("sedar_owner_preview.dashboard", OwnerPreviewDashboard);
+registry.category("actions").add("sedar_owner_preview.fleet_map", OwnerPreviewDashboard);
+registry.category("actions").add("sedar_owner_preview.vessel_health", OwnerPreviewDashboard);
+registry.category("actions").add("sedar_owner_preview.payroll", OwnerPreviewDashboard);
+registry.category("actions").add("sedar_owner_preview.dry_dock", OwnerPreviewDashboard);
+registry.category("actions").add("sedar_owner_preview.audit_iso", OwnerPreviewDashboard);
+registry.category("actions").add("sedar_owner_preview.inventory_barcode", OwnerPreviewDashboard);
+registry.category("actions").add("sedar_owner_preview.bank_feed", OwnerPreviewDashboard);
+registry.category("actions").add("sedar_owner_preview.kpi_trends", OwnerPreviewDashboard);

@@ -78,8 +78,11 @@
                                         <a class="o_sedar_nav_item" href="/web#action=sedar_employee_records.action_sedar_employee_records&amp;model=hr.employee.public&amp;view_type=tree">
                                             <span>Employee List</span>
                                         </a>
-                                        <a class="o_sedar_nav_item" href="/web#action=sedar_marine_mvp.action_sedar_document_risk_dashboard">
+                                        <a class="o_sedar_nav_item" href="/web#action=sedar_employee_document_control.action_sedar_employee_document_control&amp;model=sedar.employee.document.control&amp;view_type=list">
                                             <span>Document Control</span>
+                                        </a>
+                                        <a class="o_sedar_nav_item" href="/web#action=sedar_owner_preview.action_owner_preview_payroll">
+                                            <span>Payroll Preview</span>
                                         </a>
                                     </div>
                                 </details>
@@ -96,6 +99,9 @@
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_tug_ops.action_sedar_tug_schedule"><span>Tug Schedule</span></a>
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_tug_ops.action_sedar_voyage_log"><span>Voyage Logs</span></a>
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_tug_ops.action_sedar_fuel_log"><span>Fuel Monitoring</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_owner_preview.action_owner_preview_fleet_map"><span>AIS / GPS Map Preview</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_owner_preview.action_owner_preview_vessel_health"><span>Vessel Health Preview</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_owner_preview.action_owner_preview_dry_dock"><span>Dry Dock Preview</span></a>
                                 <a class="o_sedar_nav_item" href="/web#action=maintenance.hr_equipment_request_action"><span>Maintenance Work Orders</span></a>
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_crewing.action_sedar_crew_member"><span>Crew Readiness</span></a>
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_doccontrol.action_sedar_doc_vessel_cert"><span>Vessel Certificates</span></a>
@@ -119,6 +125,7 @@
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_tug_ops.action_sedar_towage_billing"><span>Towage Billing</span></a>
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_finance_operations.action_tariff"><span>Client Tariffs</span></a>
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_finance_operations.action_bank_adjustment"><span>Bank Adjustments</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_owner_preview.action_owner_preview_bank_feed"><span>Bank Feed Preview</span></a>
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_finance_operations.action_profit_loss_comparison"><span>Profit and Loss</span></a>
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_finance_operations.action_balance_sheet_comparison"><span>Balance Sheet</span></a>
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_finance_operations.action_cash_flow_report"><span>Cash Flow</span></a>
@@ -148,6 +155,9 @@
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_procurement.action_sedar_stock_reorder_signals_board">
                                     <span>Stock Reorder Signals</span>
                                 </a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_owner_preview.action_owner_preview_inventory_barcode">
+                                    <span>Inventory Barcode Preview</span>
+                                </a>
                             </div>
                         </details>
 
@@ -163,9 +173,15 @@
                                        t-att-data-menu-xmlid="app.xmlid"
                                        t-att-class="{'o_sedar_nav_item': true, 'active': currentApp and currentApp.id === app.id}"
                                        t-on-click.prevent="() => this.onNavBarDropdownItemSelection(app)">
-                                         <span>Safety Events</span>
-                                     </a>
-                                 </t>
+                                        <span>Safety Events</span>
+                                    </a>
+                                </t>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_hsse.action_sedar_hsse_inspection"><span>Inspections and Audits</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_hsse.action_sedar_hsse_risk_assessment"><span>Risk Assessments</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_hsse.action_sedar_hsse_permit"><span>Permits</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_operations_integration.action_corrective_actions"><span>Corrective Actions</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_operations_integration.action_hsse_training"><span>Training Records</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_owner_preview.action_owner_preview_audit_iso"><span>Audit / ISO Preview</span></a>
                             </div>
                         </details>
 
@@ -190,6 +206,12 @@
                                 <i class="fa fa-angle-down o_sedar_nav_chevron"/>
                             </summary>
                             <div class="o_sedar_nav_children">
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_owner_preview.action_owner_preview_dashboard">
+                                    <span>Owner Preview</span>
+                                </a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_owner_preview.action_owner_preview_kpi_trends">
+                                    <span>KPI Trends Preview</span>
+                                </a>
                                 <t t-foreach="menuService.getApps()" t-as="app" t-key="app.id">
                                     <a t-if="app.xmlid === 'sedar_dashboard.menu_root'"
                                        t-att-href="getMenuItemHref(app)"

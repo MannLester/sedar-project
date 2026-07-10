@@ -408,7 +408,7 @@ export class SedarStockReorderSignalsBoard extends Component {
     }
 
     openInventoryList() {
-        this.action.doAction("sedar_marine_mvp.action_sedar_inventory_item");
+        this.action.doAction("stock.product_template_action_product");
     }
 
     openItem(ev) {

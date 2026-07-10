@@ -11,7 +11,6 @@
         'sedar_hsse',
         'sedar_doccontrol',
         'sedar_dashboard',
-        'sedar_marine_mvp',
         'maintenance',
         'purchase_stock',
         'sedar_procurement',
@@ -21,7 +20,6 @@
     ],
     'data': [
         'security/ir.model.access.csv',
-        'data/legacy_view_cleanup.xml',
         'data/maintenance_data.xml',
         'data/finance_data.xml',
         'data/procurement_data.xml',

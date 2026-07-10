@@ -21,6 +21,7 @@
         'sedar_employee_document_control',
         'sedar_marketing',
         'sedar_procurement',
+        'sedar_owner_preview',
     ],
     'assets': {
         'web.assets_backend': [

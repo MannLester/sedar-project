@@ -22,6 +22,14 @@ services:
       PASSWORD: odoo
     volumes:
       - ./addons:/mnt/extra-addons
+      - ./odoo/community/account-financial-reporting/account_financial_report:/mnt/extra-addons/account_financial_report
+      - ./odoo/community/server-ux/date_range:/mnt/extra-addons/date_range
+      - ./odoo/community/reporting-engine/report_xlsx:/mnt/extra-addons/report_xlsx
+      - ./odoo/community/reporting-engine/report_xlsx_helper:/mnt/extra-addons/report_xlsx_helper
+      - ./odoo/community/mis-builder/mis_builder:/mnt/extra-addons/mis_builder
+      - ./odoo/community/account-financial-reporting/mis_template_financial_report:/mnt/extra-addons/mis_template_financial_report
+      - ./odoo/community/account-financial-reporting/mis_builder_cash_flow:/mnt/extra-addons/mis_builder_cash_flow
+      - ./odoo/community/account-financial-reporting/partner_statement:/mnt/extra-addons/partner_statement
       - odoo-data:/var/lib/odoo
       - ./config/odoo.conf:/etc/odoo/odoo.conf
 

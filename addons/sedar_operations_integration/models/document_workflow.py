@@ -16,11 +16,44 @@ DEPARTMENTS = [
 
 
 class SedarDocumentControl(models.Model):
-    _inherit = 'sedar.document.control'
+    _name = 'sedar.document.control'
+    _description = 'SEDAR Controlled Document'
+    _order = 'expiry_date, name'
 
+    name = fields.Char(required=True)
+    document_type = fields.Selection(
+        [
+            ('contract', 'Contract'),
+            ('vessel_certificate', 'Vessel Certificate'),
+            ('insurance', 'Insurance'),
+            ('permit', 'Permit'),
+            ('board_resolution', 'Board Resolution'),
+            ('iso_document', 'ISO Document'),
+            ('other', 'Other'),
+        ],
+        default='other',
+        required=True,
+    )
+    owner_department = fields.Selection(DEPARTMENTS, default='document_control', required=True)
+    department = fields.Selection(related='owner_department', readonly=False, store=True)
+    vessel_id = fields.Many2one('sedar.vessel')
+    issue_date = fields.Date()
+    expiry_date = fields.Date()
+    status = fields.Selection(
+        [('valid', 'Valid'), ('renewal', 'For Renewal'), ('expired', 'Expired')],
+        default='valid',
+        required=True,
+    )
+    version = fields.Char(default='1.0')
+    document_link = fields.Char()
+    approval_status = fields.Selection(
+        [('draft', 'Draft'), ('for_review', 'For Review'), ('approved', 'Approved')],
+        default='draft',
+        required=True,
+    )
     owner_id = fields.Many2one('res.users', default=lambda self: self.env.user, required=True, string='Document Owner')
     reviewer_id = fields.Many2one('res.users', string='Approved By', readonly=True, copy=False)
-    department = fields.Selection(DEPARTMENTS, default='document_control', required=True)
+    renewal_owner = fields.Many2one('res.users', string='Renewal Owner')
     approval_date = fields.Date(readonly=True, copy=False)
     previous_version_id = fields.Many2one('sedar.document.control', string='Previous Version', readonly=True, copy=False)
     renewal_due_date = fields.Date(compute='_compute_renewal_due_date', store=True)

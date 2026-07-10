@@ -5,14 +5,13 @@
     "category": "Operations/Purchase",
     "author": "Mann, Edrian, and Clarenz",
     "license": "LGPL-3",
-    "depends": ["base", "web", "purchase", "stock", "sedar_marine_mvp"],
+    "depends": ["base", "web", "purchase", "stock", "sedar_tug_ops"],
     "data": [
         "security/ir.model.access.csv",
         "data/company_config.xml",
         "data/currency_config.xml",
         "views/procurement_views.xml",
         "reports/canvas_sheet_report.xml",
-        "data/procurement_demo.xml",
     ],
     "assets": {
         "web.assets_backend": [

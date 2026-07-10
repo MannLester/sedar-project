@@ -1,5 +1,6 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_sedar_hsse_corrective_action_user,sedar.hsse.corrective.action user,model_sedar_hsse_corrective_action,base.group_user,1,1,1,1
+access_sedar_document_control_user,sedar.document.control user,model_sedar_document_control,base.group_user,1,1,1,1
 access_sedar_hsse_training_user,sedar.hsse.training user,model_sedar_hsse_training,base.group_user,1,1,1,1
 access_sedar_maintenance_part_line_user,sedar.maintenance.part.line user,model_sedar_maintenance_part_line,base.group_user,1,1,1,1
 access_sedar_finance_budget_user,sedar.finance.budget user,model_sedar_finance_budget,base.group_user,1,1,1,1

@@ -5,7 +5,7 @@
     "category": "Sales/CRM",
     "author": "Mann, Edrian, and Clarenz",
     "license": "LGPL-3",
-    "depends": ["base", "mail", "web", "sedar_marine_mvp"],
+    "depends": ["base", "mail", "web"],
     "data": [
         "security/ir.model.access.csv",
         "views/marketing_views.xml",

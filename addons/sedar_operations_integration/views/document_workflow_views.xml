@@ -3,26 +3,17 @@
     <record id="view_document_control_register" model="ir.ui.view">
         <field name="name">sedar.document.control.register</field>
         <field name="model">sedar.document.control</field>
-        <field name="inherit_id" ref="sedar_marine_mvp.view_sedar_document_control_list"/>
         <field name="arch" type="xml">
-            <xpath expr="//tree" position="attributes">
-                <attribute name="class">o_sedar_document_register</attribute>
-                <attribute name="default_order">expiry_date asc, name asc</attribute>
-                <attribute name="decoration-warning">status == 'renewal'</attribute>
-                <attribute name="decoration-danger">status == 'expired'</attribute>
-            </xpath>
-            <field name="document_type" position="attributes">
-                <attribute name="widget">badge</attribute>
-            </field>
-            <field name="status" position="attributes">
-                <attribute name="widget">badge</attribute>
-            </field>
-            <field name="approval_status" position="attributes">
-                <attribute name="optional">hide</attribute>
-            </field>
-            <field name="document_link" position="attributes">
-                <attribute name="optional">hide</attribute>
-            </field>
+            <tree class="o_sedar_document_register" default_order="expiry_date asc, name asc" decoration-warning="status == 'renewal'" decoration-danger="status == 'expired'">
+                <field name="name"/>
+                <field name="document_type" widget="badge"/>
+                <field name="owner_department"/>
+                <field name="vessel_id"/>
+                <field name="expiry_date"/>
+                <field name="status" widget="badge"/>
+                <field name="approval_status" widget="badge" optional="hide"/>
+                <field name="document_link" optional="hide"/>
+            </tree>
         </field>
     </record>
 
@@ -57,12 +48,8 @@
     <record id="view_document_control_workflow" model="ir.ui.view">
         <field name="name">sedar.document.control.workflow</field>
         <field name="model">sedar.document.control</field>
-        <field name="inherit_id" ref="sedar_marine_mvp.view_sedar_document_control_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//form" position="attributes">
-                <attribute name="class">o_sedar_document_form</attribute>
-            </xpath>
-            <xpath expr="//sheet" position="before">
+            <form class="o_sedar_document_form">
                 <header>
                     <button name="action_submit_review" string="Submit for Review" type="object" class="oe_highlight" invisible="approval_status != 'draft'"/>
                     <button name="action_approve_document" string="Approve" type="object" class="oe_highlight" invisible="approval_status != 'for_review'"/>
@@ -70,10 +57,47 @@
                     <button name="action_start_renewal" string="Start New Version" type="object" class="oe_highlight" invisible="approval_status != 'approved'"/>
                     <field name="approval_status" widget="statusbar"/>
                 </header>
-            </xpath>
-            <field name="document_link" position="after">
-                <field name="owner_id"/><field name="department"/><field name="reviewer_id"/><field name="approval_date"/><field name="renewal_due_date"/><field name="previous_version_id"/><field name="workflow_notes"/><field name="attachment" filename="attachment_filename"/><field name="attachment_filename" invisible="1"/>
-            </field>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="document_type"/>
+                            <field name="owner_department"/>
+                            <field name="vessel_id"/>
+                            <field name="version"/>
+                        </group>
+                        <group>
+                            <field name="issue_date"/>
+                            <field name="expiry_date"/>
+                            <field name="renewal_due_date"/>
+                            <field name="status"/>
+                            <field name="document_link"/>
+                        </group>
+                    </group>
+                    <group string="Review">
+                        <group>
+                            <field name="owner_id"/>
+                            <field name="renewal_owner"/>
+                            <field name="reviewer_id"/>
+                            <field name="approval_date"/>
+                            <field name="previous_version_id"/>
+                        </group>
+                        <group>
+                            <field name="attachment" filename="attachment_filename"/>
+                            <field name="attachment_filename" invisible="1"/>
+                            <field name="workflow_notes"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
         </field>
+    </record>
+
+    <record id="action_document_control_register" model="ir.actions.act_window">
+        <field name="name">Controlled Documents</field>
+        <field name="res_model">sedar.document.control</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_document_control_register"/>
+        <field name="search_view_id" ref="view_document_control_search"/>
     </record>
 </odoo>

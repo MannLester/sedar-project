@@ -1,9 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <record id="customer_harbor_terminal" model="sedar.customer">
+        <field name="name">Harbor Gateway Terminal</field>
+        <field name="customer_type">terminal</field>
+        <field name="billing_terms">30 days</field>
+        <field name="contract_status">active</field>
+    </record>
+    <record id="customer_oceanlink" model="sedar.customer">
+        <field name="name">Oceanlink Shipping</field>
+        <field name="customer_type">shipping</field>
+        <field name="billing_terms">30 days</field>
+        <field name="contract_status">active</field>
+    </record>
     <record id="marketing_001" model="sedar.marketing.record">
         <field name="name">Pipeline: Harbor Gateway Terminal Expansion</field>
         <field name="record_type">customer_pipeline</field>
-        <field name="customer_id" ref="sedar_marine_mvp.customer_harbor_terminal"/>
+        <field name="customer_id" ref="customer_harbor_terminal"/>
         <field name="company_name">Harbor Gateway Terminal</field>
         <field name="contact_person">Port Operations Desk</field>
         <field name="mobile_number">+63 917 555 0184</field>
@@ -20,7 +32,7 @@
     <record id="marketing_002" model="sedar.marketing.record">
         <field name="name">Customer Satisfaction: Oceanlink Shipping</field>
         <field name="record_type">customer_satisfaction</field>
-        <field name="customer_id" ref="sedar_marine_mvp.customer_oceanlink"/>
+        <field name="customer_id" ref="customer_oceanlink"/>
         <field name="company_name">Oceanlink Shipping</field>
         <field name="contact_person">Fleet Service Coordinator</field>
         <field name="mobile_number">+63 917 555 0127</field>
@@ -36,7 +48,7 @@
     <record id="appointment_001" model="sedar.marketing.appointment">
         <field name="name">Harbor Towage Requirements</field>
         <field name="request_id" ref="marketing_001"/>
-        <field name="customer_id" ref="sedar_marine_mvp.customer_harbor_terminal"/>
+        <field name="customer_id" ref="customer_harbor_terminal"/>
         <field name="company_name">Harbor Gateway Terminal</field>
         <field name="contact_person">Port Operations Desk</field>
         <field name="appointment_type">client_meeting</field>
@@ -47,7 +59,7 @@
     <record id="appointment_002" model="sedar.marketing.appointment">
         <field name="name">Terminal Site Visit</field>
         <field name="request_id" ref="marketing_001"/>
-        <field name="customer_id" ref="sedar_marine_mvp.customer_harbor_terminal"/>
+        <field name="customer_id" ref="customer_harbor_terminal"/>
         <field name="company_name">Harbor Gateway Terminal</field>
         <field name="contact_person">Port Operations Desk</field>
         <field name="appointment_type">site_visit</field>
@@ -58,7 +70,7 @@
     <record id="appointment_003" model="sedar.marketing.appointment">
         <field name="name">Oceanlink Follow-up Call</field>
         <field name="request_id" ref="marketing_002"/>
-        <field name="customer_id" ref="sedar_marine_mvp.customer_oceanlink"/>
+        <field name="customer_id" ref="customer_oceanlink"/>
         <field name="company_name">Oceanlink Shipping</field>
         <field name="contact_person">Fleet Service Coordinator</field>
         <field name="appointment_type">follow_up</field>

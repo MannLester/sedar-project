@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="action_owner_preview_dashboard" model="ir.actions.client">
+        <field name="name">Owner Preview</field>
+        <field name="tag">sedar_owner_preview.dashboard</field>
+    </record>
+
+    <record id="action_owner_preview_fleet_map" model="ir.actions.client">
+        <field name="name">AIS / GPS Map Preview</field>
+        <field name="tag">sedar_owner_preview.fleet_map</field>
+    </record>
+
+    <record id="action_owner_preview_vessel_health" model="ir.actions.client">
+        <field name="name">Vessel Health Preview</field>
+        <field name="tag">sedar_owner_preview.vessel_health</field>
+    </record>
+
+    <record id="action_owner_preview_payroll" model="ir.actions.client">
+        <field name="name">Payroll Preview</field>
+        <field name="tag">sedar_owner_preview.payroll</field>
+    </record>
+
+    <record id="action_owner_preview_dry_dock" model="ir.actions.client">
+        <field name="name">Dry Dock Preview</field>
+        <field name="tag">sedar_owner_preview.dry_dock</field>
+    </record>
+
+    <record id="action_owner_preview_audit_iso" model="ir.actions.client">
+        <field name="name">Audit / ISO Preview</field>
+        <field name="tag">sedar_owner_preview.audit_iso</field>
+    </record>
+
+    <record id="action_owner_preview_inventory_barcode" model="ir.actions.client">
+        <field name="name">Inventory Barcode Preview</field>
+        <field name="tag">sedar_owner_preview.inventory_barcode</field>
+    </record>
+
+    <record id="action_owner_preview_bank_feed" model="ir.actions.client">
+        <field name="name">Bank Feed Preview</field>
+        <field name="tag">sedar_owner_preview.bank_feed</field>
+    </record>
+
+    <record id="action_owner_preview_kpi_trends" model="ir.actions.client">
+        <field name="name">KPI Trends Preview</field>
+        <field name="tag">sedar_owner_preview.kpi_trends</field>
+    </record>
+
+    <menuitem id="menu_owner_preview_dashboard"
+              name="Owner Preview"
+              parent="sedar_dashboard.menu_root"
+              action="action_owner_preview_dashboard"
+              sequence="5"/>
+</odoo>

@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sedar_owner_preview.OwnerPreviewDashboard">
+        <main class="sop_page">
+            <section class="sop_hero">
+                <div>
+                    <p class="sop_kicker" t-esc="focusCopy.kicker"/>
+                    <h1 t-esc="focusCopy.title"/>
+                    <p class="sop_intro" t-esc="focusCopy.intro"/>
+                </div>
+                <div class="sop_hero_actions">
+                    <button type="button" t-on-click="() => openAction('sedar_tug_ops.action_sedar_job_order')"><i class="fa fa-ship"/> Jobs</button>
+                    <button type="button" t-on-click="() => openAction('sedar_finance_operations.action_finance_dashboard')"><i class="fa fa-money"/> Finance</button>
+                    <button type="button" t-on-click="() => openAction('sedar_operations_integration.action_document_control_register')"><i class="fa fa-file-text-o"/> Compliance</button>
+                </div>
+            </section>
+
+            <section t-if="isOverview" class="sop_metrics">
+                <article t-foreach="workflows" t-as="item" t-key="item.label" t-att-class="'sop_metric ' + item.className">
+                    <i t-att-class="'fa ' + item.icon"/>
+                    <div>
+                        <span t-esc="item.label"/>
+                        <strong t-esc="item.value"/>
+                        <small t-esc="item.note"/>
+                    </div>
+                </article>
+            </section>
+
+            <t t-if="state.activeModule === 'AIS / GPS Control' || isOverview">
+                <section class="sop_grid">
+                    <article class="sop_panel sop_map_panel">
+                        <div class="sop_panel_header">
+                            <div>
+                                <h2>AIS / GPS Fleet Map</h2>
+                                <p>Map-style preview for tugs with GPS trackers installed</p>
+                            </div>
+                            <span class="sop_live">Demo signal</span>
+                        </div>
+                        <div class="sop_map">
+                            <div class="sop_map_grid"/>
+                            <span class="sop_port p1">Batangas Port</span>
+                            <span class="sop_port p2">Manila Bay</span>
+                            <span class="sop_port p3">Navotas Yard</span>
+                            <button t-foreach="vessels" t-as="vessel" t-key="vessel.name"
+                                    type="button"
+                                    t-att-class="'sop_marker ' + vessel.statusClass + (vessel_index === state.activeVessel ? ' is-active' : '')"
+                                    t-att-style="'left: ' + vessel.lng + '%; top: ' + vessel.lat + '%;'"
+                                    t-on-click="() => selectVessel(vessel_index)">
+                                <i class="fa fa-location-arrow"/>
+                                <span t-esc="vessel.name"/>
+                            </button>
+                        </div>
+                        <div class="sop_vessel_picker">
+                            <button t-foreach="vessels" t-as="vessel" t-key="vessel.name"
+                                    type="button"
+                                    t-att-class="vessel_index === state.activeVessel ? 'is-active' : ''"
+                                    t-on-click="() => selectVessel(vessel_index)">
+                                <strong t-esc="vessel.name"/>
+                                <span t-esc="vessel.status"/>
+                            </button>
+                        </div>
+                    </article>
+
+                    <aside class="sop_panel sop_signal_panel">
+                        <div class="sop_panel_header">
+                            <div>
+                                <h2>Tracker Signal</h2>
+                                <p>What operations sees after a tracker ping</p>
+                            </div>
+                        </div>
+                        <dl class="sop_specs sop_specs_single">
+                            <div><dt>Selected Tug</dt><dd t-esc="selectedVessel.name"/></div>
+                            <div><dt>Current Area</dt><dd t-esc="selectedVessel.location"/></div>
+                            <div><dt>Speed</dt><dd t-esc="selectedVessel.speed"/></div>
+                            <div><dt>Heading</dt><dd t-esc="selectedVessel.heading"/></div>
+                            <div><dt>Dispatch ETA</dt><dd t-esc="selectedVessel.eta"/></div>
+                            <div><dt>Signal Status</dt><dd>Fresh, below 2 minutes</dd></div>
+                        </dl>
+                        <div class="sop_callout">
+                            <strong>Final integration note</strong>
+                            <p>This can later connect to Google Maps or an AIS/GPS provider API. For now, this preview shows the expected operator and owner view.</p>
+                        </div>
+                    </aside>
+                </section>
+            </t>
+
+            <t t-if="state.activeModule === 'Owner Vessel Card' || isOverview">
+                <section class="sop_grid">
+                    <aside class="sop_panel sop_vessel_panel">
+                        <div class="sop_panel_header">
+                            <div>
+                                <h2 t-esc="selectedVessel.name"/>
+                                <p t-esc="selectedVessel.role"/>
+                            </div>
+                            <span t-att-class="'sop_badge ' + selectedVessel.statusClass" t-esc="selectedVessel.status"/>
+                        </div>
+                        <dl class="sop_specs">
+                            <div><dt>Location</dt><dd t-esc="selectedVessel.location"/></div>
+                            <div><dt>Engine</dt><dd t-esc="selectedVessel.engine"/></div>
+                            <div><dt>Power</dt><dd t-esc="selectedVessel.horsepower"/></div>
+                            <div><dt>Bollard Pull</dt><dd t-esc="selectedVessel.bollard"/></div>
+                        </dl>
+                        <div class="sop_gauges">
+                            <div>
+                                <span>Fuel</span>
+                                <strong><t t-esc="selectedVessel.fuel"/>%</strong>
+                                <em><b t-att-style="'width:' + selectedVessel.fuel + '%'"/></em>
+                            </div>
+                            <div>
+                                <span>Availability</span>
+                                <strong><t t-esc="selectedVessel.availability"/>%</strong>
+                                <em><b t-att-style="'width:' + selectedVessel.availability + '%'"/></em>
+                            </div>
+                        </div>
+                    </aside>
+                    <article class="sop_panel">
+                        <div class="sop_panel_header">
+                            <div>
+                                <h2>Critical Parts and Equipment</h2>
+                                <p>Owner-level answer to: what engine and parts does each tug have?</p>
+                            </div>
+                        </div>
+                        <div class="sop_parts sop_parts_table">
+                            <div t-foreach="selectedVessel.parts" t-as="part" t-key="part.name">
+                                <span t-esc="part.name"/>
+                                <strong t-esc="part.stock"/>
+                                <em t-att-class="part.className" t-esc="part.state"/>
+                            </div>
+                        </div>
+                    </article>
+                </section>
+            </t>
+
+            <t t-if="state.activeModule === 'Payroll'">
+                <section class="sop_focus_grid">
+                    <article class="sop_panel sop_focus_main">
+                        <div class="sop_panel_header">
+                            <div>
+                                <h2>Crew Payroll Batch</h2>
+                                <p>General flow for approval, statutory deductions, and posting preview</p>
+                            </div>
+                            <span class="sop_badge is-watch">Draft batch</span>
+                        </div>
+                        <div class="sop_table">
+                            <div class="sop_table_head"><span>Crew</span><span>Vessel</span><span>Hours</span><span>OT</span><span>Gross</span><span>Deductions</span><span>Net</span><span>Status</span></div>
+                            <div t-foreach="payrollRows" t-as="row" t-key="row.crew">
+                                <span t-esc="row.crew"/><span t-esc="row.vessel"/><span t-esc="row.hours"/><span t-esc="row.overtime"/><span t-esc="row.gross"/><span t-esc="row.deductions"/><span t-esc="row.net"/><span t-esc="row.state"/>
+                            </div>
+                        </div>
+                    </article>
+                    <aside class="sop_panel">
+                        <h2>Payroll Flow</h2>
+                        <div class="sop_step_list">
+                            <div><strong>1</strong><span>Collect attendance and vessel shift data</span></div>
+                            <div><strong>2</strong><span>Compute overtime, allowance, and dry dock allocation</span></div>
+                            <div><strong>3</strong><span>Preview SSS, PhilHealth, PAGIBIG, tax deductions</span></div>
+                            <div><strong>4</strong><span>Approve batch and post journal/payment</span></div>
+                        </div>
+                    </aside>
+                </section>
+            </t>
+
+            <t t-if="state.activeModule === 'Dry Dock'">
+                <section class="sop_focus_grid">
+                    <article class="sop_panel sop_focus_main">
+                        <div class="sop_panel_header">
+                            <div>
+                                <h2>MT SEDAR Lakan Dry Dock</h2>
+                                <p>Scope, milestone, contractor, cost, and dispatch-blocking preview</p>
+                            </div>
+                            <span class="sop_badge is-risk">Blocked from dispatch</span>
+                        </div>
+                        <div class="sop_drydock_summary">
+                            <div><span>Progress</span><strong>63%</strong><em><b style="width:63%"/></em></div>
+                            <div><span>Budget</span><strong>PHP 2.8M</strong><small>PHP 2.1M committed</small></div>
+                            <div><span>Target Release</span><strong>Jul 18</strong><small>Sea trial pending</small></div>
+                        </div>
+                        <div class="sop_milestones">
+                            <div t-foreach="dryDockMilestones" t-as="step" t-key="step.name">
+                                <span><strong t-esc="step.name"/><small t-esc="step.owner"/></span>
+                                <em><b t-att-style="'width:' + step.progress + '%'"/></em>
+                                <i t-esc="step.state"/>
+                            </div>
+                        </div>
+                    </article>
+                    <aside class="sop_panel">
+                        <h2>Owner Questions Answered</h2>
+                        <div class="sop_step_list">
+                            <div><strong>?</strong><span>Why is this tug unavailable?</span></div>
+                            <div><strong>?</strong><span>Which contractor is delaying the job?</span></div>
+                            <div><strong>?</strong><span>What part is missing and how much is committed?</span></div>
+                            <div><strong>?</strong><span>When can operations schedule it again?</span></div>
+                        </div>
+                    </aside>
+                </section>
+            </t>
+
+            <t t-if="state.activeModule === 'Audit / ISO'">
+                <section class="sop_focus_grid">
+                    <article class="sop_panel sop_focus_main">
+                        <div class="sop_panel_header">
+                            <div>
+                                <h2>Audit / ISO Evidence Board</h2>
+                                <p>Evidence, revision, retention, owner, and sign-off preview</p>
+                            </div>
+                            <span class="sop_badge is-watch">7 open items</span>
+                        </div>
+                        <div class="sop_cards_2">
+                            <article t-foreach="auditRows" t-as="row" t-key="row.item">
+                                <strong t-esc="row.item"/>
+                                <p><t t-esc="row.owner"/> - Due <t t-esc="row.due"/></p>
+                                <span t-esc="row.state"/>
+                            </article>
+                        </div>
+                    </article>
+                    <aside class="sop_panel">
+                        <h2>ISO Controls</h2>
+                        <div class="sop_step_list">
+                            <div><strong>R</strong><span>Locked revision history</span></div>
+                            <div><strong>E</strong><span>Evidence packet checklist</span></div>
+                            <div><strong>S</strong><span>Sign-off by responsible department</span></div>
+                            <div><strong>A</strong><span>Audit trail for management review</span></div>
+                        </div>
+                    </aside>
+                </section>
+            </t>
+
+            <t t-if="state.activeModule === 'Inventory Barcode'">
+                <section class="sop_focus_grid">
+                    <article class="sop_panel sop_focus_main">
+                        <div class="sop_panel_header">
+                            <div>
+                                <h2>Barcode Issue Flow</h2>
+                                <p>Scanner-style workflow for spare parts, fuel, lubricants, and vessel stock</p>
+                            </div>
+                            <span class="sop_badge is-good">Scan ready</span>
+                        </div>
+                        <div class="sop_scan_box">
+                            <i class="fa fa-barcode"/>
+                            <strong>SP-STEER-SEAL-002</strong>
+                            <span>Steering pump seal kit</span>
+                        </div>
+                        <div class="sop_step_cards">
+                            <article t-foreach="barcodeSteps" t-as="step" t-key="step.label">
+                                <span t-esc="step.label"/>
+                                <strong t-esc="step.value"/>
+                                <p t-esc="step.note"/>
+                            </article>
+                        </div>
+                    </article>
+                    <aside class="sop_panel">
+                        <h2>Result</h2>
+                        <div class="sop_callout">
+                            <strong>Stock move created</strong>
+                            <p>Part is issued to MT SEDAR Marikit, linked to maintenance request MR-0241, and becomes visible in vessel cost.</p>
+                        </div>
+                    </aside>
+                </section>
+            </t>
+
+            <t t-if="state.activeModule === 'Bank Feed'">
+                <section class="sop_focus_grid">
+                    <article class="sop_panel sop_focus_main">
+                        <div class="sop_panel_header">
+                            <div>
+                                <h2>Imported Bank Transactions</h2>
+                                <p>Preview of bank statement import, matching, exceptions, and cash position</p>
+                            </div>
+                            <span class="sop_badge is-good">PHP 8.7M available</span>
+                        </div>
+                        <div class="sop_table sop_bank_table">
+                            <div class="sop_table_head"><span>Date</span><span>Bank</span><span>Transaction</span><span>Amount</span><span>Match</span></div>
+                            <div t-foreach="bankRows" t-as="row" t-key="row.detail">
+                                <span t-esc="row.date"/><span t-esc="row.bank"/><span t-esc="row.detail"/><span t-esc="row.amount"/><span t-esc="row.match"/>
+                            </div>
+                        </div>
+                    </article>
+                    <aside class="sop_panel">
+                        <h2>Cash Controls</h2>
+                        <div class="sop_step_list">
+                            <div><strong>1</strong><span>Import statement</span></div>
+                            <div><strong>2</strong><span>Match customer receipt or check release</span></div>
+                            <div><strong>3</strong><span>Flag unknown deposit or stale check</span></div>
+                            <div><strong>4</strong><span>Update available cash for owner view</span></div>
+                        </div>
+                    </aside>
+                </section>
+            </t>
+
+            <t t-if="state.activeModule === 'KPI Trends' || isOverview">
+                <section class="sop_bottom_grid">
+                    <article class="sop_panel">
+                        <div class="sop_panel_header">
+                            <div>
+                                <h2>Owner KPI Trends</h2>
+                                <p>Targets and directional charts for board-level review</p>
+                            </div>
+                        </div>
+                        <div class="sop_trends">
+                            <article t-foreach="trends" t-as="trend" t-key="trend.label">
+                                <div>
+                                    <span t-esc="trend.label"/>
+                                    <strong t-esc="trend.value"/>
+                                    <small t-esc="trend.note"/>
+                                </div>
+                                <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                                    <polyline t-att-points="sparkline(trend.points)"/>
+                                </svg>
+                            </article>
+                        </div>
+                    </article>
+
+                    <article class="sop_panel">
+                        <div class="sop_panel_header">
+                            <div>
+                                <h2>Operations Feed</h2>
+                                <p>What the owner would want to see without opening every module</p>
+                            </div>
+                        </div>
+                        <div class="sop_timeline">
+                            <div t-foreach="timeline" t-as="item" t-key="item.time + item.title">
+                                <time t-esc="item.time"/>
+                                <span t-att-class="item.className"/>
+                                <div>
+                                    <strong t-esc="item.title"/>
+                                    <p t-esc="item.detail"/>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                </section>
+            </t>
+
+            <section t-if="isOverview" class="sop_panel sop_modules">
+                <div class="sop_panel_header">
+                    <div>
+                        <h2>Missing Workflow Visualizations</h2>
+                        <p>General flows and dummy data for the client to understand the target output</p>
+                    </div>
+                    <span class="sop_active_module">Overview</span>
+                </div>
+                <div class="sop_module_grid">
+                    <button t-foreach="modules" t-as="module" t-key="module.title"
+                            type="button"
+                            t-att-class="module.title === state.activeModule ? 'is-active' : ''"
+                            t-on-click="() => selectModule(module)">
+                        <span t-esc="module.status"/>
+                        <strong t-esc="module.title"/>
+                        <p t-esc="module.text"/>
+                    </button>
+                </div>
+            </section>
+        </main>
+    </t>
+</templates>

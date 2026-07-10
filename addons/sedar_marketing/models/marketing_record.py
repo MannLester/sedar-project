@@ -2,7 +2,27 @@ from odoo import api, fields, models
 
 
 class SedarCustomer(models.Model):
-    _inherit = "sedar.customer"
+    _name = "sedar.customer"
+    _description = "SEDAR Customer"
+    _order = "name"
+
+    name = fields.Char(required=True)
+    customer_type = fields.Selection(
+        [
+            ("shipping", "Shipping Line"),
+            ("terminal", "Terminal"),
+            ("industrial", "Industrial"),
+            ("government", "Government"),
+        ],
+        default="shipping",
+    )
+    billing_terms = fields.Char(default="30 days")
+    contract_status = fields.Selection(
+        [("active", "Active"), ("renewal", "For Renewal"), ("expired", "Expired")],
+        default="active",
+    )
+    receivable_balance = fields.Float()
+    margin_rate = fields.Float(string="Margin %")
 
     marketing_contact_person = fields.Char()
     marketing_mobile_number = fields.Char()
