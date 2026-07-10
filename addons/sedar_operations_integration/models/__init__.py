@@ -7,3 +7,4 @@ from . import tug_reliability
 from . import procurement_workflow
 from . import inventory_workflow
 from . import maintenance_pms
+from . import hr_crewing_workflow

@@ -58,9 +58,9 @@ Status meanings:
 
 | Requirement | Status | Current backend and gap |
 |---|---|---|
-| Crew scheduling | Partial | Crew roster and rotations work. Rank requirements, headcount, and rotation-overlap checks are missing. |
+| Crew scheduling | Working | Crew roster and rotations work with date validation, overlap blocking, verified-document checks, and vessel assignment. |
 | Certifications | Working | Crew certificates and expiry checks work and can block dispatch. Issuer and verification controls need more depth. |
-| STCW documents | Partial | STCW certificates can be recorded as certification types. A controlled STCW type list and document verification are missing. |
+| STCW documents | Working | Controlled STCW types, certificate number, issuer, dates, attachment, verification owner, and dispatch checks work. |
 | Medicals | Working | Medical dates, expiry, and fit-for-duty status work and can block dispatch. |
 | Leave | Partial | Leave request states and date validation work. Native HR leave, balance, and rotation conflict checks are missing. |
 | Payroll integration | Partial | Crew payroll references and approved job-cost allocations work. Full payroll export, posting, and payment are missing. |
@@ -89,8 +89,8 @@ Status meanings:
 | Requirement | Status | Current backend and gap |
 |---|---|---|
 | Employee records | Working | Native Community employees are linked to SEDAR crew and document data. |
-| Attendance | Missing | Current attendance data is a placeholder and is not backed by native check-in and check-out records. |
-| Performance evaluation | Missing | Current performance data is a placeholder with no review cycle, scoring, or history. |
+| Attendance | Working | Native Community check-in and check-out records now support office, standby, and vessel shifts, job links, overtime calculation, and HR approval. |
+| Performance evaluation | Working | Review cycles, employee and manager stages, weighted goals, scores, comments, HR approval, and permanent results work. |
 | Recruitment | Working | Native applicants are used with job dispatch, interview checks, assessment, attachments, and hiring stages. |
 
 ## Document Control

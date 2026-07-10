@@ -15,6 +15,8 @@
         'maintenance',
         'purchase_stock',
         'sedar_procurement',
+        'hr_attendance',
+        'hr_holidays',
     ],
     'data': [
         'security/ir.model.access.csv',

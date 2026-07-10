@@ -23,3 +23,11 @@ access_sedar_equipment_meter_user,sedar.equipment.meter user,model_sedar_equipme
 access_sedar_maintenance_check_user,sedar.maintenance.check user,model_sedar_maintenance_check,maintenance.group_equipment_manager,1,1,1,0
 access_sedar_maintenance_labor_user,sedar.maintenance.labor user,model_sedar_maintenance_labor,maintenance.group_equipment_manager,1,1,1,0
 access_sedar_maintenance_service_log_user,sedar.maintenance.service.log user,model_sedar_maintenance_service_log,maintenance.group_equipment_manager,1,0,0,0
+access_sedar_performance_cycle_officer,sedar.performance.cycle officer,model_sedar_performance_cycle,hr.group_hr_user,1,1,1,0
+access_sedar_performance_cycle_manager,sedar.performance.cycle manager,model_sedar_performance_cycle,hr.group_hr_manager,1,1,1,1
+access_sedar_performance_review_officer,sedar.performance.review officer,model_sedar_performance_review,hr.group_hr_user,1,1,1,0
+access_sedar_performance_review_manager,sedar.performance.review manager,model_sedar_performance_review,hr.group_hr_manager,1,1,1,1
+access_sedar_performance_goal_officer,sedar.performance.goal officer,model_sedar_performance_goal,hr.group_hr_user,1,1,1,0
+access_sedar_performance_goal_manager,sedar.performance.goal manager,model_sedar_performance_goal,hr.group_hr_manager,1,1,1,1
+access_sedar_stcw_type_officer,sedar.stcw.type officer,model_sedar_stcw_type,hr.group_hr_user,1,0,0,0
+access_sedar_stcw_type_manager,sedar.stcw.type manager,model_sedar_stcw_type,hr.group_hr_manager,1,1,1,1
