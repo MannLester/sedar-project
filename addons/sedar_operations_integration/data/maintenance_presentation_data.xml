@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <record id="maintenance_vendor_presentation" model="res.partner">
+        <field name="name">Manila Marine Engineering Supply</field>
+        <field name="supplier_rank">1</field>
+        <field name="phone">+63 2 8527 4418</field>
+    </record>
+    <record id="maintenance_product_steering_seal" model="product.product">
+        <field name="name">Steering Gear Hydraulic Seal Kit</field>
+        <field name="detailed_type">product</field>
+        <field name="purchase_ok">True</field>
+        <field name="sale_ok">False</field>
+        <field name="standard_price">18500</field>
+    </record>
+    <record id="maintenance_vessel_aurora" model="sedar.vessel">
+        <field name="name">MT SEDAR Aurora</field>
+        <field name="registry_no">IMO-SEDAR-022</field>
+        <field name="vessel_type">tug</field>
+        <field name="capacity">2800</field>
+        <field name="home_port">Batangas Port</field>
+        <field name="status">active</field>
+    </record>
+    <record id="maintenance_equipment_aurora_steering" model="maintenance.equipment">
+        <field name="name">MT Aurora Steering Gear</field>
+        <field name="vessel_id" ref="maintenance_vessel_aurora"/>
+    </record>
+    <record id="maintenance_request_aurora_steering" model="maintenance.request">
+        <field name="name">Steering gear hydraulic pressure loss</field>
+        <field name="equipment_id" ref="maintenance_equipment_aurora_steering"/>
+        <field name="maintenance_type">corrective</field>
+        <field name="severity">critical</field>
+        <field name="blocks_operation">True</field>
+        <field name="schedule_date" eval="datetime.now().strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="estimated_cost">74000</field>
+        <field name="currency_id" ref="base.PHP"/>
+        <field name="preferred_vendor_id" ref="maintenance_vendor_presentation"/>
+        <field name="description">Vessel held from dispatch pending seal replacement and pressure test.</field>
+    </record>
+    <record id="maintenance_employee_aurora_master" model="hr.employee">
+        <field name="name">Captain Luis Mendoza</field>
+        <field name="job_title">Tug Master</field>
+    </record>
+    <record id="maintenance_crew_aurora_master" model="sedar.crew.member">
+        <field name="employee_id" ref="maintenance_employee_aurora_master"/>
+        <field name="rank">Tug Master</field>
+        <field name="vessel_id" ref="maintenance_vessel_aurora"/>
+        <field name="payroll_reference">CREW-0022</field>
+    </record>
+    <record id="maintenance_job_aurora_blocked" model="sedar.job.order">
+        <field name="customer_id" ref="partner_presentation_customer"/>
+        <field name="vessel_id" ref="maintenance_vessel_aurora"/>
+        <field name="origin_port">Batangas Port Anchorage</field>
+        <field name="destination_port">Tabangao Terminal</field>
+        <field name="quoted_amount">165000</field>
+        <field name="direct_cost">58000</field>
+        <field name="crew_ids" eval="[(6, 0, [ref('maintenance_crew_aurora_master')])]"/>
+    </record>
+    <record id="maintenance_part_aurora_steering" model="sedar.maintenance.part.line">
+        <field name="maintenance_request_id" ref="maintenance_request_aurora_steering"/>
+        <field name="product_id" ref="maintenance_product_steering_seal"/>
+        <field name="required_qty">2</field>
+    </record>
+    <record id="maintenance_equipment_guardian_engine" model="maintenance.equipment">
+        <field name="name">MT SEDAR Guardian Main Engine</field>
+        <field name="vessel_id" ref="vessel_presentation_tug"/>
+    </record>
+    <record id="maintenance_request_guardian_engine" model="maintenance.request">
+        <field name="name">Main engine 1,000-hour preventive inspection</field>
+        <field name="equipment_id" ref="maintenance_equipment_guardian_engine"/>
+        <field name="maintenance_type">preventive</field>
+        <field name="severity">medium</field>
+        <field name="schedule_date" eval="(datetime.now() + timedelta(days=14)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="duration">8</field>
+        <field name="estimated_cost">32000</field>
+        <field name="currency_id" ref="base.PHP"/>
+        <field name="description">Planned inspection outside the confirmed towage schedule.</field>
+    </record>
+</odoo>

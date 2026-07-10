@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_maintenance_equipment_vessel" model="ir.ui.view">
+        <field name="name">maintenance.equipment.vessel</field>
+        <field name="model">maintenance.equipment</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_view_form"/>
+        <field name="arch" type="xml">
+            <field name="category_id" position="after">
+                <field name="vessel_id"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_maintenance_request_sedar" model="ir.ui.view">
+        <field name="name">maintenance.request.sedar</field>
+        <field name="model">maintenance.request</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_request_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='archive_equipment_request']" position="before">
+                <field name="sedar_can_start" invisible="1"/>
+                <field name="sedar_can_complete" invisible="1"/>
+                <field name="sedar_can_buy_parts" invisible="1"/>
+                <button name="action_create_rfq" string="Create Parts RFQ" type="object" invisible="not sedar_can_buy_parts"/>
+                <button name="action_waiting_parts" string="Wait for Parts" type="object" invisible="not sedar_can_buy_parts"/>
+                <button name="action_start_sedar" string="Start Work" type="object" class="oe_highlight" invisible="not sedar_can_start"/>
+                <button name="action_complete_sedar" string="Complete Work" type="object" class="oe_highlight" invisible="not sedar_can_complete"/>
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_open_purchase_orders" type="object" class="oe_stat_button" icon="fa-shopping-cart" invisible="not purchase_order_count">
+                        <field name="purchase_order_count" widget="statinfo" string="RFQs / POs"/>
+                    </button>
+                </div>
+            </xpath>
+            <field name="equipment_id" position="after">
+                <field name="vessel_id" readonly="1"/>
+            </field>
+            <xpath expr="//sheet/group" position="after">
+                <group string="Marine Work Details">
+                    <group>
+                        <field name="severity" widget="badge"/>
+                        <field name="blocks_operation"/>
+                        <field name="downtime_hours"/>
+                        <field name="preferred_vendor_id"/>
+                    </group>
+                    <group>
+                        <field name="currency_id" invisible="1"/>
+                        <field name="estimated_cost"/>
+                        <field name="actual_cost"/>
+                        <field name="parts_ready" readonly="1"/>
+                        <field name="shortage_count" readonly="1"/>
+                    </group>
+                </group>
+                <group string="Dry Dock Plan">
+                    <field name="is_dry_dock"/>
+                    <field name="dry_dock_start" invisible="not is_dry_dock" required="is_dry_dock"/>
+                    <field name="dry_dock_end" invisible="not is_dry_dock" required="is_dry_dock"/>
+                </group>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Required Parts">
+                    <field name="part_line_ids">
+                        <tree editable="bottom">
+                            <field name="product_id"/>
+                            <field name="required_qty"/>
+                            <field name="product_uom_id"/>
+                            <field name="available_qty"/>
+                            <field name="shortage_qty" decoration-danger="shortage_qty &gt; 0"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_maintenance_request_tree_sedar" model="ir.ui.view">
+        <field name="name">maintenance.request.tree.sedar</field>
+        <field name="model">maintenance.request</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_request_view_tree"/>
+        <field name="arch" type="xml">
+            <field name="name" position="before">
+                <field name="company_id" column_invisible="1"/>
+                <field name="employee_id" column_invisible="1"/>
+            </field>
+            <field name="name" position="after">
+                <field name="equipment_id" optional="show"/>
+                <field name="vessel_id" optional="show"/>
+                <field name="severity" widget="badge" optional="show"/>
+                <field name="blocks_operation" optional="show"/>
+                <field name="schedule_date" optional="show"/>
+                <field name="parts_ready" optional="show"/>
+                <field name="downtime_hours" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_purchase_order_maintenance_request" model="ir.ui.view">
+        <field name="name">purchase.order.maintenance.request</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="sedar_procurement.view_sedar_purchase_order_form_inherit"/>
+        <field name="arch" type="xml">
+            <field name="sedar_maintenance_id" position="after">
+                <field name="sedar_maintenance_request_id"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_stock_picking_maintenance_request" model="ir.ui.view">
+        <field name="name">stock.picking.maintenance.request</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <field name="origin" position="after">
+                <field name="sedar_maintenance_request_id" readonly="1" invisible="not sedar_maintenance_request_id"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_job_order_maintenance" model="ir.ui.view">
+        <field name="name">sedar.job.order.maintenance</field>
+        <field name="model">sedar.job.order</field>
+        <field name="inherit_id" ref="sedar_operations_integration.view_job_order_integrated"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_maintenance" type="object" class="oe_stat_button" icon="fa-wrench" invisible="not vessel_id">
+                    <field name="maintenance_count" widget="statinfo" string="Maintenance"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_dashboard_maintenance" model="ir.ui.view">
+        <field name="name">sedar.dashboard.maintenance</field>
+        <field name="model">sedar.dashboard</field>
+        <field name="inherit_id" ref="sedar_dashboard.view_sedar_dashboard_form"/>
+        <field name="arch" type="xml">
+            <field name="expiring_documents" position="after">
+                <field name="open_maintenance"/>
+                <field name="blocked_vessels"/>
+                <field name="maintenance_waiting_parts"/>
+                <field name="maintenance_rfq_count"/>
+            </field>
+        </field>
+    </record>
+</odoo>
