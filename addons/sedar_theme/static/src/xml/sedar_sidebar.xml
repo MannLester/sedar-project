@@ -86,13 +86,31 @@
                             </div>
                         </details>
 
+                        <details class="o_sedar_nav_group" open="open">
+                            <summary class="o_sedar_nav_parent">
+                                <span><i class="fa fa-ship"/>Marine Operations</span>
+                                <i class="fa fa-angle-down o_sedar_nav_chevron"/>
+                            </summary>
+                            <div class="o_sedar_nav_children">
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_tug_ops.action_sedar_job_order"><span>Job Dispatch</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_tug_ops.action_sedar_tug_schedule"><span>Tug Schedule</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_tug_ops.action_sedar_voyage_log"><span>Voyage Logs</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_tug_ops.action_sedar_fuel_log"><span>Fuel Monitoring</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=maintenance.hr_equipment_request_action"><span>Maintenance Work Orders</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_crewing.action_sedar_crew_member"><span>Crew Readiness</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_doccontrol.action_sedar_doc_vessel_cert"><span>Vessel Certificates</span></a>
+                            </div>
+                        </details>
+
                         <details class="o_sedar_nav_group">
                             <summary class="o_sedar_nav_parent">
                                 <span><i class="fa fa-money"/>Finance and Accounting</span>
                                 <i class="fa fa-angle-down o_sedar_nav_chevron"/>
                             </summary>
                             <div class="o_sedar_nav_children">
-                                <span class="o_sedar_nav_item o_sedar_nav_placeholder">Placeholder 1</span>
+                                <a class="o_sedar_nav_item" href="/web#action=account.action_move_journal_line"><span>General Ledger</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=account.action_move_out_invoice_type"><span>Customer Invoices</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=account.action_move_in_invoice_type"><span>Vendor Bills</span></a>
                             </div>
                         </details>
 
@@ -135,7 +153,11 @@
                                         <span>Incident Reports</span>
                                     </a>
                                 </t>
-                                <span class="o_sedar_nav_item o_sedar_nav_placeholder">Placeholder 1</span>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_hsse.action_sedar_hsse_inspection"><span>Inspections and Audits</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_hsse.action_sedar_hsse_risk_assessment"><span>Risk Assessments</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_hsse.action_sedar_hsse_permit"><span>Permits</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_operations_integration.action_corrective_actions"><span>Corrective Actions</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_operations_integration.action_hsse_training"><span>Training Records</span></a>
                             </div>
                         </details>
 
@@ -166,10 +188,10 @@
                                        t-att-data-menu-xmlid="app.xmlid"
                                        t-att-class="{'o_sedar_nav_item': true, 'active': currentApp and currentApp.id === app.id}"
                                        t-on-click.prevent="() => this.onNavBarDropdownItemSelection(app)">
-                                        <span>Company Calendar</span>
+                                        <span>Live KPI Dashboard</span>
                                     </a>
                                 </t>
-                                <span class="o_sedar_nav_item o_sedar_nav_placeholder">Placeholder 1</span>
+                                <a class="o_sedar_nav_item" href="/web#action=stock.action_picking_tree_all"><span>Warehouse Transfers</span></a>
                             </div>
                         </details>
                     </nav>
@@ -178,7 +200,7 @@
                         <div class="o_sedar_user_avatar">S</div>
                         <div class="o_sedar_footer_copy">
                             <div class="o_sedar_user_name">SEDAR MVP</div>
-                            <div class="o_sedar_user_role">Placeholder logo</div>
+                            <div class="o_sedar_user_role">Marine ERP</div>
                         </div>
                         <i class="fa fa-sign-out o_sedar_footer_icon" aria-hidden="true"/>
                     </div>
