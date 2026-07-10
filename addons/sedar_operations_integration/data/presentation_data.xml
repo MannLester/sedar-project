@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <record id="partner_presentation_customer" model="res.partner">
+        <field name="name">Pacific Harbor Shipping</field>
+        <field name="customer_rank">1</field>
+        <field name="phone">+63 917 555 0188</field>
+        <field name="street">Port Area, Manila</field>
+    </record>
+
+    <record id="vessel_presentation_tug" model="sedar.vessel">
+        <field name="name">MT SEDAR Guardian</field>
+        <field name="registry_no">IMO-SEDAR-017</field>
+        <field name="vessel_type">tug</field>
+        <field name="capacity">3200</field>
+        <field name="home_port">Manila South Harbor</field>
+        <field name="status">active</field>
+        <field name="last_position_at" eval="time.strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="current_latitude">14.5832</field>
+        <field name="current_longitude">120.9567</field>
+    </record>
+
+    <record id="employee_presentation_master" model="hr.employee">
+        <field name="name">Captain Ramon Santos</field>
+        <field name="job_title">Tug Master</field>
+    </record>
+
+    <record id="crew_presentation_master" model="sedar.crew.member">
+        <field name="employee_id" ref="employee_presentation_master"/>
+        <field name="rank">Tug Master</field>
+        <field name="vessel_id" ref="vessel_presentation_tug"/>
+        <field name="payroll_reference">CREW-0017</field>
+    </record>
+
+    <record id="crew_presentation_certification" model="sedar.crew.certification">
+        <field name="crew_id" ref="crew_presentation_master"/>
+        <field name="cert_type">STCW II/2 Master</field>
+        <field name="certificate_no">STCW-PH-2026-017</field>
+        <field name="issue_date" eval="(datetime.now() - timedelta(days=120)).strftime('%Y-%m-%d')"/>
+        <field name="expiry_date" eval="(datetime.now() + timedelta(days=720)).strftime('%Y-%m-%d')"/>
+    </record>
+
+    <record id="crew_presentation_medical" model="sedar.crew.medical">
+        <field name="crew_id" ref="crew_presentation_master"/>
+        <field name="exam_date" eval="(datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')"/>
+        <field name="expiry_date" eval="(datetime.now() + timedelta(days=335)).strftime('%Y-%m-%d')"/>
+        <field name="fit_for_duty">True</field>
+        <field name="clinic">Maritime Medical Center Manila</field>
+    </record>
+
+    <record id="vessel_presentation_certificate" model="sedar.doc.vessel.cert">
+        <field name="cert_type">Certificate of Registry</field>
+        <field name="vessel_id" ref="vessel_presentation_tug"/>
+        <field name="issuing_body">Maritime Industry Authority</field>
+        <field name="issue_date" eval="(datetime.now() - timedelta(days=180)).strftime('%Y-%m-%d')"/>
+        <field name="expiry_date" eval="(datetime.now() + timedelta(days=185)).strftime('%Y-%m-%d')"/>
+    </record>
+
+    <record id="job_presentation_ready" model="sedar.job.order">
+        <field name="customer_id" ref="partner_presentation_customer"/>
+        <field name="vessel_id" ref="vessel_presentation_tug"/>
+        <field name="origin_port">Manila South Harbor Anchorage</field>
+        <field name="destination_port">Pier 15</field>
+        <field name="quoted_amount">185000</field>
+        <field name="direct_cost">62000</field>
+        <field name="crew_ids" eval="[(6, 0, [ref('crew_presentation_master')])]"/>
+    </record>
+
+    <record id="schedule_presentation_ready" model="sedar.tug.schedule">
+        <field name="name">Pacific Harbor Ship Assist</field>
+        <field name="vessel_id" ref="vessel_presentation_tug"/>
+        <field name="job_order_id" ref="job_presentation_ready"/>
+        <field name="start_datetime" eval="(datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="end_datetime" eval="(datetime.now() + timedelta(days=1, hours=4)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="port_area">Manila South Harbor</field>
+        <field name="assignment_type">towage</field>
+    </record>
+</odoo>

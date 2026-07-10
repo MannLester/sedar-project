@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <record id="hse_incident_demo" model="sedar.hsse.incident">
+        <field name="name">Mooring Line Snap Investigation</field>
+        <field name="vessel_id" ref="vessel_presentation_tug"/>
+        <field name="job_order_id" ref="job_presentation_ready"/>
+        <field name="location">Manila South Harbor</field>
+        <field name="severity">medium</field>
+        <field name="description">A worn messenger line snapped during berthing. No injury was recorded.</field>
+        <field name="state">investigating</field>
+    </record>
+    <record id="hse_incident_action_demo" model="sedar.hsse.corrective.action">
+        <field name="name">Replace worn messenger lines and brief deck crew</field>
+        <field name="incident_id" ref="hse_incident_demo"/>
+        <field name="due_date" eval="(datetime.now() + timedelta(days=5)).strftime('%Y-%m-%d')"/>
+        <field name="notes">Inspect all lines and record replacement serial numbers.</field>
+    </record>
+    <record id="hse_inspection_demo" model="sedar.hsse.inspection">
+        <field name="name">Monthly Vessel Safety Inspection</field>
+        <field name="inspection_type">vessel</field>
+        <field name="vessel_id" ref="vessel_presentation_tug"/>
+        <field name="job_order_id" ref="job_presentation_ready"/>
+        <field name="state">in_progress</field>
+        <field name="line_ids" eval="[(0, 0, {'item': 'Fire extinguishers charged', 'result': 'pass'}), (0, 0, {'item': 'Emergency lighting operational', 'result': 'fail', 'remarks': 'Port aft lamp requires replacement'})]"/>
+    </record>
+    <record id="hse_risk_demo" model="sedar.hsse.risk.assessment">
+        <field name="activity">Ship assist in restricted visibility</field>
+        <field name="hazard">Collision during close-quarter maneuvering</field>
+        <field name="vessel_id" ref="vessel_presentation_tug"/>
+        <field name="job_order_id" ref="job_presentation_ready"/>
+        <field name="likelihood">3</field><field name="severity">4</field>
+        <field name="mitigation">Master-pilot briefing, two radar watch, reduced speed, and abort point agreed.</field>
+        <field name="residual_likelihood">1</field><field name="residual_severity">3</field>
+        <field name="state">review</field>
+    </record>
+    <record id="hse_training_demo" model="sedar.hsse.training">
+        <field name="name">Man Overboard Recovery Drill</field>
+        <field name="training_type">emergency</field>
+        <field name="vessel_id" ref="vessel_presentation_tug"/>
+        <field name="trainer">Chief Officer Luis Reyes</field>
+        <field name="training_date" eval="(datetime.now() + timedelta(days=2)).strftime('%Y-%m-%d')"/>
+        <field name="expiry_date" eval="(datetime.now() + timedelta(days=367)).strftime('%Y-%m-%d')"/>
+        <field name="attendee_ids" eval="[(6, 0, [ref('employee_presentation_master')])]"/>
+    </record>
+</odoo>

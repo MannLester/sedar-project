@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="sedar_marine_mvp.view_sedar_vessel_list" model="ir.ui.view">
+        <field name="active">False</field>
+    </record>
+    <record id="sedar_marine_mvp.view_sedar_vessel_form" model="ir.ui.view">
+        <field name="active">False</field>
+    </record>
+    <record id="sedar_marine_mvp.view_sedar_job_order_list" model="ir.ui.view">
+        <field name="active">False</field>
+    </record>
+    <record id="sedar_marine_mvp.view_sedar_job_order_form" model="ir.ui.view">
+        <field name="active">False</field>
+    </record>
+    <record id="sedar_marine_mvp.view_sedar_voyage_log_list" model="ir.ui.view">
+        <field name="active">False</field>
+    </record>
+    <record id="sedar_marine_mvp.view_sedar_voyage_log_form" model="ir.ui.view">
+        <field name="active">False</field>
+    </record>
+    <record id="sedar_marine_mvp.view_sedar_crew_member_list" model="ir.ui.view">
+        <field name="active">False</field>
+    </record>
+    <record id="sedar_marine_mvp.view_sedar_crew_member_form" model="ir.ui.view">
+        <field name="active">False</field>
+    </record>
+</odoo>

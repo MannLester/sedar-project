@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_marketing_record_operations" model="ir.ui.view">
+        <field name="name">sedar.marketing.record.operations</field>
+        <field name="model">sedar.marketing.record</field>
+        <field name="inherit_id" ref="sedar_marketing.view_sedar_marketing_record_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('sedar_review_actions')]" position="before">
+                <group string="Operations Handover" invisible="flow_step != 'review'">
+                    <field name="assigned_tug_id" domain="[('status', 'in', ['active', 'available', 'standby'])]"/>
+                    <field name="job_order_id" readonly="1"/>
+                    <button name="action_create_job_order" type="object" string="Create Operations Job" class="oe_highlight" invisible="job_order_id"/>
+                    <button name="action_open_job_order" type="object" string="Open Operations Job" invisible="not job_order_id"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_job_order_integrated" model="ir.ui.view">
+        <field name="name">sedar.job.order.integrated</field>
+        <field name="model">sedar.job.order</field>
+        <field name="inherit_id" ref="sedar_tug_ops.view_sedar_job_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_open_schedules" type="object" class="oe_stat_button" icon="fa-calendar">
+                        <field name="schedule_count" widget="statinfo" string="Schedules"/>
+                    </button>
+                    <button name="action_open_voyages" type="object" class="oe_stat_button" icon="fa-ship">
+                        <field name="voyage_count" widget="statinfo" string="Voyages"/>
+                    </button>
+                    <button name="action_open_fuel_logs" type="object" class="oe_stat_button" icon="fa-tint">
+                        <field name="fuel_count" widget="statinfo" string="Fuel Logs"/>
+                    </button>
+                    <button name="action_open_billings" type="object" class="oe_stat_button" icon="fa-money">
+                        <field name="billing_count" widget="statinfo" string="Billing"/>
+                    </button>
+                    <button name="action_open_invoices" type="object" class="oe_stat_button" icon="fa-file-text-o" invisible="not invoice_count">
+                        <field name="invoice_count" widget="statinfo" string="Invoices"/>
+                    </button>
+                </div>
+                <group string="Operational Readiness">
+                    <field name="marketing_request_id" readonly="1"/>
+                    <field name="crew_ids" widget="many2many_tags" domain="[('vessel_id', 'in', [False, vessel_id])]"/>
+                    <field name="readiness_state" widget="badge"/>
+                    <field name="readiness_note" readonly="1"/>
+                </group>
+                <group string="Job Costing">
+                    <field name="currency_id" invisible="1"/>
+                    <field name="quoted_amount"/>
+                    <field name="direct_cost"/>
+                    <field name="gross_profit" readonly="1"/>
+                </group>
+            </xpath>
+            <xpath expr="//header/button[@name='action_dispatch']" position="before">
+                <button name="action_create_schedule" string="Plan Schedule" type="object" invisible="state != 'requested' or schedule_count"/>
+            </xpath>
+            <xpath expr="//header/button[@name='action_complete']" position="after">
+                <button name="action_create_voyage" string="Add Voyage" type="object" invisible="state not in ['dispatched', 'in_progress'] or voyage_count"/>
+                <button name="action_add_fuel_log" string="Log Fuel" type="object" invisible="state not in ['in_progress', 'completed']"/>
+                <button name="action_create_billing" string="Create Billing" type="object" class="oe_highlight" invisible="state != 'completed'"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_fuel_log_integrated" model="ir.ui.view">
+        <field name="name">sedar.fuel.log.integrated</field>
+        <field name="model">sedar.fuel.log</field>
+        <field name="inherit_id" ref="sedar_tug_ops.view_sedar_fuel_log_form"/>
+        <field name="arch" type="xml">
+            <field name="vessel_id" position="before">
+                <field name="job_order_id"/>
+                <field name="voyage_id" domain="[('job_order_id', '=', job_order_id)]"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_billing_integrated" model="ir.ui.view">
+        <field name="name">sedar.towage.billing.integrated</field>
+        <field name="model">sedar.towage.billing</field>
+        <field name="inherit_id" ref="sedar_tug_ops.view_sedar_towage_billing_form"/>
+        <field name="arch" type="xml">
+            <field name="invoice_id" position="after">
+                <field name="payment_state" widget="badge"/>
+            </field>
+            <button name="action_create_invoice" position="after">
+                <button name="action_open_invoice" string="Open Invoice" type="object" invisible="not invoice_id"/>
+            </button>
+        </field>
+    </record>
+
+    <record id="view_rotation_workflow" model="ir.ui.view">
+        <field name="name">sedar.crew.rotation.workflow</field>
+        <field name="model">sedar.crew.rotation</field>
+        <field name="inherit_id" ref="sedar_crewing.view_sedar_crew_rotation_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="before">
+                <header>
+                    <button name="action_confirm" string="Put On Board" type="object" class="oe_highlight" invisible="state != 'planned'"/>
+                    <button name="action_complete" string="Complete Rotation" type="object" invisible="state != 'onboard'"/>
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state in ['completed', 'cancelled']"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+            </xpath>
+            <xpath expr="//sheet//field[@name='state']" position="attributes"><attribute name="invisible">1</attribute></xpath>
+        </field>
+    </record>
+
+    <record id="view_leave_workflow" model="ir.ui.view">
+        <field name="name">sedar.crew.leave.workflow</field>
+        <field name="model">sedar.crew.leave</field>
+        <field name="inherit_id" ref="sedar_crewing.view_sedar_crew_leave_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="before">
+                <header>
+                    <button name="action_submit" string="Submit" type="object" class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_approve" string="Approve" type="object" class="oe_highlight" invisible="state != 'submitted'"/>
+                    <button name="action_reject" string="Reject" type="object" invisible="state != 'submitted'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+            </xpath>
+            <xpath expr="//sheet//field[@name='state']" position="attributes"><attribute name="invisible">1</attribute></xpath>
+        </field>
+    </record>
+
+    <record id="view_incident_workflow" model="ir.ui.view">
+        <field name="name">sedar.hsse.incident.workflow</field>
+        <field name="model">sedar.hsse.incident</field>
+        <field name="inherit_id" ref="sedar_hsse.view_sedar_hsse_incident_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="before">
+                <header>
+                    <button name="action_investigate" string="Investigate" type="object" class="oe_highlight" invisible="state != 'open'"/>
+                    <button name="action_close" string="Close" type="object" class="oe_highlight" invisible="state != 'investigating'"/>
+                    <button name="action_reopen" string="Reopen" type="object" invisible="state != 'closed'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+            </xpath>
+            <field name="vessel_id" position="after">
+                <field name="job_order_id"/>
+                <field name="owner_id"/>
+            </field>
+            <xpath expr="//sheet" position="inside">
+                <notebook>
+                    <page string="Corrective Actions">
+                        <field name="action_ids">
+                            <tree editable="bottom">
+                                <field name="name"/>
+                                <field name="owner_id"/>
+                                <field name="due_date"/>
+                                <field name="state"/>
+                                <field name="overdue"/>
+                            </tree>
+                        </field>
+                    </page>
+                </notebook>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_vessel_cert_renewal" model="ir.ui.view">
+        <field name="name">sedar.doc.vessel.cert.renewal</field>
+        <field name="model">sedar.doc.vessel.cert</field>
+        <field name="inherit_id" ref="sedar_doccontrol.view_sedar_doc_vessel_cert_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="before">
+                <header>
+                    <button name="action_start_renewal" string="Start Renewal" type="object" class="oe_highlight" invisible="renewal_state != 'valid'"/>
+                    <button name="action_submit_review" string="Submit for Review" type="object" class="oe_highlight" invisible="renewal_state != 'renewal'"/>
+                    <button name="action_mark_renewed" string="Approve Renewal" type="object" class="oe_highlight" invisible="renewal_state != 'review'"/>
+                    <field name="renewal_state" widget="statusbar"/>
+                </header>
+            </xpath>
+            <field name="expiry_date" position="after">
+                <field name="renewal_owner_id"/>
+                <field name="attachment" filename="attachment_name"/>
+                <field name="attachment_name" invisible="1"/>
+            </field>
+        </field>
+    </record>
+</odoo>

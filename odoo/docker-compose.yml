@@ -34,6 +34,7 @@ services:
       - ../addons/sedar_tug_ops:/mnt/extra-addons/sedar_tug_ops
       - ../addons/sedar_marketing:/mnt/extra-addons/sedar_marketing
       - ../addons/sedar_procurement:/mnt/extra-addons/sedar_procurement
+      - ../addons/sedar_operations_integration:/mnt/extra-addons/sedar_operations_integration
 
 volumes:
   sedar-odoo-db:
