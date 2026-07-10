@@ -1,6 +1,6 @@
 {
     'name': 'SEDAR Operations Integration',
-    'version': '17.0.1.0.0',
+    'version': '17.0.1.2.0',
     'summary': 'Connected request-to-cash and operational readiness workflows',
     'category': 'Operations',
     'license': 'LGPL-3',

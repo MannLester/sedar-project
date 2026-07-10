@@ -163,14 +163,9 @@
                                        t-att-data-menu-xmlid="app.xmlid"
                                        t-att-class="{'o_sedar_nav_item': true, 'active': currentApp and currentApp.id === app.id}"
                                        t-on-click.prevent="() => this.onNavBarDropdownItemSelection(app)">
-                                        <span>Incident Reports</span>
-                                    </a>
-                                </t>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_hsse.action_sedar_hsse_inspection"><span>Inspections and Audits</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_hsse.action_sedar_hsse_risk_assessment"><span>Risk Assessments</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_hsse.action_sedar_hsse_permit"><span>Permits</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_operations_integration.action_corrective_actions"><span>Corrective Actions</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_operations_integration.action_hsse_training"><span>Training Records</span></a>
+                                         <span>Safety Events</span>
+                                     </a>
+                                 </t>
                             </div>
                         </details>
 

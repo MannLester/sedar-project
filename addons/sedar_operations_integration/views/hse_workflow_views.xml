@@ -70,7 +70,7 @@
                     <field name="state" widget="statusbar"/>
                 </header>
             </xpath>
-            <field name="activity" position="before"><field name="vessel_id"/><field name="job_order_id"/><field name="owner_id"/></field>
+            <field name="activity" position="before"><field name="incident_id"/><field name="vessel_id"/><field name="job_order_id"/><field name="owner_id"/></field>
             <field name="risk_score" position="after"><field name="risk_level" widget="badge"/></field>
             <field name="mitigation" position="after">
                 <field name="residual_likelihood"/><field name="residual_severity"/><field name="residual_score" readonly="1"/>
@@ -152,6 +152,6 @@
         <field name="name">Training Records</field><field name="res_model">sedar.hsse.training</field><field name="view_mode">tree,form</field>
     </record>
 
-    <menuitem id="menu_corrective_actions" name="Corrective Actions" parent="sedar_hsse.menu_root" action="action_corrective_actions" sequence="60"/>
-    <menuitem id="menu_hsse_training" name="Training Records" parent="sedar_hsse.menu_root" action="action_hsse_training" sequence="70"/>
+    <menuitem id="menu_corrective_actions" name="Corrective Actions" parent="sedar_hsse.menu_root" action="action_corrective_actions" sequence="80" active="False"/>
+    <menuitem id="menu_hsse_training" name="Training Records" parent="sedar_hsse.menu_root" action="action_hsse_training" sequence="90" active="False"/>
 </odoo>

@@ -128,32 +128,44 @@
         <field name="model">sedar.hsse.incident</field>
         <field name="inherit_id" ref="sedar_hsse.view_sedar_hsse_incident_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//sheet" position="before">
-                <header>
-                    <button name="action_investigate" string="Investigate" type="object" class="oe_highlight" invisible="state != 'open'"/>
-                    <button name="action_close" string="Close" type="object" class="oe_highlight" invisible="state != 'investigating'"/>
-                    <button name="action_reopen" string="Reopen" type="object" invisible="state != 'closed'"/>
-                    <field name="state" widget="statusbar"/>
-                </header>
+            <xpath expr="//div[@name='vessel_field']" position="after">
+                <div class="sedar_hsse_field"><span class="sedar_hsse_label">Job Order</span><field name="job_order_id" nolabel="1" readonly="state == 'closed'"/></div>
+                <div class="sedar_hsse_field"><span class="sedar_hsse_label">HSSE Owner</span><field name="owner_id" nolabel="1" readonly="state == 'closed'"/></div>
             </xpath>
-            <field name="vessel_id" position="after">
-                <field name="job_order_id"/>
-                <field name="owner_id"/>
-            </field>
-            <xpath expr="//sheet" position="inside">
-                <notebook>
-                    <page string="Corrective Actions">
-                        <field name="action_ids">
-                            <tree editable="bottom">
-                                <field name="name"/>
-                                <field name="owner_id"/>
-                                <field name="due_date"/>
-                                <field name="state"/>
-                                <field name="overdue"/>
-                            </tree>
-                        </field>
-                    </page>
-                </notebook>
+            <xpath expr="//div[@name='investigation_card']" position="after">
+                <div class="sedar_hsse_card" invisible="state == 'open'">
+                    <div class="sedar_hsse_card_header">
+                        <h2>Risk and Corrective Response</h2>
+                        <p>Link the assessment and track assigned actions through completion.</p>
+                    </div>
+                    <div class="sedar_hsse_card_body">
+                        <div class="sedar_hsse_table_block" invisible="classification not in ['major', 'reportable']">
+                            <span class="sedar_hsse_label">Risk Assessments</span>
+                            <field name="risk_assessment_ids" nolabel="1">
+                                <tree editable="bottom">
+                                    <field name="activity"/>
+                                    <field name="hazard"/>
+                                    <field name="likelihood"/>
+                                    <field name="severity"/>
+                                    <field name="risk_score" readonly="1"/>
+                                    <field name="state" readonly="1"/>
+                                </tree>
+                            </field>
+                        </div>
+                        <div class="sedar_hsse_table_block">
+                            <span class="sedar_hsse_label">Corrective Actions</span>
+                            <field name="action_ids" nolabel="1">
+                                <tree editable="bottom">
+                                    <field name="name"/>
+                                    <field name="owner_id"/>
+                                    <field name="due_date"/>
+                                    <field name="state"/>
+                                    <field name="overdue"/>
+                                </tree>
+                            </field>
+                        </div>
+                    </div>
+                </div>
             </xpath>
         </field>
     </record>

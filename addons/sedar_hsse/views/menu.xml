@@ -1,8 +1,11 @@
 <odoo>
     <menuitem id="menu_root" name="HSSE" sequence="20"/>
-    <menuitem id="menu_incident" name="Incidents" parent="menu_root" action="action_sedar_hsse_incident" sequence="10"/>
-    <menuitem id="menu_near_miss" name="Near-Miss Reports" parent="menu_root" action="action_sedar_hsse_near_miss" sequence="20"/>
-    <menuitem id="menu_inspection" name="Inspections &amp; Audits" parent="menu_root" action="action_sedar_hsse_inspection" sequence="30"/>
-    <menuitem id="menu_risk_assessment" name="Risk Assessments" parent="menu_root" action="action_sedar_hsse_risk_assessment" sequence="40"/>
-    <menuitem id="menu_permit" name="Permits" parent="menu_root" action="action_sedar_hsse_permit" sequence="50"/>
+    <menuitem id="menu_incident" name="Safety Events" parent="menu_root" action="action_sedar_hsse_event_reports_dashboard" sequence="10"/>
+    <menuitem id="menu_safety_review" name="Safety Reviews" parent="menu_root" action="action_sedar_hsse_safety_reviews_dashboard" sequence="20" active="False"/>
+    <menuitem id="menu_investigation" name="Investigations" parent="menu_root" action="action_sedar_hsse_investigations_dashboard" sequence="30" active="False"/>
+    <menuitem id="menu_risk_actions" name="Risk &amp; Actions" parent="menu_root" action="action_sedar_hsse_risk_actions_dashboard" sequence="40" active="False"/>
+    <menuitem id="menu_near_miss" name="Near-Miss Reports" parent="menu_root" action="action_sedar_hsse_near_miss" sequence="20" active="False"/>
+    <menuitem id="menu_inspection" name="Inspections &amp; Audits" parent="menu_root" action="action_sedar_hsse_inspection" sequence="50" active="False"/>
+    <menuitem id="menu_risk_assessment" name="Risk Assessments" parent="menu_root" action="action_sedar_hsse_risk_assessment" sequence="60" active="False"/>
+    <menuitem id="menu_permit" name="Permits" parent="menu_root" action="action_sedar_hsse_permit" sequence="70" active="False"/>
 </odoo>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sedar_hsse.HsseStageDashboard">
+        <div class="o_sedar_hsse_dashboard">
+            <section class="o_hsse_hero">
+                <div>
+                    <span class="o_hsse_eyebrow" t-esc="config.eyebrow"/>
+                    <h1 t-esc="config.title"/>
+                    <p t-esc="config.subtitle"/>
+                </div>
+                <div class="o_hsse_hero_actions">
+                    <button class="o_hsse_primary" t-on-click="createEvent"><i class="fa fa-plus"/> New Safety Event</button>
+                    <button class="o_hsse_secondary" t-on-click="refresh"><i class="fa fa-refresh"/> Refresh</button>
+                </div>
+            </section>
+
+            <div class="o_hsse_kpis">
+                <t t-foreach="kpis" t-as="kpi" t-key="kpi.label">
+                    <button t-att-class="'o_hsse_kpi' + (state.activeState === kpi.state ? ' is-active' : '')" t-att-data-state="kpi.state" t-on-click="filterByState">
+                        <div><span t-esc="kpi.label"/><strong t-esc="kpi.value"/><small t-esc="kpi.note"/></div>
+                        <i t-att-class="'fa ' + kpi.icon"/>
+                    </button>
+                </t>
+            </div>
+
+            <div class="o_hsse_workspace">
+                <section class="o_hsse_queue_panel">
+                    <div class="o_hsse_panel_header">
+                        <div><span>Event Register</span><h2 t-esc="queueTitle"/></div>
+                        <b><t t-esc="visibleRecords.length"/> records</b>
+                    </div>
+                    <div class="o_hsse_queue">
+                        <article t-foreach="visibleRecords" t-as="record" t-key="record.id" class="o_hsse_event_row" t-att-data-id="record.id" t-on-click="openRecord">
+                            <div class="o_hsse_event_ref"><strong t-esc="record.reference"/><time t-esc="record.date || 'No date'"/></div>
+                            <div class="o_hsse_event_main"><h3 t-esc="record.name"/><p><t t-esc="record.vessel"/> <span>·</span> <t t-esc="record.location || 'Location not set'"/></p></div>
+                            <div class="o_hsse_event_owner"><span>Reported by</span><strong t-esc="record.reporter"/></div>
+                            <div class="o_hsse_event_signals">
+                                <span t-att-class="classificationClass(record.classification)" t-esc="record.classificationLabel"/>
+                                <span t-att-class="'o_hsse_status ' + statusMeta(record.state).className" t-esc="statusMeta(record.state).label"/>
+                            </div>
+                        </article>
+                        <div t-if="!state.loading and !visibleRecords.length" class="o_hsse_empty">
+                            <i class="fa fa-check-circle"/>
+                            <h3>Queue clear</h3>
+                            <p t-esc="emptyMessage"/>
+                        </div>
+                    </div>
+                </section>
+
+                <aside class="o_hsse_checklist">
+                    <span>Workflow Standard</span>
+                    <h2>One event, one record</h2>
+                    <ol>
+                        <li t-foreach="config.checklist" t-as="item" t-key="item"><i class="fa fa-check"/><span t-esc="item"/></li>
+                    </ol>
+                    <div class="o_hsse_checklist_note"><i class="fa fa-lock"/><p>Closure rules are checked by Odoo, not only by the screen.</p></div>
+                </aside>
+            </div>
+        </div>
+    </t>
+</templates>

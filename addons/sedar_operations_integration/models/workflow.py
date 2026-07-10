@@ -322,7 +322,7 @@ class SedarHsseCorrectiveAction(models.Model):
     def _compute_overdue(self):
         today = fields.Date.context_today(self)
         for action in self:
-            action.overdue = action.state != 'done' and action.due_date < today
+            action.overdue = bool(action.due_date) and action.state != 'done' and action.due_date < today
 
     def action_start(self):
         self.write({'state': 'in_progress'})
@@ -336,19 +336,20 @@ class SedarHsseIncident(models.Model):
 
     job_order_id = fields.Many2one('sedar.job.order', string='Job Order')
     action_ids = fields.One2many('sedar.hsse.corrective.action', 'incident_id', string='Corrective Actions')
+    risk_assessment_ids = fields.One2many('sedar.hsse.risk.assessment', 'incident_id', string='Risk Assessments')
     owner_id = fields.Many2one('res.users', default=lambda self: self.env.user)
 
-    def action_investigate(self):
-        self.write({'state': 'investigating'})
-
-    def action_close(self):
-        for incident in self:
-            if incident.action_ids.filtered(lambda action: action.state != 'done'):
-                raise UserError('Complete all corrective actions before closing the incident.')
-        self.write({'state': 'closed'})
-
-    def action_reopen(self):
-        self.write({'state': 'open'})
+    def _check_close_requirements(self):
+        super()._check_close_requirements()
+        for event in self:
+            incomplete_actions = event.action_ids.filtered(lambda action: action.state != 'done')
+            if incomplete_actions:
+                raise UserError('Complete all corrective actions before closing this safety event.')
+            if event.classification in ('major', 'reportable'):
+                if not event.risk_assessment_ids:
+                    raise UserError('Add a risk assessment before closing this safety event.')
+                if not event.action_ids:
+                    raise UserError('Add and complete a corrective action before closing this safety event.')
 
 
 class SedarDocVesselCert(models.Model):

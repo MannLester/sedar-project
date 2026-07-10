@@ -124,6 +124,7 @@ class SedarHsseInspection(models.Model):
 class SedarHsseRiskAssessment(models.Model):
     _inherit = 'sedar.hsse.risk.assessment'
 
+    incident_id = fields.Many2one('sedar.hsse.incident', string='Safety Event', ondelete='cascade')
     vessel_id = fields.Many2one('sedar.vessel', string='Vessel')
     job_order_id = fields.Many2one('sedar.job.order', string='Job Order')
     owner_id = fields.Many2one('res.users', default=lambda self: self.env.user, required=True)

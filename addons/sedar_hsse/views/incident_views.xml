@@ -3,39 +3,191 @@
         <field name="name">sedar.hsse.incident.tree</field>
         <field name="model">sedar.hsse.incident</field>
         <field name="arch" type="xml">
-            <tree>
+            <tree decoration-danger="classification in ['major', 'reportable']" decoration-muted="state == 'closed'">
                 <field name="date"/>
                 <field name="name"/>
                 <field name="vessel_id"/>
                 <field name="location"/>
-                <field name="severity"/>
+                <field name="classification" widget="badge"/>
+                <field name="reported_by_id"/>
                 <field name="state"/>
             </tree>
+        </field>
+    </record>
+    <record id="view_sedar_hsse_incident_search" model="ir.ui.view">
+        <field name="name">sedar.hsse.incident.search</field>
+        <field name="model">sedar.hsse.incident</field>
+        <field name="arch" type="xml">
+            <search string="Safety Events">
+                <field name="name"/>
+                <field name="description"/>
+                <field name="vessel_id"/>
+                <field name="reported_by_id"/>
+                <filter name="submitted" string="Submitted" domain="[('state', '=', 'open')]"/>
+                <filter name="near_miss" string="Near Misses" domain="[('classification', '=', 'near_miss')]"/>
+                <filter name="serious" string="Major / Reportable" domain="[('classification', 'in', ['major', 'reportable'])]"/>
+                <filter name="open_events" string="Open Events" domain="[('state', '!=', 'closed')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_classification" string="Classification" context="{'group_by': 'classification'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_vessel" string="Vessel" context="{'group_by': 'vessel_id'}"/>
+                </group>
+            </search>
         </field>
     </record>
     <record id="view_sedar_hsse_incident_form" model="ir.ui.view">
         <field name="name">sedar.hsse.incident.form</field>
         <field name="model">sedar.hsse.incident</field>
         <field name="arch" type="xml">
-            <form>
+            <form class="sedar_hsse_form">
+                <header>
+                    <button name="action_start_review" string="Start Review" type="object" class="oe_highlight" invisible="state != 'open'"/>
+                    <button name="action_investigate" string="Start Investigation" type="object" class="oe_highlight" invisible="state != 'review' or classification not in ['major', 'reportable']"/>
+                    <button name="action_close" string="Close" type="object" class="oe_highlight" invisible="state == 'closed' or state == 'open' or (state == 'review' and classification in ['major', 'reportable']) or (state == 'investigating' and classification not in ['major', 'reportable'])"/>
+                    <button name="action_reopen" string="Reopen" type="object" invisible="state != 'closed'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="open,review,investigating,closed"/>
+                </header>
                 <sheet>
-                    <group>
-                        <field name="name"/>
-                        <field name="date"/>
-                        <field name="vessel_id"/>
-                        <field name="location"/>
-                        <field name="severity"/>
-                        <field name="state"/>
-                        <field name="description"/>
-                        <field name="corrective_action"/>
-                    </group>
+                    <div class="sedar_hsse_stepper" aria-label="Safety event workflow">
+                        <div class="sedar_hsse_step active"><span class="fa fa-paper-plane"/>Submitted</div>
+                        <div class="sedar_hsse_step active" invisible="state == 'open'"><span class="fa fa-search"/>Safety Review</div>
+                        <div class="sedar_hsse_step" invisible="state != 'open'"><span class="fa fa-search"/>Safety Review</div>
+                        <div class="sedar_hsse_step active" invisible="state != 'investigating' and not (state == 'closed' and classification in ['major', 'reportable'])"><span class="fa fa-shield"/>Investigation</div>
+                        <div class="sedar_hsse_step" invisible="state == 'investigating' or (state == 'closed' and classification in ['major', 'reportable'])"><span class="fa fa-shield"/>Investigation</div>
+                        <div class="sedar_hsse_step active" invisible="state != 'closed'"><span class="fa fa-check-circle"/>Closed</div>
+                        <div class="sedar_hsse_step" invisible="state == 'closed'"><span class="fa fa-check-circle"/>Closed</div>
+                    </div>
+
+                    <div class="sedar_hsse_card">
+                        <div class="sedar_hsse_card_header">
+                            <h2>Safety Event Intake</h2>
+                            <p>Record what happened onboard. HSSE will classify the event during review.</p>
+                        </div>
+                        <div class="sedar_hsse_card_body">
+                            <div class="sedar_hsse_field sedar_hsse_full">
+                                <span class="sedar_hsse_label">Event Title</span>
+                                <field name="name" nolabel="1" readonly="state == 'closed'"/>
+                            </div>
+                            <div class="sedar_hsse_grid">
+                                <div class="sedar_hsse_field"><span class="sedar_hsse_label">Event Date</span><field name="date" nolabel="1" readonly="state == 'closed'"/></div>
+                                <div class="sedar_hsse_field"><span class="sedar_hsse_label">Reported By</span><field name="reported_by_id" nolabel="1" readonly="state != 'open'"/></div>
+                                <div class="sedar_hsse_field" name="vessel_field"><span class="sedar_hsse_label">Vessel</span><field name="vessel_id" nolabel="1" readonly="state == 'closed'"/></div>
+                                <div class="sedar_hsse_field"><span class="sedar_hsse_label">Location</span><field name="location" nolabel="1" readonly="state == 'closed'"/></div>
+                            </div>
+                            <div class="sedar_hsse_field sedar_hsse_full">
+                                <span class="sedar_hsse_label">Event Description</span>
+                                <field name="description" nolabel="1" placeholder="Describe what happened, the immediate response, and anyone involved..." readonly="state == 'closed'"/>
+                            </div>
+                            <div class="sedar_hsse_upload sedar_hsse_full">
+                                <div class="sedar_hsse_upload_copy">
+                                    <span class="fa fa-paperclip" title="Supporting files"/>
+                                    <div><strong>Report Files and Photos</strong><small>Attach the original report, photos, statements, or other supporting files.</small></div>
+                                </div>
+                                <field name="report_attachment_ids" widget="many2many_binary" nolabel="1" readonly="state == 'closed'"/>
+                            </div>
+                            <div class="sedar_hsse_actions" invisible="state != 'open'">
+                                <button name="action_start_review" string="Start Safety Review" type="object" class="sedar_hsse_primary"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sedar_hsse_card" name="review_card" invisible="state == 'open'">
+                        <div class="sedar_hsse_card_header">
+                            <h2>Safety Review</h2>
+                            <p>Classify the event and record why it follows the routine or serious response path.</p>
+                        </div>
+                        <div class="sedar_hsse_card_body">
+                            <div class="sedar_hsse_grid sedar_hsse_grid_three">
+                                <div class="sedar_hsse_field"><span class="sedar_hsse_label">Classification</span><field name="classification" nolabel="1" required="state != 'open'" readonly="state == 'closed' and classification"/></div>
+                                <div class="sedar_hsse_field"><span class="sedar_hsse_label">Reviewed By</span><field name="reviewed_by_id" nolabel="1"/></div>
+                                <div class="sedar_hsse_field"><span class="sedar_hsse_label">Reviewed On</span><field name="reviewed_date" nolabel="1"/></div>
+                            </div>
+                            <div class="sedar_hsse_field sedar_hsse_full">
+                                <span class="sedar_hsse_label">Review Note</span>
+                                <field name="review_note" nolabel="1" placeholder="Record the classification reason and immediate response..." readonly="state == 'closed'"/>
+                            </div>
+                            <div class="sedar_hsse_actions">
+                                <button name="action_investigate" string="Start Investigation" type="object" class="sedar_hsse_primary" invisible="state != 'review' or classification not in ['major', 'reportable']"/>
+                                <button name="action_close" string="Close Safety Event" type="object" class="sedar_hsse_primary" invisible="state != 'review' or classification in ['major', 'reportable']"/>
+                                <button name="action_reopen" string="Reopen Safety Event" type="object" class="sedar_hsse_secondary" invisible="state != 'closed'"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sedar_hsse_card" name="investigation_card" invisible="classification not in ['major', 'reportable']">
+                        <div class="sedar_hsse_card_header sedar_hsse_serious_header">
+                            <h2>Investigation and Evidence</h2>
+                            <p>Major and reportable events need findings, supporting evidence, risk review, and completed actions.</p>
+                        </div>
+                        <div class="sedar_hsse_card_body">
+                            <div class="sedar_hsse_field sedar_hsse_full">
+                                <span class="sedar_hsse_label">Investigation Summary</span>
+                                <field name="investigation_summary" nolabel="1" placeholder="Record the cause, findings, and response..." readonly="state == 'closed'"/>
+                            </div>
+                            <div class="sedar_hsse_field sedar_hsse_full" invisible="classification != 'reportable'">
+                                <span class="sedar_hsse_label">Regulatory Filing Reference</span>
+                                <field name="regulatory_report_reference" nolabel="1" readonly="state == 'closed'" placeholder="Example: MARINA-2026-001"/>
+                            </div>
+                            <div class="sedar_hsse_upload sedar_hsse_full">
+                                <div class="sedar_hsse_upload_copy">
+                                    <span class="fa fa-folder-open" title="Investigation evidence"/>
+                                    <div><strong>Investigation Evidence</strong><small>Attach findings, signed statements, assessment documents, and proof of response.</small></div>
+                                </div>
+                                <field name="investigation_attachment_ids" widget="many2many_binary" nolabel="1" readonly="state == 'closed'"/>
+                            </div>
+                            <div class="sedar_hsse_actions" invisible="state != 'investigating'">
+                                <button name="action_close" string="Close Safety Event" type="object" class="sedar_hsse_primary"/>
+                            </div>
+                        </div>
+                    </div>
                 </sheet>
             </form>
         </field>
     </record>
     <record id="action_sedar_hsse_incident" model="ir.actions.act_window">
-        <field name="name">Incidents</field>
+        <field name="name">Safety Events</field>
         <field name="res_model">sedar.hsse.incident</field>
         <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_sedar_hsse_incident_search"/>
+    </record>
+    <record id="action_sedar_hsse_safety_review" model="ir.actions.act_window">
+        <field name="name">Safety Reviews</field>
+        <field name="res_model">sedar.hsse.incident</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('state', '=', 'review')]</field>
+        <field name="context">{'create': False}</field>
+        <field name="search_view_id" ref="view_sedar_hsse_incident_search"/>
+    </record>
+    <record id="action_sedar_hsse_investigation" model="ir.actions.act_window">
+        <field name="name">Investigations</field>
+        <field name="res_model">sedar.hsse.incident</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('state', '=', 'investigating')]</field>
+        <field name="context">{'create': False}</field>
+        <field name="search_view_id" ref="view_sedar_hsse_incident_search"/>
+    </record>
+    <record id="action_sedar_hsse_risk_actions" model="ir.actions.act_window">
+        <field name="name">Risk &amp; Actions</field>
+        <field name="res_model">sedar.hsse.incident</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('classification', 'in', ['major', 'reportable']), ('state', 'in', ['review', 'investigating', 'closed'])]</field>
+        <field name="context">{'create': False}</field>
+        <field name="search_view_id" ref="view_sedar_hsse_incident_search"/>
+    </record>
+    <record id="action_sedar_hsse_event_reports_dashboard" model="ir.actions.client">
+        <field name="name">Safety Events</field>
+        <field name="tag">sedar_hsse_event_reports_dashboard</field>
+    </record>
+    <record id="action_sedar_hsse_safety_reviews_dashboard" model="ir.actions.client">
+        <field name="name">Safety Reviews</field>
+        <field name="tag">sedar_hsse_safety_reviews_dashboard</field>
+    </record>
+    <record id="action_sedar_hsse_investigations_dashboard" model="ir.actions.client">
+        <field name="name">Investigations</field>
+        <field name="tag">sedar_hsse_investigations_dashboard</field>
+    </record>
+    <record id="action_sedar_hsse_risk_actions_dashboard" model="ir.actions.client">
+        <field name="name">Risk &amp; Actions</field>
+        <field name="tag">sedar_hsse_risk_actions_dashboard</field>
     </record>
 </odoo>
