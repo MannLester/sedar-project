@@ -78,7 +78,7 @@
                                         <a class="o_sedar_nav_item" href="/web#action=sedar_employee_records.action_sedar_employee_records&amp;model=hr.employee.public&amp;view_type=tree">
                                             <span>Employee List</span>
                                         </a>
-                                        <a class="o_sedar_nav_item" href="/web#action=sedar_employee_document_control.action_sedar_employee_document_control&amp;model=sedar.employee.document.control&amp;view_type=tree">
+                                        <a class="o_sedar_nav_item" href="/web#action=sedar_marine_mvp.action_sedar_document_risk_dashboard">
                                             <span>Document Control</span>
                                         </a>
                                     </div>

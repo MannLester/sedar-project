@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_document_control_register" model="ir.ui.view">
+        <field name="name">sedar.document.control.register</field>
+        <field name="model">sedar.document.control</field>
+        <field name="inherit_id" ref="sedar_marine_mvp.view_sedar_document_control_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//tree" position="attributes">
+                <attribute name="class">o_sedar_document_register</attribute>
+                <attribute name="default_order">expiry_date asc, name asc</attribute>
+                <attribute name="decoration-warning">status == 'renewal'</attribute>
+                <attribute name="decoration-danger">status == 'expired'</attribute>
+            </xpath>
+            <field name="document_type" position="attributes">
+                <attribute name="widget">badge</attribute>
+            </field>
+            <field name="status" position="attributes">
+                <attribute name="widget">badge</attribute>
+            </field>
+            <field name="approval_status" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </field>
+            <field name="document_link" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_document_control_search" model="ir.ui.view">
+        <field name="name">sedar.document.control.search</field>
+        <field name="model">sedar.document.control</field>
+        <field name="priority">1</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="document_type"/>
+                <field name="owner_department"/>
+                <field name="vessel_id"/>
+                <field name="renewal_owner"/>
+                <filter name="documents_for_renewal" string="For Renewal" domain="[('status', '=', 'renewal')]"/>
+                <filter name="valid_documents" string="Valid" domain="[('status', '=', 'valid')]"/>
+                <filter name="expired_documents" string="Expired" domain="[('status', '=', 'expired')]"/>
+                <separator/>
+                <filter name="vessel_certificates" string="Vessel Certificates" domain="[('document_type', '=', 'vessel_certificate')]"/>
+                <filter name="contracts" string="Contracts" domain="[('document_type', '=', 'contract')]"/>
+                <filter name="permits" string="Permits" domain="[('document_type', '=', 'permit')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_by_document_type" string="Document Type" context="{'group_by': 'document_type'}"/>
+                    <filter name="group_by_owner_department" string="Owner Department" context="{'group_by': 'owner_department'}"/>
+                    <filter name="group_by_status" string="Status" context="{'group_by': 'status'}"/>
+                    <filter name="group_by_vessel" string="Vessel" context="{'group_by': 'vessel_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_document_control_workflow" model="ir.ui.view">
+        <field name="name">sedar.document.control.workflow</field>
+        <field name="model">sedar.document.control</field>
+        <field name="inherit_id" ref="sedar_marine_mvp.view_sedar_document_control_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="class">o_sedar_document_form</attribute>
+            </xpath>
+            <xpath expr="//sheet" position="before">
+                <header>
+                    <button name="action_submit_review" string="Submit for Review" type="object" class="oe_highlight" invisible="approval_status != 'draft'"/>
+                    <button name="action_approve_document" string="Approve" type="object" class="oe_highlight" invisible="approval_status != 'for_review'"/>
+                    <button name="action_reject_document" string="Return to Draft" type="object" invisible="approval_status != 'for_review'"/>
+                    <button name="action_start_renewal" string="Start New Version" type="object" class="oe_highlight" invisible="approval_status != 'approved'"/>
+                    <field name="approval_status" widget="statusbar"/>
+                </header>
+            </xpath>
+            <field name="document_link" position="after">
+                <field name="owner_id"/><field name="department"/><field name="reviewer_id"/><field name="approval_date"/><field name="renewal_due_date"/><field name="previous_version_id"/><field name="workflow_notes"/><field name="attachment" filename="attachment_filename"/><field name="attachment_filename" invisible="1"/>
+            </field>
+        </field>
+    </record>
+</odoo>

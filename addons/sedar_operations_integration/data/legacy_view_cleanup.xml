@@ -24,4 +24,8 @@
     <record id="sedar_marine_mvp.view_sedar_crew_member_form" model="ir.ui.view">
         <field name="active">False</field>
     </record>
+    <record id="view_contract_workflow" model="ir.ui.view"><field name="active">False</field></record>
+    <record id="view_vessel_cert_workflow" model="ir.ui.view"><field name="active">False</field></record>
+    <record id="view_insurance_workflow" model="ir.ui.view"><field name="active">False</field></record>
+    <record id="view_doc_record_workflow" model="ir.ui.view"><field name="active">False</field></record>
 </odoo>
