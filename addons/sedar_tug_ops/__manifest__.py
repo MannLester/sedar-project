@@ -1,6 +1,6 @@
 {
     'name': 'SEDAR Tug Operations',
-    'version': '17.0.1.0.0',
+    'version': '17.0.1.1.0',
     'summary': 'Job dispatch, scheduling, voyage logs, fuel, towage billing',
     'category': 'Operations',
     'depends': ['base', 'account'],
