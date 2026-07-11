@@ -4,21 +4,9 @@
         <main class="sop_page">
             <section class="sop_hero">
                 <div>
-                    <p class="sop_kicker" t-esc="focusCopy.kicker"/>
                     <h1 t-esc="focusCopy.title"/>
                     <p class="sop_intro" t-esc="focusCopy.intro"/>
                 </div>
-                <div class="sop_hero_actions">
-                    <button type="button" t-on-click="() => openAction('sedar_tug_ops.action_sedar_job_order')"><i class="fa fa-ship"/> Jobs</button>
-                    <button type="button" t-on-click="() => openAction('sedar_finance_operations.action_finance_dashboard')"><i class="fa fa-money"/> Finance</button>
-                    <button type="button" t-on-click="() => openAction('sedar_operations_integration.action_document_control_register')"><i class="fa fa-file-text-o"/> Compliance</button>
-                </div>
-            </section>
-
-            <section t-if="isOverview" class="sop_data_bar">
-                <span class="sop_live"><i class="fa fa-circle"/> LIVE ERP DATA</span>
-                <span t-if="state.generatedAt">Updated <t t-esc="state.generatedAt"/></span>
-                <span t-if="state.loading">Refreshing management snapshot...</span>
             </section>
 
             <section t-if="isOverview" class="sop_metrics">
@@ -32,123 +20,98 @@
                 </article>
             </section>
 
-            <section t-if="isOverview" class="sop_panel sop_attention">
-                <div class="sop_panel_header">
-                    <div><h2>Needs Your Attention</h2><p>Exceptions from live safety, fleet, finance, and compliance records</p></div>
-                    <span class="sop_active_module"><t t-esc="state.alerts.length"/> items</span>
-                </div>
-                <div class="sop_alert_list">
-                    <button t-foreach="state.alerts" t-as="alert" t-key="alert.title" type="button"
-                            t-att-class="'sop_alert is-' + alert.severity" t-on-click="() => openAction(alert.action)">
-                        <i t-att-class="alert.severity === 'critical' ? 'fa fa-exclamation-circle' : (alert.severity === 'warning' ? 'fa fa-clock-o' : 'fa fa-info-circle')"/>
-                        <span><small t-esc="alert.area"/><strong t-esc="alert.title"/><p t-esc="alert.detail"/></span>
-                        <i class="fa fa-chevron-right"/>
-                    </button>
-                </div>
-            </section>
-
-            <t t-if="state.activeModule === 'AIS / GPS Control' || isOverview">
-                <section class="sop_grid">
+            <t t-if="state.activeModule === 'AIS / GPS Control' || state.activeModule === 'Owner Vessel Card' || isOverview">
+                <section t-att-class="isOverview ? 'sop_grid sop_overview_map_grid' : 'sop_grid sop_gps_map_grid'">
                     <article class="sop_panel sop_map_panel">
                         <div class="sop_panel_header">
                             <div>
-                                <h2>AIS / GPS Fleet Map</h2>
-                                <p>Latest stored vessel positions; map provider integration remains a prototype</p>
+                                <h2>AIS / GPS FLEET MAP</h2>
                             </div>
-                            <span class="sop_badge is-watch">PROTOTYPE MAP</span>
                         </div>
                         <div class="sop_map">
-                            <div class="sop_map_grid"/>
-                            <span class="sop_port p1">Batangas Port</span>
-                            <span class="sop_port p2">Manila Bay</span>
-                            <span class="sop_port p3">Navotas Yard</span>
-                            <button t-foreach="vessels" t-as="vessel" t-key="vessel.name"
-                                    type="button"
-                                    t-att-class="'sop_marker ' + vessel.statusClass + (vessel_index === state.activeVessel ? ' is-active' : '')"
-                                    t-att-style="'left: ' + vessel.lng + '%; top: ' + vessel.lat + '%;'"
-                                    t-on-click="() => selectVessel(vessel_index)">
-                                <i class="fa fa-location-arrow"/>
-                                <span t-esc="vessel.name"/>
-                            </button>
-                        </div>
-                        <div class="sop_vessel_picker">
-                            <button t-foreach="vessels" t-as="vessel" t-key="vessel.name"
-                                    type="button"
-                                    t-att-class="vessel_index === state.activeVessel ? 'is-active' : ''"
-                                    t-on-click="() => selectVessel(vessel_index)">
-                                <strong t-esc="vessel.name"/>
-                                <span t-esc="vessel.status"/>
-                            </button>
-                        </div>
-                    </article>
-
-                    <aside class="sop_panel sop_signal_panel">
-                        <div class="sop_panel_header">
-                            <div>
-                                <h2>Tracker Signal</h2>
-                                <p>What operations sees after a tracker ping</p>
+                            <div class="sop_map_canvas" t-att-style="mapZoomStyle">
+                                <div class="sop_map_grid"/>
+                                <span class="sop_port p1">Batangas Port</span>
+                                <span class="sop_port p2">Manila Bay</span>
+                                <span class="sop_port p3">Navotas Yard</span>
+                                <button t-foreach="vessels" t-as="vessel" t-key="vessel.name"
+                                        type="button"
+                                        t-att-class="'sop_marker ' + vessel.statusClass + (vessel_index === state.activeVessel ? ' is-active' : '')"
+                                        t-att-style="'left: ' + vessel.lng + '%; top: ' + vessel.lat + '%;'"
+                                        t-on-click="() => selectVessel(vessel_index)">
+                                    <i class="fa fa-location-arrow"/>
+                                    <span t-esc="vessel.name"/>
+                                </button>
                             </div>
-                        </div>
-                        <dl class="sop_specs sop_specs_single">
-                            <div><dt>Selected Tug</dt><dd t-esc="selectedVessel.name"/></div>
-                            <div><dt>Current Area</dt><dd t-esc="selectedVessel.location"/></div>
-                            <div><dt>Speed</dt><dd t-esc="selectedVessel.speed"/></div>
-                            <div><dt>Heading</dt><dd t-esc="selectedVessel.heading"/></div>
-                            <div><dt>Dispatch ETA</dt><dd t-esc="selectedVessel.eta"/></div>
-                            <div><dt>Signal Status</dt><dd t-esc="selectedVessel.tracking"/></div>
-                        </dl>
-                        <div class="sop_callout">
-                            <strong>Final integration note</strong>
-                            <p>This can later connect to Google Maps or an AIS/GPS provider API. For now, this preview shows the expected operator and owner view.</p>
-                        </div>
-                    </aside>
-                </section>
-            </t>
-
-            <t t-if="state.activeModule === 'Owner Vessel Card' || isOverview">
-                <section class="sop_grid">
-                    <aside class="sop_panel sop_vessel_panel">
-                        <div class="sop_panel_header">
-                            <div>
-                                <h2 t-esc="selectedVessel.name"/>
-                                <p t-esc="selectedVessel.role"/>
-                            </div>
-                            <span t-att-class="'sop_badge ' + selectedVessel.statusClass" t-esc="selectedVessel.status"/>
-                        </div>
-                        <dl class="sop_specs">
-                            <div><dt>Location</dt><dd t-esc="selectedVessel.location"/></div>
-                            <div><dt>Engine</dt><dd t-esc="selectedVessel.engine"/></div>
-                            <div><dt>Power</dt><dd t-esc="selectedVessel.horsepower"/></div>
-                            <div><dt>Bollard Pull</dt><dd t-esc="selectedVessel.bollard"/></div>
-                        </dl>
-                        <div class="sop_gauges">
-                            <div>
-                                <span>Fuel</span>
-                                <strong><t t-esc="selectedVessel.fuel"/>%</strong>
-                                <em><b t-att-style="'width:' + selectedVessel.fuel + '%'"/></em>
-                            </div>
-                            <div>
-                                <span>Availability</span>
-                                <strong><t t-esc="selectedVessel.availability"/>%</strong>
-                                <em><b t-att-style="'width:' + selectedVessel.availability + '%'"/></em>
-                            </div>
-                        </div>
-                    </aside>
-                    <article class="sop_panel">
-                        <div class="sop_panel_header">
-                            <div>
-                                <h2>Critical Parts and Equipment</h2>
-                                <p>Owner-level answer to: what engine and parts does each tug have?</p>
-                            </div>
-                        </div>
-                        <div class="sop_parts sop_parts_table">
-                            <div t-foreach="selectedVessel.parts" t-as="part" t-key="part.name">
-                                <span t-esc="part.name"/>
-                                <strong t-esc="part.stock"/>
-                                <em t-att-class="part.className" t-esc="part.state"/>
+                            <aside t-if="state.mapZoomed" class="sop_map_details" aria-live="polite">
+                                <div class="sop_map_details_header">
+                                    <div>
+                                        <small>VESSEL DETAILS</small>
+                                        <strong t-esc="selectedVessel.name"/>
+                                    </div>
+                                    <button type="button" class="sop_map_details_close" aria-label="Close vessel details" t-on-click="closeMapDetails">
+                                        <i class="fa fa-times"/>
+                                    </button>
+                                </div>
+                                <span t-att-class="'sop_vessel_status ' + selectedVessel.statusClass" t-esc="selectedVessel.status"/>
+                                <div class="sop_map_details_location">
+                                    <i class="fa fa-map-marker"/>
+                                    <span t-esc="selectedVessel.location"/>
+                                </div>
+                                <dl>
+                                    <div><dt>Speed</dt><dd t-esc="selectedVessel.speed"/></div>
+                                    <div><dt>Heading</dt><dd t-esc="selectedVessel.heading"/></div>
+                                    <div><dt>Signal</dt><dd t-esc="selectedVessel.tracking"/></div>
+                                    <div t-if="selectedVessel.role"><dt>Type</dt><dd t-esc="selectedVessel.role"/></div>
+                                    <div t-if="selectedVessel.power"><dt>Power</dt><dd t-esc="selectedVessel.power"/></div>
+                                    <div t-if="selectedVessel.bollard"><dt>Bollard Pull</dt><dd t-esc="selectedVessel.bollard"/></div>
+                                    <div t-if="selectedVessel.fuelOnHand"><dt>Fuel on Hand</dt><dd t-esc="selectedVessel.fuelOnHand"/></div>
+                                    <div t-if="selectedVessel.availabilityRate"><dt>Availability</dt><dd t-esc="selectedVessel.availabilityRate"/></div>
+                                    <div t-if="selectedVessel.utilizationRate"><dt>Utilization</dt><dd t-esc="selectedVessel.utilizationRate"/></div>
+                                </dl>
+                                <div t-if="selectedVessel.lastUpdate" class="sop_map_details_update">
+                                    <i class="fa fa-clock-o"/>
+                                    <span>Last GPS update</span>
+                                    <strong t-esc="selectedVessel.lastUpdate"/>
+                                </div>
+                            </aside>
+                            <div class="sop_vessel_picker">
+                                <div class="sop_vessel_track">
+                                    <div class="sop_vessel_set" t-foreach="[0, 1]" t-as="copy" t-key="copy">
+                                        <button t-foreach="vessels" t-as="vessel" t-key="vessel.name"
+                                                type="button"
+                                                t-att-class="vessel_index === state.activeVessel ? 'is-active' : ''"
+                                                t-on-click="() => selectVessel(vessel_index)">
+                                            <strong t-esc="vessel.name"/>
+                                            <div class="sop_vessel_meta">
+                                                <span class="sop_vessel_location" t-att-title="vessel.location">
+                                                    <i class="fa fa-map-marker"/>
+                                                    <span t-esc="vessel.location"/>
+                                                </span>
+                                                <span t-att-class="'sop_vessel_status ' + vessel.statusClass" t-esc="vessel.status"/>
+                                            </div>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </article>
+
+                    <section t-if="isOverview" class="sop_panel sop_attention">
+                        <div class="sop_panel_header">
+                            <div><h2>Needs Your Attention</h2></div>
+                            <span class="sop_active_module"><t t-esc="state.alerts.length"/> items</span>
+                        </div>
+                        <div class="sop_alert_list">
+                            <button t-foreach="state.alerts" t-as="alert" t-key="alert.title" type="button"
+                                    t-att-class="'sop_alert is-' + alert.severity" t-on-click="() => openAction(alert.action)">
+                                <i t-att-class="alert.severity === 'critical' ? 'fa fa-exclamation-circle' : (alert.severity === 'warning' ? 'fa fa-clock-o' : 'fa fa-info-circle')"/>
+                                <span><small t-esc="alert.area"/><strong t-esc="alert.title"/><p t-esc="alert.detail"/></span>
+                                <i class="fa fa-chevron-right"/>
+                            </button>
+                        </div>
+                    </section>
+
                 </section>
             </t>
 

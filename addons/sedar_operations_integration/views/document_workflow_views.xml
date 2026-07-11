@@ -29,7 +29,7 @@
                 <field name="document_type"/>
                 <field name="owner_department"/>
                 <field name="vessel_id"/>
-                <field name="renewal_owner"/>
+                <field name="renewal_owner_id"/>
                 <filter name="documents_for_renewal" string="For Renewal" domain="[('status', '=', 'renewal')]"/>
                 <filter name="valid_documents" string="Valid" domain="[('status', '=', 'valid')]"/>
                 <filter name="expired_documents" string="Expired" domain="[('status', '=', 'expired')]"/>
@@ -80,7 +80,7 @@
                     <group string="Review">
                         <group>
                             <field name="owner_id"/>
-                            <field name="renewal_owner"/>
+                            <field name="renewal_owner_id"/>
                             <field name="reviewer_id"/>
                             <field name="approval_date"/>
                             <field name="previous_version_id"/>

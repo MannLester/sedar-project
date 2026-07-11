@@ -6,13 +6,14 @@ import { useService } from "@web/core/utils/hooks";
 
 const VESSELS = [
     {
-        name: "MT SEDAR Aurora",
+        name: "M/TUG SEDAR 1",
         role: "Harbor assist tug",
-        lat: 56,
-        lng: 42,
-        status: "Underway",
+        lat: 18,
+        lng: 14,
+        status: "Active",
         statusClass: "is-good",
         location: "Batangas Anchorage",
+        tracking: "Online",
         speed: "7.8 kn",
         heading: "142 deg",
         eta: "14:40",
@@ -28,13 +29,14 @@ const VESSELS = [
         ],
     },
     {
-        name: "MT SEDAR Marikit",
+        name: "M/TUG SEDAR 2",
         role: "Terminal standby tug",
-        lat: 34,
-        lng: 62,
-        status: "Standby",
-        statusClass: "is-watch",
+        lat: 32,
+        lng: 43,
+        status: "Active",
+        statusClass: "is-good",
         location: "Manila Bay Terminal",
+        tracking: "Stale",
         speed: "0.0 kn",
         heading: "Docked",
         eta: "On berth",
@@ -50,13 +52,14 @@ const VESSELS = [
         ],
     },
     {
-        name: "MT SEDAR Lakan",
+        name: "M/TUG SEDAR 3",
         role: "Towage support tug",
-        lat: 69,
-        lng: 70,
-        status: "Dry dock",
-        statusClass: "is-risk",
+        lat: 15,
+        lng: 78,
+        status: "On Maintenance",
+        statusClass: "is-watch",
         location: "Navotas Yard",
+        tracking: "Offline",
         speed: "N/A",
         heading: "N/A",
         eta: "Jul 18",
@@ -72,6 +75,22 @@ const VESSELS = [
         ],
     },
 ];
+
+for (let number = 4; number <= 9; number++) {
+    const source = VESSELS[(number - 1) % 3];
+    const mapPositions = [
+        [18, 14], [32, 43], [15, 78],
+        [58, 18], [45, 57], [64, 84],
+        [72, 10], [68, 48], [74, 76],
+    ];
+    VESSELS.push({
+        ...source,
+        name: `M/TUG SEDAR ${number}`,
+        lat: mapPositions[number - 1][0],
+        lng: mapPositions[number - 1][1],
+        parts: [],
+    });
+}
 
 const WORKFLOWS = [
     { label: "Payroll Preview", value: "PHP 1.42M", note: "crew payroll estimate, deductions pending", icon: "fa-id-badge", className: "is-watch" },
@@ -125,9 +144,9 @@ const ACTION_VESSEL = {
 
 const FOCUS_COPY = {
     "Owner Preview": {
-        kicker: "Executive Dashboard",
-        title: "Owner Command Preview",
-        intro: "A board-ready visualization of the final tug-company ERP: fleet position, vessel health, finance, compliance, dry dock, payroll, inventory, and operational risk in one owner-friendly view.",
+        kicker: "",
+        title: "Executive Dashboard",
+        intro: "A board-ready overview of your tug operations.",
     },
     "AIS / GPS Control": {
         kicker: "Marine Operations",
@@ -214,6 +233,7 @@ export class OwnerPreviewDashboard extends Component {
         this.orm = useService("orm");
         const tag = this.props.action?.tag || "sedar_owner_preview.dashboard";
         this.selectVessel = this.selectVessel.bind(this);
+        this.closeMapDetails = this.closeMapDetails.bind(this);
         this.selectModule = this.selectModule.bind(this);
         this.sparkline = this.sparkline.bind(this);
         this.openAction = this.openAction.bind(this);
@@ -223,6 +243,7 @@ export class OwnerPreviewDashboard extends Component {
             loading: true,
             generatedAt: "",
             alerts: [],
+            mapZoomed: (ACTION_FOCUS[tag] || "Owner Preview") === "Owner Vessel Card",
         });
         this.vessels = VESSELS;
         this.workflows = WORKFLOWS;
@@ -266,8 +287,21 @@ export class OwnerPreviewDashboard extends Component {
         return this.vessels[this.state.activeVessel] || this.vessels[0];
     }
 
+    get mapZoomStyle() {
+        if (!this.state.mapZoomed) {
+            return "";
+        }
+        const vessel = this.selectedVessel;
+        return `transform-origin: ${vessel.lng}% ${vessel.lat}%; transform: scale(1.3);`;
+    }
+
     selectVessel(index) {
         this.state.activeVessel = index;
+        this.state.mapZoomed = true;
+    }
+
+    closeMapDetails() {
+        this.state.mapZoomed = false;
     }
 
     selectModule(module) {

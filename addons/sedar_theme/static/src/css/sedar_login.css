@@ -69,9 +69,11 @@
 .o_sedar_login_visual_overlay {
     position: absolute;
     inset: 0;
-    background:
-        linear-gradient(180deg, rgba(2, 11, 23, 0.12), rgba(2, 11, 23, 0.88)),
-        linear-gradient(90deg, rgba(4, 20, 38, 0.78), rgba(4, 20, 38, 0.26));
+    background: linear-gradient(
+        180deg,
+        rgba(2, 11, 23, 0.12),
+        rgba(2, 11, 23, 0.88)
+    );
     z-index: 1;
 }
 
@@ -157,9 +159,7 @@
     justify-content: center;
     min-height: 100vh;
     padding: 42px;
-    background:
-        linear-gradient(180deg, rgba(8, 33, 61, 0.96), rgba(2, 11, 23, 0.98)),
-        var(--sedar-login-navy-960);
+    background: var(--sedar-login-navy-960);
 }
 
 .o_sedar_login_panel {

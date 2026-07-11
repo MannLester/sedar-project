@@ -32,6 +32,13 @@ class SedarDashboard(models.Model):
         critical_incidents = Incident.search_count([
             ('state', '!=', 'closed'), ('severity', 'in', ['high', 'critical']),
         ])
+        open_investigations = Incident.search_count([
+            ('state', '!=', 'closed'), ('severity', 'not in', ['high', 'critical']),
+        ])
+        requested_jobs = Job.search_count([('state', '=', 'requested')])
+        delayed_jobs = Job.search_count([
+            ('state', '=', 'requested'), ('delay_reason', 'not in', [False, '']),
+        ]) if 'delay_reason' in Job._fields else 0
         invoices = Invoice.search([
             ('move_type', '=', 'out_invoice'), ('invoice_date', '>=', month_start),
             ('state', '=', 'posted'),
@@ -60,8 +67,15 @@ class SedarDashboard(models.Model):
             if count:
                 expiry_counts.append({'label': label, 'count': count, 'action': action})
         expiring_total = sum(item['count'] for item in expiry_counts)
-        blocked_vessels = vessels.filtered(lambda vessel: vessel.status == 'dry_dock')
+        maintenance_statuses = ('maintenance', 'dry_dock', 'off_hire')
+        blocked_vessels = vessels.filtered(lambda vessel: vessel.status in maintenance_statuses)
         stale_vessels = vessels.filtered(lambda vessel: vessel.tracking_status != 'online')
+        overdue_maintenance = False
+        if 'sedar.maintenance.work.order' in self.env:
+            MaintenanceWork = self.env['sedar.maintenance.work.order']
+            overdue_maintenance = MaintenanceWork.search([
+                ('status', '!=', 'done'), ('due_date', '!=', False), ('due_date', '<', today),
+            ])
 
         alerts = []
         if critical_incidents:
@@ -76,11 +90,36 @@ class SedarDashboard(models.Model):
                 ', '.join(blocked_vessels.mapped('name')) + ' currently in dry dock.',
                 'sedar_tug_ops.action_sedar_vessel', 'Fleet & Jobs',
             ))
+        if overdue_maintenance:
+            critical_maintenance = len(overdue_maintenance.filtered(
+                lambda work: work.severity in ('high', 'critical')
+            ))
+            detail = f'{len(overdue_maintenance)} overdue work order(s) require technical follow-up.'
+            if critical_maintenance:
+                detail = f'{critical_maintenance} critical or high-priority work order(s) are overdue.'
+            alerts.append(self._owner_alert(
+                'warning', 'Maintenance work overdue', detail,
+                'sedar_marine_mvp.action_sedar_maintenance_work_order', 'Maintenance',
+            ))
         if overdue_invoices:
             alerts.append(self._owner_alert(
                 'warning', 'Customer payments overdue',
                 f'{len(overdue_invoices)} invoice(s) totaling {self._owner_money(sum(overdue_invoices.mapped("amount_residual")))} need collection follow-up.',
                 'account.action_move_out_invoice_type', 'Finance',
+            ))
+        if open_investigations:
+            alerts.append(self._owner_alert(
+                'info', 'Safety investigations remain open',
+                f'{open_investigations} safety event(s) still require investigation or closure.',
+                'sedar_hsse.action_sedar_hsse_incident', 'Safety & Compliance',
+            ))
+        if requested_jobs:
+            detail = f'{requested_jobs} requested job(s) still require dispatch confirmation.'
+            if delayed_jobs:
+                detail = f'{requested_jobs} requested job(s); {delayed_jobs} report a dispatch delay.'
+            alerts.append(self._owner_alert(
+                'info', 'Jobs awaiting dispatch', detail,
+                'sedar_tug_ops.action_sedar_job_order', 'Fleet & Jobs',
             ))
         if expiring_total:
             summary = ', '.join(f'{item["count"]} {item["label"].lower()}' for item in expiry_counts[:3])
@@ -101,15 +140,17 @@ class SedarDashboard(models.Model):
                 'sedar_tug_ops.action_sedar_job_order', 'Owner Overview',
             ))
 
-        available = len(vessels.filtered(lambda vessel: vessel.status in ('active', 'standby')))
+        alerts = alerts[:6]
+
+        available = len(vessels.filtered(lambda vessel: vessel.status not in maintenance_statuses))
         availability = round((available / len(vessels) * 100), 1) if vessels else 0
         return {
             'generated_at': fields.Datetime.to_string(fields.Datetime.now()),
             'metrics': [
-                self._owner_metric('Fleet availability', f'{availability:g}%', f'{available} of {len(vessels)} vessels ready', 'fa-ship', 'good', 'sedar_tug_ops.action_sedar_vessel'),
-                self._owner_metric('Jobs in progress', str(open_jobs), 'Requested, dispatched, or underway', 'fa-tasks', 'good', 'sedar_tug_ops.action_sedar_job_order'),
-                self._owner_metric('Revenue this month', self._owner_money(sum(invoices.mapped('amount_total'))), f'{len(invoices)} posted invoice(s)', 'fa-line-chart', 'good', 'account.action_move_out_invoice_type'),
-                self._owner_metric('Items needing attention', str(len(alerts)), 'Safety, cash, fleet, and compliance', 'fa-exclamation-triangle', 'risk' if critical_incidents or blocked_vessels else 'watch', False),
+                self._owner_metric('Fleet availability', f'{availability:g}%', f'{available} of {len(vessels)} vessels ready', 'fa-anchor', 'good', 'sedar_tug_ops.action_sedar_vessel'),
+                self._owner_metric('Jobs in progress', str(open_jobs), 'Requested, dispatched, or underway', 'fa-briefcase', 'good', 'sedar_tug_ops.action_sedar_job_order'),
+                self._owner_metric('Revenue this month', self._owner_money(sum(invoices.mapped('amount_total'))), f'{len(invoices)} posted invoice(s)', 'fa-bar-chart', 'good', 'account.action_move_out_invoice_type'),
+                self._owner_metric('Items needing attention', str(len(alerts)), 'Safety, cash, fleet, and compliance', 'fa-bell', 'risk' if critical_incidents or blocked_vessels else 'watch', False),
             ],
             'summary': {
                 'total_vessels': len(vessels), 'available_vessels': available,
@@ -117,7 +158,7 @@ class SedarDashboard(models.Model):
                 'expiring_documents': expiring_total,
                 'overdue_receivables': self._owner_money(sum(overdue_invoices.mapped('amount_residual'))),
             },
-            'alerts': alerts[:6],
+            'alerts': alerts,
             'vessels': [self._owner_vessel(vessel, index) for index, vessel in enumerate(vessels)],
         }
 
@@ -135,23 +176,44 @@ class SedarDashboard(models.Model):
 
     @api.model
     def _owner_vessel(self, vessel, index=0):
-        status_labels = dict(vessel._fields['status'].selection)
-        tone = 'risk' if vessel.status == 'dry_dock' else ('watch' if vessel.status == 'standby' else 'good')
+        on_maintenance = vessel.status in ('maintenance', 'dry_dock', 'off_hire')
+        tone = 'watch' if on_maintenance else 'good'
+        location = getattr(vessel, 'last_known_location', False) or vessel.home_port or 'Location not recorded'
+        latitude = vessel.current_latitude
+        longitude = vessel.current_longitude
+        power = getattr(vessel, 'horsepower', 0) or getattr(vessel, 'capacity', 0)
+        bollard_pull = getattr(vessel, 'bollard_pull', 0)
+        fuel_on_hand = getattr(vessel, 'fuel_on_hand', 0)
+        availability_rate = getattr(vessel, 'availability_rate', 0)
+        utilization_rate = getattr(vessel, 'utilization_rate', 0)
+        last_update = getattr(vessel, 'last_position_at', False) or getattr(vessel, 'ais_timestamp', False)
+        map_positions = [
+            (18, 14), (32, 43), (15, 78),
+            (58, 18), (45, 57), (64, 84),
+            (72, 10), (68, 48), (74, 76),
+        ]
+        lat, lng = map_positions[index % len(map_positions)]
         return {
             'id': vessel.id, 'name': vessel.name,
             'role': dict(vessel._fields['vessel_type'].selection).get(vessel.vessel_type, 'Vessel'),
-            'status': status_labels.get(vessel.status, vessel.status), 'statusClass': f'is-{tone}',
-            'location': vessel.home_port or 'Location not recorded',
+            'status': 'On Maintenance' if on_maintenance else 'Active', 'statusClass': f'is-{tone}',
+            'location': location,
             'speed': f'{vessel.speed_knots:g} kn',
             'heading': f'{vessel.course_degrees:g} deg',
             'tracking': dict(vessel._fields['tracking_status'].selection).get(vessel.tracking_status, 'Offline'),
-            'latitude': vessel.current_latitude, 'longitude': vessel.current_longitude,
+            'power': f'{power:,.0f} HP' if power else False,
+            'bollard': f'{bollard_pull:g} t' if bollard_pull else False,
+            'fuelOnHand': f'{fuel_on_hand:,.0f}' if fuel_on_hand else False,
+            'availabilityRate': f'{availability_rate:g}%' if availability_rate else False,
+            'utilizationRate': f'{utilization_rate:g}%' if utilization_rate else False,
+            'lastUpdate': fields.Datetime.to_string(last_update) if last_update else False,
+            'latitude': latitude, 'longitude': longitude,
             # Positions on the prototype canvas are only a visual distribution.
-            'lat': 24 + ((index * 23) % 58), 'lng': 18 + ((index * 29) % 70),
+            'lat': lat, 'lng': lng,
             'engine': 'Equipment register planned',
             'horsepower': f'{vessel.capacity:g} BHP' if vessel.capacity else 'Not recorded',
             'bollard': 'Not recorded', 'fuel': 0,
-            'availability': 0 if vessel.status == 'dry_dock' else 100,
+            'availability': 0 if on_maintenance else 100,
             'parts': [],
         }
 
