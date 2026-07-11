@@ -4,11 +4,7 @@
         <xpath expr="//nav[contains(@class, 'o_main_navbar')]" position="after">
             <aside class="o_sedar_sidebar d-print-none">
                 <div class="o_sedar_sidebar_brand">
-                    <div class="o_sedar_logo_mark">S</div>
-                    <div>
-                        <div class="o_sedar_logo_text">SEDAR</div>
-                        <div class="o_sedar_logo_subtitle">Marine ERP MVP</div>
-                    </div>
+                    <div class="o_sedar_brand_logo"><img src="/sedar_marine_mvp/static/src/img/sedar-logo-wide.png" alt="SEDAR Tug Services Corp."/></div>
                 </div>
 
                 <nav class="o_sedar_sidebar_nav" aria-label="SEDAR navigation">
@@ -91,10 +87,10 @@
                 </nav>
 
                 <div class="o_sedar_sidebar_footer">
-                    <div class="o_sedar_user_avatar">S</div>
+                    <div class="o_sedar_user_avatar"><img src="/sedar_marine_mvp/static/src/img/sedar-logo-mark.png" alt="SEDAR"/></div>
                     <div>
                         <div class="o_sedar_user_name">SEDAR MVP</div>
-                        <div class="o_sedar_user_role">Placeholder logo</div>
+                        <div class="o_sedar_user_role">Marine Operations</div>
                     </div>
                 </div>
             </aside>

@@ -1,1 +1,1 @@
-# Asset-only theme module.
+from . import models

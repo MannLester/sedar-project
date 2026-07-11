@@ -21,21 +21,12 @@ body:has(.o_sedar_applicant_dashboard) #bottom {
     padding: 0 4px;
 }
 
-.o_sedar_brand_mark {
-    align-items: center;
-    background: #d97706;
-    border-radius: 6px;
-    display: inline-flex;
-    font-size: 24px;
-    font-weight: 800;
-    height: 42px;
-    justify-content: center;
-    width: 42px;
+.o_sedar_public_logo {
+    display: block;
+    width: min(184px, 62vw);
+    height: auto;
+    object-fit: contain;
 }
-
-.o_sedar_public_brand > div { display: flex; flex-direction: column; }
-.o_sedar_public_brand strong { font-size: 18px; letter-spacing: 0; }
-.o_sedar_public_brand small { color: #cbd5e1; font-size: 11px; }
 .o_sedar_secure_label { border-left: 1px solid #334e68; color: #cbd5e1; font-size: 13px; margin-left: auto; padding-left: 16px; }
 
 .o_sedar_dashboard_shell {

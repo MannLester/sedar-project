@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <function model="res.users" name="sedar_set_default_home_action"/>
+</odoo>

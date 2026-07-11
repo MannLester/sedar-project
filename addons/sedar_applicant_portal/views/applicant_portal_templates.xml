@@ -5,8 +5,7 @@
             <div class="o_sedar_applicant_portal">
                 <section class="o_sedar_applicant_shell">
                     <div class="o_sedar_public_brand">
-                        <span class="o_sedar_brand_mark">S</span>
-                        <div><strong>SEDAR</strong><small>Tug and Marine Services</small></div>
+                        <img class="o_sedar_public_logo" src="/sedar_applicant_portal/static/src/img/sedar-logo-wide.png" alt="SEDAR Tug Services Corp."/>
                         <span class="o_sedar_secure_label">Secure application</span>
                     </div>
                     <t t-if="not job and not dispatch">

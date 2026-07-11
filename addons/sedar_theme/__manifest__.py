@@ -33,6 +33,7 @@
         ],
     },
     'data': [
+        'data/default_home_action.xml',
         'views/login_views.xml',
     ],
     'installable': True,
