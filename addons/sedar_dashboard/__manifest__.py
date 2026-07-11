@@ -1,6 +1,6 @@
 {
     'name': 'SEDAR Management Dashboard',
-    'version': '17.0.1.0.0',
+    'version': '17.0.1.1.0',
     'summary': 'Community-compatible KPI snapshot for SEDAR leadership',
     'category': 'Reporting',
     'depends': ['account', 'sedar_tug_ops', 'sedar_hsse', 'sedar_crewing', 'sedar_doccontrol'],

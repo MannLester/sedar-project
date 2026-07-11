@@ -1,6 +1,6 @@
 /** @odoo-module **/
 
-import { Component, useState } from "@odoo/owl";
+import { Component, onWillStart, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 
@@ -211,6 +211,7 @@ export class OwnerPreviewDashboard extends Component {
 
     setup() {
         this.action = useService("action");
+        this.orm = useService("orm");
         const tag = this.props.action?.tag || "sedar_owner_preview.dashboard";
         this.selectVessel = this.selectVessel.bind(this);
         this.selectModule = this.selectModule.bind(this);
@@ -219,6 +220,9 @@ export class OwnerPreviewDashboard extends Component {
         this.state = useState({
             activeVessel: ACTION_VESSEL[tag] || 0,
             activeModule: ACTION_FOCUS[tag] || "Owner Preview",
+            loading: true,
+            generatedAt: "",
+            alerts: [],
         });
         this.vessels = VESSELS;
         this.workflows = WORKFLOWS;
@@ -230,6 +234,24 @@ export class OwnerPreviewDashboard extends Component {
         this.auditRows = AUDIT_ROWS;
         this.barcodeSteps = BARCODE_STEPS;
         this.bankRows = BANK_ROWS;
+        onWillStart(() => this.loadOwnerSnapshot());
+    }
+
+    async loadOwnerSnapshot() {
+        try {
+            const snapshot = await this.orm.call("sedar.dashboard", "get_owner_snapshot", []);
+            this.state.generatedAt = snapshot.generated_at;
+            this.state.alerts = snapshot.alerts;
+            if (snapshot.metrics?.length) {
+                this.workflows = snapshot.metrics;
+            }
+            if (snapshot.vessels?.length) {
+                this.vessels = snapshot.vessels;
+                this.state.activeVessel = Math.min(this.state.activeVessel, snapshot.vessels.length - 1);
+            }
+        } finally {
+            this.state.loading = false;
+        }
     }
 
     get focusCopy() {
@@ -264,7 +286,9 @@ export class OwnerPreviewDashboard extends Component {
     }
 
     openAction(action) {
-        this.action.doAction(action);
+        if (action) {
+            this.action.doAction(action);
+        }
     }
 }
 

@@ -1,6 +1,6 @@
 {
     'name': 'SEDAR Owner Preview',
-    'version': '17.0.1.0.0',
+    'version': '17.0.1.1.0',
     'summary': 'Client-facing visualization of the target SEDAR tug ERP experience',
     'category': 'Reporting',
     'depends': ['web', 'sedar_dashboard', 'sedar_tug_ops', 'sedar_operations_integration'],

@@ -1,6 +1,6 @@
 {
     'name': 'SEDAR Sidebar Theme',
-    'version': '17.0.1.0.0',
+    'version': '17.0.1.1.0',
     'summary': 'Reference-inspired sidebar theme for the SEDAR Odoo MVP',
     'category': 'Theme/Backend',
     'depends': [

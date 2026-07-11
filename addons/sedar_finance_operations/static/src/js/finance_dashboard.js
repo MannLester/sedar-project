@@ -3,8 +3,6 @@
 import { Component, onWillStart, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
-import { session } from "@web/session";
-
 const ACTIONS = {
     petty: "sedar_finance_operations.action_petty_cash",
     advance: "sedar_finance_operations.action_cash_advance",
@@ -56,42 +54,22 @@ export class FinanceDashboard extends Component {
         this.state.loading = true;
         this.state.error = "";
         try {
-            const companyId = session.user_companies.current_company;
-            const [companies, petty, advances, disbursements, collections, invoices, bills, banks, billings,
-                pettyCount, advanceCount, disbursementCount] = await Promise.all([
-                this.orm.searchRead("res.company", [["id", "=", companyId]], ["name", "currency_id"], { limit: 1 }),
-                this.orm.searchRead("sedar.finance.petty.cash", [["state", "=", "submitted"]],
-                    ["name", "description", "amount", "date", "currency_id"], { order: "date asc, id asc", limit: 6 }),
-                this.orm.searchRead("sedar.finance.cash.advance", [["state", "in", ["submitted", "released", "partial"]]],
-                    ["name", "employee_id", "purpose", "amount", "outstanding_amount", "date", "state", "currency_id"], { order: "date asc, id asc", limit: 40 }),
-                this.orm.searchRead("sedar.finance.disbursement", [["state", "in", ["submitted", "released"]]],
-                    ["name", "supplier_id", "amount", "date", "state", "payment_type", "check_status", "currency_id"], { order: "date desc, id desc", limit: 30 }),
-                this.orm.searchRead("sedar.finance.collection", [],
-                    ["name", "customer_id", "amount", "deposit_date", "state", "currency_id"], { order: "deposit_date desc, id desc", limit: 8 }),
-                this.orm.readGroup("account.move", [["move_type", "=", "out_invoice"], ["state", "=", "posted"], ["payment_state", "!=", "paid"]],
-                    ["amount_residual_signed:sum"], []),
-                this.orm.readGroup("account.move", [["move_type", "=", "in_invoice"], ["state", "=", "posted"], ["payment_state", "!=", "paid"]],
-                    ["amount_residual_signed:sum"], []),
-                this.orm.searchRead("account.journal", [["type", "in", ["bank", "cash"]]],
-                    ["name", "code", "type", "currency_id", "sedar_statement_balance", "sedar_statement_date", "sedar_posted_book_balance", "sedar_outstanding_checks", "sedar_available_cash"], { order: "type, code", limit: 100 }),
-                this.orm.searchRead("sedar.towage.billing", [],
-                    ["name", "customer_id", "amount", "write_date", "invoice_id", "currency_id"], { order: "write_date desc, id desc", limit: 8 }),
-                this.orm.searchCount("sedar.finance.petty.cash", [["state", "=", "submitted"]]),
-                this.orm.searchCount("sedar.finance.cash.advance", [["state", "=", "submitted"]]),
-                this.orm.searchCount("sedar.finance.disbursement", [["state", "=", "submitted"]]),
-            ]);
+            const snapshot = await this.orm.call("sedar.finance.dashboard", "get_snapshot", []);
+            const companies = snapshot.companies || [];
+            const petty = snapshot.petty || [];
+            const advances = snapshot.advances || [];
+            const disbursements = snapshot.disbursements || [];
+            const collections = snapshot.collections || [];
+            const invoices = snapshot.invoices || [];
+            const bills = snapshot.bills || [];
+            const banks = snapshot.banks || [];
+            const billings = snapshot.billings || [];
+            const pettyCount = snapshot.petty_count || 0;
+            const advanceCount = snapshot.advance_count || 0;
+            const disbursementCount = snapshot.disbursement_count || 0;
 
             const currencyId = this.idOf(companies[0]?.currency_id);
-            const currencyIds = [...new Set([
-                currencyId,
-                ...banks.map((row) => this.idOf(row.currency_id) || currencyId),
-                ...collections.map((row) => this.idOf(row.currency_id)),
-                ...disbursements.map((row) => this.idOf(row.currency_id)),
-                ...billings.map((row) => this.idOf(row.currency_id)),
-            ].filter(Boolean))];
-            const currencies = currencyIds.length
-                ? await this.orm.read("res.currency", currencyIds, ["name", "symbol", "position", "decimal_places"])
-                : [];
+            const currencies = snapshot.currencies || [];
             this.currencies = Object.fromEntries(currencies.map((currency) => [currency.id, currency]));
             this.state.currency = this.currencies[currencyId] || this.state.currency;
             const bookBanks = banks.filter((row) => !this.idOf(row.currency_id) || this.idOf(row.currency_id) === currencyId);

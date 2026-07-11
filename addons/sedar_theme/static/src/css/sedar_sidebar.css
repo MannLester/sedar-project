@@ -208,6 +208,49 @@
     background: rgba(255, 255, 255, 0.28);
 }
 
+.o_sedar_nav_priority {
+    margin: 0 0 16px;
+}
+
+.o_sedar_nav_priority_link {
+    align-items: center;
+    background: #ffffff;
+    border-radius: 6px;
+    color: #071d39;
+    display: grid;
+    gap: 10px;
+    grid-template-columns: 28px minmax(0, 1fr);
+    min-height: 58px;
+    padding: 10px 11px;
+    text-decoration: none;
+}
+
+.o_sedar_nav_priority_link > i {
+    font-size: 18px;
+    text-align: center;
+}
+
+.o_sedar_nav_priority_link strong,
+.o_sedar_nav_priority_link small {
+    display: block;
+}
+
+.o_sedar_nav_priority_link strong {
+    font-size: 12px;
+}
+
+.o_sedar_nav_priority_link small {
+    color: #536b82;
+    font-size: 9px;
+    margin-top: 2px;
+}
+
+.o_sedar_nav_priority_link:hover {
+    background: #eaf2f7;
+    color: #071d39;
+    text-decoration: none;
+}
+
 .o_sedar_nav_group {
     margin-bottom: 10px;
 }

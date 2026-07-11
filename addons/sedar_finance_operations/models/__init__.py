@@ -3,6 +3,7 @@ from . import advance
 from . import bank
 from . import billing
 from . import collection
+from . import dashboard
 from . import disbursement
 from . import masters
 from . import petty_cash

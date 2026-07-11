@@ -1,11 +1,11 @@
 {
     "name": "SEDAR Procurement",
     "summary": "SEDAR procurement UI backed by native Purchase and Inventory",
-    "version": "17.0.1.0.0",
+    "version": "17.0.1.1.0",
     "category": "Operations/Purchase",
     "author": "Mann, Edrian, and Clarenz",
     "license": "LGPL-3",
-    "depends": ["base", "web", "purchase", "stock", "sedar_tug_ops"],
+    "depends": ["base", "web", "purchase", "stock", "maintenance", "sedar_tug_ops"],
     "data": [
         "security/ir.model.access.csv",
         "data/company_config.xml",

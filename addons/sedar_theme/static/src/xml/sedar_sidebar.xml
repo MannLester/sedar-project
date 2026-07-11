@@ -5,235 +5,102 @@
             <aside class="o_sedar_shell d-print-none">
                 <input id="o_sedar_sidebar_state" class="o_sedar_sidebar_state" type="checkbox" checked="checked"/>
                 <div class="o_sedar_icon_rail">
-                    <label class="o_sedar_sidebar_toggle o_sedar_sidebar_expand" for="o_sedar_sidebar_state" title="Open sidebar">
-                        <i class="fa fa-bars"/>
-                    </label>
+                    <label class="o_sedar_sidebar_toggle o_sedar_sidebar_expand" for="o_sedar_sidebar_state" title="Open navigation"><i class="fa fa-bars"/></label>
                     <div class="o_sedar_rail_logo">S</div>
-                    <div class="o_sedar_rail_icons">
-                        <i class="fa fa-th-large"/>
-                        <i class="fa fa-ship"/>
-                        <i class="fa fa-wrench"/>
-                        <i class="fa fa-users"/>
-                        <i class="fa fa-life-ring"/>
-                        <i class="fa fa-money"/>
-                        <i class="fa fa-shopping-cart"/>
-                        <i class="fa fa-archive"/>
-                        <i class="fa fa-file-text"/>
-                        <i class="fa fa-bar-chart"/>
-                    </div>
+                    <div class="o_sedar_rail_icons"><i class="fa fa-th-large"/><i class="fa fa-ship"/><i class="fa fa-wrench"/><i class="fa fa-users"/><i class="fa fa-life-ring"/><i class="fa fa-money"/><i class="fa fa-shopping-cart"/><i class="fa fa-file-text"/></div>
                     <div class="o_sedar_rail_avatar"/>
                 </div>
-
                 <section class="o_sedar_sidebar">
                     <div class="o_sedar_sidebar_brand">
                         <div class="o_sedar_logo_mark">S</div>
-                        <div class="o_sedar_brand_copy">
-                            <div class="o_sedar_logo_text">SEDAR</div>
-                            <div class="o_sedar_logo_subtitle">TUG SERVICE CORP.</div>
-                        </div>
-                        <label class="o_sedar_sidebar_toggle o_sedar_sidebar_collapse" for="o_sedar_sidebar_state" title="Close sidebar">
-                            <i class="fa fa-angle-left"/>
-                        </label>
+                        <div class="o_sedar_brand_copy"><div class="o_sedar_logo_text">SEDAR</div><div class="o_sedar_logo_subtitle">TUG SERVICE CORP.</div></div>
+                        <label class="o_sedar_sidebar_toggle o_sedar_sidebar_collapse" for="o_sedar_sidebar_state" title="Close navigation"><i class="fa fa-angle-left"/></label>
                     </div>
-
                     <nav class="o_sedar_sidebar_nav" aria-label="SEDAR navigation">
-                        <details class="o_sedar_nav_group" open="open">
-                            <summary class="o_sedar_nav_parent">
-                                <span><i class="fa fa-users"/>Human Resources</span>
-                                <i class="fa fa-angle-down o_sedar_nav_chevron"/>
-                            </summary>
-                            <div class="o_sedar_nav_children">
-                                <details class="o_sedar_nav_subgroup" open="open">
-                                    <summary class="o_sedar_nav_item o_sedar_nav_subparent">
-                                        <span>Job Hiring</span>
-                                        <i class="fa fa-angle-down o_sedar_nav_chevron"/>
-                                    </summary>
-                                    <div class="o_sedar_nav_subchildren">
-                                        <a class="o_sedar_nav_item" href="/web#action=sedar_recruitment_link.action_sedar_job_hiring_overview&amp;model=sedar.job.hiring.overview&amp;view_type=kanban">
-                                            <span>Overview</span>
-                                        </a>
-                                        <a class="o_sedar_nav_item" href="/web#action=sedar_recruitment_link.action_sedar_job_dispatch&amp;model=sedar.job.dispatch&amp;view_type=kanban">
-                                            <span>Job Dispatch Orders</span>
-                                        </a>
-                                        <a class="o_sedar_nav_item" href="/web#action=sedar_recruitment_link.action_sedar_job_applications&amp;model=hr.applicant&amp;view_type=kanban">
-                                            <span>Job Applications</span>
-                                        </a>
-                                        <a class="o_sedar_nav_item" href="/web#action=sedar_recruitment_link.action_sedar_pending_interviews&amp;model=hr.applicant&amp;view_type=kanban">
-                                            <span>Pending Interviews</span>
-                                        </a>
-                                        <a class="o_sedar_nav_item" href="/web#action=sedar_recruitment_link.action_sedar_final_assessment&amp;model=hr.applicant&amp;view_type=kanban">
-                                            <span>Final Assessment</span>
-                                        </a>
-                                        <a class="o_sedar_nav_item" href="/web#action=sedar_recruitment_link.action_sedar_contract_signing&amp;model=hr.applicant&amp;view_type=kanban">
-                                            <span>Contract Signing</span>
-                                        </a>
-                                    </div>
-                                </details>
-                                <details class="o_sedar_nav_subgroup" open="open">
-                                    <summary class="o_sedar_nav_item o_sedar_nav_subparent">
-                                        <span>Employee Records</span>
-                                        <i class="fa fa-angle-down o_sedar_nav_chevron"/>
-                                    </summary>
-                                    <div class="o_sedar_nav_subchildren">
-                                        <a class="o_sedar_nav_item" href="/web#action=sedar_employee_records.action_sedar_employee_records&amp;model=hr.employee.public&amp;view_type=tree">
-                                            <span>Employee List</span>
-                                        </a>
-                                        <a class="o_sedar_nav_item" href="/web#action=sedar_employee_document_control.action_sedar_employee_document_control&amp;model=sedar.employee.document.control&amp;view_type=list">
-                                            <span>Document Control</span>
-                                        </a>
-                                        <a class="o_sedar_nav_item" href="/web#action=sedar_owner_preview.action_owner_preview_payroll">
-                                            <span>Payroll Preview</span>
-                                        </a>
-                                    </div>
-                                </details>
-                            </div>
-                        </details>
+                        <div class="o_sedar_nav_priority">
+                            <a class="o_sedar_nav_priority_link" href="/web#action=sedar_owner_preview.action_owner_preview_dashboard"><i class="fa fa-th-large"/><span><strong>Owner's Overview</strong><small>Priorities and company health</small></span></a>
+                        </div>
 
                         <details class="o_sedar_nav_group" open="open">
-                            <summary class="o_sedar_nav_parent">
-                                <span><i class="fa fa-ship"/>Marine Operations</span>
-                                <i class="fa fa-angle-down o_sedar_nav_chevron"/>
-                            </summary>
+                            <summary class="o_sedar_nav_parent"><span><i class="fa fa-ship"/>Fleet and Jobs</span><i class="fa fa-angle-down o_sedar_nav_chevron"/></summary>
                             <div class="o_sedar_nav_children">
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_tug_ops.action_sedar_job_order"><span>Job Dispatch</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_tug_ops.action_sedar_job_order"><span>Jobs and Dispatch</span></a>
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_tug_ops.action_sedar_tug_schedule"><span>Tug Schedule</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_tug_ops.action_sedar_voyage_log"><span>Voyage Logs</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_tug_ops.action_sedar_fuel_log"><span>Fuel Monitoring</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_owner_preview.action_owner_preview_fleet_map"><span>AIS / GPS Map Preview</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_owner_preview.action_owner_preview_vessel_health"><span>Vessel Health Preview</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_owner_preview.action_owner_preview_dry_dock"><span>Dry Dock Preview</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=maintenance.hr_equipment_request_action"><span>Maintenance Work Orders</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_crewing.action_sedar_crew_member"><span>Crew Readiness</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_doccontrol.action_sedar_doc_vessel_cert"><span>Vessel Certificates</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_tug_ops.action_sedar_voyage_log"><span>Voyage Records</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_tug_ops.action_sedar_fuel_log"><span>Fuel Usage</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_owner_preview.action_owner_preview_fleet_map"><span>Vessel Map</span></a>
                             </div>
                         </details>
 
                         <details class="o_sedar_nav_group">
-                            <summary class="o_sedar_nav_parent">
-                                <span><i class="fa fa-money"/>Finance and Accounting</span>
-                                <i class="fa fa-angle-down o_sedar_nav_chevron"/>
-                            </summary>
+                            <summary class="o_sedar_nav_parent"><span><i class="fa fa-wrench"/>Maintenance</span><i class="fa fa-angle-down o_sedar_nav_chevron"/></summary>
                             <div class="o_sedar_nav_children">
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_finance_operations.action_finance_dashboard"><span>Finance Control Room</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=account_financial_report.action_general_ledger_wizard"><span>General Ledger</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=account_financial_report.action_trial_balance_wizard"><span>Trial Balance</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_finance_operations.action_petty_cash"><span>Petty Cash</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_finance_operations.action_cash_advance"><span>Cash Advances</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_finance_operations.action_liquidation"><span>Advance Liquidations</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_finance_operations.action_disbursement"><span>Disbursements</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_finance_operations.action_collection"><span>Collections</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_tug_ops.action_sedar_towage_billing"><span>Towage Billing</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_finance_operations.action_tariff"><span>Client Tariffs</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_finance_operations.action_bank_adjustment"><span>Bank Adjustments</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_owner_preview.action_owner_preview_bank_feed"><span>Bank Feed Preview</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_finance_operations.action_profit_loss_comparison"><span>Profit and Loss</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_finance_operations.action_balance_sheet_comparison"><span>Balance Sheet</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_finance_operations.action_cash_flow_report"><span>Cash Flow</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=account.action_move_out_invoice_type"><span>Customer Invoices</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=account.action_move_in_invoice_type"><span>Vendor Bills</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_owner_preview.action_owner_preview_vessel_health"><span>Vessel Readiness</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=maintenance.hr_equipment_request_action"><span>Maintenance Work</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_owner_preview.action_owner_preview_dry_dock"><span>Dry Dock Planning</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_procurement.action_sedar_stock_reorder_signals_board"><span>Parts to Reorder</span></a>
                             </div>
                         </details>
 
-                        <details class="o_sedar_nav_group" open="open">
-                            <summary class="o_sedar_nav_parent">
-                                <span><i class="fa fa-shopping-cart"/>Procurement</span>
-                                <i class="fa fa-angle-down o_sedar_nav_chevron"/>
-                            </summary>
+                        <details class="o_sedar_nav_group">
+                            <summary class="o_sedar_nav_parent"><span><i class="fa fa-users"/>People and Crewing</span><i class="fa fa-angle-down o_sedar_nav_chevron"/></summary>
                             <div class="o_sedar_nav_children">
-                                <t t-foreach="menuService.getApps()" t-as="app" t-key="app.id">
-                                    <a t-if="app.xmlid === 'sedar_procurement.menu_sedar_procurement_app'"
-                                       t-att-href="getMenuItemHref(app)"
-                                       t-att-data-menu-xmlid="app.xmlid"
-                                       t-att-class="{'o_sedar_nav_item': true, 'active': currentApp and currentApp.id === app.id}"
-                                       t-on-click.prevent="() => this.onNavBarDropdownItemSelection(app)">
-                                        <span>Dashboard</span>
-                                    </a>
-                                </t>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_procurement.action_sedar_procurement_records_board">
-                                    <span>Requests and Orders</span>
-                                </a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_procurement.action_sedar_stock_reorder_signals_board">
-                                    <span>Stock Reorder Signals</span>
-                                </a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_owner_preview.action_owner_preview_inventory_barcode">
-                                    <span>Inventory Barcode Preview</span>
-                                </a>
+                                <details class="o_sedar_nav_subgroup"><summary class="o_sedar_nav_item o_sedar_nav_subparent"><span>Recruitment</span><i class="fa fa-angle-down o_sedar_nav_chevron"/></summary><div class="o_sedar_nav_subchildren">
+                                    <a class="o_sedar_nav_item" href="/web#action=sedar_recruitment_link.action_sedar_job_hiring_overview"><span>Hiring Overview</span></a>
+                                    <a class="o_sedar_nav_item" href="/web#action=sedar_recruitment_link.action_sedar_job_applications"><span>Applications</span></a>
+                                    <a class="o_sedar_nav_item" href="/web#action=sedar_recruitment_link.action_sedar_pending_interviews"><span>Interviews</span></a>
+                                </div></details>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_employee_records.action_sedar_employee_records"><span>Employee Records</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_crewing.action_sedar_crew_member"><span>Crew Readiness</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_employee_document_control.action_sedar_employee_document_control"><span>Employee Documents</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_owner_preview.action_owner_preview_payroll"><span>Payroll Prototype</span></a>
                             </div>
                         </details>
 
-                        <details class="o_sedar_nav_group" open="open">
-                            <summary class="o_sedar_nav_parent">
-                                <span><i class="fa fa-life-ring"/>HSSE</span>
-                                <i class="fa fa-angle-down o_sedar_nav_chevron"/>
-                            </summary>
+                        <details class="o_sedar_nav_group">
+                            <summary class="o_sedar_nav_parent"><span><i class="fa fa-life-ring"/>Safety and Compliance</span><i class="fa fa-angle-down o_sedar_nav_chevron"/></summary>
                             <div class="o_sedar_nav_children">
-                                <t t-foreach="menuService.getApps()" t-as="app" t-key="app.id">
-                                    <a t-if="app.xmlid === 'sedar_hsse.menu_root'"
-                                       t-att-href="getMenuItemHref(app)"
-                                       t-att-data-menu-xmlid="app.xmlid"
-                                       t-att-class="{'o_sedar_nav_item': true, 'active': currentApp and currentApp.id === app.id}"
-                                       t-on-click.prevent="() => this.onNavBarDropdownItemSelection(app)">
-                                        <span>Safety Events</span>
-                                    </a>
-                                </t>
+                                <t t-foreach="menuService.getApps()" t-as="app" t-key="app.id"><a t-if="app.xmlid === 'sedar_hsse.menu_root'" t-att-href="getMenuItemHref(app)" t-att-data-menu-xmlid="app.xmlid" class="o_sedar_nav_item" t-on-click.prevent="() => this.onNavBarDropdownItemSelection(app)"><span>Safety Events</span></a></t>
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_hsse.action_sedar_hsse_inspection"><span>Inspections and Audits</span></a>
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_hsse.action_sedar_hsse_risk_assessment"><span>Risk Assessments</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_hsse.action_sedar_hsse_permit"><span>Permits</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_operations_integration.action_corrective_actions"><span>Corrective Actions</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_operations_integration.action_hsse_training"><span>Training Records</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_owner_preview.action_owner_preview_audit_iso"><span>Audit / ISO Preview</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_operations_integration.action_corrective_actions"><span>Safety Actions to Complete</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_operations_integration.action_document_control_register"><span>Compliance Register</span></a>
                             </div>
                         </details>
 
                         <details class="o_sedar_nav_group">
-                            <summary class="o_sedar_nav_parent">
-                                <span><i class="fa fa-comments"/>Customer Relations</span>
-                                <i class="fa fa-angle-down o_sedar_nav_chevron"/>
-                            </summary>
+                            <summary class="o_sedar_nav_parent"><span><i class="fa fa-money"/>Finance</span><i class="fa fa-angle-down o_sedar_nav_chevron"/></summary>
                             <div class="o_sedar_nav_children">
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_marketing.action_sedar_marketing_dashboard">
-                                    <span>Dashboard</span>
-                                </a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_marketing.action_sedar_marketing_appointment&amp;model=sedar.marketing.appointment&amp;view_type=calendar">
-                                    <span>Appointments</span>
-                                </a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_finance_operations.action_finance_dashboard"><span>Finance Overview</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=account.action_move_out_invoice_type"><span>Customer Invoices</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_finance_operations.action_collection"><span>Customer Payments</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=account.action_move_in_invoice_type"><span>Supplier Bills</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_finance_operations.action_cash_flow_report"><span>Cash Flow</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_finance_operations.action_profit_loss_comparison"><span>Profit and Loss</span></a>
                             </div>
                         </details>
 
-                        <details class="o_sedar_nav_group" open="open">
-                            <summary class="o_sedar_nav_parent">
-                                <span><i class="fa fa-th-large"/>Executive Dashboard</span>
-                                <i class="fa fa-angle-down o_sedar_nav_chevron"/>
-                            </summary>
+                        <details class="o_sedar_nav_group">
+                            <summary class="o_sedar_nav_parent"><span><i class="fa fa-shopping-cart"/>Purchasing and Inventory</span><i class="fa fa-angle-down o_sedar_nav_chevron"/></summary>
                             <div class="o_sedar_nav_children">
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_owner_preview.action_owner_preview_dashboard">
-                                    <span>Owner Preview</span>
-                                </a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_owner_preview.action_owner_preview_kpi_trends">
-                                    <span>KPI Trends Preview</span>
-                                </a>
-                                <t t-foreach="menuService.getApps()" t-as="app" t-key="app.id">
-                                    <a t-if="app.xmlid === 'sedar_dashboard.menu_root'"
-                                       t-att-href="getMenuItemHref(app)"
-                                       t-att-data-menu-xmlid="app.xmlid"
-                                       t-att-class="{'o_sedar_nav_item': true, 'active': currentApp and currentApp.id === app.id}"
-                                       t-on-click.prevent="() => this.onNavBarDropdownItemSelection(app)">
-                                        <span>Live KPI Dashboard</span>
-                                    </a>
-                                </t>
-                                <a class="o_sedar_nav_item" href="/web#action=stock.action_picking_tree_all"><span>Warehouse Transfers</span></a>
+                                <t t-foreach="menuService.getApps()" t-as="app" t-key="app.id"><a t-if="app.xmlid === 'sedar_procurement.menu_sedar_procurement_app'" t-att-href="getMenuItemHref(app)" t-att-data-menu-xmlid="app.xmlid" class="o_sedar_nav_item" t-on-click.prevent="() => this.onNavBarDropdownItemSelection(app)"><span>Purchasing Overview</span></a></t>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_procurement.action_sedar_procurement_records_board"><span>Requests and Orders</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=stock.action_picking_tree_all"><span>Warehouse Movements</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_owner_preview.action_owner_preview_inventory_barcode"><span>Barcode Prototype</span></a>
+                            </div>
+                        </details>
+
+                        <details class="o_sedar_nav_group">
+                            <summary class="o_sedar_nav_parent"><span><i class="fa fa-comments"/>Customers and Contracts</span><i class="fa fa-angle-down o_sedar_nav_chevron"/></summary>
+                            <div class="o_sedar_nav_children">
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_marketing.action_sedar_marketing_dashboard"><span>Customer Overview</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_marketing.action_sedar_marketing_appointment"><span>Appointments</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_tug_ops.action_sedar_towage_billing"><span>Jobs Ready for Billing</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_finance_operations.action_tariff"><span>Client Rates</span></a>
                             </div>
                         </details>
                     </nav>
-
-                    <div class="o_sedar_sidebar_footer">
-                        <div class="o_sedar_user_avatar">S</div>
-                        <div class="o_sedar_footer_copy">
-                            <div class="o_sedar_user_name">SEDAR MVP</div>
-                            <div class="o_sedar_user_role">Marine ERP</div>
-                        </div>
-                        <i class="fa fa-sign-out o_sedar_footer_icon" aria-hidden="true"/>
-                    </div>
+                    <div class="o_sedar_sidebar_footer"><div class="o_sedar_user_avatar">S</div><div class="o_sedar_footer_copy"><div class="o_sedar_user_name">SEDAR ERP</div><div class="o_sedar_user_role">Marine Operations</div></div><i class="fa fa-sign-out o_sedar_footer_icon" aria-hidden="true"/></div>
                 </section>
             </aside>
         </xpath>

@@ -128,7 +128,7 @@
         <field name="model">sedar.hsse.incident</field>
         <field name="inherit_id" ref="sedar_hsse.view_sedar_hsse_incident_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//div[@name='vessel_field']" position="after">
+            <xpath expr="//field[@name='vessel_id']" position="after">
                 <div class="sedar_hsse_field"><span class="sedar_hsse_label">Job Order</span><field name="job_order_id" nolabel="1" readonly="state == 'closed'"/></div>
                 <div class="sedar_hsse_field"><span class="sedar_hsse_label">HSSE Owner</span><field name="owner_id" nolabel="1" readonly="state == 'closed'"/></div>
             </xpath>

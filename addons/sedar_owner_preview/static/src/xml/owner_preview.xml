@@ -15,8 +15,14 @@
                 </div>
             </section>
 
+            <section t-if="isOverview" class="sop_data_bar">
+                <span class="sop_live"><i class="fa fa-circle"/> LIVE ERP DATA</span>
+                <span t-if="state.generatedAt">Updated <t t-esc="state.generatedAt"/></span>
+                <span t-if="state.loading">Refreshing management snapshot...</span>
+            </section>
+
             <section t-if="isOverview" class="sop_metrics">
-                <article t-foreach="workflows" t-as="item" t-key="item.label" t-att-class="'sop_metric ' + item.className">
+                <article t-foreach="workflows" t-as="item" t-key="item.label" t-att-class="'sop_metric sop_metric_action ' + item.className" t-on-click="() => openAction(item.action)">
                     <i t-att-class="'fa ' + item.icon"/>
                     <div>
                         <span t-esc="item.label"/>
@@ -26,15 +32,30 @@
                 </article>
             </section>
 
+            <section t-if="isOverview" class="sop_panel sop_attention">
+                <div class="sop_panel_header">
+                    <div><h2>Needs Your Attention</h2><p>Exceptions from live safety, fleet, finance, and compliance records</p></div>
+                    <span class="sop_active_module"><t t-esc="state.alerts.length"/> items</span>
+                </div>
+                <div class="sop_alert_list">
+                    <button t-foreach="state.alerts" t-as="alert" t-key="alert.title" type="button"
+                            t-att-class="'sop_alert is-' + alert.severity" t-on-click="() => openAction(alert.action)">
+                        <i t-att-class="alert.severity === 'critical' ? 'fa fa-exclamation-circle' : (alert.severity === 'warning' ? 'fa fa-clock-o' : 'fa fa-info-circle')"/>
+                        <span><small t-esc="alert.area"/><strong t-esc="alert.title"/><p t-esc="alert.detail"/></span>
+                        <i class="fa fa-chevron-right"/>
+                    </button>
+                </div>
+            </section>
+
             <t t-if="state.activeModule === 'AIS / GPS Control' || isOverview">
                 <section class="sop_grid">
                     <article class="sop_panel sop_map_panel">
                         <div class="sop_panel_header">
                             <div>
                                 <h2>AIS / GPS Fleet Map</h2>
-                                <p>Map-style preview for tugs with GPS trackers installed</p>
+                                <p>Latest stored vessel positions; map provider integration remains a prototype</p>
                             </div>
-                            <span class="sop_live">Demo signal</span>
+                            <span class="sop_badge is-watch">PROTOTYPE MAP</span>
                         </div>
                         <div class="sop_map">
                             <div class="sop_map_grid"/>
@@ -74,7 +95,7 @@
                             <div><dt>Speed</dt><dd t-esc="selectedVessel.speed"/></div>
                             <div><dt>Heading</dt><dd t-esc="selectedVessel.heading"/></div>
                             <div><dt>Dispatch ETA</dt><dd t-esc="selectedVessel.eta"/></div>
-                            <div><dt>Signal Status</dt><dd>Fresh, below 2 minutes</dd></div>
+                            <div><dt>Signal Status</dt><dd t-esc="selectedVessel.tracking"/></div>
                         </dl>
                         <div class="sop_callout">
                             <strong>Final integration note</strong>

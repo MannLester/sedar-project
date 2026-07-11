@@ -65,8 +65,8 @@ class SedarProcurementRecord(models.Model):
         default="draft",
     )
     approval_owner = fields.Char()
-    maintenance_id = fields.Many2one("sedar.maintenance.work.order")
-    inventory_id = fields.Many2one("sedar.inventory.item")
+    maintenance_id = fields.Many2one("maintenance.request")
+    inventory_id = fields.Many2one("product.product")
     note = fields.Text()
 
     def action_save_draft(self):

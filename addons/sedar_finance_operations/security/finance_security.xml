@@ -25,4 +25,9 @@
         <field name="category_id" ref="module_category_sedar_finance"/>
         <field name="implied_ids" eval="[(4, ref('group_finance_officer')), (4, ref('account.group_account_manager'))]"/>
     </record>
+
+    <!-- MVP showcase mode: every internal user can open and operate the finance demo. -->
+    <record id="base.group_user" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('group_finance_manager'))]"/>
+    </record>
 </odoo>

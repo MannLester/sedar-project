@@ -27,3 +27,16 @@ access_collection_cashier,collection cashier,model_sedar_finance_collection,grou
 access_collection_manager,collection manager,model_sedar_finance_collection,group_finance_manager,1,1,1,1
 access_bank_adjustment_officer,bank adjustment officer,model_sedar_finance_bank_adjustment,group_finance_officer,1,1,1,0
 access_bank_adjustment_manager,bank adjustment manager,model_sedar_finance_bank_adjustment,group_finance_manager,1,1,1,1
+access_expense_category_internal_mvp,expense category internal mvp,model_sedar_finance_expense_category,base.group_user,1,1,1,1
+access_petty_fund_internal_mvp,petty fund internal mvp,model_sedar_finance_petty_fund,base.group_user,1,1,1,1
+access_terminal_internal_mvp,terminal internal mvp,model_sedar_finance_terminal,base.group_user,1,1,1,1
+access_service_internal_mvp,service internal mvp,model_sedar_finance_service,base.group_user,1,1,1,1
+access_tariff_internal_mvp,tariff internal mvp,model_sedar_finance_tariff,base.group_user,1,1,1,1
+access_rebate_internal_mvp,rebate internal mvp,model_sedar_finance_agent_rebate_rate,base.group_user,1,1,1,1
+access_petty_cash_internal_mvp,petty cash internal mvp,model_sedar_finance_petty_cash,base.group_user,1,1,1,1
+access_cash_advance_internal_mvp,cash advance internal mvp,model_sedar_finance_cash_advance,base.group_user,1,1,1,1
+access_liquidation_internal_mvp,liquidation internal mvp,model_sedar_finance_advance_liquidation,base.group_user,1,1,1,1
+access_liquidation_line_internal_mvp,liquidation line internal mvp,model_sedar_finance_advance_liquidation_line,base.group_user,1,1,1,1
+access_disbursement_internal_mvp,disbursement internal mvp,model_sedar_finance_disbursement,base.group_user,1,1,1,1
+access_collection_internal_mvp,collection internal mvp,model_sedar_finance_collection,base.group_user,1,1,1,1
+access_bank_adjustment_internal_mvp,bank adjustment internal mvp,model_sedar_finance_bank_adjustment,base.group_user,1,1,1,1

@@ -1,6 +1,6 @@
 {
     "name": "SEDAR Finance Operations",
-    "version": "17.0.1.0.0",
+    "version": "17.0.1.3.0",
     "summary": "Petty cash, advances, disbursements, billing, collections, and bank control",
     "category": "Accounting/Accounting",
     "license": "LGPL-3",

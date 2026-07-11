@@ -85,7 +85,7 @@ class PurchaseOrder(models.Model):
     sedar_canvassing_done = fields.Boolean(string="Canvassing Done")
     sedar_urgent_exception = fields.Boolean(string="Urgent Single-Supplier Exception")
     sedar_exception_reason = fields.Text(string="Exception Reason")
-    sedar_maintenance_id = fields.Many2one("sedar.maintenance.work.order", string="Related Maintenance")
+    sedar_maintenance_id = fields.Many2one("maintenance.request", string="Related Maintenance")
     sedar_inventory_product_id = fields.Many2one("product.product", string="Main Inventory Item")
     sedar_vessel_id = fields.Many2one("sedar.vessel", string="Supplied Tugboat")
     sedar_quote_ids = fields.One2many("sedar.supplier.quote", "purchase_id", string="Canvas Sheet Quotes")

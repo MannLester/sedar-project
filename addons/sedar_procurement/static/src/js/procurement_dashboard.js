@@ -329,6 +329,12 @@ const INVENTORY_CATEGORY_LABELS = {
     office: "Office Supplies",
 };
 
+const PRODUCT_STATUS_META = {
+    ok: { key: "ok", label: "OK", className: "is-good" },
+    low: { key: "low", label: "Low Stock", className: "is-watch" },
+    critical: { key: "critical", label: "Critical", className: "is-risk" },
+};
+
 export class SedarStockReorderSignalsBoard extends Component {
     static template = "sedar_procurement.StockReorderSignalsBoard";
 
@@ -344,25 +350,49 @@ export class SedarStockReorderSignalsBoard extends Component {
 
     async loadItems() {
         const items = await this.orm.searchRead(
-            "sedar.inventory.item",
-            [],
-            ["id", "name", "category", "warehouse", "location_bin", "quantity_on_hand", "reorder_point", "status", "maintenance_demand", "procurement_signal"],
-            { order: "status, category, name", limit: 100 }
+            "product.product",
+            [["purchase_ok", "=", true]],
+            ["id", "name", "default_code", "categ_id", "qty_available", "virtual_available", "sedar_item_size", "sedar_critical_part", "sedar_vessel_id"],
+            { order: "name", limit: 100 }
         );
         this.state.items = items.map((item) => this.normalizeItem(item));
     }
 
     normalizeItem(item) {
-        const meta = INVENTORY_STATUS_META[item.status] || INVENTORY_STATUS_META.ok;
+        const quantity = item.qty_available || 0;
+        const forecast = item.virtual_available || 0;
+        const status = this.getProductStatus(item, quantity, forecast);
+        const vessel = Array.isArray(item.sedar_vessel_id) ? item.sedar_vessel_id[1] : "";
+        const category = Array.isArray(item.categ_id) ? item.categ_id[1] : "Inventory";
+        const code = item.default_code ? `[${item.default_code}] ` : "";
         return {
             ...item,
-            statusLabel: meta.label,
-            statusClass: meta.className,
-            categoryLabel: INVENTORY_CATEGORY_LABELS[item.category] || item.category || "Inventory",
-            quantityLabel: this.formatNumber(item.quantity_on_hand),
-            reorderLabel: this.formatNumber(item.reorder_point),
-            locationLabel: [item.warehouse, item.location_bin].filter(Boolean).join(" / ") || "No location set",
+            status: status.key,
+            statusLabel: status.label,
+            statusClass: status.className,
+            categoryLabel: INVENTORY_CATEGORY_LABELS[category] || category || "Inventory",
+            name: `${code}${item.name}`,
+            quantity_on_hand: quantity,
+            reorder_point: item.sedar_critical_part ? 2 : 5,
+            quantityLabel: this.formatNumber(quantity),
+            reorderLabel: this.formatNumber(item.sedar_critical_part ? 2 : 5),
+            locationLabel: vessel ? `Assigned to ${vessel}` : "General tug inventory",
+            procurement_signal: forecast < quantity ? "Forecast demand is reducing stock" : "",
+            maintenance_demand: item.sedar_critical_part ? "Critical tugboat part" : item.sedar_item_size || "",
         };
+    }
+
+    getProductStatus(item, quantity, forecast) {
+        if (item.sedar_critical_part && quantity <= 1) {
+            return PRODUCT_STATUS_META.critical;
+        }
+        if (quantity <= 0 || forecast < 0) {
+            return PRODUCT_STATUS_META.critical;
+        }
+        if (quantity <= 5 || forecast <= 2) {
+            return PRODUCT_STATUS_META.low;
+        }
+        return PRODUCT_STATUS_META.ok;
     }
 
     get watchItems() {
@@ -418,7 +448,7 @@ export class SedarStockReorderSignalsBoard extends Component {
         }
         this.action.doAction({
             type: "ir.actions.act_window",
-            res_model: "sedar.inventory.item",
+            res_model: "product.product",
             res_id: recordId,
             views: [[false, "form"]],
             target: "current",
