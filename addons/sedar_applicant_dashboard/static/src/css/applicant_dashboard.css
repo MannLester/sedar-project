@@ -1,9 +1,42 @@
 .o_sedar_applicant_dashboard {
-    background: #f3f6f7;
-    color: #1f2d2f;
+    background: #0a1628;
+    color: #0f172a;
+    font-family: "Plus Jakarta Sans", Inter, Arial, sans-serif;
     min-height: 100vh;
-    padding: 32px 16px;
+    padding: 24px 16px 56px;
 }
+
+body:has(.o_sedar_applicant_dashboard) #top,
+body:has(.o_sedar_applicant_dashboard) #bottom {
+    display: none;
+}
+
+.o_sedar_public_brand {
+    align-items: center;
+    color: #ffffff;
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    min-height: 64px;
+    padding: 0 4px;
+}
+
+.o_sedar_brand_mark {
+    align-items: center;
+    background: #d97706;
+    border-radius: 6px;
+    display: inline-flex;
+    font-size: 24px;
+    font-weight: 800;
+    height: 42px;
+    justify-content: center;
+    width: 42px;
+}
+
+.o_sedar_public_brand > div { display: flex; flex-direction: column; }
+.o_sedar_public_brand strong { font-size: 18px; letter-spacing: 0; }
+.o_sedar_public_brand small { color: #cbd5e1; font-size: 11px; }
+.o_sedar_secure_label { border-left: 1px solid #334e68; color: #cbd5e1; font-size: 13px; margin-left: auto; padding-left: 16px; }
 
 .o_sedar_dashboard_shell {
     margin: 0 auto;
@@ -27,6 +60,10 @@
     padding: 24px;
 }
 
+.o_sedar_dashboard_header {
+    border-top: 4px solid #d97706;
+}
+
 .o_sedar_dashboard_kicker {
     color: #5a7276;
     font-weight: 700;
@@ -45,12 +82,14 @@
 }
 
 .o_sedar_dashboard_status {
-    background: #eef5f5;
-    border: 1px solid #cbdcde;
+    background: #fff8eb;
+    border: 1px solid #f4cf91;
     border-radius: 8px;
     min-width: 220px;
     padding: 16px;
 }
+
+.o_sedar_dashboard_status strong { color: #92400e; }
 
 .o_sedar_dashboard_status span,
 .o_sedar_panel_header span {
@@ -70,6 +109,25 @@
     gap: 16px;
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
+
+.o_sedar_next_action {
+    align-items: center;
+    background: #102a43;
+    border: 1px solid #334e68;
+    color: #ffffff;
+    display: flex;
+    gap: 24px;
+    grid-column: 1 / -1;
+    justify-content: space-between;
+    padding: 20px 22px;
+}
+
+.o_sedar_next_action.is-action { border-left: 4px solid #d97706; }
+.o_sedar_next_action.is-waiting { border-left: 4px solid #829ab1; }
+.o_sedar_next_action span { color: #fbbf24; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+.o_sedar_next_action h2 { font-size: 20px; margin: 4px 0; }
+.o_sedar_next_action p { color: #cbd5e1; margin: 0; }
+.o_sedar_next_action .btn-primary { background: #d97706; border-color: #d97706; white-space: nowrap; }
 
 .o_sedar_dashboard_panel {
     padding: 22px;
@@ -126,13 +184,13 @@
 
 .o_sedar_progress li.is-done,
 .o_sedar_progress li.is-current {
-    border-color: #0f6b72;
+    border-color: #d97706;
     color: #1f2d2f;
 }
 
 .o_sedar_progress li.is-done span,
 .o_sedar_progress li.is-current span {
-    background: #0f6b72;
+    background: #d97706;
 }
 
 .o_sedar_summary_list,
@@ -205,7 +263,7 @@
     border-top: 1px solid #d8e1e3;
     display: grid;
     gap: 12px;
-    grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr) auto;
+    grid-template-columns: repeat(3, minmax(180px, 1fr)) auto;
     margin-top: 18px;
     padding-top: 18px;
 }
@@ -218,12 +276,15 @@
     gap: 6px;
 }
 
-.o_sedar_upload_form input {
+.o_sedar_upload_form input,
+.o_sedar_upload_form select {
     border: 1px solid #bccdd0;
     border-radius: 6px;
     min-height: 42px;
     padding: 8px 10px;
 }
+
+.o_sedar_upload_form .btn-primary { background: #d97706; border-color: #d97706; min-height: 42px; }
 
 .o_sedar_dashboard_alert {
     border-radius: 8px;
@@ -255,6 +316,22 @@
 
 .o_sedar_dashboard_success_actions {
     margin-top: 18px;
+}
+
+.o_sedar_welcome_alert {
+    align-items: flex-start;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.o_sedar_applicant_footer {
+    color: #94a3b8;
+    display: flex;
+    font-size: 12px;
+    gap: 16px;
+    justify-content: space-between;
+    padding: 24px 4px 0;
 }
 
 .o_sedar_dashboard_success_actions .o_sedar_muted {
@@ -294,4 +371,12 @@
         align-items: stretch;
         grid-template-columns: 1fr;
     }
+
+    .o_sedar_next_action,
+    .o_sedar_applicant_footer {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .o_sedar_secure_label { display: none; }
 }

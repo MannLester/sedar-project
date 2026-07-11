@@ -1,4 +1,5 @@
 import base64
+import json
 
 from odoo import _, http
 from odoo.http import request
@@ -13,6 +14,37 @@ ALLOWED_MIMETYPES = {
 
 
 class SedarApplicantPortal(http.Controller):
+    @http.route(
+        '/applicant/api/jobs',
+        type='http',
+        auth='public',
+        methods=['GET'],
+        csrf=False,
+        cors='*',
+    )
+    def applicant_jobs(self, **kw):
+        """Small public contract used by the company careers website."""
+        dispatches = request.env['sedar.job.dispatch'].sudo().search(
+            [('state', '=', 'approved')],
+            order='needed_by asc, requested_datetime desc, id desc',
+        )
+        jobs = []
+        for dispatch in dispatches:
+            job = dispatch.hr_job_id
+            jobs.append({
+                'id': dispatch.id,
+                'job_id': job.id if job else False,
+                'title': job.name if job else dispatch.role_needed,
+                'department': job.department_id.name if job and job.department_id else 'Marine Operations',
+                'location': job.address_id.city if job and job.address_id and job.address_id.city else 'Batangas City',
+                'type': 'Full-Time',
+                'openings': dispatch.quantity,
+                'description': dispatch.requirements or dispatch.missing_reason or '',
+                'apply_url': '/applicant/apply?dispatch_id=%s' % dispatch.id,
+            })
+        payload = json.dumps({'jobs': jobs})
+        return request.make_response(payload, headers=[('Content-Type', 'application/json')])
+
     def _layout_context(self):
         lang = request.env.lang or 'en_US'
         return {
@@ -157,9 +189,11 @@ class SedarApplicantPortal(http.Controller):
             'resume_attachment_id': attachments.get('resume_attachment'),
         })
 
-        render_values = {
-            'applicant': applicant,
-        }
+        if 'sedar_dashboard_token' in applicant._fields:
+            applicant._sedar_ensure_dashboard_token()
+            return request.redirect('/applicant/dashboard/%s?welcome=1' % applicant.sedar_dashboard_token)
+
+        render_values = {'applicant': applicant}
         render_values.update(self._layout_context())
         return request.render('sedar_applicant_portal.applicant_apply_success', render_values)
 

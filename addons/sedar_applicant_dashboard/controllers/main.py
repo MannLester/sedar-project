@@ -45,6 +45,32 @@ class SedarApplicantDashboard(http.Controller):
         }
         return labels.get(applicant.sedar_hiring_state, _('Under Review'))
 
+    def _next_action(self, applicant, document_rows):
+        missing = [row['name'] for row in document_rows if row['status_class'] == 'is-missing']
+        if missing:
+            return {
+                'title': _('Complete your documents'),
+                'detail': _('Upload the missing items: %s') % ', '.join(missing),
+                'kind': 'action',
+            }
+        if applicant.sedar_hiring_state == 'for_interview' and not applicant.sedar_interview_datetime:
+            return {
+                'title': _('Wait for your interview schedule'),
+                'detail': _('HR is preparing your interview details. They will appear here once confirmed.'),
+                'kind': 'waiting',
+            }
+        if applicant.sedar_hiring_state == 'for_interview':
+            return {
+                'title': _('Prepare for your interview'),
+                'detail': applicant.sedar_interview_schedule_label or _('Review the confirmed schedule below.'),
+                'kind': 'action',
+            }
+        return {
+            'title': _('No action needed right now'),
+            'detail': _('Your application is with the SEDAR HR team. Check this page for updates.'),
+            'kind': 'waiting',
+        }
+
     def _progress_steps(self, applicant):
         order = [
             ('application', _('Application Submitted')),
@@ -122,13 +148,16 @@ class SedarApplicantDashboard(http.Controller):
     def applicant_dashboard(self, token, upload_status=None, **kw):
         applicant = self._get_applicant(token)
         profile = self._profile(applicant)
+        document_rows = self._document_rows(applicant, profile)
         values = {
             'applicant': applicant,
             'profile': profile,
             'public_status': self._public_status(applicant),
             'progress_steps': self._progress_steps(applicant),
-            'document_rows': self._document_rows(applicant, profile),
+            'document_rows': document_rows,
+            'next_action': self._next_action(applicant, document_rows),
             'upload_status': upload_status,
+            'welcome': kw.get('welcome') == '1',
             'max_upload_mb': int(MAX_UPLOAD_SIZE / 1024 / 1024),
         }
         values.update(self._layout_context())
@@ -148,13 +177,20 @@ class SedarApplicantDashboard(http.Controller):
                 status = 'invalid_type'
             else:
                 safe_name = secure_filename(upload.filename) or upload.filename
+                document_type = post.get('document_type') or 'Additional Document'
+                allowed_types = {
+                    'Resume', 'SIRB', "Driver's License", 'Medical Certificate',
+                    'Training Certificate', 'Other Supporting Document',
+                }
+                if document_type not in allowed_types:
+                    document_type = 'Additional Document'
                 request.env['ir.attachment'].sudo().create({
-                    'name': safe_name,
+                    'name': '%s - %s' % (document_type, safe_name),
                     'datas': base64.b64encode(content),
                     'mimetype': upload.mimetype,
                     'res_model': 'hr.applicant',
                     'res_id': applicant.id,
-                    'description': post.get('description'),
+                    'description': post.get('description') or document_type,
                 })
                 status = 'uploaded'
         return request.redirect('/applicant/dashboard/%s?upload_status=%s' % (token, status))

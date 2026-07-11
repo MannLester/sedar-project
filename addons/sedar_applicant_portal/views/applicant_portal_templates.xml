@@ -4,6 +4,11 @@
         <t t-call="web.frontend_layout">
             <div class="o_sedar_applicant_portal">
                 <section class="o_sedar_applicant_shell">
+                    <div class="o_sedar_public_brand">
+                        <span class="o_sedar_brand_mark">S</span>
+                        <div><strong>SEDAR</strong><small>Tug and Marine Services</small></div>
+                        <span class="o_sedar_secure_label">Secure application</span>
+                    </div>
                     <t t-if="not job and not dispatch">
                         <div class="o_sedar_applicant_notice">
                             <h1>Application link unavailable</h1>
@@ -13,10 +18,14 @@
                     <t t-else="">
                         <header class="o_sedar_applicant_header">
                             <div>
-                                <p class="o_sedar_applicant_kicker">SEDAR Applicant Portal</p>
-                                <h1>Application Form</h1>
-                                <p t-if="job">Applying for: <strong t-esc="job.name"/></p>
-                                <p t-elif="dispatch">Applying for: <strong t-esc="dispatch.role_needed"/></p>
+                                <p class="o_sedar_applicant_kicker">Careers / Applicant Portal</p>
+                                <h1 t-if="job" t-esc="job.name"/>
+                                <h1 t-elif="dispatch" t-esc="dispatch.role_needed"/>
+                                <p>Complete the form below. Your progress stays on this device until you submit.</p>
+                            </div>
+                            <div class="o_sedar_application_meta">
+                                <span>Application progress</span>
+                                <strong data-progress-label="1">Step 1 of 9</strong>
                             </div>
                         </header>
 
@@ -46,6 +55,7 @@
                                 <button type="button" data-step-target="7">Emergency</button>
                                 <button type="button" data-step-target="8">Certify</button>
                             </nav>
+                            <div class="o_sedar_mobile_progress"><span data-progress-bar="1"></span></div>
 
                             <section class="o_sedar_applicant_step is-active" data-step="0">
                                 <h2>Personal and Family Information</h2>

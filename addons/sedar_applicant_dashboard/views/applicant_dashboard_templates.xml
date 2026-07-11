@@ -14,6 +14,17 @@
         <t t-call="web.frontend_layout">
             <div class="o_sedar_applicant_dashboard">
                 <section class="o_sedar_dashboard_shell">
+                    <div class="o_sedar_public_brand">
+                        <span class="o_sedar_brand_mark">S</span>
+                        <div><strong>SEDAR</strong><small>Tug and Marine Services</small></div>
+                        <span class="o_sedar_secure_label">Private applicant link</span>
+                    </div>
+                    <t t-if="welcome">
+                        <div class="o_sedar_dashboard_alert is-success o_sedar_welcome_alert">
+                            <strong>Application submitted successfully.</strong>
+                            <span>Keep this private link. It is your access to application updates and document requests.</span>
+                        </div>
+                    </t>
                     <header class="o_sedar_dashboard_header">
                         <div>
                             <p class="o_sedar_dashboard_kicker">SEDAR Applicant Dashboard</p>
@@ -30,6 +41,14 @@
                     </header>
 
                     <div class="o_sedar_dashboard_grid">
+                        <section t-attf-class="o_sedar_next_action #{'is-action' if next_action['kind'] == 'action' else 'is-waiting'}">
+                            <div>
+                                <span>Your Next Step</span>
+                                <h2 t-esc="next_action['title']"/>
+                                <p t-esc="next_action['detail']"/>
+                            </div>
+                            <a t-if="next_action['kind'] == 'action'" href="#applicant-documents" class="btn btn-primary">Review Documents</a>
+                        </section>
                         <section class="o_sedar_dashboard_panel o_sedar_dashboard_panel_wide">
                             <h2>Application Progress</h2>
                             <ol class="o_sedar_progress">
@@ -73,7 +92,7 @@
                             </t>
                         </section>
 
-                        <section class="o_sedar_dashboard_panel o_sedar_dashboard_panel_wide">
+                        <section id="applicant-documents" class="o_sedar_dashboard_panel o_sedar_dashboard_panel_wide">
                             <div class="o_sedar_panel_header">
                                 <h2>Documents</h2>
                                 <span>PDF, JPG, or PNG up to <t t-esc="max_upload_mb"/> MB</span>
@@ -118,6 +137,17 @@
 
                             <form class="o_sedar_upload_form" t-att-action="'/applicant/dashboard/%s/documents/upload' % applicant.sedar_dashboard_token" method="post" enctype="multipart/form-data">
                                 <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                <label>Document Type
+                                    <select name="document_type" required="required">
+                                        <option value="">Select document type</option>
+                                        <option>Resume</option>
+                                        <option>SIRB</option>
+                                        <option>Driver's License</option>
+                                        <option>Medical Certificate</option>
+                                        <option>Training Certificate</option>
+                                        <option>Other Supporting Document</option>
+                                    </select>
+                                </label>
                                 <label>Upload Additional Document<input type="file" name="document" accept=".pdf,.jpg,.jpeg,.png"/></label>
                                 <label>Note<input name="description" placeholder="Optional description"/></label>
                                 <button type="submit" class="btn btn-primary">Upload</button>
@@ -155,6 +185,10 @@
                             </t>
                         </section>
                     </div>
+                    <footer class="o_sedar_applicant_footer">
+                        <strong>SEDAR Tug and Marine Services</strong>
+                        <span>For recruitment concerns, contact the HR team using the details provided in your interview notice.</span>
+                    </footer>
                 </section>
             </div>
         </t>

@@ -1,6 +1,6 @@
 {
     'name': 'SEDAR Applicant Dashboard',
-    'version': '17.0.1.0.0',
+    'version': '17.0.1.1.0',
     'summary': 'Token-based applicant status dashboard for submitted applications',
     'category': 'Human Resources/Recruitment',
     'depends': ['sedar_applicant_portal'],

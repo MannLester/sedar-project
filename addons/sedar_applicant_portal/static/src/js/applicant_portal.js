@@ -17,6 +17,8 @@
         var stepButtons = Array.prototype.slice.call(form.querySelectorAll('[data-step-target]'));
         var currentStep = 0;
         var maxBytes = 10 * 1024 * 1024;
+        var progressLabel = document.querySelector('[data-progress-label]');
+        var progressBar = form.querySelector('[data-progress-bar]');
 
         function setStep(index) {
             currentStep = Math.max(0, Math.min(index, steps.length - 1));
@@ -25,8 +27,17 @@
             });
             stepButtons.forEach(function (button, buttonIndex) {
                 button.classList.toggle('is-active', buttonIndex === currentStep);
+                button.classList.toggle('is-complete', buttonIndex < currentStep);
+                button.setAttribute('aria-current', buttonIndex === currentStep ? 'step' : 'false');
             });
             form.classList.toggle('is-final-step', currentStep === steps.length - 1);
+            if (progressLabel) {
+                progressLabel.textContent = 'Step ' + (currentStep + 1) + ' of ' + steps.length;
+            }
+            if (progressBar) {
+                progressBar.style.width = (((currentStep + 1) / steps.length) * 100) + '%';
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function inputValue(input) {

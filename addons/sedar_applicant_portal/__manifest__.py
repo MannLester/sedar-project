@@ -1,6 +1,6 @@
 {
     'name': 'SEDAR Applicant Portal',
-    'version': '17.0.1.0.0',
+    'version': '17.0.1.1.0',
     'summary': 'Public applicant intake form linked to SEDAR recruitment',
     'category': 'Human Resources/Recruitment',
     'depends': ['sedar_recruitment_link'],
