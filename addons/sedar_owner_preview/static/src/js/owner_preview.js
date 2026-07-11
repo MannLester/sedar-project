@@ -108,10 +108,34 @@ const TIMELINE = [
 ];
 
 const KPI_TRENDS = [
-    { label: "Fleet Availability", value: "86%", points: [72, 78, 81, 84, 82, 86], note: "Target 90%" },
-    { label: "Utilization", value: "71%", points: [58, 61, 67, 63, 69, 71], note: "Job hours / available hours" },
-    { label: "Gross Margin", value: "34%", points: [24, 28, 29, 31, 33, 34], note: "Towage after fuel, crew, vendor bills" },
-    { label: "Compliance", value: "92%", points: [84, 86, 89, 91, 90, 92], note: "Certificates, medicals, ISO, permits" },
+    { label: "Fleet Availability", value: 86, target: 90, points: [72, 78, 81, 84, 82, 86], note: "8 of 9 vessels ready", icon: "fa-anchor", gradientId: "FleetAvailability" },
+    { label: "Utilization", value: 71, target: 80, points: [58, 61, 67, 63, 69, 71], note: "Job hours / available hours", icon: "fa-briefcase", gradientId: "Utilization" },
+    { label: "Gross Margin", value: 34, target: 40, points: [24, 28, 29, 31, 33, 34], note: "Towage after fuel, crew, vendor bills", icon: "fa-line-chart", gradientId: "GrossMargin" },
+    { label: "Compliance", value: 92, target: 95, points: [84, 86, 89, 91, 90, 92], note: "Certificates, medicals, ISO, permits", icon: "fa-check-circle", gradientId: "Compliance" },
+];
+
+const FINANCIAL_DATA = {
+    months: ["Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"],
+    revenue: [4200, 4500, 4800, 5100, 4900, 5300, 5600, 5400, 5800, 6100, 6400, 6662],
+    opex: [3100, 3200, 3400, 3500, 3300, 3600, 3800, 3700, 3900, 4100, 4200, 4300],
+    currency: "PHP",
+    unit: "K",
+};
+
+const FLEET_UTILIZATION = [
+    { name: "SEDAR 1", working: 68, idle: 12, standby: 14, drydock: 6 },
+    { name: "SEDAR 2", working: 54, idle: 8, standby: 38, drydock: 0 },
+    { name: "SEDAR 3", working: 0, idle: 0, standby: 0, drydock: 100 },
+    { name: "SEDAR 4", working: 72, idle: 10, standby: 13, drydock: 5 },
+    { name: "SEDAR 5", working: 61, idle: 15, standby: 19, drydock: 5 },
+    { name: "SEDAR 6", working: 45, idle: 20, standby: 30, drydock: 5 },
+];
+
+const REVENUE_BY_SERVICE = [
+    { label: "Harbor Assist", value: 3800, color: "#0f6b72" },
+    { label: "Coastal Towing", value: 1400, color: "#0f3b4a" },
+    { label: "Ferry Services", value: 850, color: "#c87913" },
+    { label: "Salvage Ops", value: 612, color: "#b83b31" },
 ];
 
 const MODULES = [
@@ -236,6 +260,14 @@ export class OwnerPreviewDashboard extends Component {
         this.closeMapDetails = this.closeMapDetails.bind(this);
         this.selectModule = this.selectModule.bind(this);
         this.sparkline = this.sparkline.bind(this);
+        this.sparklineArea = this.sparklineArea.bind(this);
+        this.kpiStatus = this.kpiStatus.bind(this);
+        this.kpiTrend = this.kpiTrend.bind(this);
+        this.kpiColor = this.kpiColor.bind(this);
+        this.financialArea = this.financialArea.bind(this);
+        this.financialLine = this.financialLine.bind(this);
+        this.utilBarSegments = this.utilBarSegments.bind(this);
+        this.doughnutPath = this.doughnutPath.bind(this);
         this.openAction = this.openAction.bind(this);
         this.state = useState({
             activeVessel: ACTION_VESSEL[tag] || 0,
@@ -249,6 +281,9 @@ export class OwnerPreviewDashboard extends Component {
         this.workflows = WORKFLOWS;
         this.timeline = TIMELINE;
         this.trends = KPI_TRENDS;
+        this.financialData = FINANCIAL_DATA;
+        this.fleetUtil = FLEET_UTILIZATION;
+        this.revenueByService = REVENUE_BY_SERVICE;
         this.modules = MODULES;
         this.payrollRows = PAYROLL_ROWS;
         this.dryDockMilestones = DRY_DOCK_MILESTONES;
@@ -314,9 +349,108 @@ export class OwnerPreviewDashboard extends Component {
         const span = max - min || 1;
         return points.map((value, index) => {
             const x = (index / (points.length - 1 || 1)) * 100;
-            const y = 100 - ((value - min) / span) * 78 - 10;
+            const y = 100 - ((value - min) / span) * 68 - 10;
             return `${x},${y}`;
         }).join(" ");
+    }
+
+    sparklineArea(points) {
+        const max = Math.max(...points);
+        const min = Math.min(...points);
+        const span = max - min || 1;
+        const coords = points.map((value, index) => {
+            const x = (index / (points.length - 1 || 1)) * 100;
+            const y = 100 - ((value - min) / span) * 68 - 10;
+            return `${x},${y}`;
+        });
+        return `0,80 ${coords.join(" ")} 100,80`;
+    }
+
+    kpiStatus(value, target) {
+        const ratio = value / target;
+        if (ratio >= 0.95) return "good";
+        if (ratio >= 0.8) return "watch";
+        return "risk";
+    }
+
+    kpiTrend(points) {
+        const last = points[points.length - 1];
+        const prev = points[points.length - 2];
+        if (last > prev) return "up";
+        if (last < prev) return "down";
+        return "flat";
+    }
+
+    kpiColor(value, target) {
+        const ratio = value / target;
+        if (ratio >= 0.95) return "#0f3b4a";
+        if (ratio >= 0.8) return "#c87913";
+        return "#b83b31";
+    }
+
+    financialArea(series, maxY) {
+        const w = 600;
+        const h = 200;
+        const pad = 10;
+        const coords = series.map((v, i) => {
+            const x = pad + (i / (series.length - 1)) * (w - pad * 2);
+            const y = h - pad - (v / maxY) * (h - pad * 2);
+            return `${x},${y}`;
+        });
+        return `${pad},${h - pad} ${coords.join(" ")} ${w - pad},${h - pad}`;
+    }
+
+    financialLine(series, maxY) {
+        const w = 600;
+        const h = 200;
+        const pad = 10;
+        return series.map((v, i) => {
+            const x = pad + (i / (series.length - 1)) * (w - pad * 2);
+            const y = h - pad - (v / maxY) * (h - pad * 2);
+            return `${x},${y}`;
+        }).join(" ");
+    }
+
+    utilBarSegments(vessel) {
+        const total = vessel.working + vessel.idle + vessel.standby + vessel.drydock;
+        if (total === 0) return [];
+        const segments = [];
+        let offset = 0;
+        const colors = { working: "#0f3b4a", idle: "#b83b31", standby: "#c87913", drydock: "#687f85" };
+        for (const key of ["working", "idle", "standby", "drydock"]) {
+            const pct = (vessel[key] / total) * 100;
+            if (pct > 0) {
+                segments.push({ key, pct, offset, color: colors[key] });
+                offset += pct;
+            }
+        }
+        return segments;
+    }
+
+    doughnutPath(index, total) {
+        const cx = 90;
+        const cy = 90;
+        const r = 70;
+        const inner = 48;
+        const gap = 1.5 * (Math.PI / 180);
+        let cumulative = 0;
+        for (let i = 0; i < index; i++) {
+            cumulative += REVENUE_BY_SERVICE[i].value;
+        }
+        const grandTotal = REVENUE_BY_SERVICE.reduce((s, d) => s + d.value, 0);
+        const startAngle = (cumulative / grandTotal) * 2 * Math.PI - Math.PI / 2 + gap;
+        cumulative += REVENUE_BY_SERVICE[index].value;
+        const endAngle = (cumulative / grandTotal) * 2 * Math.PI - Math.PI / 2 - gap;
+        const largeArc = (endAngle - startAngle) > Math.PI ? 1 : 0;
+        const x1 = cx + r * Math.cos(startAngle);
+        const y1 = cy + r * Math.sin(startAngle);
+        const x2 = cx + r * Math.cos(endAngle);
+        const y2 = cy + r * Math.sin(endAngle);
+        const ix1 = cx + inner * Math.cos(startAngle);
+        const iy1 = cy + inner * Math.sin(startAngle);
+        const ix2 = cx + inner * Math.cos(endAngle);
+        const iy2 = cy + inner * Math.sin(endAngle);
+        return `M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} L ${ix2} ${iy2} A ${inner} ${inner} 0 ${largeArc} 0 ${ix1} ${iy1} Z`;
     }
 
     openAction(action) {

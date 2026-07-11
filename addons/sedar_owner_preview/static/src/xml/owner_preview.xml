@@ -272,43 +272,103 @@
             </t>
 
             <t t-if="state.activeModule === 'KPI Trends' || isOverview">
-                <section class="sop_bottom_grid">
-                    <article class="sop_panel">
+                <section class="sop_exec_grid">
+                    <article class="sop_panel sop_exec_finance">
                         <div class="sop_panel_header">
                             <div>
-                                <h2>Owner KPI Trends</h2>
-                                <p>Targets and directional charts for board-level review</p>
+                                <h2>Financial Overview</h2>
+                                <p>Revenue vs Operating Expenses — 12-month trailing</p>
+                            </div>
+                            <span class="sop_badge is-good">PHP 6.66M latest</span>
+                        </div>
+                        <div class="sop_exec_finance_chart">
+                            <svg viewBox="0 0 600 210" preserveAspectRatio="none" class="sop_area_chart">
+                                <defs>
+                                    <linearGradient id="gradRevenue" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#0f6b72" stop-opacity="0.3"/>
+                                        <stop offset="100%" stop-color="#0f6b72" stop-opacity="0.03"/>
+                                    </linearGradient>
+                                    <linearGradient id="gradOpex" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#c87913" stop-opacity="0.2"/>
+                                        <stop offset="100%" stop-color="#c87913" stop-opacity="0.02"/>
+                                    </linearGradient>
+                                </defs>
+                                <polygon t-att-points="financialArea(financialData.revenue, 7000)" fill="url(#gradRevenue)"/>
+                                <polyline t-att-points="financialLine(financialData.revenue, 7000)" fill="none" stroke="#0f6b72" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                <polygon t-att-points="financialArea(financialData.opex, 7000)" fill="url(#gradOpex)"/>
+                                <polyline t-att-points="financialLine(financialData.opex, 7000)" fill="none" stroke="#c87913" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="6,4"/>
+                            </svg>
+                            <div class="sop_exec_finance_labels">
+                                <t t-foreach="financialData.months" t-as="m" t-key="m">
+                                    <span t-esc="m"/>
+                                </t>
                             </div>
                         </div>
-                        <div class="sop_trends">
-                            <article t-foreach="trends" t-as="trend" t-key="trend.label">
-                                <div>
-                                    <span t-esc="trend.label"/>
-                                    <strong t-esc="trend.value"/>
-                                    <small t-esc="trend.note"/>
-                                </div>
-                                <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-                                    <polyline t-att-points="sparkline(trend.points)"/>
-                                </svg>
-                            </article>
+                        <div class="sop_exec_finance_legend">
+                            <span class="sop_legend_item"><span class="sop_legend_dot" style="background:#0f6b72"/>Revenue</span>
+                            <span class="sop_legend_item"><span class="sop_legend_dot" style="background:#c87913"/>OPEX</span>
+                            <span class="sop_exec_finance_net">Net margin PHP 2.36M</span>
                         </div>
                     </article>
 
-                    <article class="sop_panel">
+                    <article class="sop_panel sop_exec_util">
                         <div class="sop_panel_header">
                             <div>
-                                <h2>Operations Feed</h2>
-                                <p>What the owner would want to see without opening every module</p>
+                                <h2>Fleet Utilization</h2>
+                                <p>Working vs idle, standby, and drydock hours by vessel</p>
                             </div>
                         </div>
-                        <div class="sop_timeline">
-                            <div t-foreach="timeline" t-as="item" t-key="item.time + item.title">
-                                <time t-esc="item.time"/>
-                                <span t-att-class="item.className"/>
-                                <div>
-                                    <strong t-esc="item.title"/>
-                                    <p t-esc="item.detail"/>
+                        <div class="sop_exec_util_bars">
+                            <div t-foreach="fleetUtil" t-as="v" t-key="v.name" class="sop_exec_util_row">
+                                <span class="sop_exec_util_name" t-esc="v.name"/>
+                                <div class="sop_exec_util_bar">
+                                    <t t-foreach="utilBarSegments(v)" t-as="seg" t-key="seg.key">
+                                        <div t-att-style="'width:' + seg.pct + '%;background:' + seg.color"/>
+                                    </t>
                                 </div>
+                                <span class="sop_exec_util_pct" t-esc="v.working + '%'"/>
+                            </div>
+                        </div>
+                        <div class="sop_exec_util_legend">
+                            <span class="sop_legend_item"><span class="sop_legend_dot" style="background:#0f3b4a"/>Working</span>
+                            <span class="sop_legend_item"><span class="sop_legend_dot" style="background:#b83b31"/>Idle</span>
+                            <span class="sop_legend_item"><span class="sop_legend_dot" style="background:#c87913"/>Standby</span>
+                            <span class="sop_legend_item"><span class="sop_legend_dot" style="background:#687f85"/>Drydock</span>
+                        </div>
+                    </article>
+
+                    <article class="sop_panel sop_exec_revenue">
+                        <div class="sop_panel_header">
+                            <div>
+                                <h2>Revenue by Service</h2>
+                                <p>Quarterly breakdown by service type</p>
+                            </div>
+                        </div>
+                        <div class="sop_exec_doughnut_wrap">
+                            <svg viewBox="0 0 180 180" class="sop_exec_doughnut">
+                                <defs>
+                                    <filter id="doughnutShadow" x="-20%" y="-20%" width="140%" height="140%">
+                                        <feDropShadow dx="0" dy="2" stdDeviation="4" flood-opacity="0.1"/>
+                                    </filter>
+                                </defs>
+                                <g filter="url(#doughnutShadow)">
+                                    <t t-foreach="revenueByService" t-as="slice" t-key="slice.label">
+                                        <path t-att-d="doughnutPath(slice_index, revenueByService.length)" t-att-fill="slice.color" stroke="#ffffff" stroke-width="2"/>
+                                    </t>
+                                </g>
+                                <circle cx="90" cy="90" r="48" fill="#ffffff"/>
+                                <circle cx="90" cy="90" r="48" fill="none" stroke="#eef2f3" stroke-width="1"/>
+                                <text x="90" y="84" text-anchor="middle" class="sop_doughnut_center_label">PHP</text>
+                                <text x="90" y="106" text-anchor="middle" class="sop_doughnut_center_value">6.66M</text>
+                            </svg>
+                            <div class="sop_exec_doughnut_legend">
+                                <t t-foreach="revenueByService" t-as="slice" t-key="slice.label">
+                                    <div class="sop_exec_doughnut_item">
+                                        <span class="sop_legend_dot" t-att-style="'background:' + slice.color"/>
+                                        <span class="sop_exec_doughnut_item_label" t-esc="slice.label"/>
+                                        <span class="sop_exec_doughnut_item_value" t-esc="'PHP ' + (slice.value / 1000).toFixed(1) + 'M'"/>
+                                    </div>
+                                </t>
                             </div>
                         </div>
                     </article>

@@ -861,47 +861,186 @@
     color: #a82b22;
 }
 
-.sop_trends {
+.sop_exec_grid {
     display: grid;
-    gap: 12px;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    grid-template-columns: 1fr;
+    margin-bottom: 16px;
 }
 
-.sop_trends article {
-    background: #f5f8f9;
-    border: 1px solid #dfe7e9;
-    border-radius: 8px;
+.sop_exec_grid > .sop_exec_finance {
+    grid-column: 1;
+}
+
+@media (min-width: 900px) {
+    .sop_exec_grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .sop_exec_grid > .sop_exec_finance {
+        grid-column: 1 / -1;
+    }
+}
+
+.sop_exec_grid .sop_panel_header h2 {
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.sop_exec_finance_chart {
+    margin-bottom: 12px;
+}
+
+.sop_area_chart {
+    width: 100%;
+    height: 200px;
+    display: block;
+}
+
+.sop_exec_finance_labels {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 10px;
+}
+
+.sop_exec_finance_labels span {
+    color: #687f85;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.sop_exec_finance_legend {
+    align-items: center;
+    border-top: 1px solid #eef2f3;
+    display: flex;
+    gap: 20px;
+    padding-top: 12px;
+}
+
+.sop_exec_finance_net {
+    color: #0f3b4a;
+    font-size: 13px;
+    font-weight: 800;
+    margin-left: auto;
+}
+
+.sop_legend_item {
+    align-items: center;
+    color: #526a70;
+    display: flex;
+    font-size: 12px;
+    font-weight: 700;
+    gap: 6px;
+}
+
+.sop_legend_dot {
+    border-radius: 50%;
+    display: inline-block;
+    height: 8px;
+    width: 8px;
+}
+
+.sop_exec_util_bars {
     display: grid;
     gap: 10px;
-    grid-template-columns: minmax(0, 0.9fr) minmax(120px, 1fr);
-    min-height: 132px;
-    padding: 13px;
+    margin-bottom: 14px;
 }
 
-.sop_trends span,
-.sop_trends small {
-    color: #5b7379;
-    display: block;
+.sop_exec_util_row {
+    align-items: center;
+    display: grid;
+    gap: 10px;
+    grid-template-columns: 70px minmax(0, 1fr) 36px;
 }
 
-.sop_trends strong {
-    display: block;
-    font-size: 27px;
-    line-height: 1.1;
-    margin: 5px 0;
+.sop_exec_util_name {
+    color: #172b32;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
 }
 
-.sop_trends svg {
-    height: 96px;
-    width: 100%;
+.sop_exec_util_bar {
+    background: #edf2f4;
+    border-radius: 6px;
+    display: flex;
+    height: 22px;
+    overflow: hidden;
 }
 
-.sop_trends polyline {
-    fill: none;
-    stroke: #0f6b72;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 5;
+.sop_exec_util_bar > div {
+    height: 100%;
+    transition: width 400ms ease;
+}
+
+.sop_exec_util_bar > div:first-child {
+    border-radius: 6px 0 0 6px;
+}
+
+.sop_exec_util_bar > div:last-child {
+    border-radius: 0 6px 6px 0;
+}
+
+.sop_exec_util_pct {
+    color: #0f3b4a;
+    font-size: 12px;
+    font-weight: 800;
+    text-align: right;
+}
+
+.sop_exec_util_legend {
+    border-top: 1px solid #eef2f3;
+    display: flex;
+    gap: 16px;
+    padding-top: 12px;
+}
+
+.sop_exec_doughnut_wrap {
+    align-items: center;
+    display: grid;
+    gap: 20px;
+    grid-template-columns: 220px minmax(0, 1fr);
+}
+
+.sop_exec_doughnut {
+    width: 220px;
+    height: 220px;
+}
+
+.sop_doughnut_center_label {
+    fill: #687f85;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.sop_doughnut_center_value {
+    fill: #172b32;
+    font-size: 18px;
+    font-weight: 900;
+}
+
+.sop_exec_doughnut_legend {
+    display: grid;
+    gap: 10px;
+}
+
+.sop_exec_doughnut_item {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+}
+
+.sop_exec_doughnut_item_label {
+    color: #526a70;
+    font-size: 13px;
+    font-weight: 700;
+    flex: 1;
+}
+
+.sop_exec_doughnut_item_value {
+    color: #172b32;
+    font-size: 13px;
+    font-weight: 800;
 }
 
 .sop_timeline {
@@ -1224,7 +1363,8 @@
 
     .sop_grid,
     .sop_bottom_grid,
-    .sop_focus_grid {
+    .sop_focus_grid,
+    .sop_exec_grid {
         grid-template-columns: 1fr;
     }
 
@@ -1247,12 +1387,21 @@
     .sop_metrics,
     .sop_module_grid,
     .sop_specs,
-    .sop_trends,
     .sop_vessel_picker,
     .sop_drydock_summary,
     .sop_cards_2,
     .sop_step_cards {
         grid-template-columns: 1fr;
+    }
+
+    .sop_exec_doughnut_wrap {
+        grid-template-columns: 1fr;
+        justify-items: center;
+    }
+
+    .sop_exec_util_name {
+        font-size: 11px;
+        width: 58px;
     }
 
     .sop_table > div,
