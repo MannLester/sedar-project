@@ -1,19 +1,20 @@
 # SEDAR Odoo Community MVP
 
-This is the Odoo Community starting point for the SEDAR tug ERP and marine fleet management MVP.
+This folder contains Odoo Community support files and the retired first prototype. The supported SEDAR MVP runs on Odoo 17 from the repository root.
 
 ## Why Start Here
 
-Step 1 is the dashboard and module map. This Odoo project turns that map into a runnable Community Edition prototype:
+The current Community Edition prototype uses:
 
-- One custom addon: `sedar_marine_mvp`.
+- Odoo 17 Community.
+- Modular project-owned addons under `../addons/`.
 - Sample/demo data only.
 - Dashboard-first menus split into separate Odoo app areas.
 - Coverage for every module requested in `resources/Web System.pdf`.
 
 ## Run With Docker
 
-From this folder:
+From the repository root:
 
 ```powershell
 docker compose up -d
@@ -25,7 +26,7 @@ Then open:
 http://localhost:8069
 ```
 
-Create a database and install the `SEDAR Marine MVP` app.
+Follow the root [README](../README.md) to create the database and install the current SEDAR modules. Do not install `custom_addons/sedar_marine_mvp`; it is retained only for legacy data review.
 
 The installed MVP now exposes these top-level app areas:
 

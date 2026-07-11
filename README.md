@@ -14,7 +14,7 @@ The demo goal is simple:
 - A PDF-to-dashboard coverage matrix.
 - A live backend requirement status in [docs/REQUIREMENT_IMPLEMENTATION_STATUS.md](docs/REQUIREMENT_IMPLEMENTATION_STATUS.md).
 - An Odoo Community Docker setup.
-- A custom Odoo addon named `sedar_marine_mvp`.
+- Modular SEDAR addons under `addons/`, all built for Odoo 17 Community.
 - Seed data for dashboard, vessel, operations, finance, maintenance, HSE, crew, procurement, inventory, HR, and document control records.
 
 ## Requirements
@@ -39,14 +39,13 @@ cd sedar-project
 Start Odoo and PostgreSQL:
 
 ```powershell
-cd odoo
 docker compose up -d
 ```
 
-Initialize the MVP database and install the SEDAR addon:
+Initialize the MVP database and install the current SEDAR addons:
 
 ```powershell
-docker compose exec -T odoo odoo -d sedar_mvp -i sedar_marine_mvp --stop-after-init --no-http
+docker compose exec -T odoo odoo -d sedar_mvp -i sedar_finance_operations,sedar_recruitment_link,sedar_applicant_portal,sedar_applicant_dashboard,sedar_job_applicants_list,sedar_employee_identity,sedar_employee_records,sedar_employee_document_control,sedar_maintenance_link,sedar_owner_preview,sedar_theme,sedar_ui_cards --stop-after-init --no-http
 docker compose restart odoo
 ```
 
@@ -90,7 +89,7 @@ To delete the local database volumes and start fresh:
 ```powershell
 docker compose down -v
 docker compose up -d
-docker compose exec -T odoo odoo -d sedar_mvp -i sedar_marine_mvp --stop-after-init --no-http
+docker compose exec -T odoo odoo -d sedar_mvp -i sedar_finance_operations,sedar_recruitment_link,sedar_applicant_portal,sedar_applicant_dashboard,sedar_job_applicants_list,sedar_employee_identity,sedar_employee_records,sedar_employee_document_control,sedar_maintenance_link,sedar_owner_preview,sedar_theme,sedar_ui_cards --stop-after-init --no-http
 docker compose restart odoo
 ```
 
@@ -101,13 +100,13 @@ Only use `docker compose down -v` when you are okay deleting your local Odoo dat
 The Odoo Community source and standard Community apps come from the Docker image:
 
 ```text
-odoo:19.0
+odoo:17.0
 ```
 
-We do not vendor the full Odoo Community source into this repository. Project-owned code lives in:
+We do not vendor the full Odoo Community source into this repository. Current project-owned code lives in:
 
 ```text
-odoo/custom_addons/sedar_marine_mvp
+addons/
 ```
 
 See [odoo/community/README.md](odoo/community/README.md) for the source boundary.
@@ -120,7 +119,7 @@ See [odoo/community/README.md](odoo/community/README.md) for the source boundary
 - [MVP_PRESIDENT_DATA_REQUIREMENTS.md](MVP_PRESIDENT_DATA_REQUIREMENTS.md): Data and KPIs a tugboat company president would want.
 - [MODULE_CONTENT_SPECIFICATION.md](MODULE_CONTENT_SPECIFICATION.md): Exact owner-facing content and actions for every PDF module.
 - [RESEARCH_NOTES.md](RESEARCH_NOTES.md): Public research notes and what can safely be borrowed.
-- [odoo/README.md](odoo/README.md): Odoo Community MVP setup and run instructions.
+- [odoo/README.md](odoo/README.md): Odoo Community and legacy prototype notes.
 - [phases/01-mvp-alignment-and-demo-scope.md](phases/01-mvp-alignment-and-demo-scope.md): Phase 1 planning.
 - [phases/02-core-data-and-mock-data.md](phases/02-core-data-and-mock-data.md): Phase 2 planning.
 - [phases/03-core-workflows.md](phases/03-core-workflows.md): Phase 3 planning.
@@ -132,7 +131,7 @@ See [odoo/community/README.md](odoo/community/README.md) for the source boundary
 The current Odoo prototype is functional but not final presentation polish. It proves:
 
 - The Odoo Community environment runs locally.
-- The custom SEDAR addon installs.
+- The modular SEDAR addons install on Odoo 17 Community.
 - Every major PDF module is represented.
 - The app navigation is split into department-style Odoo app areas.
 - Demo data loads for dashboard and module records.
