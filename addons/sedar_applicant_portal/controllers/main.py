@@ -25,7 +25,11 @@ class SedarApplicantPortal(http.Controller):
     def applicant_jobs(self, **kw):
         """Small public contract used by the company careers website."""
         dispatches = request.env['sedar.job.dispatch'].sudo().search(
-            [('state', '=', 'approved')],
+            [
+                ('state', '=', 'approved'),
+                ('hr_job_id', '!=', False),
+                ('hr_job_id.active', '=', True),
+            ],
             order='needed_by asc, requested_datetime desc, id desc',
         )
         jobs = []
@@ -63,15 +67,15 @@ class SedarApplicantPortal(http.Controller):
         dispatch = request.env['sedar.job.dispatch']
 
         dispatch_id = self._safe_int(values.get('dispatch_id'))
-        job_id = self._safe_int(values.get('job_id'))
-
         if dispatch_id:
-            dispatch = request.env['sedar.job.dispatch'].sudo().browse(dispatch_id).exists()
+            dispatch = request.env['sedar.job.dispatch'].sudo().search([
+                ('id', '=', dispatch_id),
+                ('state', '=', 'approved'),
+                ('hr_job_id', '!=', False),
+                ('hr_job_id.active', '=', True),
+            ], limit=1)
             if dispatch:
                 job = dispatch.hr_job_id
-
-        if not job and job_id:
-            job = request.env['hr.job'].sudo().browse(job_id).exists()
 
         return job, dispatch
 
