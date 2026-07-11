@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <record id="demo_dispatch_captain" model="sedar.job.dispatch">
-        <field name="name">JDO-00001</field>
         <field name="role_needed">Captain</field>
         <field name="quantity">1</field>
         <field name="client_name">Manila Harbor Client</field>
@@ -12,7 +11,6 @@
     </record>
 
     <record id="demo_dispatch_cadets" model="sedar.job.dispatch">
-        <field name="name">JDO-00002</field>
         <field name="role_needed">Cadet</field>
         <field name="quantity">3</field>
         <field name="client_name">Batangas Standby Window</field>
@@ -24,7 +22,6 @@
     </record>
 
     <record id="demo_dispatch_engineer" model="sedar.job.dispatch">
-        <field name="name">JDO-00003</field>
         <field name="role_needed">Chief Engineer</field>
         <field name="quantity">1</field>
         <field name="client_name">North Harbor Towage Rotation</field>
@@ -36,7 +33,6 @@
     </record>
 
     <record id="demo_dispatch_deckhand" model="sedar.job.dispatch">
-        <field name="name">JDO-00004</field>
         <field name="role_needed">Deckhand</field>
         <field name="quantity">2</field>
         <field name="client_name">Pasig River Assist Coverage</field>

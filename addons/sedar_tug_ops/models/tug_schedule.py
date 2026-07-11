@@ -37,12 +37,16 @@ class SedarTugSchedule(models.Model):
 
     def action_confirm(self):
         self.write({'state': 'confirmed'})
+        return {'type': 'ir.actions.client', 'tag': 'reload'}
 
     def action_start(self):
         self.write({'state': 'in_progress'})
+        return {'type': 'ir.actions.client', 'tag': 'reload'}
 
     def action_done(self):
         self.write({'state': 'done'})
+        return {'type': 'ir.actions.client', 'tag': 'reload'}
 
     def action_cancel(self):
         self.write({'state': 'cancelled'})
+        return {'type': 'ir.actions.client', 'tag': 'reload'}

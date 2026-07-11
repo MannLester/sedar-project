@@ -1,1 +1,3 @@
 - Prioritize the use of Odoo Community Modules as a scaffold. If you need more functionalities on top of that module, write an addon instead of direct edit.
+- For all browser testing, screenshots, demos, and UI work, use the local Odoo database where the custom SEDAR sidebar and layout are installed. On the main development machine this is currently `sedar_mvp17` on `http://localhost:8069`, but database names and ports may differ on other machines.
+- Before testing UI changes, confirm the custom SEDAR sidebar is visible. If it is missing, do not use that database as the product reference; find or prepare the local custom-layout database first.

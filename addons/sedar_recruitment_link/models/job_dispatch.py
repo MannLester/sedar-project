@@ -50,12 +50,15 @@ class SedarJobDispatch(models.Model):
             publish_values['no_of_recruitment'] = dispatch.quantity
             job.write(publish_values)
             dispatch.write({'state': 'approved', 'hr_job_id': job.id})
+        return {'type': 'ir.actions.client', 'tag': 'reload'}
 
     def action_mark_filled(self):
         self.write({'state': 'filled'})
+        return {'type': 'ir.actions.client', 'tag': 'reload'}
 
     def action_cancel(self):
         self.write({'state': 'cancelled'})
+        return {'type': 'ir.actions.client', 'tag': 'reload'}
 
     def action_view_applicants(self):
         self.ensure_one()

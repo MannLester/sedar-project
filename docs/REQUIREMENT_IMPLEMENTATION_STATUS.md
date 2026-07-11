@@ -1,6 +1,6 @@
 # Requirement Implementation Status
 
-Updated: July 10, 2026
+Updated: July 11, 2026
 
 This file tracks the client requirements from `resources/Web System.txt`. It describes backend behavior, not just visible menus or sample records.
 
@@ -23,6 +23,8 @@ Status meanings:
 | Payroll | Partial | Crew hours, rates, overtime, approval, and job-cost allocation work. Payslips, deductions, Philippine taxes, payroll payments, and payroll journal posting are missing. |
 | Finance operations | Working | Petty cash auto-posting, employee advances, oldest-first liquidation, PO-backed disbursements, check status, tariff billing, rebates, collections, bank adjustments, and role-based approvals use the native ledger. |
 | Financial statements | Working | General Ledger, Trial Balance, comparative Profit and Loss, comparative Balance Sheet, Cash Flow, and customer/supplier statements provide browser, PDF, and XLSX reporting through OCA modules. |
+
+> **Demo-only access warning:** Every internal user currently receives the Finance Manager role so the controlled MVP demo can use all finance screens without user setup. Remove this automatic role before pilot testing, client access, production use, or loading real financial data; assign Cashier, Finance Officer, and Finance Manager roles to named users instead.
 
 ## Tug Operations
 

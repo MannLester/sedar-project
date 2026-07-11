@@ -27,10 +27,17 @@ services:
       - ../addons/sedar_dashboard:/mnt/extra-addons/sedar_dashboard
       - ../addons/sedar_doccontrol:/mnt/extra-addons/sedar_doccontrol
       - ../addons/sedar_employee_document_control:/mnt/extra-addons/sedar_employee_document_control
+      - ../addons/sedar_employee_identity:/mnt/extra-addons/sedar_employee_identity
       - ../addons/sedar_employee_records:/mnt/extra-addons/sedar_employee_records
       - ../addons/sedar_hsse:/mnt/extra-addons/sedar_hsse
+      - ../addons/sedar_maintenance_link:/mnt/extra-addons/sedar_maintenance_link
       - ../addons/sedar_recruitment_link:/mnt/extra-addons/sedar_recruitment_link
+      - ../addons/sedar_applicant_portal:/mnt/extra-addons/sedar_applicant_portal
+      - ../addons/sedar_applicant_dashboard:/mnt/extra-addons/sedar_applicant_dashboard
+      - ../addons/sedar_job_applicants_list:/mnt/extra-addons/sedar_job_applicants_list
+      - ../addons/sedar_owner_preview:/mnt/extra-addons/sedar_owner_preview
       - ../addons/sedar_theme:/mnt/extra-addons/sedar_theme
+      - ../addons/sedar_ui_cards:/mnt/extra-addons/sedar_ui_cards
       - ../addons/sedar_tug_ops:/mnt/extra-addons/sedar_tug_ops
       - ../addons/sedar_marketing:/mnt/extra-addons/sedar_marketing
       - ../addons/sedar_procurement:/mnt/extra-addons/sedar_procurement

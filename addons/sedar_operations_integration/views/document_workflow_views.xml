@@ -3,6 +3,7 @@
     <record id="view_document_control_register" model="ir.ui.view">
         <field name="name">sedar.document.control.register</field>
         <field name="model">sedar.document.control</field>
+        <field name="inherit_id" eval="False"/>
         <field name="arch" type="xml">
             <tree class="o_sedar_document_register" default_order="expiry_date asc, name asc" decoration-warning="status == 'renewal'" decoration-danger="status == 'expired'">
                 <field name="name"/>
@@ -20,6 +21,7 @@
     <record id="view_document_control_search" model="ir.ui.view">
         <field name="name">sedar.document.control.search</field>
         <field name="model">sedar.document.control</field>
+        <field name="inherit_id" eval="False"/>
         <field name="priority">1</field>
         <field name="arch" type="xml">
             <search>
@@ -48,6 +50,7 @@
     <record id="view_document_control_workflow" model="ir.ui.view">
         <field name="name">sedar.document.control.workflow</field>
         <field name="model">sedar.document.control</field>
+        <field name="inherit_id" eval="False"/>
         <field name="arch" type="xml">
             <form class="o_sedar_document_form">
                 <header>
@@ -99,5 +102,19 @@
         <field name="view_mode">tree,form</field>
         <field name="view_id" ref="view_document_control_register"/>
         <field name="search_view_id" ref="view_document_control_search"/>
+    </record>
+
+    <record id="action_document_control_register_tree" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_document_control_register"/>
+        <field name="act_window_id" ref="action_document_control_register"/>
+    </record>
+
+    <record id="action_document_control_register_form" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_document_control_workflow"/>
+        <field name="act_window_id" ref="action_document_control_register"/>
     </record>
 </odoo>
