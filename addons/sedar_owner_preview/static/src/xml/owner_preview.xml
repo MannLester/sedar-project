@@ -99,7 +99,7 @@
 
                     <section t-if="isOverview" class="sop_panel sop_attention">
                         <div class="sop_panel_header">
-                            <div><h2>Needs Your Attention</h2></div>
+                            <div><h2>NEEDS ATTENTION</h2></div>
                             <span class="sop_active_module"><t t-esc="state.alerts.length"/> items</span>
                         </div>
                         <div class="sop_alert_list">
