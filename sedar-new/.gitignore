@@ -1,0 +1,6 @@
+data/postgres/
+data/odoo/
+.pdf-tools/
+__pycache__/
+*.pyc
+.env

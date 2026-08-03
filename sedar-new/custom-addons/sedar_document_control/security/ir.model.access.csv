@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_sedar_document_type_user,sedar.document.type user,model_sedar_document_type,base.group_user,1,1,1,0
+access_sedar_document_user,sedar.document user,model_sedar_document,base.group_user,1,1,1,0
+access_sedar_document_field_user,sedar.document.field user,model_sedar_document_field,base.group_user,1,1,1,0
+access_sedar_document_request_user,sedar.document.request user,model_sedar_document_request,base.group_user,1,1,1,0
+access_sedar_document_value_user,sedar.document.value user,model_sedar_document_value,base.group_user,1,1,1,0
