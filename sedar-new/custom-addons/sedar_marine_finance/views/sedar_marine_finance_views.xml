@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_service_order_form_finance" model="ir.ui.view">
+        <field name="name">sedar.marine.service.order.form.finance</field>
+        <field name="model">sedar.marine.service.order</field>
+        <field name="inherit_id" ref="sedar_marine_operations.view_service_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_view_invoices" type="object" class="oe_stat_button" icon="fa-file-text-o" invisible="invoice_count == 0">
+                        <field name="invoice_count" widget="statinfo" string="Invoices"/>
+                    </button>
+                </div>
+            </xpath>
+            <xpath expr="//header" position="inside">
+                <button name="action_mark_billing_reviewed" type="object" string="Complete Billing Review" class="btn-primary"
+                        groups="sedar_marine_finance.group_billing_officer" invisible="billing_status != 'review' or billing_reviewed_at"/>
+                <button name="action_create_draft_invoice" type="object" string="Create Draft Invoice" class="btn-primary"
+                        groups="sedar_marine_finance.group_billing_officer" invisible="billing_status != 'review' or not billing_reviewed_at"/>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Billing" groups="sedar_marine_finance.group_billing_officer">
+                    <group>
+                        <group string="Status">
+                            <field name="billing_status"/><field name="automated_completion_handoff"/>
+                            <field name="billing_reviewed_by_id"/>
+                            <field name="billing_reviewed_at"/><field name="billing_note"/>
+                        </group>
+                        <group string="Frozen Client Pricing">
+                            <field name="confirmed_tariff_id"/><field name="confirmed_pricing_basis"/>
+                            <field name="confirmed_service_date"/><field name="confirmed_service_date_changed"/>
+                            <field name="pricing_frozen_at"/>
+                            <field name="confirmed_unit_rate"/><field name="confirmed_minimum_charge"/>
+                            <field name="confirmed_currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <group string="Final Charge">
+                        <field name="actual_billable_quantity"/><field name="base_billable_amount"/>
+                        <field name="adjustment_amount"/><field name="total_billable_amount"/>
+                    </group>
+                    <field name="billing_adjustment_ids">
+                        <list editable="bottom">
+                            <field name="sequence" widget="handle"/><field name="description"/>
+                            <field name="adjustment_type"/><field name="quantity"/><field name="unit_rate"/>
+                            <field name="amount" sum="Total"/><field name="reason"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+            <xpath expr="//field[@name='port_id']" position="after">
+                <field name="terminal_id" domain="[('port_id', '=', port_id)]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_service_order_search_finance" model="ir.ui.view">
+        <field name="name">sedar.marine.service.order.search.finance</field>
+        <field name="model">sedar.marine.service.order</field>
+        <field name="inherit_id" ref="sedar_marine_operations.view_service_order_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <field name="billing_status"/>
+                <filter name="billing_review" string="Billing Review" domain="[('billing_status','=','review')]"/>
+                <filter name="pricing_exception" string="Pricing Exception" domain="[('billing_status','=','pricing_exception')]"/>
+                <filter name="uninvoiced" string="Uninvoiced" domain="[('billing_status','in',['review','pricing_exception'])]"/>
+                <filter name="paid" string="Paid" domain="[('billing_status','=','paid')]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_billing_review_list" model="ir.ui.view">
+        <field name="name">sedar.marine.service.order.billing.list</field>
+        <field name="model">sedar.marine.service.order</field>
+        <field name="arch" type="xml">
+            <list string="Billing Reviews" create="0" delete="0">
+                <field name="name"/><field name="client_id"/><field name="service_type_id"/>
+                <field name="port_id"/><field name="terminal_id"/><field name="confirmed_pricing_basis"/>
+                <field name="actual_billable_quantity"/><field name="total_billable_amount"/>
+                <field name="billing_status"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_billing_reviews" model="ir.actions.act_window">
+        <field name="name">Billing Reviews</field><field name="res_model">sedar.marine.service.order</field>
+        <field name="view_mode">list,form</field><field name="view_id" ref="view_billing_review_list"/>
+        <field name="domain">[('billing_status','in',['review','draft_invoice','invoiced','partial','paid'])]</field>
+    </record>
+    <record id="action_pricing_exceptions" model="ir.actions.act_window">
+        <field name="name">Pricing Exceptions</field><field name="res_model">sedar.marine.service.order</field>
+        <field name="view_mode">list,form</field><field name="view_id" ref="view_billing_review_list"/>
+        <field name="domain">[('billing_status','=','pricing_exception')]</field>
+    </record>
+
+    <record id="view_client_tariff_form_finance" model="ir.ui.view">
+        <field name="name">sedar.client.tariff.form.finance</field><field name="model">sedar.client.tariff</field>
+        <field name="inherit_id" ref="sedar_marine_operations.view_client_tariff_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <header>
+                    <button name="action_approve" type="object" string="Approve" class="btn-primary"
+                            groups="sedar_marine_finance.group_accounting_manager" invisible="approval_state != 'draft'"/>
+                    <button name="action_new_revision" type="object" string="New Revision"
+                            groups="sedar_marine_finance.group_accounting_manager" invisible="approval_state != 'approved'"/>
+                    <field name="approval_state" widget="statusbar"/>
+                </header>
+            </xpath>
+            <xpath expr="//sheet/group" position="after">
+                <group string="Approval and Revision">
+                    <field name="approval_reference"/><field name="approval_attachment_filename" invisible="1"/>
+                    <field name="approval_attachment" filename="approval_attachment_filename"/>
+                    <field name="approved_by_id"/><field name="approved_at"/><field name="previous_version_id"/>
+                </group>
+            </xpath>
+            <xpath expr="//field[@name='port_id']" position="after">
+                <field name="terminal_id" domain="[('port_id', '=', port_id)]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_account_move_form_sedar" model="ir.ui.view">
+        <field name="name">account.move.form.sedar.service.order</field><field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='invoice_origin']" position="after">
+                <field name="sedar_service_order_id" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_tug_assignment_form_finance" model="ir.ui.view">
+        <field name="name">sedar.tug.assignment.form.finance</field>
+        <field name="model">sedar.tug.assignment</field>
+        <field name="inherit_id" ref="sedar_marine_operations.view_tug_assignment_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_return_completion" type="object" string="Return Completion"
+                        groups="sedar_marine_finance.group_billing_officer"
+                        invisible="completion_state != 'submitted'"/>
+            </xpath>
+        </field>
+    </record>
+
+    <menuitem id="menu_marine_finance" name="Marine Finance" parent="sedar_document_control.menu_sedar_root" sequence="30" groups="group_billing_officer"/>
+    <menuitem id="menu_billing_reviews" name="Billing Reviews" parent="menu_marine_finance" action="action_billing_reviews" sequence="10"/>
+    <menuitem id="menu_pricing_exceptions" name="Pricing Exceptions" parent="menu_marine_finance" action="action_pricing_exceptions" sequence="20"/>
+</odoo>
