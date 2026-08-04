@@ -148,6 +148,7 @@ class ResCompany(models.Model):
                 "next_action": "Wait for applicant employment requirements",
                 "next_date": "2026-08-25",
                 "message": "Applicant must submit ADM-5 employment requirements.",
+                "offer": {"xmlid": "offer_pending_requirements", "state": "accepted"},
                 "requirements": {"xmlid": "request_pending_requirements", "state": "in_progress"},
             },
             {
@@ -160,6 +161,7 @@ class ResCompany(models.Model):
                 "next_action": "Prepare employment offer / onboarding",
                 "next_date": "2026-08-26",
                 "message": "ADM-5 requirements are approved and the applicant is ready for employment action.",
+                "offer": {"xmlid": "offer_verified_requirements", "state": "accepted"},
                 "requirements": {"xmlid": "request_verified_requirements", "state": "approved", "filled": True},
             },
             {
@@ -193,8 +195,21 @@ class ResCompany(models.Model):
                 "public_status": "successful",
                 "next_action": "Complete employee onboarding setup",
                 "message": "Employee profile has been created for demonstration.",
+                "offer": {"xmlid": "offer_converted_employee", "state": "accepted"},
                 "requirements": {"xmlid": "request_converted_employee", "state": "approved", "filled": True},
                 "employee": True,
+            },
+            {
+                "xmlid": "applicant_offer_issued",
+                "name": "Demo Applicant - Offer Issued",
+                "email": "applicant.offer.issued@sedar.demo",
+                "phone": "+63 917 700 1011",
+                "stage": "sedar_recruitment_operations.stage_offer_issued",
+                "public_status": "offer",
+                "next_action": "Wait for applicant offer response",
+                "next_date": "2026-08-27",
+                "message": "SEDAR has issued an employment offer for applicant response.",
+                "offer": {"xmlid": "offer_issued", "state": "issued"},
             },
         ]
 
@@ -208,6 +223,8 @@ class ResCompany(models.Model):
                 self._sedar_demo_recruitment_controls(applicant, hr_manager, "submitted")
             if spec["public_status"] in ("requirements", "offer", "successful"):
                 self._sedar_demo_recruitment_controls(applicant, hr_manager, "approved")
+            if spec.get("offer"):
+                self._sedar_demo_offer(applicant, spec["offer"], hr_manager)
             if spec.get("requirements"):
                 self._sedar_demo_requirements(applicant, spec["requirements"], hr_manager)
             if spec.get("employee") and not applicant.employee_id:
@@ -429,6 +446,31 @@ class ResCompany(models.Model):
                 request.write({"state": state})
         return background | orientation
 
+    def _sedar_demo_offer(self, applicant, spec, hr_manager):
+        offer = self._sedar_record("sedar.applicant.offer", spec["xmlid"], {
+            "name": "Offer - %s" % applicant.sedar_reference,
+            "applicant_id": applicant.id,
+            "state": "draft",
+            "decision": "hire",
+            "offered_position": applicant.sedar_vacancy_id.website_title,
+            "employment_type": "probationary",
+            "proposed_start_date": "2026-09-01",
+            "expiry_date": "2026-08-27",
+            "offer_summary": "Fictional demo employment offer for the listed marine crew position, subject to completion of SEDAR employment requirements and onboarding.",
+            "decision_reason": "Fictional demo decision based on completed interview appraisal and cleared HR controls.",
+            "issued_by_id": hr_manager.id,
+            "issued_at": _dt(23, 9),
+        })
+        if offer.state != spec["state"]:
+            values = {"state": spec["state"]}
+            if spec["state"] == "accepted":
+                values["accepted_at"] = _dt(23, 10)
+            elif spec["state"] == "issued":
+                values["accepted_at"] = False
+                values["declined_at"] = False
+            offer.write(values)
+        return offer
+
     def _sedar_demo_portal_owner(self):
         applicant = self.env.ref("%s.applicant_pending_requirements" % MODULE, raise_if_not_found=False)
         if not applicant:
@@ -506,6 +548,8 @@ class ResCompany(models.Model):
             managed.pop("document_type_id", None)
             managed.pop("applicant_id", None)
             managed.pop("sedar_request_purpose", None)
+        if record._name == "sedar.applicant.offer":
+            managed.pop("applicant_id", None)
         if record._name in {"sedar.applicant.profile", "sedar.applicant.education", "sedar.applicant.employment"}:
             managed.pop("applicant_id", None)
         if record._name == "sedar.applicant.document":

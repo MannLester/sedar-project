@@ -49,6 +49,23 @@
         <field name="sedar_public_title">Interview Completed</field>
         <field name="sedar_public_message">Your interview has been completed and is under HR review.</field>
     </record>
+    <record id="stage_offer_issued" model="hr.recruitment.stage">
+        <field name="name">Offer Issued</field>
+        <field name="sequence">55</field>
+        <field name="fold">0</field>
+        <field name="sedar_public_status">offer</field>
+        <field name="sedar_public_title">Offer Issued</field>
+        <field name="sedar_public_message">SEDAR has issued an employment offer. Please review and respond in your applicant dashboard.</field>
+        <field name="sedar_public_action_required">1</field>
+    </record>
+    <record id="stage_offer_accepted" model="hr.recruitment.stage">
+        <field name="name">Offer Accepted</field>
+        <field name="sequence">58</field>
+        <field name="fold">0</field>
+        <field name="sedar_public_status">offer</field>
+        <field name="sedar_public_title">Offer Accepted</field>
+        <field name="sedar_public_message">Your offer has been accepted. SEDAR HR will request employment requirements next.</field>
+    </record>
     <record id="stage_requirements_requested" model="hr.recruitment.stage">
         <field name="name">Employment Requirements Requested</field>
         <field name="sequence">60</field>

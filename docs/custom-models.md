@@ -21,6 +21,7 @@ Update this document in the same change whenever a listed custom field is added,
 | `sedar.applicant.portal.event` | New | Stores applicant-visible timeline events | `sedar_applicant_portal/models/portal.py` |
 | `sedar.applicant.stage.history` | New | Provides an auditable history of HR stage changes | `sedar_recruitment_operations/models/applicant.py` |
 | `sedar.applicant.interview` | New | Coordinates interview scheduling, applicant responses, calendar events, and ADM-4 appraisal | `sedar_recruitment_operations/models/interview.py` |
+| `sedar.applicant.offer` | New | Records the HR hiring decision, offer issue, applicant response, and ADM-5 gate | `sedar_recruitment_operations/models/offer.py` |
 | `sedar.document.request` | Extended | Links controlled document requests to applicants and interviews and governs portal visibility | `sedar_recruitment_operations/models/interview.py` |
 
 ## `sedar.tug.assignment`
@@ -223,9 +224,11 @@ Applicant creation generates a random activation token and initial timeline even
 | `sedar_stage_history_ids` | One-to-many to `sedar.applicant.stage.history` | Auditable internal stage-change history. |
 | `sedar_interview_ids` | One-to-many to `sedar.applicant.interview` | Interviews belonging to the application. |
 | `sedar_requirement_request_ids` | One-to-many to `sedar.document.request` | Controlled applicant document requests, including ADM-5. |
+| `sedar_offer_ids` | One-to-many to `sedar.applicant.offer` | Hiring decisions and offers belonging to the application. |
+| `sedar_current_offer_id` | Computed many-to-one to `sedar.applicant.offer` | Exposes the active issued or accepted offer, if one exists. |
 | `sedar_is_overdue` | Computed, searchable boolean | Identifies applications whose next-action date is before today. |
 
-Workflow actions move applicants through controlled SEDAR stages, synchronize the public status, and create stage history. Interview completion requires a submitted ADM-4 appraisal. For marine crew applicants in the demonstration, ADM-4A Background Inquiry and CM-053 Company Interview Orientation are mandatory internal HR controls after interview completion and before ADM-5 employment requirements may be requested. Employment-requirement verification requires an ADM-5 request to be submitted and approved. Employee conversion uses Odoo Recruitment's native employee creation and is blocked until the approved ADM-5 request exists.
+Workflow actions move applicants through controlled SEDAR stages, synchronize the public status, and create stage history. Interview completion requires a submitted ADM-4 appraisal. For marine crew applicants in the demonstration, ADM-4A Background Inquiry and CM-053 Company Interview Orientation are mandatory internal HR controls after interview completion. HR must issue an offer and the applicant must accept it before ADM-5 employment requirements may be requested. Employment-requirement verification requires an ADM-5 request to be submitted and approved. Employee conversion uses Odoo Recruitment's native employee creation and is blocked until both an accepted offer and the approved ADM-5 request exist.
 
 ## `sedar.applicant.portal.event`
 
@@ -279,6 +282,32 @@ One record coordinates one interview for an application. HR Recruitment users ma
 | `internal_notes` | Text | HR-only interview notes. |
 
 Scheduling requires a qualified applicant and at least one interviewer, creates or updates the Calendar event, generates ADM-4, and moves the applicant to Interview Stage. Completing an interview is blocked until ADM-4 is at least submitted.
+
+## `sedar.applicant.offer`
+
+One record captures a hiring decision and offer version for one applicant. HR Recruitment users may read, create, and update offers but may not delete them through normal access rights. Applicant portal routes use ownership checks and expose only issued or accepted offers.
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `name` | Required character | Offer reference shown in HR views. |
+| `applicant_id` | Required indexed many-to-one to `hr.applicant` | Parent application; deleting the application cascades to offers. |
+| `vacancy_id` | Stored related many-to-one to `sedar.job.vacancy` | Vacancy inherited from the application. |
+| `job_id` | Stored related many-to-one to `hr.job` | Odoo job inherited from the application. |
+| `state` | Required selection | Draft, issued, accepted, declined, withdrawn, or expired. |
+| `decision` | Required selection | Hire, conditional hire, or do not hire. Do-not-hire decisions must use the applicant rejection workflow rather than issuing an offer. |
+| `decision_reason` | Text | Internal HR rationale, not rendered in the applicant portal. |
+| `offered_position` | Required character | Applicant-visible offered role title. |
+| `employment_type` | Required selection | Demonstration employment type: probationary, regular, project-based, or contract. |
+| `proposed_start_date` | Required date | Applicant-visible target start date. |
+| `expiry_date` | Required date | Applicant-visible response deadline; cannot be in the past when saved. |
+| `offer_summary` | Required text | Applicant-visible summary of the offer terms used for the demo. |
+| `issued_by_id` | Read-only many-to-one to `res.users` | HR user who issued the offer. |
+| `issued_at` | Read-only datetime | Issue timestamp. |
+| `accepted_at` | Read-only datetime | Acceptance timestamp. |
+| `declined_at` | Read-only datetime | Decline timestamp. |
+| `applicant_response_note` | Text | Applicant or HR response note captured through portal or backend action. |
+
+Issuing an offer requires approved ADM-4A and CM-053 controls for marine crew applicants and prevents a second active offer from being issued at the same time. Accepting an offer moves the applicant to the offer-accepted stage and unlocks ADM-5. Declined or expired offers close the application through the controlled rejection stage while preserving the offer history.
 
 ## `sedar.document.request` recruitment extension
 

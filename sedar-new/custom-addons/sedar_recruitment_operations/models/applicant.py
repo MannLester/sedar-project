@@ -28,6 +28,12 @@ class SedarApplicantOperations(models.Model):
     sedar_stage_history_ids = fields.One2many("sedar.applicant.stage.history", "applicant_id", string="Stage History")
     sedar_interview_ids = fields.One2many("sedar.applicant.interview", "applicant_id", string="Interviews")
     sedar_requirement_request_ids = fields.One2many("sedar.document.request", "applicant_id", string="Requirement Requests")
+    sedar_offer_ids = fields.One2many("sedar.applicant.offer", "applicant_id", string="Hiring Decisions and Offers")
+    sedar_current_offer_id = fields.Many2one(
+        "sedar.applicant.offer",
+        compute="_compute_sedar_current_offer",
+        string="Current Offer",
+    )
     sedar_is_overdue = fields.Boolean(compute="_compute_sedar_is_overdue", search="_search_sedar_is_overdue")
 
     @api.depends("sedar_next_action_date")
@@ -35,6 +41,12 @@ class SedarApplicantOperations(models.Model):
         today = fields.Date.context_today(self)
         for applicant in self:
             applicant.sedar_is_overdue = bool(applicant.sedar_next_action_date and applicant.sedar_next_action_date < today)
+
+    def _compute_sedar_current_offer(self):
+        for applicant in self:
+            applicant.sedar_current_offer_id = applicant.sedar_offer_ids.filtered(
+                lambda offer: offer.state in ("issued", "accepted")
+            )[:1]
 
     @api.model
     def _search_sedar_is_overdue(self, operator, value):
@@ -148,7 +160,7 @@ class SedarApplicantOperations(models.Model):
         for applicant in self:
             applicant._ensure_recruitment_controls_approved(auto_approve=True)
             applicant.write({
-                "sedar_next_action": "Request applicant employment requirements",
+                "sedar_next_action": "Issue hiring decision / offer",
                 "sedar_next_action_date": fields.Date.add(fields.Date.context_today(applicant), days=2),
                 "sedar_public_message": "SEDAR HR has completed the internal pre-employment checks for your application.",
                 "sedar_action_required": False,
@@ -156,11 +168,29 @@ class SedarApplicantOperations(models.Model):
             })
         return True
 
+    def action_sedar_create_offer(self):
+        action = False
+        for applicant in self:
+            if applicant.sedar_public_status != "final_review":
+                raise UserError("Create an offer only after the interview and HR controls are completed.")
+            applicant._ensure_recruitment_controls_approved()
+            offer = applicant._get_or_create_offer()
+            action = {
+                "type": "ir.actions.act_window",
+                "name": "Hiring Decision / Offer",
+                "res_model": "sedar.applicant.offer",
+                "res_id": offer.id,
+                "view_mode": "form",
+                "target": "current",
+            }
+        return action or True
+
     def action_sedar_request_employment_requirements(self):
         for applicant in self:
             if applicant.sedar_public_status not in ("final_review", "requirements", "offer"):
                 raise UserError("Employment requirements can only be requested after the interview is completed.")
             applicant._ensure_recruitment_controls_approved()
+            applicant._ensure_offer_accepted()
             request = applicant._get_or_create_requirement_request()
             if request.state == "draft":
                 request.action_start()
@@ -199,6 +229,7 @@ class SedarApplicantOperations(models.Model):
                 continue
             if applicant.sedar_public_status != "offer":
                 raise UserError("Create the employee profile only after requirements are verified.")
+            applicant._ensure_offer_accepted()
             request = applicant.sedar_requirement_request_ids.filtered(
                 lambda item: item.sedar_request_purpose == "employment_requirements"
             )[:1]
@@ -245,6 +276,28 @@ class SedarApplicantOperations(models.Model):
             if update:
                 value.write(update)
         return request
+
+    def _get_or_create_offer(self):
+        self.ensure_one()
+        existing = self.sedar_offer_ids.filtered(lambda offer: offer.state in ("draft", "issued", "accepted"))[:1]
+        if existing:
+            return existing
+        today = fields.Date.context_today(self)
+        return self.env["sedar.applicant.offer"].create({
+            "applicant_id": self.id,
+            "offered_position": self._sedar_position_name(),
+            "employment_type": "probationary",
+            "proposed_start_date": fields.Date.add(today, days=14),
+            "expiry_date": fields.Date.add(today, days=7),
+            "offer_summary": "Demo offer for the listed position, subject to SEDAR HR completion of employment requirements and onboarding.",
+        })
+
+    def _ensure_offer_accepted(self):
+        for applicant in self:
+            offer = applicant.sedar_offer_ids.filtered(lambda item: item.state == "accepted")[:1]
+            if not offer:
+                raise UserError("An accepted hiring offer is required before requesting ADM-5 employment requirements or creating an employee profile.")
+        return True
 
     def _sedar_applicant_name(self):
         self.ensure_one()

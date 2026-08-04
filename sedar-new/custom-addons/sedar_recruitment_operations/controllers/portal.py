@@ -68,6 +68,49 @@ class SedarRecruitmentInterviewPortal(http.Controller):
             ("applicant_id.active", "=", True),
         ], limit=1)
 
+    def _owned_offer(self, offer_id):
+        partner = request.env.user.partner_id
+        if not partner or request.env.user._is_public():
+            return request.env["sedar.applicant.offer"].sudo().browse()
+        return request.env["sedar.applicant.offer"].sudo().search([
+            ("id", "=", offer_id),
+            ("applicant_id.sedar_portal_partner_id", "=", partner.id),
+            ("applicant_id.active", "=", True),
+            ("state", "in", ["issued", "accepted"]),
+        ], limit=1)
+
+    @http.route("/my/sedar/offers/<int:offer_id>/accept", type="http", auth="user", website=True, methods=["POST"])
+    def accept_offer(self, offer_id, **post):
+        offer = self._owned_offer(offer_id)
+        if not offer or offer.state != "issued":
+            return request.not_found()
+        note = (post.get("applicant_response_note") or "").strip()
+        if note:
+            offer.write({"applicant_response_note": note})
+        offer.action_accept()
+        offer.applicant_id._create_portal_event(
+            "offer",
+            "Offer Accepted",
+            "You accepted SEDAR's employment offer.",
+        )
+        return request.redirect("/my/sedar/applications/%s" % offer.applicant_id.sedar_reference)
+
+    @http.route("/my/sedar/offers/<int:offer_id>/decline", type="http", auth="user", website=True, methods=["POST"])
+    def decline_offer(self, offer_id, **post):
+        offer = self._owned_offer(offer_id)
+        if not offer or offer.state != "issued":
+            return request.not_found()
+        note = (post.get("applicant_response_note") or "").strip()
+        if note:
+            offer.write({"applicant_response_note": note})
+        offer.action_decline()
+        offer.applicant_id._create_portal_event(
+            "closed",
+            "Offer Declined",
+            "You declined SEDAR's employment offer.",
+        )
+        return request.redirect("/my/sedar/applications/%s" % offer.applicant_id.sedar_reference)
+
     @http.route("/my/sedar/document-requests/<int:document_request_id>/submit", type="http", auth="user", website=True, methods=["POST"])
     def submit_document_request(self, document_request_id, **post):
         document_request = self._owned_document_request(document_request_id)

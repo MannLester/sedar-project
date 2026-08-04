@@ -109,6 +109,38 @@
                     </div>
                 </div>
             </div>
+            <t t-set="portal_offers" t-value="applicant.sedar_offer_ids.filtered_domain([('state', 'in', ['issued', 'accepted'])])"/>
+            <div t-if="portal_offers" class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <h2 class="h4 mb-1">Employment Offer</h2>
+                    <p class="text-muted">Review SEDAR's offer and submit your response.</p>
+                    <div t-foreach="portal_offers" t-as="offer" class="border-top py-3">
+                        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+                            <div>
+                                <h3 class="h5 mb-1"><t t-esc="offer.offered_position"/></h3>
+                                <p class="mb-1"><strong>Status:</strong> <span class="badge text-bg-secondary"><t t-esc="dict(offer._fields['state'].selection).get(offer.state)"/></span></p>
+                                <p class="mb-1"><strong>Employment Type:</strong> <t t-esc="dict(offer._fields['employment_type'].selection).get(offer.employment_type)"/></p>
+                                <p class="mb-1"><strong>Proposed Start:</strong> <t t-esc="offer.proposed_start_date"/></p>
+                                <p class="mb-1"><strong>Respond By:</strong> <t t-esc="offer.expiry_date"/></p>
+                                <p class="text-muted mt-2 mb-0"><t t-esc="offer.offer_summary"/></p>
+                                <p t-if="offer.applicant_response_note" class="text-muted mt-2 mb-0"><strong>Your note:</strong> <t t-esc="offer.applicant_response_note"/></p>
+                            </div>
+                            <div t-if="offer.state == 'issued'" class="d-flex flex-column gap-2" style="min-width: 280px;">
+                                <form method="post" t-att-action="'/my/sedar/offers/%s/accept' % offer.id">
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                    <textarea name="applicant_response_note" class="form-control mb-2" rows="2" placeholder="Optional note for HR"></textarea>
+                                    <button type="submit" class="btn btn-primary w-100">Accept Offer</button>
+                                </form>
+                                <form method="post" t-att-action="'/my/sedar/offers/%s/decline' % offer.id">
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                    <textarea name="applicant_response_note" class="form-control mb-2" rows="2" placeholder="Reason or note for HR"></textarea>
+                                    <button type="submit" class="btn btn-outline-secondary w-100">Decline Offer</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <t t-set="requirement_requests" t-value="applicant.sedar_requirement_request_ids.filtered_domain([('applicant_visible', '=', True)])"/>
             <div t-if="requirement_requests" class="card border-0 shadow-sm mb-4">
                 <div class="card-body">

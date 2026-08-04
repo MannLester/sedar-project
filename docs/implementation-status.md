@@ -287,6 +287,12 @@ Interview Orientation requests from the approved Document Control catalogue. The
 sees only a general progress message; confidential background/orientation content stays in HR-only
 document requests. ADM-5 employment requirements are blocked until both controls are approved.
 
+Slice 4 adds `sedar.applicant.offer` for explicit hiring decisions and applicant offer response.
+After background/orientation controls are approved, HR issues an offer from the applicant record or
+Hiring Decisions and Offers menu. The applicant portal can accept or decline an issued offer. ADM-5
+employment requirements and employee conversion are now gated by an accepted offer, so the demo no
+longer treats document submission alone as the hiring decision.
+
 The repository contains automated tests for the marine readiness/completion lifecycle and Marine Finance calculations and controls. Applicant portal and recruitment slices have been manually verified through Odoo module upgrades and representative portal/backend workflows.
 
 ## 7. Demonstration Gaps That Affect Existing Flows

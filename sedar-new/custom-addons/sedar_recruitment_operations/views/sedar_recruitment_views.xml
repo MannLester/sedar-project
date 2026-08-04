@@ -112,7 +112,8 @@
                 <button name="action_sedar_request_clarification" type="object" string="Request Clarification" invisible="stage_id.sedar_public_status not in ('received', 'under_review', 'shortlisted')" groups="hr_recruitment.group_hr_recruitment_user"/>
                 <button name="action_sedar_create_recruitment_controls" type="object" string="Create HR Controls" class="btn-primary" invisible="sedar_public_status != 'final_review'" groups="hr_recruitment.group_hr_recruitment_user"/>
                 <button name="action_sedar_verify_recruitment_controls" type="object" string="Approve HR Controls" class="btn-primary" invisible="sedar_public_status != 'final_review'" groups="hr_recruitment.group_hr_recruitment_user"/>
-                <button name="action_sedar_request_employment_requirements" type="object" string="Request Requirements" class="btn-primary" invisible="sedar_public_status != 'final_review'" groups="hr_recruitment.group_hr_recruitment_user"/>
+                <button name="action_sedar_create_offer" type="object" string="Create Offer" class="btn-primary" invisible="sedar_public_status != 'final_review'" groups="hr_recruitment.group_hr_recruitment_user"/>
+                <button name="action_sedar_request_employment_requirements" type="object" string="Request Requirements" class="btn-primary" invisible="sedar_public_status != 'offer'" groups="hr_recruitment.group_hr_recruitment_user"/>
                 <button name="action_sedar_verify_employment_requirements" type="object" string="Verify Requirements" class="btn-primary" invisible="sedar_public_status not in ('requirements', 'final_review')" groups="hr_recruitment.group_hr_recruitment_user"/>
                 <button name="action_sedar_create_employee_profile" type="object" string="Create Employee Profile" class="btn-primary" invisible="sedar_public_status != 'offer' or employee_id" groups="hr_recruitment.group_hr_recruitment_user"/>
                 <button name="action_sedar_reject" type="object" string="Reject" class="btn-secondary" invisible="stage_id.sedar_public_status in ('closed', 'successful')" groups="hr_recruitment.group_hr_recruitment_user"/>
@@ -151,6 +152,20 @@
                             <field name="new_stage_id"/>
                             <field name="changed_by"/>
                             <field name="reason"/>
+                        </list>
+                    </field>
+                </page>
+                <page string="Offers" name="sedar_offers">
+                    <field name="sedar_offer_ids" readonly="1" context="{'default_applicant_id': id}">
+                        <list>
+                            <field name="name"/>
+                            <field name="decision"/>
+                            <field name="state" widget="badge"/>
+                            <field name="offered_position"/>
+                            <field name="employment_type"/>
+                            <field name="proposed_start_date"/>
+                            <field name="expiry_date"/>
+                            <field name="issued_by_id"/>
                         </list>
                     </field>
                 </page>
@@ -436,6 +451,111 @@
         <field name="help" type="html"><p>Schedule applicant interviews and complete the linked ADM-4 appraisal.</p></field>
     </record>
 
+    <record id="view_sedar_applicant_offer_list" model="ir.ui.view">
+        <field name="name">sedar.applicant.offer.list</field>
+        <field name="model">sedar.applicant.offer</field>
+        <field name="arch" type="xml">
+            <list string="Hiring Decisions and Offers" default_order="issued_at desc, id desc" decoration-success="state == 'accepted'" decoration-muted="state in ['declined', 'withdrawn', 'expired']">
+                <field name="name"/>
+                <field name="applicant_id"/>
+                <field name="job_id"/>
+                <field name="decision"/>
+                <field name="state" widget="badge"/>
+                <field name="employment_type"/>
+                <field name="proposed_start_date"/>
+                <field name="expiry_date"/>
+                <field name="issued_by_id"/>
+                <field name="issued_at"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sedar_applicant_offer_search" model="ir.ui.view">
+        <field name="name">sedar.applicant.offer.search</field>
+        <field name="model">sedar.applicant.offer</field>
+        <field name="arch" type="xml">
+            <search string="Search Hiring Decisions and Offers">
+                <field name="name"/>
+                <field name="applicant_id"/>
+                <field name="job_id"/>
+                <field name="state"/>
+                <filter name="issued" string="Awaiting Applicant" domain="[('state', '=', 'issued')]"/>
+                <filter name="accepted" string="Accepted" domain="[('state', '=', 'accepted')]"/>
+                <filter name="closed" string="Closed" domain="[('state', 'in', ['declined', 'withdrawn', 'expired'])]"/>
+                <group>
+                    <filter name="group_state" string="State" context="{'group_by': 'state'}"/>
+                    <filter name="group_job" string="Position" context="{'group_by': 'job_id'}"/>
+                    <filter name="group_issuer" string="Issued By" context="{'group_by': 'issued_by_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_sedar_applicant_offer_form" model="ir.ui.view">
+        <field name="name">sedar.applicant.offer.form</field>
+        <field name="model">sedar.applicant.offer</field>
+        <field name="arch" type="xml">
+            <form string="Hiring Decision / Offer">
+                <header>
+                    <button name="action_issue" type="object" string="Issue Offer" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_accept" type="object" string="Mark Accepted" class="btn-primary" invisible="state != 'issued'"/>
+                    <button name="action_decline" type="object" string="Mark Declined" invisible="state != 'issued'"/>
+                    <button name="action_withdraw" type="object" string="Withdraw" invisible="state not in ['draft', 'issued']"/>
+                    <button name="action_expire" type="object" string="Expire" invisible="state != 'issued'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,issued,accepted"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Applicant">
+                            <field name="name"/>
+                            <field name="applicant_id"/>
+                            <field name="vacancy_id"/>
+                            <field name="job_id"/>
+                        </group>
+                        <group string="Offer">
+                            <field name="decision"/>
+                            <field name="offered_position"/>
+                            <field name="employment_type"/>
+                            <field name="proposed_start_date"/>
+                            <field name="expiry_date"/>
+                        </group>
+                    </group>
+                    <group string="Applicant-Visible Offer Summary">
+                        <field name="offer_summary"/>
+                    </group>
+                    <group string="Internal Decision Rationale">
+                        <field name="decision_reason"/>
+                    </group>
+                    <group string="Issue and Response">
+                        <field name="issued_by_id" readonly="1"/>
+                        <field name="issued_at" readonly="1"/>
+                        <field name="accepted_at" readonly="1"/>
+                        <field name="declined_at" readonly="1"/>
+                        <field name="applicant_response_note"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sedar_applicant_offers" model="ir.actions.act_window">
+        <field name="name">Hiring Decisions and Offers</field>
+        <field name="res_model">sedar.applicant.offer</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_sedar_applicant_offer_list"/>
+        <field name="search_view_id" ref="view_sedar_applicant_offer_search"/>
+    </record>
+
+    <record id="action_sedar_dashboard_offers_awaiting_response" model="ir.actions.act_window">
+        <field name="name">Offers Awaiting Applicant Response</field>
+        <field name="res_model">sedar.applicant.offer</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_sedar_applicant_offer_list"/>
+        <field name="search_view_id" ref="view_sedar_applicant_offer_search"/>
+        <field name="domain">[('state', '=', 'issued')]</field>
+        <field name="context">{'search_default_issued': 1}</field>
+    </record>
+
     <record id="action_sedar_dashboard_interviews_reschedule" model="ir.actions.act_window">
         <field name="name">Interview Reschedule Requests</field>
         <field name="res_model">sedar.applicant.interview</field>
@@ -541,13 +661,15 @@
     <menuitem id="menu_sedar_dashboard_reschedule" name="Interview Reschedule Requests" parent="menu_sedar_recruitment_dashboard_queues" action="action_sedar_dashboard_interviews_reschedule" sequence="40" groups="hr_recruitment.group_hr_recruitment_user"/>
     <menuitem id="menu_sedar_dashboard_appraisals" name="Interviews Awaiting Appraisal" parent="menu_sedar_recruitment_dashboard_queues" action="action_sedar_dashboard_interviews_awaiting_appraisal" sequence="50" groups="hr_recruitment.group_hr_recruitment_user"/>
     <menuitem id="menu_sedar_dashboard_recruitment_controls" name="Background and Orientation Controls" parent="menu_sedar_recruitment_dashboard_queues" action="action_sedar_dashboard_recruitment_controls" sequence="60" groups="hr_recruitment.group_hr_recruitment_user"/>
-    <menuitem id="menu_sedar_dashboard_requirements_applicant" name="Requirements Awaiting Applicant" parent="menu_sedar_recruitment_dashboard_queues" action="action_sedar_dashboard_requirements_applicant" sequence="70" groups="hr_recruitment.group_hr_recruitment_user"/>
-    <menuitem id="menu_sedar_dashboard_requirements_hr" name="Requirements Awaiting HR Review" parent="menu_sedar_recruitment_dashboard_queues" action="action_sedar_dashboard_requirements_hr" sequence="80" groups="hr_recruitment.group_hr_recruitment_user"/>
-    <menuitem id="menu_sedar_dashboard_decision" name="Awaiting Decision" parent="menu_sedar_recruitment_dashboard_queues" action="action_sedar_dashboard_awaiting_decision" sequence="90" groups="hr_recruitment.group_hr_recruitment_user"/>
-    <menuitem id="menu_sedar_dashboard_conversion" name="Awaiting Employee Conversion" parent="menu_sedar_recruitment_dashboard_queues" action="action_sedar_dashboard_awaiting_conversion" sequence="100" groups="hr_recruitment.group_hr_recruitment_user"/>
-    <menuitem id="menu_sedar_dashboard_recent_hires" name="Recent Hires" parent="menu_sedar_recruitment_dashboard_queues" action="action_sedar_dashboard_recent_hires" sequence="110" groups="hr_recruitment.group_hr_recruitment_user"/>
-    <menuitem id="menu_sedar_dashboard_closed" name="Rejected and Withdrawn" parent="menu_sedar_recruitment_dashboard_queues" action="action_sedar_dashboard_closed_applications" sequence="120" groups="hr_recruitment.group_hr_recruitment_user"/>
+    <menuitem id="menu_sedar_dashboard_offers_response" name="Offers Awaiting Response" parent="menu_sedar_recruitment_dashboard_queues" action="action_sedar_dashboard_offers_awaiting_response" sequence="70" groups="hr_recruitment.group_hr_recruitment_user"/>
+    <menuitem id="menu_sedar_dashboard_requirements_applicant" name="Requirements Awaiting Applicant" parent="menu_sedar_recruitment_dashboard_queues" action="action_sedar_dashboard_requirements_applicant" sequence="80" groups="hr_recruitment.group_hr_recruitment_user"/>
+    <menuitem id="menu_sedar_dashboard_requirements_hr" name="Requirements Awaiting HR Review" parent="menu_sedar_recruitment_dashboard_queues" action="action_sedar_dashboard_requirements_hr" sequence="90" groups="hr_recruitment.group_hr_recruitment_user"/>
+    <menuitem id="menu_sedar_dashboard_decision" name="Awaiting Decision" parent="menu_sedar_recruitment_dashboard_queues" action="action_sedar_dashboard_awaiting_decision" sequence="100" groups="hr_recruitment.group_hr_recruitment_user"/>
+    <menuitem id="menu_sedar_dashboard_conversion" name="Awaiting Employee Conversion" parent="menu_sedar_recruitment_dashboard_queues" action="action_sedar_dashboard_awaiting_conversion" sequence="110" groups="hr_recruitment.group_hr_recruitment_user"/>
+    <menuitem id="menu_sedar_dashboard_recent_hires" name="Recent Hires" parent="menu_sedar_recruitment_dashboard_queues" action="action_sedar_dashboard_recent_hires" sequence="120" groups="hr_recruitment.group_hr_recruitment_user"/>
+    <menuitem id="menu_sedar_dashboard_closed" name="Rejected and Withdrawn" parent="menu_sedar_recruitment_dashboard_queues" action="action_sedar_dashboard_closed_applications" sequence="130" groups="hr_recruitment.group_hr_recruitment_user"/>
     <menuitem id="menu_sedar_applicant_processing" name="Applicant Processing" parent="menu_sedar_recruitment_root" action="action_sedar_applicant_processing" sequence="20" groups="hr_recruitment.group_hr_recruitment_user"/>
     <menuitem id="menu_sedar_applicant_action_queue" name="Action Queue" parent="menu_sedar_recruitment_root" action="action_sedar_applicant_action_queue" sequence="30" groups="hr_recruitment.group_hr_recruitment_user"/>
     <menuitem id="menu_sedar_applicant_interviews" name="Applicant Interviews" parent="menu_sedar_recruitment_root" action="action_sedar_applicant_interviews" sequence="40" groups="hr_recruitment.group_hr_recruitment_user"/>
+    <menuitem id="menu_sedar_applicant_offers" name="Hiring Decisions and Offers" parent="menu_sedar_recruitment_root" action="action_sedar_applicant_offers" sequence="50" groups="hr_recruitment.group_hr_recruitment_user"/>
 </odoo>

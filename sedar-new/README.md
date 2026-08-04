@@ -171,6 +171,7 @@ The seeded recruitment scenarios include:
 - Interview with reschedule requested
 - Completed interview awaiting internal HR controls
 - ADM-4A Background Inquiry and CM-053 Company Orientation controls
+- Issued employment offer awaiting applicant response
 - Applicant with pending ADM-5 requirements
 - Applicant with verified ADM-5 requirements
 - Rejected applicant
@@ -198,6 +199,11 @@ Controls** to generate ADM-4A and CM-053 requests. HR completes, submits, review
 those internal requests before **Request Requirements** can create the applicant-visible ADM-5
 request. The applicant portal shows only the public progress status, not the confidential
 background inquiry details.
+
+For the Slice 4 offer demo, open **SEDAR Recruitment > Hiring Decisions and Offers** or the
+applicant's **Offers** tab. HR issues an offer only after the internal controls are approved. The
+applicant portal shows the issued offer summary and lets the applicant accept or decline it. An
+accepted offer is required before HR can request ADM-5 or create the employee profile.
 
 Run the Finance workflow tests in an isolated database:
 
