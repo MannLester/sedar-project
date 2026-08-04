@@ -29,10 +29,13 @@ def post_init_hook(env):
     ready_order = env.ref("sedar_service_order_demo.order_ready")
     completed_order = env.ref("sedar_service_order_demo.order_completed")
 
-    ready_order.write({"state": "ready"})
-    ready_operation = _record(env, "sedar.marine.operation", "operation_ready", {
-        "order_id": ready_order.id,
+    ready_order.with_context(sedar_readiness_sync=True).write({
+        "inventory_ready": True,
+        "inventory_ready_by_id": env.user.id,
+        "inventory_ready_at": _dt(10, 6, 45),
     })
+    ready_order._sync_automated_readiness()
+    ready_operation = ready_order.operation_ids[:1]
     _record(env, "sedar.marine.operation.log", "log_ready_planning", {
         "operation_id": ready_operation.id,
         "event_time": _dt(10, 7), "event_type": "general",
@@ -40,7 +43,12 @@ def post_init_hook(env):
         "client_visible": False,
     })
 
-    completed_order.write({"state": "billing_ready"})
+    completed_order.with_context(sedar_readiness_sync=True).write({
+        "state": "completed",
+        "inventory_ready": True,
+        "inventory_ready_by_id": env.user.id,
+        "inventory_ready_at": _dt(3, 6),
+    })
     completed_operation = _record(env, "sedar.marine.operation", "operation_completed", {
         "order_id": completed_order.id,
     })
@@ -52,7 +60,7 @@ def post_init_hook(env):
     completed_operation.write({
         "state": "completed", "dispatcher_id": env.user.id,
         "dispatch_time": _dt(3, 6, 30), "actual_start": _dt(3, 8),
-        "actual_end": _dt(3, 11), "billing_ready": True,
+        "actual_end": _dt(3, 11),
         "completion_summary": "Demonstration harbor assistance completed without incident.",
         "client_representative": "Demo Client Operations Contact",
         "client_confirmation_time": _dt(3, 11, 30),

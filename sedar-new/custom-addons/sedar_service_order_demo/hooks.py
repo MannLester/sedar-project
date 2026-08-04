@@ -29,6 +29,7 @@ def _dt(day, hour=8):
 
 def post_init_hook(env):
     company = env.company
+    company.sedar_configure_demo_currency()
     currency = company.currency_id
     port = env.ref("sedar_marine_operations.port_batangas")
     base = env.ref("sedar_marine_operations.berth_batangas_base")
@@ -118,9 +119,12 @@ def post_init_hook(env):
         ]:
             _record(env, "sedar.client.tariff", f"tariff_{code}_{service}", {
                 "partner_id": clients[index].id, "service_type_id": services[service].id,
-                "port_id": port.id, "pricing_basis": basis, "rate": rate + index * 450,
+                "port_id": port.id, "terminal_id": base.id,
+                "pricing_basis": basis, "rate": rate + index * 450,
                 "minimum_charge": 12000, "currency_id": currency.id,
-                "valid_from": "2026-01-01", "valid_until": "2026-12-31", "approved": True,
+                "valid_from": "2026-01-01", "valid_until": "2026-12-31",
+                "approved": True, "approval_state": "approved",
+                "approval_reference": "DEMO-PRESIDENT-AUTHORIZATION",
             })
 
     tug_specs = [
@@ -147,6 +151,7 @@ def post_init_hook(env):
         "OILER": ["Warren Uy", "Xavier Valencia", "Yuri Villanueva"],
     }
     profiles = {code: [] for code in crew_names}
+    master_users = []
     employee_number = 1
     home_tugs = list(tugs.values())
     for rank_code, names in crew_names.items():
@@ -156,6 +161,20 @@ def post_init_hook(env):
                 "work_email": f"crew{employee_number:03d}@sedar-demo.example.com",
                 "company_id": company.id,
             })
+            if rank_code == "MASTER":
+                user = _record(env, "res.users", f"user_tug_master_{rank_index + 1}", {
+                    "name": name,
+                    "login": f"tugmaster{rank_index + 1}@sedar.demo",
+                    "password": "tugdemo",
+                    "company_id": company.id,
+                    "company_ids": [Command.set([company.id])],
+                    "group_ids": [Command.set([
+                        env.ref("base.group_user").id,
+                        env.ref("sedar_marine_operations.group_tug_master").id,
+                    ])],
+                })
+                employee.user_id = user.id
+                master_users.append(user)
             profile = _record(env, "sedar.crew.profile", f"crew_{employee_number:03d}", {
                 "employee_id": employee.id, "employee_number": f"SEDAR-DEMO-{employee_number:03d}",
                 "rank_id": ranks[rank_code].id,
@@ -189,6 +208,23 @@ def post_init_hook(env):
             "name": name, "department_id": department.id, "job_id": jobs[job_code].id,
             "work_email": f"{xmlid[9:]}@sedar-demo.example.com", "company_id": company.id,
         })
+
+    _record(env, "res.users", "user_billing_officer", {
+        "name": "Demo Billing Officer",
+        "login": "billing@sedar.demo",
+        "password": "billingdemo",
+        "company_id": company.id,
+        "company_ids": [Command.set([company.id])],
+        "group_ids": [Command.set([env.ref("sedar_marine_finance.group_billing_officer").id])],
+    })
+    _record(env, "res.users", "user_accounting_manager", {
+        "name": "Demo Accounting Manager",
+        "login": "accounting@sedar.demo",
+        "password": "accountingdemo",
+        "company_id": company.id,
+        "company_ids": [Command.set([company.id])],
+        "group_ids": [Command.set([env.ref("sedar_marine_finance.group_accounting_manager").id])],
+    })
 
     template_specs = {
         "harbor": [("MASTER", 1), ("CHENG", 1), ("DECK", 2)],
@@ -224,7 +260,7 @@ def post_init_hook(env):
         ("expired_medical", 3, "barge_gateway_7", "berthing", 12, "blocked", 1, standard),
         ("maintenance_tug", 0, "mv_luzon_star", "shifting", 13, "blocked", 1, standard),
         ("completed", 2, "mv_pacific_meridian", "harbor", 3, "completed", 1, standard),
-        ("two_tug", 0, "mv_visayas_trader", "towage", 14, "planning", 2, high_power),
+        ("two_tug", 0, "mv_visayas_trader", "towage", 14, "completed", 2, high_power),
     ]
     orders = {}
     order_services = {}
@@ -240,12 +276,16 @@ def post_init_hook(env):
             "service_type_id": services[service].id, "number_of_tugs": tug_count,
             "tug_class_id": tug_class.id, "required_bollard_pull": tug_class.minimum_bollard_pull,
             "scope_of_work": f"Demonstration {services[service].name.lower()} service.",
-            "port_id": port.id, "origin_berth_id": anchorage.id,
+            "port_id": port.id, "terminal_id": base.id, "origin_berth_id": anchorage.id,
             "destination_berth_id": base.id, "requested_start": _dt(day),
             "estimated_duration_hours": 6 if service == "towage" else 3,
             "state": state,
         })
         order_services[code] = service
+
+    for order in orders.values():
+        if order.state in {"quoted", "confirmed", "planning", "blocked", "ready", "dispatched", "in_progress", "completed"}:
+            order._freeze_pricing()
 
     assignment_specs = [
         ("ready", "ready", "atlas", {"MASTER": [0], "CHENG": [0], "DECK": [0, 1]}),
@@ -281,6 +321,18 @@ def post_init_hook(env):
                     "requirement_id": requirement.id, "missing_count": line.required_count - len(selected),
                     "reason": "no_qualified", "notes": "Intentional service-order demo shortage.",
                 })
+
+        if order.state == "completed":
+            master_profile = profiles["MASTER"][crew_map["MASTER"][0]]
+            duration = 6 if order_services[order_code] == "towage" else 3
+            assignment.with_context(sedar_completion_action=True).write({
+                "actual_start": order.requested_start,
+                "actual_end": order.requested_start.replace(hour=order.requested_start.hour + duration),
+                "completion_note": "Demo Tug Master completion declaration.",
+                "completion_state": "submitted",
+                "completion_declared_by_id": master_profile.employee_id.user_id.id,
+                "completion_declared_at": order.requested_start.replace(hour=order.requested_start.hour + duration),
+            })
 
     expired_requirement = env.ref(f"{MODULE}.requirement_expired_medical_cheng")
     _record(env, "sedar.crew.shortage", "shortage_expired_medical", {
