@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="seq_manpower_request" model="ir.sequence">
+        <field name="name">Manpower Request</field>
+        <field name="code">sedar.manpower.request</field>
+        <field name="prefix">MP/%(year)s/</field>
+        <field name="padding">5</field>
+    </record>
+    <record id="seq_job_vacancy" model="ir.sequence">
+        <field name="name">Job Vacancy</field>
+        <field name="code">sedar.job.vacancy</field>
+        <field name="prefix">VAC/%(year)s/</field>
+        <field name="padding">5</field>
+    </record>
+</odoo>

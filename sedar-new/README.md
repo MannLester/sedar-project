@@ -119,3 +119,23 @@ docker compose restart odoo
 
 The separate `sedar_marine_dispatch_demo` addon creates a ready-to-dispatch operation and a
 completed billing-ready operation with client-visible activity logs and a resolved port delay.
+
+## Manpower Planning
+
+The optional `sedar_manpower_planning` addon reviews operational crew shortages and separates
+temporary or compliance issues from genuine headcount demand. It adds the Shortage Review Queue,
+resolution actions, manpower requests, approval workflow, and internal job vacancies. It does
+not publish Careers listings, create applicants, or create employees.
+
+Install the manpower-planning module after dispatch with:
+
+```powershell
+docker compose exec odoo odoo -c /etc/odoo/odoo.conf -d sedar_demo `
+  -i sedar_manpower_planning --stop-after-init
+docker compose restart odoo
+```
+
+The separate `sedar_manpower_planning_demo` addon demonstrates three outcomes: a Chief Engineer
+shortage becomes an approved internal vacancy, an expired medical creates a certification action,
+and an employee-on-leave shortage creates a temporary replacement action. The vacancy remains
+internal until a future HR/Careers slice explicitly approves publication.

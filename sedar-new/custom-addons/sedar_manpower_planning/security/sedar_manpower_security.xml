@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="module_category_sedar_manpower" model="ir.module.category">
+        <field name="name">SEDAR Manpower Planning</field>
+        <field name="sequence">30</field>
+    </record>
+    <record id="privilege_sedar_manpower" model="res.groups.privilege">
+        <field name="name">Manpower Planning</field>
+        <field name="category_id" ref="module_category_sedar_manpower"/>
+        <field name="sequence">10</field>
+    </record>
+    <record id="group_crewing_officer" model="res.groups">
+        <field name="name">Crewing Officer</field>
+        <field name="privilege_id" ref="privilege_sedar_manpower"/>
+        <field name="implied_ids" eval="[Command.link(ref('base.group_user'))]"/>
+    </record>
+    <record id="group_hr_reviewer" model="res.groups">
+        <field name="name">HR Reviewer</field>
+        <field name="privilege_id" ref="privilege_sedar_manpower"/>
+        <field name="implied_ids" eval="[Command.link(ref('group_crewing_officer'))]"/>
+    </record>
+    <record id="group_manpower_approver" model="res.groups">
+        <field name="name">Manpower Approver</field>
+        <field name="privilege_id" ref="privilege_sedar_manpower"/>
+        <field name="implied_ids" eval="[Command.link(ref('group_hr_reviewer'))]"/>
+    </record>
+    <record id="group_hr_manager" model="res.groups">
+        <field name="name">HR Manager</field>
+        <field name="privilege_id" ref="privilege_sedar_manpower"/>
+        <field name="implied_ids" eval="[Command.link(ref('group_manpower_approver'))]"/>
+    </record>
+</odoo>
