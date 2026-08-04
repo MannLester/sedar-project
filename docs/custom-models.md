@@ -225,7 +225,7 @@ Applicant creation generates a random activation token and initial timeline even
 | `sedar_requirement_request_ids` | One-to-many to `sedar.document.request` | Controlled applicant document requests, including ADM-5. |
 | `sedar_is_overdue` | Computed, searchable boolean | Identifies applications whose next-action date is before today. |
 
-Workflow actions move applicants through controlled SEDAR stages, synchronize the public status, and create stage history. Interview completion requires a submitted ADM-4 appraisal. Employment-requirement verification requires an ADM-5 request to be submitted and approved. Employee conversion uses Odoo Recruitment's native employee creation and is blocked until the approved ADM-5 request exists.
+Workflow actions move applicants through controlled SEDAR stages, synchronize the public status, and create stage history. Interview completion requires a submitted ADM-4 appraisal. For marine crew applicants in the demonstration, ADM-4A Background Inquiry and CM-053 Company Interview Orientation are mandatory internal HR controls after interview completion and before ADM-5 employment requirements may be requested. Employment-requirement verification requires an ADM-5 request to be submitted and approved. Employee conversion uses Odoo Recruitment's native employee creation and is blocked until the approved ADM-5 request exists.
 
 ## `sedar.applicant.portal.event`
 
@@ -292,4 +292,4 @@ The existing controlled document request is extended so recruitment can use the 
 | `applicant_visible` | Boolean | Explicitly allows the verified portal owner to view and submit the request. |
 | `applicant_submission_note` | Text | Applicant's note accompanying a portal submission. |
 
-Portal submission is restricted to the verified owner, applicant-visible requests, active applications, and editable request states. Typed document values remain governed by Document Control validation; uploaded attachments are stored in the existing binary value field. ADM-5 submission advances the applicant to requirements review.
+Portal submission is restricted to the verified owner, applicant-visible requests, active applications, and editable request states. Typed document values remain governed by Document Control validation; uploaded attachments are stored in the existing binary value field. ADM-5 submission advances the applicant to requirements review. ADM-4A Background Inquiry and CM-053 Company Interview Orientation requests are created as internal-only recruitment controls for marine crew applicants; their detailed content remains hidden from the applicant portal and must be approved before HR can request ADM-5 in the demo workflow.

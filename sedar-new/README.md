@@ -169,7 +169,8 @@ The seeded recruitment scenarios include:
 - Qualified applicant awaiting interview scheduling
 - Scheduled interview awaiting applicant confirmation
 - Interview with reschedule requested
-- Completed interview awaiting HR decision
+- Completed interview awaiting internal HR controls
+- ADM-4A Background Inquiry and CM-053 Company Orientation controls
 - Applicant with pending ADM-5 requirements
 - Applicant with verified ADM-5 requirements
 - Rejected applicant
@@ -191,6 +192,12 @@ Recruitment demo users:
 Open **SEDAR Recruitment > Applicant Processing** to review the internal HR scenarios. Open
 `http://localhost:8069/my/applications` as the applicant portal user to inspect the applicant-side
 tracking scenario with a pending ADM-5 request.
+
+For the Slice 3 HR-control demo, open the completed-interview applicant, then use **Create HR
+Controls** to generate ADM-4A and CM-053 requests. HR completes, submits, reviews, and approves
+those internal requests before **Request Requirements** can create the applicant-visible ADM-5
+request. The applicant portal shows only the public progress status, not the confidential
+background inquiry details.
 
 Run the Finance workflow tests in an isolated database:
 

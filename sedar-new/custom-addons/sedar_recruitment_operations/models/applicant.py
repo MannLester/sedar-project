@@ -127,10 +127,40 @@ class SedarApplicantOperations(models.Model):
         self.write({"sedar_next_action": False, "sedar_next_action_date": False})
         return True
 
+    def action_sedar_create_recruitment_controls(self):
+        for applicant in self:
+            if applicant.sedar_public_status != "final_review":
+                raise UserError("Create background and orientation controls only after the interview is completed.")
+            if not applicant._sedar_requires_recruitment_controls():
+                raise UserError("This demo requires background and orientation controls only for marine crew applicants.")
+            requests = applicant._get_or_create_recruitment_control_requests()
+            requests.filtered(lambda request: request.state == "draft").action_start()
+            applicant.write({
+                "sedar_next_action": "Complete background inquiry and company orientation",
+                "sedar_next_action_date": min(requests.mapped("due_date")) if requests else False,
+                "sedar_public_message": "Your interview is complete. SEDAR HR is completing internal pre-employment checks.",
+                "sedar_action_required": False,
+                "sedar_action_instructions": False,
+            })
+        return True
+
+    def action_sedar_verify_recruitment_controls(self):
+        for applicant in self:
+            applicant._ensure_recruitment_controls_approved(auto_approve=True)
+            applicant.write({
+                "sedar_next_action": "Request applicant employment requirements",
+                "sedar_next_action_date": fields.Date.add(fields.Date.context_today(applicant), days=2),
+                "sedar_public_message": "SEDAR HR has completed the internal pre-employment checks for your application.",
+                "sedar_action_required": False,
+                "sedar_action_instructions": False,
+            })
+        return True
+
     def action_sedar_request_employment_requirements(self):
         for applicant in self:
             if applicant.sedar_public_status not in ("final_review", "requirements", "offer"):
                 raise UserError("Employment requirements can only be requested after the interview is completed.")
+            applicant._ensure_recruitment_controls_approved()
             request = applicant._get_or_create_requirement_request()
             if request.state == "draft":
                 request.action_start()
@@ -194,7 +224,7 @@ class SedarApplicantOperations(models.Model):
         request = self.env["sedar.document.request"].create({
             "name": "ADM-5 Employment Requirements - %s" % self.sedar_reference,
             "document_type_id": document_type.id,
-            "subject_name": self.partner_name or self.name,
+            "subject_name": self._sedar_applicant_name(),
             "subject_reference": self.sedar_reference,
             "assigned_user_id": self.user_id.id or self.env.user.id,
             "due_date": due_date,
@@ -204,8 +234,8 @@ class SedarApplicantOperations(models.Model):
             "notes": "Applicant must upload employment requirement files listed in ADM-5.",
         })
         values = {
-            "employee_name": {"value_text": self.partner_name or self.name},
-            "position": {"value_text": self.sedar_vacancy_id.website_title or self.job_id.name or ""},
+            "employee_name": {"value_text": self._sedar_applicant_name()},
+            "position": {"value_text": self._sedar_position_name()},
             "list_given_on": {"value_date": fields.Date.context_today(self)},
             "needed_on": {"value_date": due_date},
             "requirement_checklist": {"value_text": "NBI Clearance; SSS E1/E4; ID; TIN ID; Transcript of Record; Medical Certificate; Employment Certificate; 2 Passport size pictures; Community Tax Certificate; Birth Certificate; Police Clearance; Barangay Clearance; Proof of SSS, PhilHealth and Pag-IBIG from most recent company."},
@@ -215,3 +245,118 @@ class SedarApplicantOperations(models.Model):
             if update:
                 value.write(update)
         return request
+
+    def _sedar_applicant_name(self):
+        self.ensure_one()
+        return self.partner_name or self.display_name
+
+    def _sedar_position_name(self):
+        self.ensure_one()
+        return self.sedar_vacancy_id.website_title or self.job_id.name or ""
+
+    def _sedar_requires_recruitment_controls(self):
+        self.ensure_one()
+        return bool(self.sedar_vacancy_id.crew_rank_id)
+
+    def _sedar_recruitment_control_purposes(self):
+        self.ensure_one()
+        return ("background_check", "orientation") if self._sedar_requires_recruitment_controls() else ()
+
+    def _sedar_recruitment_control_requests(self):
+        self.ensure_one()
+        return self.sedar_requirement_request_ids.filtered(
+            lambda request: request.sedar_request_purpose in self._sedar_recruitment_control_purposes()
+            and request.state != "rejected"
+        )
+
+    def _get_or_create_recruitment_control_requests(self):
+        self.ensure_one()
+        requests = self.env["sedar.document.request"]
+        for purpose in self._sedar_recruitment_control_purposes():
+            requests |= self._get_or_create_recruitment_control_request(purpose)
+        return requests
+
+    def _get_or_create_recruitment_control_request(self, purpose):
+        self.ensure_one()
+        existing = self.sedar_requirement_request_ids.filtered(
+            lambda request: request.sedar_request_purpose == purpose and request.state != "rejected"
+        )[:1]
+        if existing:
+            return existing
+        if purpose == "background_check":
+            document_type = self.env.ref("sedar_document_control.document_type_adm_4a")
+            due_date = fields.Date.add(fields.Date.context_today(self), days=5)
+            request = self.env["sedar.document.request"].create({
+                "name": "ADM-4A Background Inquiry - %s" % self.sedar_reference,
+                "document_type_id": document_type.id,
+                "subject_name": self._sedar_applicant_name(),
+                "subject_reference": self.sedar_reference,
+                "assigned_user_id": self.user_id.id or self.env.user.id,
+                "due_date": due_date,
+                "applicant_id": self.id,
+                "sedar_request_purpose": "background_check",
+                "applicant_visible": False,
+                "notes": "Confidential HR background inquiry for a marine crew applicant. Applicant portal must not expose the detailed response.",
+            })
+            values = {
+                "correspondence_to": {"value_text": "Previous Employer / Manning Agency"},
+                "inquiry_date": {"value_date": fields.Date.context_today(self)},
+                "attention_to": {"value_text": "HR / Crewing Records"},
+                "reference": {"value_text": self.sedar_reference},
+                "applicant_name": {"value_text": self._sedar_applicant_name()},
+                "last_vessel": {"value_text": "Previous vessel or tug assignment, if confirmed by HR"},
+                "position": {"value_text": self._sedar_position_name()},
+                "evaluation_results": {"value_text": "Pending evaluator response for Ability, Conduct / Attitude, Responsibility, Technical Competence, Health, and Overall Assessment."},
+                "general_remarks": {"value_text": "Demo workflow: HR records confidential background findings here before approval."},
+            }
+        elif purpose == "orientation":
+            document_type = self.env.ref("sedar_document_control.document_type_cm_053")
+            due_date = fields.Date.add(fields.Date.context_today(self), days=3)
+            request = self.env["sedar.document.request"].create({
+                "name": "CM-053 Company Orientation - %s" % self.sedar_reference,
+                "document_type_id": document_type.id,
+                "subject_name": self._sedar_applicant_name(),
+                "subject_reference": self.sedar_reference,
+                "assigned_user_id": self.user_id.id or self.env.user.id,
+                "due_date": due_date,
+                "applicant_id": self.id,
+                "sedar_request_purpose": "orientation",
+                "applicant_visible": False,
+                "notes": "Internal HR orientation control for company policies and ship crew safety orientation.",
+            })
+            values = {
+                "orientation_date": {"value_date": fields.Date.context_today(self)},
+                "applicant_name": {"value_text": self._sedar_applicant_name()},
+                "position_applied": {"value_text": self._sedar_position_name()},
+                "orientation_checklist": {"value_text": "ISM / ISO Orientation: Pending\nMission/Vision/Quality Policy: Pending\nJob Description: Pending\nCompany Rules & Regulation: Pending\nDisciplinary Action: Pending\nDrug-Free Workplace: Pending\nDuties & Responsibilities: Pending\nSafety On Board (Operation/Maintenance/Emergency): Pending"},
+            }
+        else:
+            raise UserError("Unsupported recruitment control purpose: %s" % purpose)
+        for value in request.value_ids:
+            update = values.get(value.field_id.technical_name)
+            if update:
+                value.write(update)
+        return request
+
+    def _ensure_recruitment_controls_approved(self, auto_approve=False):
+        for applicant in self:
+            purposes = applicant._sedar_recruitment_control_purposes()
+            if not purposes:
+                continue
+            requests = applicant._sedar_recruitment_control_requests()
+            found = set(requests.mapped("sedar_request_purpose"))
+            missing = sorted(set(purposes) - found)
+            if missing:
+                raise UserError("Create and approve ADM-4A Background Inquiry and Company Interview Orientation before requesting ADM-5 employment requirements.")
+            if auto_approve:
+                for request in requests:
+                    if request.state in ("draft", "in_progress"):
+                        raise UserError("Submit the ADM-4A and Company Interview Orientation requests before HR approval.")
+                    if request.state == "submitted":
+                        request.action_review()
+                    if request.state == "reviewed":
+                        request.action_approve()
+            not_approved = requests.filtered(lambda request: request.state != "approved")
+            if not_approved:
+                raise UserError("Approve ADM-4A Background Inquiry and Company Interview Orientation before requesting ADM-5 employment requirements.")
+        return True

@@ -126,9 +126,9 @@ class ResCompany(models.Model):
                 "phone": "+63 917 700 1005",
                 "stage": "sedar_recruitment_operations.stage_interview_completed",
                 "public_status": "final_review",
-                "next_action": "Review interview appraisal",
+                "next_action": "Complete background inquiry and company orientation",
                 "next_date": "2026-08-23",
-                "message": "Interview is complete and awaiting hiring decision.",
+                "message": "Interview is complete and awaiting internal HR controls.",
                 "interview": {
                     "xmlid": "interview_completed",
                     "status": "completed",
@@ -204,6 +204,10 @@ class ResCompany(models.Model):
             self._sedar_demo_supporting_document(applicant, spec, index)
             if spec.get("interview"):
                 self._sedar_demo_interview(applicant, spec["interview"], recruiter, interviewer)
+            if spec["public_status"] == "final_review":
+                self._sedar_demo_recruitment_controls(applicant, hr_manager, "submitted")
+            if spec["public_status"] in ("requirements", "offer", "successful"):
+                self._sedar_demo_recruitment_controls(applicant, hr_manager, "approved")
             if spec.get("requirements"):
                 self._sedar_demo_requirements(applicant, spec["requirements"], hr_manager)
             if spec.get("employee") and not applicant.employee_id:
@@ -372,6 +376,58 @@ class ResCompany(models.Model):
         if request.state != spec["state"]:
             request.write({"state": spec["state"]})
         return request
+
+    def _sedar_demo_recruitment_controls(self, applicant, hr_manager, state):
+        background = self._sedar_record("sedar.document.request", "request_background_%s" % applicant.sedar_reference.lower().replace("-", "_"), {
+            "name": "ADM-4A Background Inquiry - %s" % applicant.sedar_reference,
+            "document_type_id": self.env.ref("sedar_document_control.document_type_adm_4a").id,
+            "subject_name": applicant.partner_name,
+            "subject_reference": applicant.sedar_reference,
+            "assigned_user_id": hr_manager.id,
+            "due_date": "2026-08-24",
+            "state": "draft",
+            "applicant_id": applicant.id,
+            "sedar_request_purpose": "background_check",
+            "applicant_visible": False,
+            "notes": "Fictional confidential ADM-4A control managed by sedar_recruitment_demo.",
+        })
+        self._fill_document_request(background, {
+            "correspondence_to": {"value_text": "Demo Previous Employer"},
+            "inquiry_date": {"value_date": "2026-08-22"},
+            "attention_to": {"value_text": "Demo HR / Crewing Records"},
+            "reference": {"value_text": applicant.sedar_reference},
+            "applicant_name": {"value_text": applicant.partner_name},
+            "last_vessel": {"value_text": "M/T Demo Harbor Assist"},
+            "position": {"value_text": applicant.sedar_vacancy_id.website_title},
+            "evaluation_results": {"value_text": "Ability: Good; Conduct / Attitude: Good; Responsibility: Good; Technical Competence: Good; Health: Good; Overall Assessment: Good."},
+            "rehirable": {"value_selection": "Yes"},
+            "finished_contract": {"value_selection": "Yes"},
+            "separation_reason": {"value_selection": "Own request"},
+            "general_remarks": {"value_text": "Fictional background inquiry cleared for demonstration."},
+        })
+        orientation = self._sedar_record("sedar.document.request", "request_orientation_%s" % applicant.sedar_reference.lower().replace("-", "_"), {
+            "name": "CM-053 Company Orientation - %s" % applicant.sedar_reference,
+            "document_type_id": self.env.ref("sedar_document_control.document_type_cm_053").id,
+            "subject_name": applicant.partner_name,
+            "subject_reference": applicant.sedar_reference,
+            "assigned_user_id": hr_manager.id,
+            "due_date": "2026-08-24",
+            "state": "draft",
+            "applicant_id": applicant.id,
+            "sedar_request_purpose": "orientation",
+            "applicant_visible": False,
+            "notes": "Fictional CM-053 orientation control managed by sedar_recruitment_demo.",
+        })
+        self._fill_document_request(orientation, {
+            "orientation_date": {"value_date": "2026-08-22"},
+            "applicant_name": {"value_text": applicant.partner_name},
+            "position_applied": {"value_text": applicant.sedar_vacancy_id.website_title},
+            "orientation_checklist": {"value_text": "ISM / ISO Orientation: Yes\nMission/Vision/Quality Policy: Yes\nJob Description: Yes\nCompany Rules & Regulation: Yes\nDisciplinary Action: Yes\nDrug-Free Workplace: Yes\nDuties & Responsibilities: Yes\nSafety On Board (Operation/Maintenance/Emergency): Yes"},
+        })
+        for request in background | orientation:
+            if request.state != state:
+                request.write({"state": state})
+        return background | orientation
 
     def _sedar_demo_portal_owner(self):
         applicant = self.env.ref("%s.applicant_pending_requirements" % MODULE, raise_if_not_found=False)

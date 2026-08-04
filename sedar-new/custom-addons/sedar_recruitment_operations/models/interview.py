@@ -53,7 +53,7 @@ class SedarInterview(models.Model):
     def _onchange_applicant_id(self):
         for interview in self:
             if interview.applicant_id:
-                interview.name = "Interview - %s" % (interview.applicant_id.partner_name or interview.applicant_id.name)
+                interview.name = "Interview - %s" % interview.applicant_id._sedar_applicant_name()
 
     def _interviewer_names(self):
         self.ensure_one()
@@ -68,7 +68,7 @@ class SedarInterview(models.Model):
         request = self.env["sedar.document.request"].create({
             "name": "ADM-4 Interview Appraisal - %s" % self.applicant_id.sedar_reference,
             "document_type_id": document_type.id,
-            "subject_name": self.applicant_id.partner_name or self.applicant_id.name,
+            "subject_name": self.applicant_id._sedar_applicant_name(),
             "subject_reference": self.applicant_id.sedar_reference,
             "assigned_user_id": (self.interviewer_ids or self.coordinator_id)[:1].id,
             "applicant_id": self.applicant_id.id,
@@ -78,9 +78,9 @@ class SedarInterview(models.Model):
             "notes": "Complete this ADM-4 appraisal for the scheduled interview.",
         })
         values = {
-            "applicant_name": {"value_text": self.applicant_id.partner_name or self.applicant_id.name},
+            "applicant_name": {"value_text": self.applicant_id._sedar_applicant_name()},
             "interview_date": {"value_date": fields.Date.to_date(self.start_datetime)},
-            "position_applied": {"value_text": self.applicant_id.sedar_vacancy_id.website_title or self.job_id.name or self.applicant_id.name},
+            "position_applied": {"value_text": self.applicant_id._sedar_position_name()},
             "interviewer": {"value_text": self._interviewer_names()},
         }
         for value in request.value_ids:
@@ -91,9 +91,9 @@ class SedarInterview(models.Model):
     def _sync_appraisal_values(self):
         for interview in self.filtered("appraisal_request_id"):
             values = {
-                "applicant_name": {"value_text": interview.applicant_id.partner_name or interview.applicant_id.name},
+                "applicant_name": {"value_text": interview.applicant_id._sedar_applicant_name()},
                 "interview_date": {"value_date": fields.Date.to_date(interview.start_datetime)},
-                "position_applied": {"value_text": interview.applicant_id.sedar_vacancy_id.website_title or interview.job_id.name or interview.applicant_id.name},
+                "position_applied": {"value_text": interview.applicant_id._sedar_position_name()},
                 "interviewer": {"value_text": interview._interviewer_names()},
             }
             for value in interview.appraisal_request_id.value_ids:
@@ -128,7 +128,7 @@ class SedarInterview(models.Model):
         lines = [
             "SEDAR applicant interview",
             "Application: %s" % self.applicant_id.sedar_reference,
-            "Applicant: %s" % (self.applicant_id.partner_name or self.applicant_id.name),
+            "Applicant: %s" % self.applicant_id._sedar_applicant_name(),
         ]
         if self.meeting_url:
             lines.append("Meeting link: %s" % self.meeting_url)

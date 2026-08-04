@@ -281,6 +281,12 @@ dashboard uses source-record actions rather than copied totals: pipeline graph/p
 `hr.applicant`, interview queues open `sedar.applicant.interview`, ADM-5 queues open
 `sedar.document.request`, and open-vacancy queues open `sedar.job.vacancy`.
 
+Slice 3 adds generic tugboat-company pre-employment controls for marine crew applicants. After
+ADM-4 interview completion, HR can generate internal ADM-4A Background Inquiry and CM-053 Company
+Interview Orientation requests from the approved Document Control catalogue. The applicant portal
+sees only a general progress message; confidential background/orientation content stays in HR-only
+document requests. ADM-5 employment requirements are blocked until both controls are approved.
+
 The repository contains automated tests for the marine readiness/completion lifecycle and Marine Finance calculations and controls. Applicant portal and recruitment slices have been manually verified through Odoo module upgrades and representative portal/backend workflows.
 
 ## 7. Demonstration Gaps That Affect Existing Flows
