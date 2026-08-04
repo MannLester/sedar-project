@@ -48,15 +48,15 @@ It loads the approved source PDFs and typed field templates when installed.
 The template's **Typed Template Fields** menu shows each field's expected data type. The original
 PDF remains available under **Controlled Documents** as the source/reference copy.
 
-After Docker Desktop is running, initialize the demo database and install the addon:
+After Docker Desktop is running, start the stack:
 
 ```powershell
 docker compose up -d
-docker compose exec odoo odoo -d sedar_demo -i base,sedar_document_control --without-demo=all --stop-after-init
-docker compose restart odoo
 ```
 
-Then open `http://localhost:8069` and select the `sedar_demo` database.
+Docker automatically creates the `sedar_demo` database, installs the complete SEDAR module stack,
+loads the fictional seed data, and upgrades the custom modules on later starts. Then open
+`http://localhost:8069/web?db=sedar_demo`. No manual Apps installation is required.
 
 ## Marine Service Orders
 
@@ -88,13 +88,8 @@ service-order scope with four clients, six assisted vessels, five tugboats, 24 e
 It deliberately includes ready, no-tug, missing-crew, expired-medical, maintenance-hold,
 pricing-review, completed, and two-tug scenarios.
 
-Install or refresh the operational module and seed data with:
-
-```powershell
-docker compose exec odoo odoo -c /etc/odoo/odoo.conf -d sedar_demo `
-  -u sedar_marine_operations -i sedar_service_order_demo --stop-after-init
-docker compose restart odoo
-```
+The operational, finance, document-control, and seed-data modules are installed and upgraded by
+`docker compose up -d`.
 
 Open **SEDAR > Marine Operations > Service Order Dashboard** to compare readiness states.
 Use **Tugboats**, **Crew Profiles**, and **Tug and Crew Plans** to inspect the records behind
@@ -139,3 +134,36 @@ The separate `sedar_manpower_planning_demo` addon demonstrates three outcomes: a
 shortage becomes an approved internal vacancy, an expired medical creates a certification action,
 and an employee-on-leave shortage creates a temporary replacement action. The vacancy remains
 internal until a future HR/Careers slice explicitly approves publication.
+
+## Marine Finance Demo
+
+The custom model and field contract for this workflow is documented in
+[`docs/custom-models.md`](../docs/custom-models.md).
+
+The `sedar_marine_finance` addon adds the post-service billing workflow on top of Odoo
+Accounting. Tug Masters declare actual completion per assigned tug. A Service Order enters
+Billing Review only after every active tug is complete. Finance then reviews the frozen client
+tariff, actual tug-hours, minimum charge, and explained adjustments before creating a draft
+customer invoice.
+
+Demo users:
+
+- Tug Masters: `tugmaster1@sedar.demo` through `tugmaster5@sedar.demo`, password `tugdemo`
+- Billing Officer: `billing@sedar.demo`, password `billingdemo`
+- Accounting Manager: `accounting@sedar.demo`, password `accountingdemo`
+
+The seeded two-tug towage order is completed by both Tug Masters and appears in
+**SEDAR > Marine Finance > Billing Reviews**. It uses 12 actual tug-hours and an approved,
+terminal-specific mock tariff. The Billing Officer can complete review and create the draft
+invoice. The Accounting Manager can post it and register payment using standard Odoo Accounting.
+
+Run the Finance workflow tests in an isolated database:
+
+```powershell
+docker compose run --rm -T odoo odoo -c /etc/odoo/odoo.conf `
+  -d sedar_finance_unit -i sedar_marine_finance --test-enable `
+  --test-tags /sedar_marine_finance --stop-after-init --no-http
+```
+
+These accounts, tariffs, completions, and prices are fictional demo fixtures. Replace them with
+approved SEDAR data and change all passwords before any non-local use.

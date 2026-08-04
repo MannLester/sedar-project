@@ -8,15 +8,30 @@ services:
       POSTGRES_PASSWORD: odoo
     volumes:
       - ./data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
 
   odoo:
     image: odoo:19.0
     restart: unless-stopped
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     ports:
       - "8069:8069"
     volumes:
       - ./config/odoo.conf:/etc/odoo/odoo.conf:ro
       - ./custom-addons:/mnt/extra-addons
       - ./data/odoo:/var/lib/odoo
+    command:
+      - bash
+      - -c
+      - |
+        odoo -c /etc/odoo/odoo.conf -d sedar_demo \
+          -i sedar_service_order_demo,sedar_marine_dispatch_demo,sedar_theme,sedar_ui_cards \
+          -u sedar_document_control,sedar_marine_operations,sedar_marine_dispatch,sedar_marine_finance,sedar_service_order_demo,sedar_marine_dispatch_demo,sedar_theme,sedar_ui_cards \
+          --without-demo=true --stop-after-init --no-http
+        exec odoo -c /etc/odoo/odoo.conf -d sedar_demo
