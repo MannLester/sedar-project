@@ -6,15 +6,13 @@
         <field name="arch" type="xml">
             <search string="Marine Operations">
                 <field name="name"/><field name="order_id"/><field name="client_id"/>
-                <filter name="ready" string="Ready to Dispatch" domain="[('order_id.state','=','ready')]"/>
-                <filter name="dispatched" string="Dispatched" domain="[('state','=','dispatched')]"/>
+                <filter name="ready" string="Awaiting Start" domain="[('state','=','awaiting_start')]"/>
                 <filter name="in_progress" string="In Progress" domain="[('state','=','in_progress')]"/>
                 <filter name="delayed" string="Delayed" domain="[('delay_ids.state','=','open')]"/>
                 <filter name="completed" string="Completed" domain="[('state','=','completed')]"/>
                 <separator/>
                 <filter name="group_state" string="Group by Status" context="{'group_by':'state'}"/>
                 <filter name="group_port" string="Group by Port" context="{'group_by':'port_id'}"/>
-                <filter name="group_dispatcher" string="Group by Dispatcher" context="{'group_by':'dispatcher_id'}"/>
             </search>
         </field>
     </record>
@@ -26,8 +24,7 @@
             <list string="Marine Operations" decoration-danger="state == 'cancelled'" decoration-warning="delay_ids">
                 <field name="name"/><field name="order_id"/><field name="client_id"/>
                 <field name="assisted_vessel_id"/><field name="port_id"/><field name="planned_start"/>
-                <field name="dispatcher_id"/><field name="state"/><field name="actual_duration_hours"/>
-                <field name="billing_ready"/>
+                <field name="state"/><field name="actual_duration_hours"/>
             </list>
         </field>
     </record>
@@ -64,19 +61,15 @@
             <form string="Marine Operation">
                 <header>
                     <button name="action_open_order" type="object" string="Open Service Order" class="btn-secondary"/>
-                    <button name="action_dispatch" type="object" string="Dispatch" class="btn-primary" invisible="state != 'draft'" groups="sedar_marine_dispatch.group_dispatcher"/>
-                    <button name="action_start" type="object" string="Start Operation" class="btn-primary" invisible="state != 'dispatched'" groups="sedar_marine_dispatch.group_dispatcher"/>
-                    <button name="action_return_tugs" type="object" string="Return Tugs" invisible="state not in ['dispatched','in_progress']" groups="sedar_marine_dispatch.group_dispatcher"/>
-                    <button name="action_complete" type="object" string="Complete" class="btn-primary" invisible="state != 'in_progress'" groups="sedar_marine_dispatch.group_dispatch_manager"/>
-                    <button name="action_mark_billing_ready" type="object" string="Mark Billing Ready" invisible="state != 'completed' or billing_ready" groups="sedar_marine_dispatch.group_dispatch_manager"/>
+                    <button name="action_return_tugs" type="object" string="Return Tugs" invisible="state != 'in_progress'" groups="sedar_marine_dispatch.group_dispatcher"/>
                     <button name="action_cancel" type="object" string="Cancel" invisible="state in ['completed','cancelled']" groups="sedar_marine_dispatch.group_dispatcher"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,dispatched,in_progress,completed"/>
+                    <field name="state" widget="statusbar" statusbar_visible="awaiting_start,in_progress,completed"/>
                 </header>
                 <sheet>
                     <div class="oe_title"><label for="name"/><h1><field name="name"/></h1></div>
                     <group>
                         <group string="Service Order"><field name="order_id"/><field name="client_id"/><field name="assisted_vessel_id"/><field name="service_type_id"/><field name="port_id"/></group>
-                        <group string="Schedule"><field name="planned_start"/><field name="planned_end"/><field name="dispatch_time"/><field name="dispatcher_id"/><field name="billing_ready"/></group>
+                        <group string="Schedule"><field name="planned_start"/><field name="planned_end"/></group>
                     </group>
                     <notebook>
                         <page string="Tugs and Crew">
@@ -126,10 +119,11 @@
                 <attribute name="statusbar_visible">draft,submitted,review,needs_info,pricing,quoted,confirmed,planning,ready,dispatched,in_progress,completed,billing_ready</attribute>
             </xpath>
             <xpath expr="//header/button[@name='action_plan']" position="after">
-                <button name="action_mark_ready" type="object" string="Mark Ready" class="btn-primary" invisible="state not in ['planning','blocked']" groups="sedar_marine_dispatch.group_dispatch_planner"/>
-                <button name="action_create_operation" type="object" string="Create Operation" class="btn-primary" invisible="state != 'ready' or operation_count" groups="sedar_marine_dispatch.group_dispatch_planner"/>
                 <button name="action_open_operation" type="object" string="Open Operation" invisible="not operation_count" groups="sedar_marine_dispatch.group_dispatch_planner"/>
             </xpath>
+            <xpath expr="//header/button[@name='action_mark_ready']" position="attributes"><attribute name="invisible">1</attribute></xpath>
+            <xpath expr="//header/button[@name='action_dispatch']" position="attributes"><attribute name="invisible">1</attribute></xpath>
+            <xpath expr="//header/button[@name='action_start_service']" position="attributes"><attribute name="invisible">1</attribute></xpath>
             <xpath expr="//field[@name='tug_assignment_count']" position="after">
                 <field name="operation_count"/>
                 <field name="operation_state"/>

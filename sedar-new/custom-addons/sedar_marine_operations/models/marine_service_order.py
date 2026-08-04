@@ -1,7 +1,7 @@
 import math
 
 from odoo import api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 
 from .marine_master import PRICING_BASES
 
@@ -86,9 +86,46 @@ class SedarMarineServiceOrder(models.Model):
         ("waiting_crew", "Waiting for Crew Plan"),
         ("blocked_tug", "Blocked by Tug Availability"),
         ("blocked_crew", "Blocked by Crew or Compliance"),
+        ("waiting_inventory", "Waiting for Inventory"),
         ("ready", "Ready"),
     ], compute="_compute_readiness", store=True)
     readiness_reason = fields.Char(compute="_compute_readiness", store=True)
+    inventory_ready = fields.Boolean(
+        string="Inventory Ready",
+        tracking=True,
+        help="Temporary manual confirmation. This control will be revamped and replaced by the dedicated Inventory module.",
+    )
+    inventory_ready_by_id = fields.Many2one(
+        "res.users", string="Inventory Confirmed By", readonly=True, copy=False
+    )
+    inventory_ready_at = fields.Datetime(
+        string="Inventory Confirmed At", readonly=True, copy=False
+    )
+    tug_completion_count = fields.Integer(compute="_compute_tug_completion", store=True)
+    all_tugs_complete = fields.Boolean(compute="_compute_tug_completion", store=True)
+
+    @api.depends("number_of_tugs", "tug_assignment_ids.state", "tug_assignment_ids.completion_state")
+    def _compute_tug_completion(self):
+        for order in self:
+            assignments = order.tug_assignment_ids.filtered(lambda assignment: assignment.state != "cancelled")
+            completed = assignments.filtered(lambda assignment: assignment.completion_state == "submitted")
+            order.tug_completion_count = len(completed)
+            order.all_tugs_complete = bool(
+                len(assignments) >= order.number_of_tugs and len(completed) == len(assignments)
+            )
+
+    def _sync_completion_from_tugs(self):
+        """Keep operational completion aligned with every active tug declaration."""
+        for order in self:
+            assignments = order.tug_assignment_ids.filtered(lambda assignment: assignment.state != "cancelled")
+            all_complete = bool(
+                len(assignments) >= order.number_of_tugs
+                and all(line.completion_state == "submitted" for line in assignments)
+            )
+            if all_complete and order.state in {"dispatched", "in_progress"}:
+                order.write({"state": "completed"})
+            elif not all_complete and order.state in {"completed", "billing_ready"}:
+                order.write({"state": "in_progress"})
 
     @api.depends(
         "state", "number_of_tugs", "tug_assignment_ids.state",
@@ -97,6 +134,7 @@ class SedarMarineServiceOrder(models.Model):
         "tug_assignment_ids.requirement_ids.crew_assignment_ids.state",
         "tug_assignment_ids.requirement_ids.gap_count",
         "tug_assignment_ids.requirement_ids.compliance_issue_count",
+        "inventory_ready",
     )
     def _compute_readiness(self):
         for order in self:
@@ -135,9 +173,12 @@ class SedarMarineServiceOrder(models.Model):
                 ranks = ", ".join(shortages.mapped("rank_id.name"))
                 order.readiness_status = "blocked_crew"
                 order.readiness_reason = "Unfilled manning requirement: %s" % ranks
+            elif not order.inventory_ready:
+                order.readiness_status = "waiting_inventory"
+                order.readiness_reason = "Inventory readiness has not been confirmed."
             else:
                 order.readiness_status = "ready"
-                order.readiness_reason = "Tugboat and minimum compliant crew are assigned."
+                order.readiness_reason = "Tugboat, minimum compliant crew, and inventory are ready."
 
     @api.depends("requested_start", "estimated_duration_hours")
     def _compute_requested_completion(self):
@@ -240,6 +281,17 @@ class SedarMarineServiceOrder(models.Model):
             order._apply_tariff()
         return orders
 
+    def write(self, vals):
+        inventory_inputs = {
+            "service_type_id", "number_of_tugs", "tug_class_id", "required_bollard_pull",
+            "scope_of_work", "special_instructions", "port_id", "origin_berth_id",
+            "destination_berth_id", "requested_start", "estimated_duration_hours",
+            "hazardous_cargo", "cargo_description", "permit_required", "safety_requirements",
+        }
+        if inventory_inputs.intersection(vals) and not self.env.context.get("sedar_readiness_sync"):
+            vals = dict(vals, inventory_ready=False, inventory_ready_by_id=False, inventory_ready_at=False)
+        return super().write(vals)
+
     @api.constrains("number_of_tugs", "estimated_duration_hours", "requested_start")
     def _check_operational_values(self):
         for order in self:
@@ -266,6 +318,49 @@ class SedarMarineServiceOrder(models.Model):
 
     def action_plan(self):
         self.write({"state": "planning"})
+
+    def action_confirm_inventory_ready(self):
+        self._check_operations_manager()
+        self.with_context(sedar_readiness_sync=True).write({
+            "inventory_ready": True,
+            "inventory_ready_by_id": self.env.user.id,
+            "inventory_ready_at": fields.Datetime.now(),
+        })
+        return True
+
+    def _check_operations_manager(self):
+        if not self.env.su and not self.env.user.has_group("sedar_marine_operations.group_operations_manager"):
+            raise AccessError("Only an Operations Manager may advance an order through dispatch.")
+
+    def action_mark_ready(self):
+        self._check_operations_manager()
+        for order in self:
+            if order.state not in {"planning", "blocked"}:
+                raise UserError("Only a planned or blocked order can be marked ready.")
+            if order.readiness_status != "ready":
+                raise UserError(order.readiness_reason or "Tug and crew readiness is incomplete.")
+        self.write({"state": "ready"})
+        return True
+
+    def action_dispatch(self):
+        self._check_operations_manager()
+        for order in self:
+            if order.state != "ready" or order.readiness_status != "ready":
+                raise UserError("Only a ready Service Order can be dispatched.")
+            active_tugs = order.tug_assignment_ids.filtered(lambda assignment: assignment.state != "cancelled")
+            active_tugs.write({"state": "confirmed"})
+            active_tugs.mapped("requirement_ids.crew_assignment_ids").filtered(
+                lambda crew: crew.state == "planned"
+            ).write({"state": "confirmed"})
+        self.write({"state": "dispatched"})
+        return True
+
+    def action_start_service(self):
+        self._check_operations_manager()
+        if any(order.state != "dispatched" for order in self):
+            raise UserError("Only a dispatched Service Order can be started.")
+        self.write({"state": "in_progress"})
+        return True
 
     def action_cancel(self):
         self.write({"state": "cancelled"})

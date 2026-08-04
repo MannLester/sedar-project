@@ -3,8 +3,7 @@ from odoo.exceptions import UserError, ValidationError
 
 
 OPERATION_STATES = [
-    ("draft", "Ready to Dispatch"),
-    ("dispatched", "Dispatched"),
+    ("awaiting_start", "Awaiting Start"),
     ("in_progress", "In Progress"),
     ("completed", "Completed"),
     ("cancelled", "Cancelled"),
@@ -28,7 +27,7 @@ class SedarMarineOperation(models.Model):
     planned_start = fields.Datetime(related="order_id.requested_start", store=True)
     planned_end = fields.Datetime(related="order_id.requested_completion", store=True)
     dispatcher_id = fields.Many2one("res.users", string="Dispatcher", tracking=True)
-    state = fields.Selection(OPERATION_STATES, default="draft", required=True, tracking=True)
+    state = fields.Selection(OPERATION_STATES, default="awaiting_start", required=True, tracking=True)
     dispatch_time = fields.Datetime(tracking=True)
     actual_start = fields.Datetime(tracking=True)
     actual_end = fields.Datetime(tracking=True)
@@ -67,7 +66,7 @@ class SedarMarineOperation(models.Model):
 
     def _refresh_dispatch_snapshot(self):
         for operation in self:
-            if operation.state != "draft":
+            if operation.state != "awaiting_start":
                 continue
             operation.tug_operation_ids.sudo().unlink()
             assignments = operation.order_id.tug_assignment_ids.filtered(
@@ -104,8 +103,8 @@ class SedarMarineOperation(models.Model):
     def _ensure_dispatchable(self):
         for operation in self:
             order = operation.order_id
-            if operation.state != "draft":
-                raise UserError("Only draft operations can be dispatched.")
+            if operation.state != "awaiting_start":
+                raise UserError("Only awaiting-start operations can be dispatched.")
             operation._refresh_dispatch_snapshot()
             if order.readiness_status != "ready":
                 raise UserError("This operation cannot be dispatched: %s" % order.readiness_reason)
@@ -131,48 +130,15 @@ class SedarMarineOperation(models.Model):
                                 ", ".join(conflict_tugs.mapped("name")))
 
     def action_dispatch(self):
-        self._ensure_dispatcher()
-        self._ensure_dispatchable()
-        now = fields.Datetime.now()
-        for operation in self:
-            operation.order_id.tug_assignment_ids.filtered(
-                lambda assignment: assignment.state != "cancelled"
-            ).write({"state": "confirmed"})
-            operation.order_id.tug_assignment_ids.mapped("requirement_ids").mapped(
-                "crew_assignment_ids"
-            ).filtered(lambda assignment: assignment.state != "rejected").write({"state": "confirmed"})
-            operation.tug_operation_ids.mapped("tugboat_id").filtered(
-                lambda tug: tug.availability_status == "available"
-            ).write({"availability_status": "assigned"})
-            operation.tug_operation_ids.mapped("crew_manifest_ids.crew_profile_id").filtered(
-                lambda profile: profile.availability_status == "available"
-            ).write({"availability_status": "assigned"})
-            operation.write({"state": "dispatched", "dispatch_time": now, "dispatcher_id": self.env.user.id})
-            operation.order_id.write({"state": "dispatched"})
-            self.env["sedar.marine.operation.log"].create({
-                "operation_id": operation.id, "event_time": now,
-                "event_type": "dispatched", "description": "Operation dispatched.",
-            })
-        return True
+        raise UserError("Dispatch is automatic when tug, crew, and inventory readiness are complete.")
 
     def action_start(self):
-        self._ensure_dispatcher()
-        for operation in self:
-            if operation.state != "dispatched":
-                raise UserError("Only dispatched operations can be started.")
-            now = fields.Datetime.now()
-            operation.write({"state": "in_progress", "actual_start": now})
-            operation.order_id.write({"state": "in_progress"})
-            self.env["sedar.marine.operation.log"].create({
-                "operation_id": operation.id, "event_time": now,
-                "event_type": "service_started", "description": "Service execution started.",
-            })
-        return True
+        raise UserError("The assigned Tug Master's actual start commences the operation.")
 
     def action_return_tugs(self):
         self._ensure_dispatcher()
         for operation in self:
-            if operation.state not in {"dispatched", "in_progress"}:
+            if operation.state != "in_progress":
                 raise UserError("Only active operations can return tugboats.")
             now = fields.Datetime.now()
             operation.tug_operation_ids.filtered(
@@ -185,39 +151,41 @@ class SedarMarineOperation(models.Model):
         return True
 
     def action_complete(self):
-        self._ensure_manager()
+        raise UserError("The operation completes automatically after every Tug Master submits completion.")
+
+    def _sync_from_tug_completions(self):
         for operation in self:
-            if operation.state != "in_progress":
-                raise UserError("Only in-progress operations can be completed.")
-            if not operation.actual_start:
-                raise UserError("Record the actual start before completing the operation.")
-            if not operation.completion_summary:
-                raise UserError("Enter a completion summary before completing the operation.")
-            if any(tug.state != "returned" for tug in operation.tug_operation_ids):
-                raise UserError("Return all participating tugboats before completing the operation.")
-            now = fields.Datetime.now()
-            operation.write({"state": "completed", "actual_end": now})
-            operation.order_id.write({"state": "completed"})
-            operation.tug_operation_ids.mapped("tugboat_id").filtered(
-                lambda tug: tug.availability_status == "assigned"
-            ).write({"availability_status": "available"})
-            operation.tug_operation_ids.mapped("crew_manifest_ids.crew_profile_id").filtered(
-                lambda profile: profile.availability_status == "assigned"
-            ).write({"availability_status": "available"})
-            self.env["sedar.marine.operation.log"].create({
-                "operation_id": operation.id, "event_time": now,
-                "event_type": "service_completed", "description": "Service execution completed.",
-            })
+            assignments = operation.order_id.tug_assignment_ids.filtered(
+                lambda assignment: assignment.state != "cancelled"
+            )
+            starts = [value for value in assignments.mapped("actual_start") if value]
+            completed = assignments.filtered(lambda assignment: assignment.completion_state == "submitted")
+            all_complete = bool(
+                len(assignments) >= operation.order_id.number_of_tugs
+                and len(completed) == len(assignments)
+            )
+            ends = [value for value in completed.mapped("actual_end") if value]
+            target_state = "completed" if all_complete else ("in_progress" if starts else "awaiting_start")
+            values = {
+                "state": target_state,
+                "actual_start": min(starts) if starts else False,
+                "actual_end": max(ends) if all_complete and ends else False,
+            }
+            operation.write(values)
+            order_state = "completed" if all_complete else ("in_progress" if starts else "ready")
+            if operation.order_id.state != order_state:
+                operation.order_id.with_context(sedar_operation_sync=True).write({"state": order_state})
+            if all_complete:
+                operation.tug_operation_ids.mapped("tugboat_id").filtered(
+                    lambda tug: tug.availability_status == "assigned"
+                ).write({"availability_status": "available"})
+                operation.tug_operation_ids.mapped("crew_manifest_ids.crew_profile_id").filtered(
+                    lambda profile: profile.availability_status == "assigned"
+                ).write({"availability_status": "available"})
         return True
 
     def action_mark_billing_ready(self):
-        self._ensure_manager()
-        for operation in self:
-            if operation.state != "completed":
-                raise UserError("Only completed operations can be marked billing ready.")
-            operation.write({"billing_ready": True})
-            operation.order_id.write({"state": "billing_ready"})
-        return True
+        raise UserError("Billing handoff is automatic after every Tug Master submits completion.")
 
     def action_cancel(self):
         self._ensure_dispatcher()
@@ -256,13 +224,26 @@ class SedarMarineOperation(models.Model):
 class SedarTugAssignmentDispatchLock(models.Model):
     _inherit = "sedar.tug.assignment"
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        assignments = super().create(vals_list)
+        assignments.mapped("order_id")._sync_automated_readiness()
+        return assignments
+
     def write(self, vals):
+        planning_fields = {"order_id", "tugboat_id", "state"}
         locked = self.filtered(lambda assignment: assignment.order_id.state in {
-            "dispatched", "in_progress", "completed", "billing_ready"
+            "ready", "dispatched", "in_progress", "completed", "billing_ready"
         })
-        if locked:
+        if locked and planning_fields.intersection(vals) and not self.env.context.get("sedar_automated_dispatch"):
             raise UserError("Tug planning is locked after dispatch.")
-        return super().write(vals)
+        result = super().write(vals)
+        orders = self.mapped("order_id")
+        if {"actual_start", "actual_end", "completion_state"}.intersection(vals):
+            orders.mapped("operation_ids")._sync_from_tug_completions()
+        if {"tugboat_id", "state"}.intersection(vals) and not self.env.context.get("sedar_automated_dispatch"):
+            orders._sync_automated_readiness()
+        return result
 
     def unlink(self):
         if self.filtered(lambda assignment: assignment.order_id.state in {
@@ -275,13 +256,22 @@ class SedarTugAssignmentDispatchLock(models.Model):
 class SedarCrewAssignmentDispatchLock(models.Model):
     _inherit = "sedar.crew.assignment"
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        assignments = super().create(vals_list)
+        assignments.mapped("order_id")._sync_automated_readiness()
+        return assignments
+
     def write(self, vals):
         locked = self.filtered(lambda assignment: assignment.order_id.state in {
-            "dispatched", "in_progress", "completed", "billing_ready"
+            "ready", "dispatched", "in_progress", "completed", "billing_ready"
         })
-        if locked:
+        if locked and not self.env.context.get("sedar_automated_dispatch"):
             raise UserError("Crew planning is locked after dispatch.")
-        return super().write(vals)
+        result = super().write(vals)
+        if not self.env.context.get("sedar_automated_dispatch"):
+            self.mapped("order_id")._sync_automated_readiness()
+        return result
 
     def unlink(self):
         if self.filtered(lambda assignment: assignment.order_id.state in {

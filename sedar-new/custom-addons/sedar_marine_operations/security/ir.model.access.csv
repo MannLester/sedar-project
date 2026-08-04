@@ -14,6 +14,8 @@ access_crew_certificate_user,crew certificate user,model_sedar_crew_certificate,
 access_manning_template_user,manning template user,model_sedar_manning_template,base.group_user,1,1,1,0
 access_manning_template_line_user,manning template line user,model_sedar_manning_template_line,base.group_user,1,1,1,0
 access_tug_assignment_user,tug assignment user,model_sedar_tug_assignment,base.group_user,1,1,1,0
+access_tug_assignment_tug_master,tug assignment tug master,model_sedar_tug_assignment,group_tug_master,1,1,0,0
+access_service_order_tug_master,service order tug master,model_sedar_marine_service_order,group_tug_master,1,0,0,0
 access_manning_requirement_user,manning requirement user,model_sedar_manning_requirement,base.group_user,1,1,1,0
 access_crew_assignment_user,crew assignment user,model_sedar_crew_assignment,base.group_user,1,1,1,0
 access_crew_shortage_user,crew shortage user,model_sedar_crew_shortage,base.group_user,1,1,1,0

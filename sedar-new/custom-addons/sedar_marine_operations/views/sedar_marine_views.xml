@@ -15,6 +15,7 @@
                 <filter name="ready" string="Ready" domain="[('readiness_status','=','ready')]"/>
                 <filter name="blocked_tug" string="Blocked by Tug" domain="[('readiness_status','=','blocked_tug')]"/>
                 <filter name="blocked_crew" string="Blocked by Crew" domain="[('readiness_status','=','blocked_crew')]"/>
+                <filter name="waiting_inventory" string="Waiting for Inventory" domain="[('readiness_status','=','waiting_inventory')]"/>
                 <separator/>
                 <filter string="Group by Status" name="group_state" context="{'group_by':'state'}"/>
                 <filter string="Group by Client" name="group_client" context="{'group_by':'client_id'}"/>
@@ -32,7 +33,7 @@
                 <field name="name"/><field name="client_id"/><field name="assisted_vessel_name"/>
                 <field name="service_type_id"/><field name="port_id"/><field name="requested_start"/>
                 <field name="number_of_tugs"/><field name="estimated_amount" sum="Total"/>
-                <field name="currency_id" column_invisible="True"/><field name="pricing_status"/><field name="readiness_status"/><field name="state"/>
+                <field name="currency_id" column_invisible="True"/><field name="pricing_status"/><field name="inventory_ready"/><field name="readiness_status"/><field name="state"/>
             </list>
         </field>
     </record>
@@ -75,8 +76,12 @@
                     <button name="action_quote" type="object" string="Mark Quoted" class="btn-primary" invisible="state not in ['review','pricing']"/>
                     <button name="action_confirm" type="object" string="Client Confirmed" class="btn-primary" invisible="state != 'quoted'"/>
                     <button name="action_plan" type="object" string="Send to Operations Planning" class="btn-primary" invisible="state != 'confirmed'"/>
+                    <button name="action_confirm_inventory_ready" type="object" string="Confirm Inventory Ready" class="btn-primary" groups="sedar_marine_operations.group_operations_manager" invisible="state not in ['planning','blocked'] or inventory_ready"/>
+                    <button name="action_mark_ready" type="object" string="Mark Ready" class="btn-primary" groups="sedar_marine_operations.group_operations_manager" invisible="state not in ['planning','blocked']"/>
+                    <button name="action_dispatch" type="object" string="Dispatch" class="btn-primary" groups="sedar_marine_operations.group_operations_manager" invisible="state != 'ready'"/>
+                    <button name="action_start_service" type="object" string="Start Service" class="btn-primary" groups="sedar_marine_operations.group_operations_manager" invisible="state != 'dispatched'"/>
                     <button name="action_cancel" type="object" string="Cancel" invisible="state in ['closed','cancelled']"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,review,needs_info,pricing,quoted,confirmed,planning"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,review,needs_info,pricing,quoted,confirmed,planning,ready,dispatched,in_progress,completed,billing_ready"/>
                 </header>
                 <sheet>
                     <div class="oe_title"><label for="name"/><h1><field name="name"/></h1></div>
@@ -108,11 +113,14 @@
                             </group>
                         </page>
                         <page string="Tug and Crew Readiness">
-                            <group><field name="readiness_status"/><field name="readiness_reason"/><field name="tug_assignment_count"/></group>
+                            <group>
+                                <group><field name="readiness_status"/><field name="readiness_reason"/><field name="tug_assignment_count"/><field name="tug_completion_count"/><field name="all_tugs_complete"/></group>
+                                <group string="Temporary Inventory Gate"><field name="inventory_ready" readonly="1" help="Temporary manual confirmation. This control will be revamped and replaced by the dedicated Inventory module."/><field name="inventory_ready_by_id"/><field name="inventory_ready_at"/></group>
+                            </group>
                             <field name="tug_assignment_ids">
                                 <list>
                                     <field name="tugboat_id"/><field name="planned_start"/><field name="planned_end"/>
-                                    <field name="tug_available"/><field name="availability_reason"/><field name="state"/>
+                                    <field name="tug_master_profile_id"/><field name="tug_available"/><field name="availability_reason"/><field name="completion_state"/><field name="state"/>
                                 </list>
                             </field>
                         </page>
@@ -168,9 +176,14 @@
     <record id="view_manning_template_form" model="ir.ui.view"><field name="name">sedar.manning.template.form</field><field name="model">sedar.manning.template</field><field name="arch" type="xml"><form><sheet><group><field name="name"/><field name="service_type_id"/><field name="tug_class_id"/><field name="active"/></group><field name="line_ids"><list editable="bottom"><field name="sequence"/><field name="rank_id"/><field name="required_count"/><field name="required_certificate_type_ids" widget="many2many_tags"/></list></field></sheet></form></field></record>
     <record id="action_manning_templates" model="ir.actions.act_window"><field name="name">Manning Templates</field><field name="res_model">sedar.manning.template</field><field name="view_mode">list,form</field></record>
 
-    <record id="view_tug_assignment_form" model="ir.ui.view"><field name="name">sedar.tug.assignment.form</field><field name="model">sedar.tug.assignment</field><field name="arch" type="xml"><form><header><button name="action_generate_requirements" type="object" string="Generate Manning Requirements" class="btn-primary" invisible="requirement_ids"/><field name="state" widget="statusbar"/></header><sheet><group><field name="order_id"/><field name="tugboat_id"/><field name="planned_start"/><field name="planned_end"/><field name="tug_available"/><field name="availability_reason"/></group><field name="requirement_ids"><list><field name="rank_id"/><field name="required_count"/><field name="assigned_count"/><field name="gap_count"/><field name="compliance_issue_count"/><field name="status"/></list></field></sheet></form></field></record>
-    <record id="view_tug_assignment_list" model="ir.ui.view"><field name="name">sedar.tug.assignment.list</field><field name="model">sedar.tug.assignment</field><field name="arch" type="xml"><list><field name="order_id"/><field name="tugboat_id"/><field name="planned_start"/><field name="planned_end"/><field name="tug_available"/><field name="state"/></list></field></record>
+    <record id="view_tug_assignment_form" model="ir.ui.view"><field name="name">sedar.tug.assignment.form</field><field name="model">sedar.tug.assignment</field><field name="arch" type="xml"><form><header><button name="action_generate_requirements" type="object" string="Generate Manning Requirements" class="btn-primary" invisible="requirement_ids"/><button name="action_declare_complete" type="object" string="Declare Complete" class="btn-primary" groups="sedar_marine_operations.group_tug_master" invisible="state == 'cancelled' or completion_state == 'submitted' or order_state not in ['dispatched','in_progress','completed']"/><button name="action_return_completion" type="object" string="Return for Correction" groups="sedar_marine_operations.group_completion_reviewer" invisible="completion_state != 'submitted'"/><field name="state" widget="statusbar"/></header><sheet><group><group><field name="order_id"/><field name="order_state" readonly="1"/><field name="tugboat_id"/><field name="planned_start"/><field name="planned_end"/><field name="tug_available"/><field name="availability_reason"/></group><group string="Completion"><field name="tug_master_profile_id" readonly="1"/><field name="tug_master_user_id" readonly="1"/><field name="completion_state" readonly="1"/><field name="actual_start" readonly="completion_state == 'submitted'"/><field name="actual_end" readonly="completion_state == 'submitted'"/><field name="completion_note" readonly="completion_state == 'submitted'"/><field name="completion_evidence_filename" invisible="1"/><field name="completion_evidence" filename="completion_evidence_filename" readonly="completion_state == 'submitted'"/><field name="completion_declared_by_id" readonly="1"/><field name="completion_declared_at" readonly="1"/><field name="completion_return_reason" readonly="completion_state != 'submitted'"/></group></group><field name="requirement_ids"><list><field name="rank_id"/><field name="required_count"/><field name="assigned_count"/><field name="gap_count"/><field name="compliance_issue_count"/><field name="status"/></list></field></sheet></form></field></record>
+    <record id="view_tug_assignment_list" model="ir.ui.view"><field name="name">sedar.tug.assignment.list</field><field name="model">sedar.tug.assignment</field><field name="arch" type="xml"><list><field name="order_id"/><field name="tugboat_id"/><field name="tug_master_profile_id"/><field name="planned_start"/><field name="planned_end"/><field name="actual_start"/><field name="actual_end"/><field name="completion_state"/><field name="tug_available"/><field name="state"/></list></field></record>
     <record id="action_tug_assignments" model="ir.actions.act_window"><field name="name">Tug and Crew Plans</field><field name="res_model">sedar.tug.assignment</field><field name="view_mode">list,form</field></record>
+    <record id="action_my_tug_completions" model="ir.actions.act_window">
+        <field name="name">My Tug Completions</field><field name="res_model">sedar.tug.assignment</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('tug_master_user_id', '=', uid), ('state', '!=', 'cancelled')]</field>
+    </record>
 
     <record id="view_manning_requirement_form" model="ir.ui.view">
         <field name="name">sedar.manning.requirement.form</field>
@@ -207,6 +220,7 @@
     <menuitem id="menu_tugboats" name="Tugboats" parent="menu_marine_operations" action="action_tugboats" sequence="40"/>
     <menuitem id="menu_crew_profiles" name="Crew Profiles" parent="menu_marine_operations" action="action_crew_profiles" sequence="50"/>
     <menuitem id="menu_tug_assignments" name="Tug and Crew Plans" parent="menu_marine_operations" action="action_tug_assignments" sequence="60"/>
+    <menuitem id="menu_my_tug_completions" name="My Tug Completions" parent="menu_marine_operations" action="action_my_tug_completions" sequence="65" groups="sedar_marine_operations.group_tug_master"/>
     <menuitem id="menu_marine_configuration" name="Configuration" parent="menu_marine_operations" sequence="90"/>
     <menuitem id="menu_service_types" name="Service Types" parent="menu_marine_configuration" action="action_service_types" sequence="10"/>
     <menuitem id="menu_ports" name="Ports and Locations" parent="menu_marine_configuration" action="action_ports" sequence="20"/>
