@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_service_order_search" model="ir.ui.view">
+        <field name="name">sedar.marine.service.order.search</field>
+        <field name="model">sedar.marine.service.order</field>
+        <field name="arch" type="xml">
+            <search string="Service Orders">
+                <field name="name"/><field name="client_id"/><field name="assisted_vessel_name"/>
+                <field name="service_type_id"/><field name="requested_start"/>
+                <filter name="submitted" string="Submitted" domain="[('state','=','submitted')]"/>
+                <filter name="needs_info" string="Needs Information" domain="[('state','=','needs_info')]"/>
+                <filter name="pricing_review" string="Pricing Review" domain="[('pricing_status','=','review')]"/>
+                <filter name="confirmed" string="Confirmed" domain="[('state','=','confirmed')]"/>
+                <filter name="urgent" string="Urgent / Emergency" domain="[('priority','in',['urgent','emergency'])]"/>
+                <separator/>
+                <filter string="Group by Status" name="group_state" context="{'group_by':'state'}"/>
+                <filter string="Group by Client" name="group_client" context="{'group_by':'client_id'}"/>
+                <filter string="Group by Service Type" name="group_service" context="{'group_by':'service_type_id'}"/>
+                <filter string="Group by Requested Date" name="group_date" context="{'group_by':'requested_start:day'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_service_order_list" model="ir.ui.view">
+        <field name="name">sedar.marine.service.order.list</field>
+        <field name="model">sedar.marine.service.order</field>
+        <field name="arch" type="xml">
+            <list string="Service Orders" decoration-danger="priority == 'emergency'" decoration-warning="priority == 'urgent'">
+                <field name="name"/><field name="client_id"/><field name="assisted_vessel_name"/>
+                <field name="service_type_id"/><field name="port_id"/><field name="requested_start"/>
+                <field name="number_of_tugs"/><field name="estimated_amount" sum="Total"/>
+                <field name="currency_id" column_invisible="True"/><field name="pricing_status"/><field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_service_order_kanban" model="ir.ui.view">
+        <field name="name">sedar.marine.service.order.kanban</field>
+        <field name="model">sedar.marine.service.order</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_small_column">
+                <field name="name"/><field name="client_id"/><field name="assisted_vessel_name"/>
+                <field name="service_type_id"/><field name="requested_start"/><field name="priority"/>
+                <field name="pricing_status"/><field name="estimated_amount"/><field name="currency_id"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <strong><field name="name"/></strong>
+                            <span t-if="record.priority.raw_value != 'normal'" class="badge text-bg-warning"><field name="priority"/></span>
+                        </div>
+                        <div class="mt-2"><field name="client_id"/></div>
+                        <div><field name="assisted_vessel_name"/> · <field name="service_type_id"/></div>
+                        <div class="text-muted mt-2"><field name="requested_start"/></div>
+                        <div class="mt-2"><field name="pricing_status"/></div>
+                        <div t-if="record.estimated_amount.raw_value" class="mt-1 fw-semibold"><field name="estimated_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/></div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_service_order_form" model="ir.ui.view">
+        <field name="name">sedar.marine.service.order.form</field>
+        <field name="model">sedar.marine.service.order</field>
+        <field name="arch" type="xml">
+            <form string="Marine Service Order">
+                <header>
+                    <button name="action_submit" type="object" string="Submit" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_review" type="object" string="Start Review" class="btn-primary" invisible="state != 'submitted'"/>
+                    <button name="action_request_info" type="object" string="Request Information" invisible="state not in ['submitted','review']"/>
+                    <button name="action_quote" type="object" string="Mark Quoted" class="btn-primary" invisible="state not in ['review','pricing']"/>
+                    <button name="action_confirm" type="object" string="Client Confirmed" class="btn-primary" invisible="state != 'quoted'"/>
+                    <button name="action_plan" type="object" string="Send to Operations Planning" class="btn-primary" invisible="state != 'confirmed'"/>
+                    <button name="action_cancel" type="object" string="Cancel" invisible="state in ['closed','cancelled']"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,review,needs_info,pricing,quoted,confirmed,planning"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><label for="name"/><h1><field name="name"/></h1></div>
+                    <group>
+                        <group string="Client Request">
+                            <field name="client_id"/><field name="contact_id" domain="[('commercial_partner_id','=',client_id)]"/>
+                            <field name="request_channel"/><field name="client_reference"/><field name="priority"/>
+                        </group>
+                        <group string="Schedule">
+                            <field name="requested_start"/><field name="estimated_duration_hours"/>
+                            <field name="requested_completion" readonly="1"/><field name="port_id"/>
+                            <field name="origin_berth_id" domain="[('port_id','=',port_id)]"/>
+                            <field name="destination_berth_id" domain="[('port_id','=',port_id)]"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Service Details">
+                            <group>
+                                <group>
+                                    <field name="assisted_vessel_id" domain="[('owner_id','=',client_id)]"/>
+                                    <field name="assisted_vessel_name"/>
+                                    <field name="service_type_id"/><field name="service_subtype"/>
+                                    <field name="number_of_tugs"/><field name="tug_class_id"/>
+                                    <field name="required_bollard_pull"/>
+                                </group>
+                                <group>
+                                    <field name="scope_of_work"/><field name="special_instructions"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Safety and Documents">
+                            <group>
+                                <group><field name="hazardous_cargo"/><field name="cargo_description" invisible="not hazardous_cargo"/><field name="permit_required"/></group>
+                                <group><field name="safety_requirements"/><field name="supporting_document_filename" invisible="1"/><field name="supporting_document" filename="supporting_document_filename"/></group>
+                            </group>
+                        </page>
+                        <page string="Pricing">
+                            <group>
+                                <group><field name="pricing_status"/><field name="price_source"/><field name="tariff_id"/><field name="pricing_basis"/></group>
+                                <group><field name="pricing_quantity"/><field name="unit_rate"/><field name="minimum_charge"/><field name="estimated_amount"/><field name="currency_id" invisible="1"/></group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_service_order_dashboard" model="ir.actions.act_window">
+        <field name="name">Service Order Dashboard</field><field name="res_model">sedar.marine.service.order</field>
+        <field name="view_mode">kanban,list,form</field><field name="search_view_id" ref="view_service_order_search"/>
+    </record>
+
+    <record id="view_client_tariff_list" model="ir.ui.view"><field name="name">sedar.client.tariff.list</field><field name="model">sedar.client.tariff</field><field name="arch" type="xml"><list><field name="partner_id"/><field name="service_type_id"/><field name="port_id"/><field name="tug_class_id"/><field name="pricing_basis"/><field name="rate"/><field name="currency_id"/><field name="valid_from"/><field name="valid_until"/><field name="approved"/></list></field></record>
+    <record id="view_client_tariff_form" model="ir.ui.view"><field name="name">sedar.client.tariff.form</field><field name="model">sedar.client.tariff</field><field name="arch" type="xml"><form><sheet><group><group><field name="partner_id"/><field name="service_type_id"/><field name="port_id"/><field name="tug_class_id"/></group><group><field name="pricing_basis"/><field name="rate"/><field name="minimum_charge"/><field name="currency_id"/><field name="valid_from"/><field name="valid_until"/><field name="approved"/><field name="active"/></group></group></sheet></form></field></record>
+    <record id="action_client_tariffs" model="ir.actions.act_window"><field name="name">Client Tariffs</field><field name="res_model">sedar.client.tariff</field><field name="view_mode">list,form</field></record>
+
+    <record id="view_service_type_list" model="ir.ui.view"><field name="name">sedar.marine.service.type.list</field><field name="model">sedar.marine.service.type</field><field name="arch" type="xml"><list><field name="sequence"/><field name="code"/><field name="name"/><field name="pricing_basis"/><field name="standard_rate"/><field name="currency_id"/><field name="active"/></list></field></record>
+    <record id="view_service_type_form" model="ir.ui.view"><field name="name">sedar.marine.service.type.form</field><field name="model">sedar.marine.service.type</field><field name="arch" type="xml"><form><sheet><group><field name="sequence"/><field name="code"/><field name="name"/><field name="pricing_basis"/><field name="standard_rate"/><field name="currency_id"/><field name="requires_destination"/><field name="active"/></group></sheet></form></field></record>
+    <record id="action_service_types" model="ir.actions.act_window"><field name="name">Service Types</field><field name="res_model">sedar.marine.service.type</field><field name="view_mode">list,form</field></record>
+
+    <record id="view_port_list" model="ir.ui.view"><field name="name">sedar.marine.port.list</field><field name="model">sedar.marine.port</field><field name="arch" type="xml"><list><field name="code"/><field name="name"/><field name="timezone"/><field name="active"/></list></field></record>
+    <record id="view_port_form" model="ir.ui.view"><field name="name">sedar.marine.port.form</field><field name="model">sedar.marine.port</field><field name="arch" type="xml"><form><sheet><group><field name="code"/><field name="name"/><field name="timezone"/><field name="active"/></group><field name="berth_ids"><list editable="bottom"><field name="code"/><field name="name"/><field name="active"/></list></field></sheet></form></field></record>
+    <record id="action_ports" model="ir.actions.act_window"><field name="name">Ports and Locations</field><field name="res_model">sedar.marine.port</field><field name="view_mode">list,form</field></record>
+
+    <record id="view_client_vessel_list" model="ir.ui.view"><field name="name">sedar.client.vessel.list</field><field name="model">sedar.client.vessel</field><field name="arch" type="xml"><list><field name="name"/><field name="owner_id"/><field name="imo_number"/><field name="call_sign"/><field name="vessel_type"/><field name="gross_tonnage"/><field name="active"/></list></field></record>
+    <record id="view_client_vessel_form" model="ir.ui.view"><field name="name">sedar.client.vessel.form</field><field name="model">sedar.client.vessel</field><field name="arch" type="xml"><form><sheet><group><group><field name="name"/><field name="owner_id"/><field name="imo_number"/><field name="call_sign"/><field name="vessel_type"/></group><group><field name="gross_tonnage"/><field name="length_overall"/><field name="draft"/><field name="active"/></group></group></sheet></form></field></record>
+    <record id="action_client_vessels" model="ir.actions.act_window"><field name="name">Client Vessels</field><field name="res_model">sedar.client.vessel</field><field name="view_mode">list,form</field></record>
+
+    <menuitem id="menu_marine_operations" name="Marine Operations" parent="sedar_document_control.menu_sedar_root" sequence="20"/>
+    <menuitem id="menu_service_order_dashboard" name="Service Order Dashboard" parent="menu_marine_operations" action="action_service_order_dashboard" sequence="10"/>
+    <menuitem id="menu_client_tariffs" name="Client Tariffs" parent="menu_marine_operations" action="action_client_tariffs" sequence="20"/>
+    <menuitem id="menu_client_vessels" name="Client Vessels" parent="menu_marine_operations" action="action_client_vessels" sequence="30"/>
+    <menuitem id="menu_marine_configuration" name="Configuration" parent="menu_marine_operations" sequence="90"/>
+    <menuitem id="menu_service_types" name="Service Types" parent="menu_marine_configuration" action="action_service_types" sequence="10"/>
+    <menuitem id="menu_ports" name="Ports and Locations" parent="menu_marine_configuration" action="action_ports" sequence="20"/>
+</odoo>

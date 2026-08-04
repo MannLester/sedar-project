@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="portal_my_home_sedar_orders" name="SEDAR Service Orders" inherit_id="portal.portal_my_home" priority="30">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="before">
+            <t t-set="portal_client_category_enable" t-value="True"/>
+        </xpath>
+        <div id="portal_client_category" position="inside">
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="title">Marine Service Orders</t>
+                <t t-set="url" t-value="'/my/sedar/orders'"/>
+                <t t-set="text">Place and track tug service requests</t>
+                <t t-set="placeholder_count" t-value="'sedar_order_count'"/>
+            </t>
+        </div>
+    </template>
+
+    <template id="portal_sedar_breadcrumbs" inherit_id="portal.portal_breadcrumbs" priority="30">
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+            <li t-if="page_name in ['sedar_orders','sedar_order_new','sedar_order']" t-attf-class="breadcrumb-item #{'active' if page_name == 'sedar_orders' else ''}">
+                <a t-if="page_name != 'sedar_orders'" href="/my/sedar/orders">Service Orders</a>
+                <t t-else="">Service Orders</t>
+            </li>
+            <li t-if="page_name == 'sedar_order_new'" class="breadcrumb-item active">New Request</li>
+            <li t-if="page_name == 'sedar_order'" class="breadcrumb-item active"><t t-out="order.name"/></li>
+        </xpath>
+    </template>
+
+    <template id="portal_my_sedar_orders" name="My Marine Service Orders">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <div><h2 class="mb-1">Marine Service Orders</h2><p class="text-muted mb-0">Requests placed by your company</p></div>
+                <a href="/my/sedar/orders/new" class="btn btn-primary"><i class="fa fa-plus me-1"/> New Service Order</a>
+            </div>
+            <div t-if="not orders" class="alert alert-info">No service orders have been placed yet.</div>
+            <div t-else="" class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead><tr><th>Order</th><th>Vessel</th><th>Service</th><th>Requested Start</th><th>Pricing</th><th>Status</th></tr></thead>
+                    <tbody>
+                        <tr t-foreach="orders" t-as="item">
+                            <td><a t-att-href="item.access_url"><t t-out="item.name"/></a></td>
+                            <td><t t-out="item.assisted_vessel_name"/></td>
+                            <td><t t-out="item.service_type_id.name"/></td>
+                            <td><span t-field="item.requested_start"/></td>
+                            <td>
+                                <span t-if="item.pricing_status == 'resolved'" t-field="item.estimated_amount" t-options="{'widget':'monetary','display_currency':item.currency_id}"/>
+                                <span t-else="" class="text-muted">Subject to review</span>
+                            </td>
+                            <td><span class="badge text-bg-secondary" t-field="item.state"/></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </t>
+    </template>
+
+    <template id="portal_sedar_order_form" name="Place Marine Service Order">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+            <div class="mb-4"><h2 class="mb-1">Place a Marine Service Order</h2><p class="text-muted mb-0">Provide the vessel, service, schedule, and operating requirements.</p></div>
+            <div t-if="errors" class="alert alert-danger">
+                <ul class="mb-0"><li t-foreach="errors" t-as="error"><t t-out="error"/></li></ul>
+            </div>
+            <form action="/my/sedar/orders/create" method="post" enctype="multipart/form-data" class="row g-4">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                <section class="col-12">
+                    <h5>Request Information</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label" for="client_reference">Client Reference / PO No.</label><input id="client_reference" name="client_reference" class="form-control" t-att-value="form.get('client_reference','')"/></div>
+                        <div class="col-md-3"><label class="form-label" for="priority">Priority</label><select id="priority" name="priority" class="form-select"><option value="normal">Normal</option><option value="urgent">Urgent</option><option value="emergency">Emergency</option></select></div>
+                    </div>
+                </section>
+
+                <section class="col-12 border-top pt-4">
+                    <h5>Assisted Vessel</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label" for="assisted_vessel_id">Registered Vessel</label><select id="assisted_vessel_id" name="assisted_vessel_id" class="form-select"><option value="">Select a vessel</option><option t-foreach="vessels" t-as="vessel" t-att-value="vessel.id"><t t-out="vessel.name"/><t t-if="vessel.imo_number"> — IMO <t t-out="vessel.imo_number"/></t></option></select></div>
+                        <div class="col-md-4"><label class="form-label" for="new_vessel_name">New Vessel Name</label><input id="new_vessel_name" name="new_vessel_name" class="form-control" t-att-value="form.get('new_vessel_name','')"/><div class="form-text">Use only when the vessel is not listed.</div></div>
+                        <div class="col-md-2"><label class="form-label" for="new_vessel_imo">IMO Number</label><input id="new_vessel_imo" name="new_vessel_imo" class="form-control" t-att-value="form.get('new_vessel_imo','')"/></div>
+                    </div>
+                </section>
+
+                <section class="col-12 border-top pt-4">
+                    <h5>Service Details</h5>
+                    <div class="row g-3">
+                        <div class="col-md-5"><label class="form-label" for="service_type_id">Service Type *</label><select id="service_type_id" name="service_type_id" class="form-select" required="required"><option value="">Select a service</option><option t-foreach="service_types" t-as="service" t-att-value="service.id"><t t-out="service.name"/></option></select></div>
+                        <div class="col-md-3"><label class="form-label" for="number_of_tugs">Number of Tugs *</label><input id="number_of_tugs" name="number_of_tugs" type="number" min="1" step="1" class="form-control" value="1" required="required"/></div>
+                        <div class="col-md-4"><label class="form-label" for="tug_class_id">Requested Tug Class</label><select id="tug_class_id" name="tug_class_id" class="form-select"><option value="">No specific class</option><option t-foreach="tug_classes" t-as="tug_class" t-att-value="tug_class.id"><t t-out="tug_class.name"/></option></select></div>
+                        <div class="col-12"><label class="form-label" for="scope_of_work">Scope of Work *</label><textarea id="scope_of_work" name="scope_of_work" rows="3" class="form-control" required="required"><t t-out="form.get('scope_of_work','')"/></textarea></div>
+                        <div class="col-12"><label class="form-label" for="special_instructions">Special Instructions</label><textarea id="special_instructions" name="special_instructions" rows="2" class="form-control"><t t-out="form.get('special_instructions','')"/></textarea></div>
+                    </div>
+                </section>
+
+                <section class="col-12 border-top pt-4">
+                    <h5>Location and Schedule</h5>
+                    <div class="row g-3">
+                        <div class="col-md-4"><label class="form-label" for="port_id">Port / Operating Area *</label><select id="port_id" name="port_id" class="form-select" required="required"><option value="">Select an area</option><option t-foreach="ports" t-as="port" t-att-value="port.id"><t t-out="port.name"/></option></select></div>
+                        <div class="col-md-4"><label class="form-label" for="origin_berth_id">Starting Location</label><select id="origin_berth_id" name="origin_berth_id" class="form-select"><option value="">Select a location</option><option t-foreach="berths" t-as="berth" t-att-value="berth.id"><t t-out="berth.port_id.name"/> — <t t-out="berth.name"/></option></select></div>
+                        <div class="col-md-4"><label class="form-label" for="destination_berth_id">Destination</label><select id="destination_berth_id" name="destination_berth_id" class="form-select"><option value="">Select a destination</option><option t-foreach="berths" t-as="berth" t-att-value="berth.id"><t t-out="berth.port_id.name"/> — <t t-out="berth.name"/></option></select></div>
+                        <div class="col-md-6"><label class="form-label" for="requested_start">Requested Start *</label><input id="requested_start" name="requested_start" type="datetime-local" class="form-control" required="required"/></div>
+                        <div class="col-md-3"><label class="form-label" for="estimated_duration_hours">Estimated Duration (Hours) *</label><input id="estimated_duration_hours" name="estimated_duration_hours" type="number" min="0.5" step="0.5" value="1" class="form-control" required="required"/></div>
+                    </div>
+                </section>
+
+                <section class="col-12 border-top pt-4">
+                    <h5>Safety and Supporting Documents</h5>
+                    <div class="row g-3">
+                        <div class="col-md-3 form-check ms-2"><input id="hazardous_cargo" name="hazardous_cargo" type="checkbox" class="form-check-input"/><label class="form-check-label" for="hazardous_cargo">Hazardous Cargo</label></div>
+                        <div class="col-md-5"><label class="form-label" for="cargo_description">Cargo Description</label><input id="cargo_description" name="cargo_description" class="form-control"/></div>
+                        <div class="col-md-3 form-check ms-2"><input id="permit_required" name="permit_required" type="checkbox" class="form-check-input"/><label class="form-check-label" for="permit_required">Permit Required</label></div>
+                        <div class="col-12"><label class="form-label" for="safety_requirements">Safety Requirements</label><textarea id="safety_requirements" name="safety_requirements" rows="2" class="form-control"></textarea></div>
+                        <div class="col-md-6"><label class="form-label" for="supporting_document">Request, PO, or Supporting Document</label><input id="supporting_document" name="supporting_document" type="file" class="form-control"/></div>
+                    </div>
+                </section>
+
+                <div class="col-12 d-flex justify-content-end gap-2 border-top pt-4 mb-5"><a href="/my/sedar/orders" class="btn btn-outline-secondary">Cancel</a><button type="submit" class="btn btn-primary">Submit Service Order</button></div>
+            </form>
+        </t>
+    </template>
+
+    <template id="portal_sedar_order_detail" name="Marine Service Order Detail">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-4">
+                <div><h2 class="mb-1"><t t-out="order.name"/></h2><p class="text-muted mb-0"><t t-out="order.assisted_vessel_name"/> · <t t-out="order.service_type_id.name"/></p></div>
+                <span class="badge text-bg-secondary fs-6" t-field="order.state"/>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-6"><h5>Service</h5><dl class="row"><dt class="col-5">Port</dt><dd class="col-7"><t t-out="order.port_id.name"/></dd><dt class="col-5">Requested Start</dt><dd class="col-7"><span t-field="order.requested_start"/></dd><dt class="col-5">Estimated Duration</dt><dd class="col-7"><t t-out="order.estimated_duration_hours"/> hours</dd><dt class="col-5">Tugs Requested</dt><dd class="col-7"><t t-out="order.number_of_tugs"/></dd></dl></div>
+                <div class="col-md-6"><h5>Pricing</h5><t t-if="order.pricing_status == 'resolved'"><p class="fs-4 mb-1" t-field="order.estimated_amount" t-options="{'widget':'monetary','display_currency':order.currency_id}"/><p class="text-muted">Estimated amount based on the applicable tariff. Final billing remains subject to verified service activity.</p></t><div t-else="" class="alert alert-warning">This request requires commercial pricing review.</div></div>
+                <div class="col-12"><h5>Scope of Work</h5><p class="mb-0" t-out="order.scope_of_work"/></div>
+                <div t-if="order.special_instructions" class="col-12"><h5>Special Instructions</h5><p class="mb-0" t-out="order.special_instructions"/></div>
+            </div>
+            <form t-if="order.state == 'quoted'" t-att-action="'/my/sedar/orders/%s/confirm' % order.id" method="post" class="mt-4 border-top pt-4"><input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/><button type="submit" class="btn btn-primary">Confirm Quotation</button></form>
+        </t>
+    </template>
+</odoo>

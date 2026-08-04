@@ -1,0 +1,14 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_service_type_user,service type user,model_sedar_marine_service_type,base.group_user,1,1,1,0
+access_port_user,port user,model_sedar_marine_port,base.group_user,1,1,1,0
+access_berth_user,berth user,model_sedar_marine_berth,base.group_user,1,1,1,0
+access_tug_class_user,tug class user,model_sedar_tug_class,base.group_user,1,1,1,0
+access_client_vessel_user,client vessel user,model_sedar_client_vessel,base.group_user,1,1,1,0
+access_client_tariff_user,client tariff user,model_sedar_client_tariff,base.group_user,1,1,1,0
+access_service_order_user,service order user,model_sedar_marine_service_order,base.group_user,1,1,1,0
+access_service_type_portal,service type portal,model_sedar_marine_service_type,base.group_portal,1,0,0,0
+access_port_portal,port portal,model_sedar_marine_port,base.group_portal,1,0,0,0
+access_berth_portal,berth portal,model_sedar_marine_berth,base.group_portal,1,0,0,0
+access_tug_class_portal,tug class portal,model_sedar_tug_class,base.group_portal,1,0,0,0
+access_client_vessel_portal,client vessel portal,model_sedar_client_vessel,base.group_portal,1,0,1,0
+access_service_order_portal,service order portal,model_sedar_marine_service_order,base.group_portal,1,0,1,0

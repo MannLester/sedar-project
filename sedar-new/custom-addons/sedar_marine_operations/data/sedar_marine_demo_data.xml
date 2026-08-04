@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="service_type_harbor" model="sedar.marine.service.type"><field name="name">Harbor Assistance</field><field name="code">HARBOR</field><field name="pricing_basis">per_tug_hour</field></record>
+    <record id="service_type_berthing" model="sedar.marine.service.type"><field name="name">Berthing</field><field name="code">BERTH</field><field name="pricing_basis">per_service</field></record>
+    <record id="service_type_unberthing" model="sedar.marine.service.type"><field name="name">Unberthing</field><field name="code">UNBERTH</field><field name="pricing_basis">per_service</field></record>
+    <record id="service_type_towage" model="sedar.marine.service.type"><field name="name">Towage</field><field name="code">TOWAGE</field><field name="pricing_basis">per_tug_hour</field><field name="requires_destination">True</field></record>
+    <record id="service_type_shifting" model="sedar.marine.service.type"><field name="name">Vessel Shifting</field><field name="code">SHIFT</field><field name="pricing_basis">per_service</field><field name="requires_destination">True</field></record>
+    <record id="service_type_escort" model="sedar.marine.service.type"><field name="name">Escort</field><field name="code">ESCORT</field><field name="pricing_basis">per_tug_hour</field></record>
+    <record id="service_type_standby" model="sedar.marine.service.type"><field name="name">Standby</field><field name="code">STANDBY</field><field name="pricing_basis">per_hour</field></record>
+    <record id="service_type_emergency" model="sedar.marine.service.type"><field name="name">Emergency Assistance</field><field name="code">EMERGENCY</field><field name="pricing_basis">quotation</field></record>
+    <record id="port_batangas" model="sedar.marine.port"><field name="name">Batangas Port</field><field name="code">BTG</field><field name="timezone">Asia/Manila</field></record>
+    <record id="berth_batangas_anchorage" model="sedar.marine.berth"><field name="name">Batangas Anchorage</field><field name="code">BTG-ANC</field><field name="port_id" ref="port_batangas"/></record>
+    <record id="berth_batangas_base" model="sedar.marine.berth"><field name="name">SEDAR Base</field><field name="code">BTG-SEDAR</field><field name="port_id" ref="port_batangas"/></record>
+    <record id="tug_class_standard" model="sedar.tug.class"><field name="name">Standard Harbor Tug</field><field name="minimum_bollard_pull">30</field></record>
+    <record id="tug_class_high_power" model="sedar.tug.class"><field name="name">High-Power Tug</field><field name="minimum_bollard_pull">50</field></record>
+</odoo>

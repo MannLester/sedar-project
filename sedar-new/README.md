@@ -57,3 +57,25 @@ docker compose restart odoo
 ```
 
 Then open `http://localhost:8069` and select the `sedar_demo` database.
+
+## Marine Service Orders
+
+The `sedar_marine_operations` addon is intentionally limited to service-order intake and the
+client dashboard. Its supporting master data includes service types, ports/locations, client
+vessels, tug classes, and client tariffs because these are required to provide normalized
+dropdowns and server-side pricing.
+
+Internal users open **SEDAR > Marine Operations > Service Order Dashboard** to create and review
+orders. Tariffs and normalized vessel/location lists are managed under the same Marine Operations
+menu.
+
+Clients open `http://localhost:8069/my`, choose **Marine Service Orders**, and use
+**New Service Order**. A client can only see orders belonging to their commercial account.
+
+Local demo portal credentials:
+
+- Login: `client@sedar.demo`
+- Password: `clientdemo`
+
+The local demo database contains a sample Batangas tariff for `SEDAR Demo Shipping Client`.
+These credentials and rates are local database fixtures and are not production configuration.
