@@ -36,6 +36,11 @@ Do not silently proceed when the request, code, glossary, and an accepted ADR di
 
 ## Planning with `grill-with-docs`
 
+`grill-with-docs` comes from Matt Pocock's public skills repository:
+https://github.com/mattpocock/skills/tree/main/skills/engineering/grill-with-docs
+
+If the skill is not installed in the current Codex environment, do not assume it is locally available or skip the planning discipline. Read the upstream instructions when network access permits; otherwise follow the repository workflow below as the required fallback.
+
 When the user asks to plan or stress-test a feature with `grill-with-docs`:
 
 1. Read `CONTEXT.md` and the relevant ADRs first.
