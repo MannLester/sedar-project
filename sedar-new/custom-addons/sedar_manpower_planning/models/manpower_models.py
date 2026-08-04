@@ -199,6 +199,14 @@ class SedarManpowerRequest(models.Model):
         if not self.env.user.has_group(xmlid):
             raise UserError("You do not have permission to perform this approval action.")
 
+    def _schedule_role_activity(self, group_xmlid, summary, note):
+        users = self.env.ref(group_xmlid).users.filtered(lambda user: user.active)
+        if users:
+            self.activity_schedule(
+                "mail.mail_activity_data_todo", user_id=users[0].id,
+                summary=summary, note=note,
+            )
+
     def action_open(self):
         self.ensure_one()
         return {"type": "ir.actions.act_window", "name": "Manpower Request", "res_model": self._name, "res_id": self.id, "view_mode": "form"}
@@ -212,6 +220,10 @@ class SedarManpowerRequest(models.Model):
             if any(not line.job_id for line in request.line_ids):
                 raise UserError("Each request line must have an HR job position before submission.")
             request.write({"state": "submitted", "submitted_at": fields.Datetime.now()})
+            request._schedule_role_activity(
+                "sedar_manpower_planning.group_hr_reviewer",
+                "Review manpower request", "Review the submitted manpower request and its operational evidence.",
+            )
         return True
 
     def action_start_hr_review(self):
@@ -227,6 +239,10 @@ class SedarManpowerRequest(models.Model):
             if any(line.quantity < 1 or not line.required_date for line in request.line_ids):
                 raise UserError("Each request line needs a positive quantity and required date.")
             request.write({"state": "manager_approval"})
+            request._schedule_role_activity(
+                "sedar_manpower_planning.group_manpower_approver",
+                "Approve manpower request", "Review the requested headcount and approve or reject it.",
+            )
         return True
 
     def action_approve(self):
@@ -237,6 +253,10 @@ class SedarManpowerRequest(models.Model):
             if any(line.approved_quantity < 1 or line.approved_quantity > line.quantity for line in request.line_ids):
                 raise UserError("Approved quantity must be between one and the requested quantity.")
             request.write({"state": "approved", "approved_at": fields.Datetime.now(), "operations_approver_id": self.env.user.id})
+            request._schedule_role_activity(
+                "sedar_manpower_planning.group_hr_manager",
+                "Open approved position", "Create the internal vacancy record from this approved manpower request.",
+            )
         return True
 
     def action_open_vacancies(self):
