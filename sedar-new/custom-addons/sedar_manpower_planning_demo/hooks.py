@@ -27,6 +27,9 @@ def _dt(day, hour=8):
 
 def post_init_hook(env):
     department = env.ref("sedar_service_order_demo.department_operations")
+    careers_location = _record(env, "sedar.careers.location", "location_batangas", {
+        "name": "Batangas City",
+    })
     chief_engineer_job = env.ref("sedar_service_order_demo.job_cheng")
     missing_engineer = env.ref("sedar_service_order_demo.shortage_missing_engineer_cheng")
     expired_medical = env.ref("sedar_service_order_demo.shortage_expired_medical")
@@ -61,7 +64,10 @@ def post_init_hook(env):
         "employment_type": "permanent", "approved_openings": 1,
         "opening_date": "2026-08-16", "application_deadline": "2026-09-15",
         "website_title": "Chief Engineer", "website_summary": "Join SEDAR's marine operations team.",
-        "requirements": line.required_qualifications, "publication_state": "internal", "state": "open",
+        "responsibilities": "Lead safe engine-room operations and maintain propulsion systems.",
+        "requirements": line.required_qualifications, "website_location_id": careers_location.id,
+        "publication_state": "published", "state": "open",
+        "published_at": _dt(16, 11), "published_by_id": env.user.id,
     })
     line.vacancy_id = vacancy.id
     missing_engineer.manpower_request_line_id = line.id

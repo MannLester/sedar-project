@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sedar_careers_location_list" model="ir.ui.view">
+        <field name="name">sedar.careers.location.list</field>
+        <field name="model">sedar.careers.location</field>
+        <field name="arch" type="xml">
+            <list><field name="name"/><field name="active"/></list>
+        </field>
+    </record>
+    <record id="view_sedar_careers_location_form" model="ir.ui.view">
+        <field name="name">sedar.careers.location.form</field>
+        <field name="model">sedar.careers.location</field>
+        <field name="arch" type="xml">
+            <form><sheet><group><field name="name"/><field name="active"/></group></sheet></form>
+        </field>
+    </record>
+    <record id="view_job_vacancy_careers_inherit" model="ir.ui.view">
+        <field name="name">sedar.job.vacancy.careers.inherit</field>
+        <field name="model">sedar.job.vacancy</field>
+        <field name="inherit_id" ref="sedar_manpower_planning.view_job_vacancy_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/field[@name='state']" position="before">
+                <button name="action_publish" type="object" string="Publish on Careers" class="btn-primary" invisible="publication_state != 'approved' or state != 'open'" groups="sedar_manpower_planning.group_hr_manager"/>
+                <button name="action_remove_from_website" type="object" string="Remove from Careers" invisible="publication_state != 'published'" groups="sedar_manpower_planning.group_hr_manager"/>
+            </xpath>
+            <xpath expr="//group[field[@name='publication_state']]" position="inside">
+                <field name="website_location_id"/>
+                <field name="public_slug" readonly="1"/>
+                <field name="published_at" readonly="1"/>
+                <field name="published_by_id" readonly="1"/>
+                <field name="publication_notes"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="action_sedar_careers_locations" model="ir.actions.act_window">
+        <field name="name">Careers Locations</field>
+        <field name="res_model">sedar.careers.location</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <menuitem id="menu_sedar_careers_locations" name="Careers Locations" parent="sedar_manpower_planning.menu_manpower_planning" action="action_sedar_careers_locations" sequence="50" groups="sedar_manpower_planning.group_hr_manager"/>
+</odoo>

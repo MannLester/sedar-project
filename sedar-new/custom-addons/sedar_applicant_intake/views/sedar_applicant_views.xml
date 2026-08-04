@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_applicant_sedar_inherit" model="ir.ui.view">
+        <field name="name">hr.applicant.sedar.intake.inherit</field>
+        <field name="model">hr.applicant</field>
+        <field name="inherit_id" ref="hr_recruitment.hr_applicant_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='application_details']" position="after">
+                <page string="SEDAR ADM-3" name="sedar_adm3">
+                    <group string="Application Source">
+                        <field name="sedar_reference"/>
+                        <field name="sedar_vacancy_id"/>
+                        <field name="sedar_intake_state"/>
+                        <field name="sedar_document_type_id"/>
+                        <field name="sedar_document_revision"/>
+                        <field name="sedar_duplicate_warning"/>
+                        <field name="sedar_consent"/>
+                        <field name="sedar_consent_at"/>
+                    </group>
+                    <group string="Applicant Profile">
+                        <field name="sedar_profile_id" readonly="1"/>
+                    </group>
+                    <field name="sedar_education_ids">
+                        <list><field name="school_name"/><field name="course_name"/><field name="date_from"/><field name="date_to"/><field name="english_knowledge"/></list>
+                    </field>
+                    <field name="sedar_employment_ids">
+                        <list><field name="date_from"/><field name="date_to"/><field name="company_address"/><field name="position"/><field name="reason_for_leaving"/></list>
+                    </field>
+                    <field name="sedar_document_ids">
+                        <list><field name="category"/><field name="filename"/><field name="mimetype"/><field name="verification_state"/><field name="verification_notes"/></list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>
