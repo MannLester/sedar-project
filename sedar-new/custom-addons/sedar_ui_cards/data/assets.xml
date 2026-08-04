@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="asset_sedar_cards_css" model="ir.asset">
+        <field name="name">SEDAR reusable card styles</field>
+        <field name="bundle">web.assets_backend</field>
+        <field name="directive">append</field>
+        <field name="path">sedar_ui_cards/static/src/css/sedar_cards.css</field>
+    </record>
+</odoo>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="sedar_login_content" inherit_id="web.login" name="SEDAR Login Content" priority="30">
+        <xpath expr="//form[@role='form']" position="before">
+            <div class="o_sedar_login_panel_header">
+                <img class="o_sedar_login_logo" src="/sedar_theme/static/src/img/sedar-logo-login.png" alt="SEDAR Tug Services Corp."/>
+                <div>
+                    <p>Welcome back</p>
+                    <h2>Sign in to SEDAR ERP</h2>
+                </div>
+            </div>
+            <div class="o_sedar_login_intro_panel">
+                Marine operations, crewing, safety, and finance in one secure workspace.
+            </div>
+        </xpath>
+        <xpath expr="//form[@role='form']" position="after">
+            <div class="o_sedar_login_help">
+                <span>Need access?</span>
+                <a href="mailto:admin@sedartug.local">Contact system administrator</a>
+            </div>
+        </xpath>
+    </template>
+</odoo>

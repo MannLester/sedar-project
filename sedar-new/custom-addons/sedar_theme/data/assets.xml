@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="asset_sedar_sidebar_xml" model="ir.asset">
+        <field name="name">SEDAR sidebar templates</field>
+        <field name="bundle">web.assets_backend</field>
+        <field name="directive">append</field>
+        <field name="path">sedar_theme/static/src/xml/sedar_sidebar.xml</field>
+    </record>
+    <record id="asset_sedar_sidebar_css" model="ir.asset">
+        <field name="name">SEDAR sidebar styles</field>
+        <field name="bundle">web.assets_backend</field>
+        <field name="directive">append</field>
+        <field name="path">sedar_theme/static/src/css/sedar_sidebar.css</field>
+    </record>
+    <record id="asset_sedar_login_css" model="ir.asset">
+        <field name="name">SEDAR login styles</field>
+        <field name="bundle">web.assets_frontend</field>
+        <field name="directive">append</field>
+        <field name="path">sedar_theme/static/src/css/sedar_login.css</field>
+    </record>
+</odoo>

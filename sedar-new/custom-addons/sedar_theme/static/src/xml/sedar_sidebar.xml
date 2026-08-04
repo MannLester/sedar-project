@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sedar_theme.NavBarSidebar" t-inherit="web.NavBar" t-inherit-mode="extension">
+        <xpath expr="//nav[contains(@class, 'o_main_navbar')]" position="after">
+            <aside class="o_sedar_shell d-print-none">
+                <input id="o_sedar_sidebar_state" class="o_sedar_sidebar_state" type="checkbox" checked="checked"/>
+                <div class="o_sedar_icon_rail">
+                    <label class="o_sedar_sidebar_toggle o_sedar_sidebar_expand" for="o_sedar_sidebar_state" title="Open navigation"><i class="fa fa-bars"/></label>
+                    <div class="o_sedar_rail_logo"><img src="/sedar_theme/static/src/img/sedar-logo.png" alt="SEDAR Tug Services Corp."/></div>
+                    <div class="o_sedar_rail_icons"><i class="fa fa-th-large"/><i class="fa fa-ship"/><i class="fa fa-users"/><i class="fa fa-money"/><i class="fa fa-file-text"/></div>
+                    <div class="o_sedar_rail_avatar"/>
+                </div>
+                <section class="o_sedar_sidebar">
+                    <div class="o_sedar_sidebar_brand">
+                        <div class="o_sedar_brand_logo"><img src="/sedar_theme/static/src/img/sedar-logo-wide.png" alt="SEDAR Tug Services Corp."/></div>
+                        <label class="o_sedar_sidebar_toggle o_sedar_sidebar_collapse" for="o_sedar_sidebar_state" title="Close navigation"><i class="fa fa-angle-left"/></label>
+                    </div>
+                    <nav class="o_sedar_sidebar_nav" aria-label="SEDAR navigation">
+                        <div class="o_sedar_nav_priority">
+                            <a class="o_sedar_nav_priority_link" href="/web#action=sedar_marine_operations.action_service_order_dashboard"><i class="fa fa-th-large"/><span><strong>Service Order Dashboard</strong><small>Job readiness and execution</small></span></a>
+                        </div>
+                        <details class="o_sedar_nav_group" open="open">
+                            <summary class="o_sedar_nav_parent"><span><i class="fa fa-ship"/>Marine Operations</span><i class="fa fa-angle-down o_sedar_nav_chevron"/></summary>
+                            <div class="o_sedar_nav_children">
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_marine_operations.action_service_order_dashboard"><span>Service Orders</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_marine_operations.action_tugboats"><span>Tugboats</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_marine_operations.action_tug_assignments"><span>Tug and Crew Plans</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_marine_operations.action_client_vessels"><span>Client Vessels</span></a>
+                            </div>
+                        </details>
+                        <details class="o_sedar_nav_group">
+                            <summary class="o_sedar_nav_parent"><span><i class="fa fa-users"/>People and Crewing</span><i class="fa fa-angle-down o_sedar_nav_chevron"/></summary>
+                            <div class="o_sedar_nav_children">
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_marine_operations.action_crew_profiles"><span>Crew Readiness</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_marine_operations.action_tug_assignments"><span>Crew Assignments</span></a>
+                            </div>
+                        </details>
+                        <details class="o_sedar_nav_group" open="open">
+                            <summary class="o_sedar_nav_parent"><span><i class="fa fa-money"/>Finance</span><i class="fa fa-angle-down o_sedar_nav_chevron"/></summary>
+                            <div class="o_sedar_nav_children">
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_marine_finance.action_billing_reviews"><span>Billing Reviews</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_marine_finance.action_pricing_exceptions"><span>Pricing Exceptions</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_marine_operations.action_client_tariffs"><span>Client Tariffs</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=account.action_move_out_invoice_type"><span>Customer Invoices</span></a>
+                            </div>
+                        </details>
+                        <details class="o_sedar_nav_group">
+                            <summary class="o_sedar_nav_parent"><span><i class="fa fa-file-text"/>Document Control</span><i class="fa fa-angle-down o_sedar_nav_chevron"/></summary>
+                            <div class="o_sedar_nav_children">
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_document_control.action_sedar_document_types"><span>Document Catalogue</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_document_control.action_sedar_documents"><span>Controlled Documents</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_document_control.action_sedar_document_requests"><span>Document Requests</span></a>
+                            </div>
+                        </details>
+                    </nav>
+                    <div class="o_sedar_sidebar_footer"><div class="o_sedar_user_avatar"><img src="/sedar_theme/static/src/img/sedar-logo.png" alt="SEDAR"/></div><div class="o_sedar_footer_copy"><div class="o_sedar_user_name">SEDAR ERP</div><div class="o_sedar_user_role">Marine Operations</div></div><i class="fa fa-sign-out o_sedar_footer_icon" aria-hidden="true"/></div>
+                </section>
+            </aside>
+        </xpath>
+    </t>
+</templates>
