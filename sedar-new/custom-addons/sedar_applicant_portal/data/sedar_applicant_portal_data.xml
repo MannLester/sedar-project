@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="stage_new_applicant_portal" model="hr.recruitment.stage">
+        <field name="name">New</field>
+        <field name="sequence">0</field>
+        <field name="sedar_public_status">received</field>
+        <field name="sedar_public_title">Application Received</field>
+        <field name="sedar_public_message">Your application was received and is waiting for HR review.</field>
+    </record>
+    <record id="stage_qualification_applicant_portal" model="hr.recruitment.stage">
+        <field name="name">Qualification</field>
+        <field name="sequence">1</field>
+        <field name="sedar_public_status">under_review</field>
+        <field name="sedar_public_title">Under Review</field>
+        <field name="sedar_public_message">HR is reviewing your application and submitted information.</field>
+    </record>
+</odoo>

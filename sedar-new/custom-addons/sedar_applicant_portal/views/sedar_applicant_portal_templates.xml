@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="activation_form" name="SEDAR Applicant Account Activation">
+        <t t-call="website.layout">
+            <div id="wrap" class="container py-5"><div class="row justify-content-center"><div class="col-lg-6">
+                <h1>Activate Applicant Account</h1>
+                <p class="text-muted">Create a secure portal account to track your SEDAR application for <strong><t t-esc="applicant.sedar_vacancy_id.website_title"/></strong>.</p>
+                <t t-if="errors"><div class="alert alert-danger"><ul class="mb-0"><li t-foreach="errors" t-as="error"><t t-esc="error"/></li></ul></div></t>
+                <form method="post" class="bg-white p-4 shadow-sm rounded">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <label class="form-label">Email</label><input class="form-control mb-3" readonly="readonly" t-att-value="applicant.email_from"/>
+                    <label class="form-label">Password</label><input type="password" name="password" class="form-control mb-3" required="required"/>
+                    <label class="form-label">Confirm Password</label><input type="password" name="password_confirmation" class="form-control mb-4" required="required"/>
+                    <button type="submit" class="btn btn-primary">Activate Account</button>
+                </form>
+            </div></div></div>
+        </t>
+    </template>
+    <template id="activation_complete" name="SEDAR Applicant Account Activated">
+        <t t-call="website.layout"><div id="wrap" class="container py-5"><div class="row justify-content-center"><div class="col-lg-6"><div class="alert alert-success"><h1>Account Activated</h1><p>Your applicant portal account is ready. Sign in with <strong><t t-esc="login"/></strong>.</p><a href="/web/login?redirect=/my/sedar" class="btn btn-primary">Sign In</a></div></div></div></div></t>
+    </template>
+    <template id="activation_expired" name="SEDAR Applicant Activation Expired">
+        <t t-call="website.layout"><div id="wrap" class="container py-5"><div class="row justify-content-center"><div class="col-lg-6"><div class="alert alert-warning"><h1>Activation Link Expired</h1><p>This activation link is no longer valid. Please contact SEDAR HR for a new invitation.</p></div></div></div></div></t>
+    </template>
+    <template id="dashboard" name="SEDAR Applicant Dashboard">
+        <t t-call="website.layout">
+            <div id="wrap" class="bg-light"><div class="container py-5">
+                <div class="d-flex justify-content-between align-items-center mb-4"><div><p class="text-uppercase text-muted small mb-1">SEDAR Applicant Portal</p><h1>My Applications</h1></div><a href="/web/session/logout?redirect=/" class="btn btn-outline-secondary">Sign Out</a></div>
+                <t t-if="not applications"><div class="alert alert-info">You do not have any linked applications yet.</div></t>
+                <div t-foreach="applications" t-as="application" class="card mb-3 shadow-sm border-0"><div class="card-body d-flex flex-column flex-md-row justify-content-between gap-3"><div><h3 class="h5 mb-1"><t t-esc="application.sedar_vacancy_id.website_title or application.job_id.name"/></h3><p class="text-muted mb-1"><t t-esc="application.sedar_reference"/> · <t t-esc="application.sedar_vacancy_id.website_location_id.name"/></p><span class="badge text-bg-primary"><t t-esc="application.sedar_public_status_label"/></span></div><a class="btn btn-primary align-self-start" t-att-href="'/my/sedar/applications/%s' % application.sedar_reference">View Application</a></div></div>
+            </div></div>
+        </t>
+    </template>
+    <template id="application_detail" name="SEDAR Applicant Application Detail">
+        <t t-call="website.layout">
+            <div id="wrap" class="bg-light"><div class="container py-5">
+                <a href="/my/sedar" class="text-decoration-none">← Back to Applications</a>
+                <div class="d-flex justify-content-between align-items-start mt-3 mb-4"><div><p class="text-uppercase text-muted small mb-1">Application <t t-esc="applicant.sedar_reference"/></p><h1><t t-esc="applicant.sedar_vacancy_id.website_title or applicant.job_id.name"/></h1><p class="text-muted"><t t-esc="applicant.sedar_vacancy_id.website_location_id.name"/></p></div><span class="badge text-bg-primary fs-6"><t t-esc="status_label"/></span></div>
+                <div t-if="applicant.sedar_public_message" class="alert alert-info"><t t-esc="applicant.sedar_public_message"/><p t-if="applicant.sedar_action_required" class="mb-0 mt-2"><strong>Action required:</strong> <t t-esc="applicant.sedar_action_instructions"/></p></div>
+                <div class="row g-4">
+                    <div class="col-lg-7"><div class="card border-0 shadow-sm"><div class="card-body"><h2 class="h4">Application Timeline</h2><div t-foreach="applicant.sedar_portal_event_ids.filtered('visible')" t-as="event" class="border-start border-primary ps-3 py-2"><strong><t t-esc="event.title"/></strong><div class="small text-muted"><t t-esc="event.occurred_at"/></div><p class="mb-0"><t t-esc="event.message"/></p></div></div></div></div>
+                    <div class="col-lg-5"><div class="card border-0 shadow-sm mb-4"><div class="card-body"><h2 class="h4">Submitted Documents</h2><div t-foreach="applicant.sedar_document_ids" t-as="document" class="d-flex justify-content-between align-items-center border-bottom py-2"><div><div><t t-esc="document.filename"/></div><small class="text-muted"><t t-esc="dict(document._fields['verification_state'].selection).get(document.verification_state, document.verification_state)"/></small></div><a class="btn btn-sm btn-outline-primary" t-att-href="'/my/sedar/documents/%s/download' % document.id">Download</a></div></div></div><div class="card border-0 shadow-sm"><div class="card-body"><h2 class="h4">ADM-3 Profile</h2><p class="mb-1"><strong>Name:</strong> <t t-esc="applicant.partner_name"/></p><p class="mb-1"><strong>Email:</strong> <t t-esc="applicant.email_from"/></p><p class="mb-1"><strong>Mobile:</strong> <t t-esc="applicant.partner_phone"/></p><p class="mb-0"><strong>Submitted:</strong> <t t-esc="applicant.create_date"/></p></div></div></div>
+                </div>
+            </div></div>
+        </t>
+    </template>
+    <template id="portal_my_home_sedar" inherit_id="portal.portal_my_home">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <div class="o_portal_index_card col-12 col-md-6 col-lg-4"><a href="/my/sedar" class="d-flex gap-3 align-items-center text-decoration-none"><span class="o_portal_icon"><i class="fa fa-briefcase fa-2x"/></span><span><strong>Applicant Dashboard</strong><br/><small class="text-muted">Track your SEDAR applications</small></span></a></div>
+        </xpath>
+    </template>
+</odoo>

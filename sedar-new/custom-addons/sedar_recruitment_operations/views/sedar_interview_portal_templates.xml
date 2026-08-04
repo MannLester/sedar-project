@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="employee_dashboard" name="SEDAR Employee Dashboard">
+        <t t-call="website.layout">
+            <div id="wrap" class="bg-light">
+                <div class="container py-5">
+                    <div class="d-flex justify-content-between align-items-start mb-4">
+                        <div>
+                            <p class="text-uppercase text-muted small mb-1">SEDAR Employee Portal</p>
+                            <h1><t t-esc="employee.name"/></h1>
+                            <p class="text-muted mb-0"><t t-esc="employee.job_title or employee.job_id.name"/></p>
+                        </div>
+                        <a href="/my/sedar" class="btn btn-outline-secondary">Applications</a>
+                    </div>
+                    <div class="row g-4">
+                        <div class="col-lg-5">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <h2 class="h4">Employee Profile</h2>
+                                    <p class="mb-1"><strong>Work Email:</strong> <t t-esc="employee.work_email"/></p>
+                                    <p class="mb-1"><strong>Work Phone:</strong> <t t-esc="employee.work_phone"/></p>
+                                    <p class="mb-1"><strong>Department:</strong> <t t-esc="employee.department_id.name"/></p>
+                                    <p class="mb-0"><strong>Manager:</strong> <t t-esc="employee.parent_id.name"/></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-7">
+                            <div class="card border-0 shadow-sm mb-4">
+                                <div class="card-body">
+                                    <h2 class="h4">Linked Applications</h2>
+                                    <div t-foreach="applications" t-as="application" class="border-top py-2">
+                                        <div class="d-flex justify-content-between gap-2">
+                                            <div>
+                                                <strong><t t-esc="application.sedar_reference"/></strong>
+                                                <div class="text-muted"><t t-esc="application.sedar_vacancy_id.website_title or application.job_id.name"/></div>
+                                            </div>
+                                            <span class="badge text-bg-success"><t t-esc="application.sedar_public_status_label"/></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <h2 class="h4">Onboarding Documents</h2>
+                                    <div t-foreach="documents" t-as="document" class="border-top py-2">
+                                        <div class="d-flex justify-content-between gap-2">
+                                            <div>
+                                                <strong><t t-esc="document.document_type_id.code"/></strong>
+                                                <div class="text-muted"><t t-esc="document.name"/></div>
+                                            </div>
+                                            <span class="badge text-bg-secondary"><t t-esc="dict(document._fields['state'].selection).get(document.state)"/></span>
+                                        </div>
+                                    </div>
+                                    <p t-if="not documents" class="text-muted mb-0">No onboarding documents are linked yet.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="portal_my_home_employee" inherit_id="portal.portal_my_home">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <div class="o_portal_index_card col-12 col-md-6 col-lg-4">
+                <a href="/my/sedar/employee" class="d-flex gap-3 align-items-center text-decoration-none">
+                    <span class="o_portal_icon"><i class="fa fa-id-badge fa-2x"/></span>
+                    <span><strong>Employee Dashboard</strong><br/><small class="text-muted">View your SEDAR employee profile</small></span>
+                </a>
+            </div>
+        </xpath>
+    </template>
+
+    <template id="application_detail_interviews" inherit_id="sedar_applicant_portal.application_detail">
+        <xpath expr="//div[hasclass('row') and hasclass('g-4')]" position="before">
+            <t t-set="interviews" t-value="applicant.sedar_interview_ids"/>
+            <div t-if="interviews" class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="d-flex flex-column flex-md-row justify-content-between gap-2 mb-3">
+                        <div>
+                            <h2 class="h4 mb-1">Interviews</h2>
+                            <p class="text-muted mb-0">Scheduled interview details and attendance confirmation.</p>
+                        </div>
+                    </div>
+                    <div t-foreach="interviews" t-as="interview" t-if="interview.status not in ('draft', 'cancelled')" class="border-top py-3">
+                        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+                            <div>
+                                <h3 class="h5 mb-1"><t t-esc="dict(interview._fields['interview_type'].selection).get(interview.interview_type)"/></h3>
+                                <p class="mb-1"><strong>Schedule:</strong> <t t-esc="interview.start_datetime"/> to <t t-esc="interview.end_datetime"/></p>
+                                <p t-if="interview.location" class="mb-1"><strong>Location:</strong> <t t-esc="interview.location"/></p>
+                                <p t-if="interview.meeting_url" class="mb-1"><strong>Meeting Link:</strong> <a t-att-href="interview.meeting_url" target="_blank" rel="noopener"><t t-esc="interview.meeting_url"/></a></p>
+                                <p class="mb-0"><strong>Status:</strong> <span class="badge text-bg-secondary"><t t-esc="dict(interview._fields['status'].selection).get(interview.status)"/></span></p>
+                                <p t-if="interview.applicant_confirmation_note" class="text-muted mt-2 mb-0"><t t-esc="interview.applicant_confirmation_note"/></p>
+                            </div>
+                            <div t-if="interview.status in ('scheduled', 'confirmed', 'reschedule')" class="d-flex flex-column gap-2" style="min-width: 280px;">
+                                <form t-if="interview.status != 'confirmed'" method="post" t-att-action="'/my/sedar/interviews/%s/confirm' % interview.id">
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                    <textarea name="confirmation_note" class="form-control mb-2" rows="2" placeholder="Optional note for HR"></textarea>
+                                    <button type="submit" class="btn btn-primary w-100">Confirm Attendance</button>
+                                </form>
+                                <form method="post" t-att-action="'/my/sedar/interviews/%s/reschedule' % interview.id">
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                    <textarea name="reschedule_reason" class="form-control mb-2" rows="2" placeholder="Reason or preferred availability"></textarea>
+                                    <button type="submit" class="btn btn-outline-secondary w-100">Request Reschedule</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <t t-set="requirement_requests" t-value="applicant.sedar_requirement_request_ids.filtered_domain([('applicant_visible', '=', True)])"/>
+            <div t-if="requirement_requests" class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <h2 class="h4 mb-1">Employment Requirements</h2>
+                    <p class="text-muted">Submit the requested ADM-5 employment requirements for HR review.</p>
+                    <div t-foreach="requirement_requests" t-as="document_request" class="border-top py-3">
+                        <div class="d-flex flex-column flex-md-row justify-content-between gap-2 mb-3">
+                            <div>
+                                <h3 class="h5 mb-1"><t t-esc="document_request.name"/></h3>
+                                <p class="mb-1"><strong>Status:</strong> <span class="badge text-bg-secondary"><t t-esc="dict(document_request._fields['state'].selection).get(document_request.state)"/></span></p>
+                                <p t-if="document_request.due_date" class="mb-0"><strong>Due:</strong> <t t-esc="document_request.due_date"/></p>
+                            </div>
+                            <div class="text-muted">Completion: <t t-esc="str(int(document_request.completion_percent or 0)) + '%'"/></div>
+                        </div>
+                        <form t-if="document_request.state in ('draft', 'in_progress', 'rejected')" method="post" enctype="multipart/form-data" t-att-action="'/my/sedar/document-requests/%s/submit' % document_request.id">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <div t-foreach="document_request.value_ids" t-as="value" class="mb-3">
+                                <label class="form-label">
+                                    <t t-esc="value.field_label"/>
+                                    <span t-if="value.is_required" class="text-danger">*</span>
+                                </label>
+                                <textarea t-if="value.field_type == 'text'" class="form-control" rows="3" t-att-name="'value_%s' % value.id"><t t-esc="value.value_text or ''"/></textarea>
+                                <input t-if="value.field_type == 'date'" type="date" class="form-control" t-att-name="'value_%s' % value.id" t-att-value="value.value_date"/>
+                                <input t-if="value.field_type == 'attachment'" type="file" class="form-control" t-att-name="'value_%s' % value.id"/>
+                                <p t-if="value.field_type == 'attachment' and value.value_filename" class="text-muted small mt-1 mb-0">Current file: <t t-esc="value.value_filename"/></p>
+                                <p t-if="value.field_id.help_text" class="text-muted small mt-1 mb-0"><t t-esc="value.field_id.help_text"/></p>
+                            </div>
+                            <label class="form-label">Submission Note</label>
+                            <textarea name="applicant_submission_note" class="form-control mb-3" rows="2"><t t-esc="document_request.applicant_submission_note or ''"/></textarea>
+                            <button type="submit" class="btn btn-primary">Submit Requirements</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div t-if="applicant.employee_id" class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <h2 class="h4 mb-1">Employee Profile</h2>
+                    <p class="mb-1"><strong>Name:</strong> <t t-esc="applicant.employee_id.name"/></p>
+                    <p class="mb-1"><strong>Position:</strong> <t t-esc="applicant.employee_id.job_title or applicant.employee_id.job_id.name"/></p>
+                    <p class="text-muted mb-0">SEDAR HR will complete the remaining onboarding setup.</p>
+                </div>
+            </div>
+        </xpath>
+    </template>
+</odoo>

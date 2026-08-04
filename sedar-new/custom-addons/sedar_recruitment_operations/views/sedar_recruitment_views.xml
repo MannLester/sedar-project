@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sedar_applicant_processing_list" model="ir.ui.view">
+        <field name="name">hr.applicant.sedar.processing.list</field>
+        <field name="model">hr.applicant</field>
+        <field name="arch" type="xml">
+            <list string="Applicant Processing" default_order="create_date desc" decoration-danger="sedar_is_overdue" decoration-muted="stage_id.fold">
+                <field name="sedar_reference"/>
+                <field name="partner_name" string="Applicant"/>
+                <field name="job_id" string="Position"/>
+                <field name="sedar_vacancy_id" string="SEDAR Vacancy"/>
+                <field name="stage_id"/>
+                <field name="user_id" string="Recruiter"/>
+                <field name="sedar_next_action"/>
+                <field name="sedar_next_action_date"/>
+                <field name="sedar_is_overdue" column_invisible="1"/>
+                <field name="create_date" string="Submitted"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sedar_applicant_processing_kanban" model="ir.ui.view">
+        <field name="name">hr.applicant.sedar.processing.kanban</field>
+        <field name="model">hr.applicant</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="stage_id" class="o_kanban_small_column">
+                <field name="partner_name"/>
+                <field name="job_id"/>
+                <field name="sedar_vacancy_id"/>
+                <field name="sedar_reference"/>
+                <field name="user_id"/>
+                <field name="sedar_next_action"/>
+                <field name="sedar_next_action_date"/>
+                <field name="priority"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_global_click">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <strong><field name="partner_name"/></strong>
+                                <field name="priority" widget="priority"/>
+                            </div>
+                            <div class="text-muted"><field name="sedar_reference"/></div>
+                            <div class="mt-2"><field name="job_id"/></div>
+                            <div t-if="record.sedar_vacancy_id.raw_value" class="small text-muted"><field name="sedar_vacancy_id"/></div>
+                            <div t-if="record.sedar_next_action.raw_value" class="mt-2 small">
+                                <strong>Next action:</strong> <field name="sedar_next_action"/>
+                            </div>
+                            <div class="mt-2 text-muted small"><field name="user_id"/></div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_sedar_applicant_processing_search" model="ir.ui.view">
+        <field name="name">hr.applicant.sedar.processing.search</field>
+        <field name="model">hr.applicant</field>
+        <field name="arch" type="xml">
+            <search string="Search Applicants">
+                <field name="partner_name"/>
+                <field name="sedar_reference"/>
+                <field name="job_id"/>
+                <field name="sedar_vacancy_id"/>
+                <field name="user_id"/>
+                <field name="stage_id"/>
+                <separator/>
+                <filter name="new" string="New Applications" domain="[('stage_id.sedar_public_status', '=', 'received')]"/>
+                <filter name="unassigned" string="Unassigned" domain="[('user_id', '=', False)]"/>
+                <filter name="my_applicants" string="My Applications" domain="[('user_id', '=', uid)]"/>
+                <filter name="overdue" string="Overdue Actions" domain="[('sedar_next_action_date', '&lt;', context_today())]"/>
+                <filter name="needs_action" string="Needs Action" domain="[('sedar_action_required', '=', True)]"/>
+                <filter name="active" string="Active Pipeline" domain="[('stage_id.fold', '!=', True)]"/>
+                <group>
+                    <filter name="group_stage" string="Stage" context="{'group_by': 'stage_id'}"/>
+                    <filter name="group_recruiter" string="Recruiter" context="{'group_by': 'user_id'}"/>
+                    <filter name="group_vacancy" string="Vacancy" context="{'group_by': 'sedar_vacancy_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_hr_applicant_sedar_operations_inherit" model="ir.ui.view">
+        <field name="name">hr.applicant.sedar.operations.inherit</field>
+        <field name="model">hr.applicant</field>
+        <field name="inherit_id" ref="hr_recruitment.hr_applicant_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_sedar_start_review" type="object" string="Start Review" class="btn-primary" invisible="stage_id.sedar_public_status != 'received'" groups="hr_recruitment.group_hr_recruitment_user"/>
+                <button name="action_sedar_qualify" type="object" string="Qualify" class="btn-primary" invisible="stage_id.sedar_public_status != 'under_review'" groups="hr_recruitment.group_hr_recruitment_user"/>
+                <button name="action_sedar_request_clarification" type="object" string="Request Clarification" invisible="stage_id.sedar_public_status not in ('received', 'under_review', 'shortlisted')" groups="hr_recruitment.group_hr_recruitment_user"/>
+                <button name="action_sedar_request_employment_requirements" type="object" string="Request Requirements" class="btn-primary" invisible="sedar_public_status != 'final_review'" groups="hr_recruitment.group_hr_recruitment_user"/>
+                <button name="action_sedar_verify_employment_requirements" type="object" string="Verify Requirements" class="btn-primary" invisible="sedar_public_status not in ('requirements', 'final_review')" groups="hr_recruitment.group_hr_recruitment_user"/>
+                <button name="action_sedar_create_employee_profile" type="object" string="Create Employee Profile" class="btn-primary" invisible="sedar_public_status != 'offer' or employee_id" groups="hr_recruitment.group_hr_recruitment_user"/>
+                <button name="action_sedar_reject" type="object" string="Reject" class="btn-secondary" invisible="stage_id.sedar_public_status in ('closed', 'successful')" groups="hr_recruitment.group_hr_recruitment_user"/>
+            </xpath>
+            <xpath expr="//field[@name='stage_id']" position="after">
+                <field name="sedar_public_status" widget="badge"/>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="HR Processing" name="sedar_processing">
+                    <group>
+                        <group string="Assignment">
+                            <field name="user_id"/>
+                            <field name="sedar_recruiter_assigned_at" readonly="1"/>
+                            <field name="priority" widget="priority"/>
+                        </group>
+                        <group string="Next Action">
+                            <field name="sedar_next_action"/>
+                            <field name="sedar_next_action_date"/>
+                            <field name="sedar_review_deadline"/>
+                            <field name="sedar_is_overdue" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Applicant Communication">
+                        <field name="sedar_public_message"/>
+                        <field name="sedar_action_required"/>
+                        <field name="sedar_action_instructions" invisible="not sedar_action_required"/>
+                    </group>
+                    <group string="Decision Notes">
+                        <field name="sedar_rejection_reason" invisible="stage_id.sedar_public_status != 'closed'"/>
+                        <field name="sedar_withdrawal_reason"/>
+                    </group>
+                    <field name="sedar_stage_history_ids" readonly="1">
+                        <list>
+                            <field name="changed_at"/>
+                            <field name="previous_stage_id"/>
+                            <field name="new_stage_id"/>
+                            <field name="changed_by"/>
+                            <field name="reason"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_sedar_applicant_processing" model="ir.actions.act_window">
+        <field name="name">Applicant Processing</field>
+        <field name="res_model">hr.applicant</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="view_id" ref="view_sedar_applicant_processing_kanban"/>
+        <field name="search_view_id" ref="view_sedar_applicant_processing_search"/>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html"><p>Review applications, assign recruiters, and move applicants through the SEDAR recruitment pipeline.</p></field>
+    </record>
+
+    <record id="action_sedar_applicant_action_queue" model="ir.actions.act_window">
+        <field name="name">Applicant Action Queue</field>
+        <field name="res_model">hr.applicant</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_sedar_applicant_processing_list"/>
+        <field name="search_view_id" ref="view_sedar_applicant_processing_search"/>
+        <field name="domain">[('sedar_next_action_date', '!=', False), ('stage_id.fold', '!=', True)]</field>
+        <field name="context">{'search_default_overdue': 1}</field>
+    </record>
+
+    <record id="view_sedar_applicant_interview_list" model="ir.ui.view">
+        <field name="name">sedar.applicant.interview.list</field>
+        <field name="model">sedar.applicant.interview</field>
+        <field name="arch" type="xml">
+            <list string="Applicant Interviews" default_order="start_datetime desc">
+                <field name="name"/>
+                <field name="applicant_id"/>
+                <field name="job_id"/>
+                <field name="interview_type"/>
+                <field name="start_datetime"/>
+                <field name="end_datetime"/>
+                <field name="interviewer_ids" widget="many2many_tags"/>
+                <field name="status" widget="badge"/>
+                <field name="appraisal_request_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sedar_applicant_interview_calendar" model="ir.ui.view">
+        <field name="name">sedar.applicant.interview.calendar</field>
+        <field name="model">sedar.applicant.interview</field>
+        <field name="arch" type="xml">
+            <calendar string="Applicant Interviews" date_start="start_datetime" date_stop="end_datetime" color="coordinator_id" mode="week">
+                <field name="name"/>
+                <field name="applicant_id"/>
+                <field name="job_id"/>
+                <field name="status"/>
+                <field name="coordinator_id"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="view_sedar_applicant_interview_form" model="ir.ui.view">
+        <field name="name">sedar.applicant.interview.form</field>
+        <field name="model">sedar.applicant.interview</field>
+        <field name="arch" type="xml">
+            <form string="Applicant Interview">
+                <header>
+                    <button name="action_schedule" type="object" string="Schedule Interview" class="btn-primary" invisible="status != 'draft'"/>
+                    <button name="action_update_schedule" type="object" string="Update Schedule" class="btn-primary" invisible="status not in ['scheduled', 'confirmed', 'reschedule']"/>
+                    <button name="action_confirm_applicant" type="object" string="Mark Applicant Confirmed" invisible="status != 'scheduled'"/>
+                    <button name="action_complete" type="object" string="Complete Interview" class="btn-primary" invisible="status not in ['scheduled', 'confirmed']"/>
+                    <button name="action_cancel" type="object" string="Cancel" invisible="status in ['completed', 'cancelled']"/>
+                    <field name="status" widget="statusbar" statusbar_visible="draft,scheduled,confirmed,completed"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Applicant">
+                            <field name="name"/>
+                            <field name="applicant_id" domain="[('stage_id.sedar_public_status', 'in', ['shortlisted', 'interview'])]"/>
+                            <field name="vacancy_id"/>
+                            <field name="job_id"/>
+                            <field name="interview_type"/>
+                        </group>
+                        <group string="Schedule">
+                            <field name="start_datetime"/>
+                            <field name="end_datetime"/>
+                            <field name="location"/>
+                            <field name="meeting_url" widget="url"/>
+                        </group>
+                    </group>
+                    <group string="People">
+                        <field name="coordinator_id"/>
+                        <field name="interviewer_ids" widget="many2many_tags"/>
+                    </group>
+                    <group string="Applicant Communication">
+                        <field name="applicant_confirmation_note"/>
+                    </group>
+                    <notebook>
+                        <page string="ADM-4 Appraisal">
+                            <field name="appraisal_request_id" readonly="1"/>
+                            <p class="text-muted">The ADM-4 request is created automatically when the interview is scheduled.</p>
+                        </page>
+                        <page string="Calendar Event">
+                            <field name="calendar_event_id" readonly="1"/>
+                        </page>
+                        <page string="Internal Notes">
+                            <field name="result"/>
+                            <field name="internal_notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_hr_applicant_sedar_interview_inherit" model="ir.ui.view">
+        <field name="name">hr.applicant.sedar.interview.inherit</field>
+        <field name="model">hr.applicant</field>
+        <field name="inherit_id" ref="view_hr_applicant_sedar_operations_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='sedar_processing']" position="after">
+                <page string="Interviews" name="sedar_interviews">
+                    <field name="sedar_interview_ids" context="{'default_applicant_id': id}">
+                        <list>
+                            <field name="name"/>
+                            <field name="interview_type"/>
+                            <field name="start_datetime"/>
+                            <field name="interviewer_ids" widget="many2many_tags"/>
+                            <field name="status" widget="badge"/>
+                            <field name="appraisal_request_id"/>
+                        </list>
+                    </field>
+                </page>
+                <page string="Requirements" name="sedar_requirements">
+                    <field name="sedar_requirement_request_ids" readonly="1">
+                        <list>
+                            <field name="name"/>
+                            <field name="document_type_id"/>
+                            <field name="sedar_request_purpose"/>
+                            <field name="applicant_visible"/>
+                            <field name="state" widget="badge"/>
+                            <field name="completion_percent" widget="percentage"/>
+                            <field name="due_date"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_sedar_document_request_interview_inherit" model="ir.ui.view">
+        <field name="name">sedar.document.request.interview.inherit</field>
+        <field name="model">sedar.document.request</field>
+        <field name="inherit_id" ref="sedar_document_control.view_sedar_document_request_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='subject_reference']" position="after">
+                <field name="applicant_id" readonly="1"/>
+                <field name="interview_id" readonly="1"/>
+                <field name="sedar_request_purpose"/>
+                <field name="applicant_visible"/>
+            </xpath>
+            <xpath expr="//field[@name='notes']" position="after">
+                <group string="Applicant Submission">
+                    <field name="applicant_submission_note"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_sedar_applicant_interviews" model="ir.actions.act_window">
+        <field name="name">Applicant Interviews</field>
+        <field name="res_model">sedar.applicant.interview</field>
+        <field name="view_mode">calendar,list,form</field>
+        <field name="help" type="html"><p>Schedule applicant interviews and complete the linked ADM-4 appraisal.</p></field>
+    </record>
+
+    <menuitem id="menu_sedar_recruitment_root" name="SEDAR Recruitment" sequence="20" groups="hr_recruitment.group_hr_recruitment_user"/>
+    <menuitem id="menu_sedar_applicant_processing" name="Applicant Processing" parent="menu_sedar_recruitment_root" action="action_sedar_applicant_processing" sequence="10" groups="hr_recruitment.group_hr_recruitment_user"/>
+    <menuitem id="menu_sedar_applicant_action_queue" name="Action Queue" parent="menu_sedar_recruitment_root" action="action_sedar_applicant_action_queue" sequence="20" groups="hr_recruitment.group_hr_recruitment_user"/>
+    <menuitem id="menu_sedar_applicant_interviews" name="Applicant Interviews" parent="menu_sedar_recruitment_root" action="action_sedar_applicant_interviews" sequence="30" groups="hr_recruitment.group_hr_recruitment_user"/>
+</odoo>

@@ -1,0 +1,18 @@
+{
+    "name": "SEDAR Recruitment Operations",
+    "version": "19.0.1.0.0",
+    "category": "Human Resources",
+    "summary": "HR applicant processing dashboard and controlled recruitment stages",
+    "author": "SEDAR Development Team",
+    "license": "LGPL-3",
+    "depends": ["sedar_applicant_portal", "sedar_document_control", "hr_recruitment", "calendar", "mail"],
+    "data": [
+        "security/ir.model.access.csv",
+        "data/sedar_recruitment_stage_data.xml",
+        "views/sedar_recruitment_views.xml",
+        "views/sedar_interview_portal_templates.xml",
+    ],
+    "post_init_hook": "post_init_hook",
+    "installable": True,
+    "application": True,
+}

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="stage_under_review" model="hr.recruitment.stage">
+        <field name="name">Under HR Review</field>
+        <field name="sequence">10</field>
+        <field name="fold">0</field>
+        <field name="sedar_public_status">under_review</field>
+        <field name="sedar_public_title">Under Review</field>
+        <field name="sedar_public_message">HR is reviewing your application and submitted information.</field>
+    </record>
+    <record id="stage_qualified" model="hr.recruitment.stage">
+        <field name="name">Qualified</field>
+        <field name="sequence">20</field>
+        <field name="fold">0</field>
+        <field name="sedar_public_status">shortlisted</field>
+        <field name="sedar_public_title">Shortlisted</field>
+        <field name="sedar_public_message">Your application passed the initial review and is ready for the next recruitment step.</field>
+    </record>
+    <record id="stage_clarification" model="hr.recruitment.stage">
+        <field name="name">Clarification Required</field>
+        <field name="sequence">30</field>
+        <field name="fold">0</field>
+        <field name="sedar_public_status">requirements</field>
+        <field name="sedar_public_title">Additional Information Needed</field>
+        <field name="sedar_public_message">SEDAR needs additional information before continuing the review.</field>
+        <field name="sedar_public_action_required">1</field>
+    </record>
+    <record id="stage_rejected" model="hr.recruitment.stage">
+        <field name="name">Rejected</field>
+        <field name="sequence">90</field>
+        <field name="fold">1</field>
+        <field name="sedar_public_status">closed</field>
+        <field name="sedar_public_title">Application Closed</field>
+        <field name="sedar_public_message">SEDAR has completed its review of this application.</field>
+    </record>
+    <record id="stage_interview_scheduled" model="hr.recruitment.stage">
+        <field name="name">Interview Scheduled</field>
+        <field name="sequence">40</field>
+        <field name="fold">0</field>
+        <field name="sedar_public_status">interview</field>
+        <field name="sedar_public_title">Interview Scheduled</field>
+        <field name="sedar_public_message">Your interview has been scheduled. Please review the schedule in your applicant dashboard.</field>
+    </record>
+    <record id="stage_interview_completed" model="hr.recruitment.stage">
+        <field name="name">Interview Completed</field>
+        <field name="sequence">50</field>
+        <field name="fold">0</field>
+        <field name="sedar_public_status">final_review</field>
+        <field name="sedar_public_title">Interview Completed</field>
+        <field name="sedar_public_message">Your interview has been completed and is under HR review.</field>
+    </record>
+    <record id="stage_requirements_requested" model="hr.recruitment.stage">
+        <field name="name">Employment Requirements Requested</field>
+        <field name="sequence">60</field>
+        <field name="fold">0</field>
+        <field name="sedar_public_status">requirements</field>
+        <field name="sedar_public_title">Employment Requirements Requested</field>
+        <field name="sedar_public_message">SEDAR HR has requested your employment requirements. Please submit the requested documents in your applicant dashboard.</field>
+        <field name="sedar_public_action_required">1</field>
+    </record>
+    <record id="stage_requirements_submitted" model="hr.recruitment.stage">
+        <field name="name">Requirements Submitted</field>
+        <field name="sequence">70</field>
+        <field name="fold">0</field>
+        <field name="sedar_public_status">final_review</field>
+        <field name="sedar_public_title">Requirements Submitted</field>
+        <field name="sedar_public_message">Your employment requirements were submitted and are being reviewed by SEDAR HR.</field>
+    </record>
+    <record id="stage_requirements_verified" model="hr.recruitment.stage">
+        <field name="name">Requirements Verified</field>
+        <field name="sequence">80</field>
+        <field name="fold">0</field>
+        <field name="sedar_public_status">offer</field>
+        <field name="sedar_public_title">Requirements Verified</field>
+        <field name="sedar_public_message">Your employment requirements have been verified. SEDAR HR will proceed with the next employment step.</field>
+    </record>
+    <record id="stage_employee_created" model="hr.recruitment.stage">
+        <field name="name">Employee Profile Created</field>
+        <field name="sequence">85</field>
+        <field name="fold">0</field>
+        <field name="sedar_public_status">successful</field>
+        <field name="sedar_public_title">Employee Profile Created</field>
+        <field name="sedar_public_message">Your employee profile has been created. SEDAR HR will complete the remaining onboarding setup.</field>
+    </record>
+</odoo>
