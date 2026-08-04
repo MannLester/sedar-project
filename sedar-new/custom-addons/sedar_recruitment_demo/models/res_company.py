@@ -440,6 +440,7 @@ class ResCompany(models.Model):
         if record._name == "res.users":
             managed.pop("password", None)
         if record._name == "hr.applicant":
+            managed.pop("stage_id", None)
             managed.pop("sedar_public_status", None)
             managed.pop("sedar_rejection_reason", None)
             managed.pop("sedar_withdrawal_reason", None)

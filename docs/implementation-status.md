@@ -276,6 +276,11 @@ HR and job-application demonstration baseline. The older manpower demo still mar
 headcount shortage resolved when the vacancy opens; the slice roadmap records that semantic
 discrepancy for a later ADR-backed workflow correction.
 
+Slice 2 extends `sedar_recruitment_operations` with an HR-facing Recruitment Dashboard. The
+dashboard uses source-record actions rather than copied totals: pipeline graph/pivot views open
+`hr.applicant`, interview queues open `sedar.applicant.interview`, ADM-5 queues open
+`sedar.document.request`, and open-vacancy queues open `sedar.job.vacancy`.
+
 The repository contains automated tests for the marine readiness/completion lifecycle and Marine Finance calculations and controls. Applicant portal and recruitment slices have been manually verified through Odoo module upgrades and representative portal/backend workflows.
 
 ## 7. Demonstration Gaps That Affect Existing Flows
