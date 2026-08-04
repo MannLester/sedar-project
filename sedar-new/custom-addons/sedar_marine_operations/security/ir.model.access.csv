@@ -6,6 +6,17 @@ access_tug_class_user,tug class user,model_sedar_tug_class,base.group_user,1,1,1
 access_client_vessel_user,client vessel user,model_sedar_client_vessel,base.group_user,1,1,1,0
 access_client_tariff_user,client tariff user,model_sedar_client_tariff,base.group_user,1,1,1,0
 access_service_order_user,service order user,model_sedar_marine_service_order,base.group_user,1,1,1,0
+access_tugboat_user,tugboat user,model_sedar_tugboat,base.group_user,1,1,1,0
+access_crew_rank_user,crew rank user,model_sedar_crew_rank,base.group_user,1,1,1,0
+access_certificate_type_user,certificate type user,model_sedar_crew_certificate_type,base.group_user,1,1,1,0
+access_crew_profile_user,crew profile user,model_sedar_crew_profile,base.group_user,1,1,1,0
+access_crew_certificate_user,crew certificate user,model_sedar_crew_certificate,base.group_user,1,1,1,0
+access_manning_template_user,manning template user,model_sedar_manning_template,base.group_user,1,1,1,0
+access_manning_template_line_user,manning template line user,model_sedar_manning_template_line,base.group_user,1,1,1,0
+access_tug_assignment_user,tug assignment user,model_sedar_tug_assignment,base.group_user,1,1,1,0
+access_manning_requirement_user,manning requirement user,model_sedar_manning_requirement,base.group_user,1,1,1,0
+access_crew_assignment_user,crew assignment user,model_sedar_crew_assignment,base.group_user,1,1,1,0
+access_crew_shortage_user,crew shortage user,model_sedar_crew_shortage,base.group_user,1,1,1,0
 access_service_type_portal,service type portal,model_sedar_marine_service_type,base.group_portal,1,0,0,0
 access_port_portal,port portal,model_sedar_marine_port,base.group_portal,1,0,0,0
 access_berth_portal,berth portal,model_sedar_marine_berth,base.group_portal,1,0,0,0

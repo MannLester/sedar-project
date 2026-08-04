@@ -12,6 +12,9 @@
                 <filter name="pricing_review" string="Pricing Review" domain="[('pricing_status','=','review')]"/>
                 <filter name="confirmed" string="Confirmed" domain="[('state','=','confirmed')]"/>
                 <filter name="urgent" string="Urgent / Emergency" domain="[('priority','in',['urgent','emergency'])]"/>
+                <filter name="ready" string="Ready" domain="[('readiness_status','=','ready')]"/>
+                <filter name="blocked_tug" string="Blocked by Tug" domain="[('readiness_status','=','blocked_tug')]"/>
+                <filter name="blocked_crew" string="Blocked by Crew" domain="[('readiness_status','=','blocked_crew')]"/>
                 <separator/>
                 <filter string="Group by Status" name="group_state" context="{'group_by':'state'}"/>
                 <filter string="Group by Client" name="group_client" context="{'group_by':'client_id'}"/>
@@ -29,7 +32,7 @@
                 <field name="name"/><field name="client_id"/><field name="assisted_vessel_name"/>
                 <field name="service_type_id"/><field name="port_id"/><field name="requested_start"/>
                 <field name="number_of_tugs"/><field name="estimated_amount" sum="Total"/>
-                <field name="currency_id" column_invisible="True"/><field name="pricing_status"/><field name="state"/>
+                <field name="currency_id" column_invisible="True"/><field name="pricing_status"/><field name="readiness_status"/><field name="state"/>
             </list>
         </field>
     </record>
@@ -41,7 +44,7 @@
             <kanban default_group_by="state" class="o_kanban_small_column">
                 <field name="name"/><field name="client_id"/><field name="assisted_vessel_name"/>
                 <field name="service_type_id"/><field name="requested_start"/><field name="priority"/>
-                <field name="pricing_status"/><field name="estimated_amount"/><field name="currency_id"/>
+                <field name="pricing_status"/><field name="readiness_status"/><field name="estimated_amount"/><field name="currency_id"/>
                 <templates>
                     <t t-name="card">
                         <div class="d-flex justify-content-between align-items-start">
@@ -52,6 +55,7 @@
                         <div><field name="assisted_vessel_name"/> · <field name="service_type_id"/></div>
                         <div class="text-muted mt-2"><field name="requested_start"/></div>
                         <div class="mt-2"><field name="pricing_status"/></div>
+                        <div class="mt-1"><field name="readiness_status"/></div>
                         <div t-if="record.estimated_amount.raw_value" class="mt-1 fw-semibold"><field name="estimated_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/></div>
                     </t>
                 </templates>
@@ -103,6 +107,15 @@
                                 </group>
                             </group>
                         </page>
+                        <page string="Tug and Crew Readiness">
+                            <group><field name="readiness_status"/><field name="readiness_reason"/><field name="tug_assignment_count"/></group>
+                            <field name="tug_assignment_ids">
+                                <list>
+                                    <field name="tugboat_id"/><field name="planned_start"/><field name="planned_end"/>
+                                    <field name="tug_available"/><field name="availability_reason"/><field name="state"/>
+                                </list>
+                            </field>
+                        </page>
                         <page string="Safety and Documents">
                             <group>
                                 <group><field name="hazardous_cargo"/><field name="cargo_description" invisible="not hazardous_cargo"/><field name="permit_required"/></group>
@@ -143,11 +156,61 @@
     <record id="view_client_vessel_form" model="ir.ui.view"><field name="name">sedar.client.vessel.form</field><field name="model">sedar.client.vessel</field><field name="arch" type="xml"><form><sheet><group><group><field name="name"/><field name="owner_id"/><field name="imo_number"/><field name="call_sign"/><field name="vessel_type"/></group><group><field name="gross_tonnage"/><field name="length_overall"/><field name="draft"/><field name="active"/></group></group></sheet></form></field></record>
     <record id="action_client_vessels" model="ir.actions.act_window"><field name="name">Client Vessels</field><field name="res_model">sedar.client.vessel</field><field name="view_mode">list,form</field></record>
 
+    <record id="view_tugboat_list" model="ir.ui.view"><field name="name">sedar.tugboat.list</field><field name="model">sedar.tugboat</field><field name="arch" type="xml"><list><field name="name"/><field name="registration_number"/><field name="call_sign"/><field name="tug_class_id"/><field name="bollard_pull"/><field name="home_port_id"/><field name="availability_status"/></list></field></record>
+    <record id="view_tugboat_form" model="ir.ui.view"><field name="name">sedar.tugboat.form</field><field name="model">sedar.tugboat</field><field name="arch" type="xml"><form><sheet><group><group><field name="name"/><field name="registration_number"/><field name="call_sign"/><field name="mmsi"/><field name="tug_class_id"/></group><group><field name="bollard_pull"/><field name="fuel_capacity"/><field name="home_port_id"/><field name="availability_status"/><field name="active"/></group></group><field name="home_crew_ids"><list><field name="employee_number"/><field name="employee_id"/><field name="rank_id"/><field name="availability_status"/></list></field></sheet></form></field></record>
+    <record id="action_tugboats" model="ir.actions.act_window"><field name="name">Tugboats</field><field name="res_model">sedar.tugboat</field><field name="view_mode">list,form</field></record>
+
+    <record id="view_crew_profile_list" model="ir.ui.view"><field name="name">sedar.crew.profile.list</field><field name="model">sedar.crew.profile</field><field name="arch" type="xml"><list><field name="employee_number"/><field name="employee_id"/><field name="rank_id"/><field name="home_tugboat_id"/><field name="availability_status"/><field name="seafarer_number"/></list></field></record>
+    <record id="view_crew_profile_form" model="ir.ui.view"><field name="name">sedar.crew.profile.form</field><field name="model">sedar.crew.profile</field><field name="arch" type="xml"><form><sheet><group><group><field name="employee_number"/><field name="employee_id"/><field name="rank_id"/></group><group><field name="home_tugboat_id"/><field name="availability_status"/><field name="seafarer_number"/><field name="active"/></group></group><field name="certificate_ids"><list editable="bottom"><field name="certificate_type_id"/><field name="certificate_number"/><field name="issue_date"/><field name="expiry_date"/><field name="status"/></list></field></sheet></form></field></record>
+    <record id="action_crew_profiles" model="ir.actions.act_window"><field name="name">Crew Profiles</field><field name="res_model">sedar.crew.profile</field><field name="view_mode">list,form</field></record>
+
+    <record id="view_manning_template_list" model="ir.ui.view"><field name="name">sedar.manning.template.list</field><field name="model">sedar.manning.template</field><field name="arch" type="xml"><list><field name="name"/><field name="service_type_id"/><field name="tug_class_id"/><field name="active"/></list></field></record>
+    <record id="view_manning_template_form" model="ir.ui.view"><field name="name">sedar.manning.template.form</field><field name="model">sedar.manning.template</field><field name="arch" type="xml"><form><sheet><group><field name="name"/><field name="service_type_id"/><field name="tug_class_id"/><field name="active"/></group><field name="line_ids"><list editable="bottom"><field name="sequence"/><field name="rank_id"/><field name="required_count"/><field name="required_certificate_type_ids" widget="many2many_tags"/></list></field></sheet></form></field></record>
+    <record id="action_manning_templates" model="ir.actions.act_window"><field name="name">Manning Templates</field><field name="res_model">sedar.manning.template</field><field name="view_mode">list,form</field></record>
+
+    <record id="view_tug_assignment_form" model="ir.ui.view"><field name="name">sedar.tug.assignment.form</field><field name="model">sedar.tug.assignment</field><field name="arch" type="xml"><form><header><button name="action_generate_requirements" type="object" string="Generate Manning Requirements" class="btn-primary" invisible="requirement_ids"/><field name="state" widget="statusbar"/></header><sheet><group><field name="order_id"/><field name="tugboat_id"/><field name="planned_start"/><field name="planned_end"/><field name="tug_available"/><field name="availability_reason"/></group><field name="requirement_ids"><list><field name="rank_id"/><field name="required_count"/><field name="assigned_count"/><field name="gap_count"/><field name="compliance_issue_count"/><field name="status"/></list></field></sheet></form></field></record>
+    <record id="view_tug_assignment_list" model="ir.ui.view"><field name="name">sedar.tug.assignment.list</field><field name="model">sedar.tug.assignment</field><field name="arch" type="xml"><list><field name="order_id"/><field name="tugboat_id"/><field name="planned_start"/><field name="planned_end"/><field name="tug_available"/><field name="state"/></list></field></record>
+    <record id="action_tug_assignments" model="ir.actions.act_window"><field name="name">Tug and Crew Plans</field><field name="res_model">sedar.tug.assignment</field><field name="view_mode">list,form</field></record>
+
+    <record id="view_manning_requirement_form" model="ir.ui.view">
+        <field name="name">sedar.manning.requirement.form</field>
+        <field name="model">sedar.manning.requirement</field>
+        <field name="arch" type="xml">
+            <form string="Manning Requirement">
+                <sheet>
+                    <group>
+                        <group><field name="tug_assignment_id"/><field name="rank_id"/><field name="required_count"/></group>
+                        <group><field name="status"/><field name="assigned_count"/><field name="gap_count"/><field name="compliance_issue_count"/></group>
+                    </group>
+                    <field name="required_certificate_type_ids" widget="many2many_tags"/>
+                    <field name="crew_assignment_ids">
+                        <list editable="bottom">
+                            <field name="crew_profile_id" domain="[('rank_id', '=', parent.rank_id)]"/>
+                            <field name="employee_id"/><field name="rank_id"/>
+                            <field name="state"/><field name="is_eligible"/><field name="eligibility_reason"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_crew_rank_list" model="ir.ui.view"><field name="name">sedar.crew.rank.list</field><field name="model">sedar.crew.rank</field><field name="arch" type="xml"><list editable="bottom"><field name="sequence"/><field name="code"/><field name="name"/><field name="active"/></list></field></record>
+    <record id="action_crew_ranks" model="ir.actions.act_window"><field name="name">Crew Ranks</field><field name="res_model">sedar.crew.rank</field><field name="view_mode">list</field></record>
+    <record id="view_certificate_type_list" model="ir.ui.view"><field name="name">sedar.crew.certificate.type.list</field><field name="model">sedar.crew.certificate.type</field><field name="arch" type="xml"><list editable="bottom"><field name="code"/><field name="name"/><field name="active"/></list></field></record>
+    <record id="action_certificate_types" model="ir.actions.act_window"><field name="name">Certificate Types</field><field name="res_model">sedar.crew.certificate.type</field><field name="view_mode">list</field></record>
+
     <menuitem id="menu_marine_operations" name="Marine Operations" parent="sedar_document_control.menu_sedar_root" sequence="20"/>
     <menuitem id="menu_service_order_dashboard" name="Service Order Dashboard" parent="menu_marine_operations" action="action_service_order_dashboard" sequence="10"/>
     <menuitem id="menu_client_tariffs" name="Client Tariffs" parent="menu_marine_operations" action="action_client_tariffs" sequence="20"/>
     <menuitem id="menu_client_vessels" name="Client Vessels" parent="menu_marine_operations" action="action_client_vessels" sequence="30"/>
+    <menuitem id="menu_tugboats" name="Tugboats" parent="menu_marine_operations" action="action_tugboats" sequence="40"/>
+    <menuitem id="menu_crew_profiles" name="Crew Profiles" parent="menu_marine_operations" action="action_crew_profiles" sequence="50"/>
+    <menuitem id="menu_tug_assignments" name="Tug and Crew Plans" parent="menu_marine_operations" action="action_tug_assignments" sequence="60"/>
     <menuitem id="menu_marine_configuration" name="Configuration" parent="menu_marine_operations" sequence="90"/>
     <menuitem id="menu_service_types" name="Service Types" parent="menu_marine_configuration" action="action_service_types" sequence="10"/>
     <menuitem id="menu_ports" name="Ports and Locations" parent="menu_marine_configuration" action="action_ports" sequence="20"/>
+    <menuitem id="menu_manning_templates" name="Manning Templates" parent="menu_marine_configuration" action="action_manning_templates" sequence="30"/>
+    <menuitem id="menu_crew_ranks" name="Crew Ranks" parent="menu_marine_configuration" action="action_crew_ranks" sequence="40"/>
+    <menuitem id="menu_certificate_types" name="Certificate Types" parent="menu_marine_configuration" action="action_certificate_types" sequence="50"/>
 </odoo>

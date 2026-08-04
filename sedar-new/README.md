@@ -79,3 +79,24 @@ Local demo portal credentials:
 
 The local demo database contains a sample Batangas tariff for `SEDAR Demo Shipping Client`.
 These credentials and rates are local database fixtures and are not production configuration.
+
+## Service Order Seed Data
+
+The optional `sedar_service_order_demo` addon contains fictional records only. It seeds the
+service-order scope with four clients, six assisted vessels, five tugboats, 24 employees,
+22 marine crew profiles, certificates, manning templates, tariffs, and eleven service orders.
+It deliberately includes ready, no-tug, missing-crew, expired-medical, maintenance-hold,
+pricing-review, completed, and two-tug scenarios.
+
+Install or refresh the operational module and seed data with:
+
+```powershell
+docker compose exec odoo odoo -c /etc/odoo/odoo.conf -d sedar_demo `
+  -u sedar_marine_operations -i sedar_service_order_demo --stop-after-init
+docker compose restart odoo
+```
+
+Open **SEDAR > Marine Operations > Service Order Dashboard** to compare readiness states.
+Use **Tugboats**, **Crew Profiles**, and **Tug and Crew Plans** to inspect the records behind
+each result. The demo addon is separate so its fictional records can be removed independently
+from the production-oriented operational models.

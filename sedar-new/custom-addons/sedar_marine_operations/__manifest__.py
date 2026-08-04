@@ -5,7 +5,7 @@
     "summary": "Client service-order intake, tariffs, and marine operations planning",
     "author": "SEDAR Development Team",
     "license": "LGPL-3",
-    "depends": ["sedar_document_control", "mail", "portal", "website"],
+    "depends": ["sedar_document_control", "hr", "mail", "portal", "website"],
     "data": [
         "security/sedar_marine_security.xml",
         "security/ir.model.access.csv",

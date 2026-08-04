@@ -78,6 +78,66 @@ class SedarMarineServiceOrder(models.Model):
         ("closed", "Closed"), ("cancelled", "Cancelled"),
     ], default="draft", required=True, tracking=True)
     cancellation_reason = fields.Text()
+    tug_assignment_ids = fields.One2many("sedar.tug.assignment", "order_id", string="Tug Assignments")
+    tug_assignment_count = fields.Integer(compute="_compute_readiness", store=True)
+    readiness_status = fields.Selection([
+        ("not_planned", "Not Yet Planned"),
+        ("waiting_tug", "Waiting for Tug"),
+        ("waiting_crew", "Waiting for Crew Plan"),
+        ("blocked_tug", "Blocked by Tug Availability"),
+        ("blocked_crew", "Blocked by Crew or Compliance"),
+        ("ready", "Ready"),
+    ], compute="_compute_readiness", store=True)
+    readiness_reason = fields.Char(compute="_compute_readiness", store=True)
+
+    @api.depends(
+        "state", "number_of_tugs", "tug_assignment_ids.state",
+        "tug_assignment_ids.tugboat_id.availability_status",
+        "tug_assignment_ids.requirement_ids.required_count",
+        "tug_assignment_ids.requirement_ids.crew_assignment_ids.state",
+        "tug_assignment_ids.requirement_ids.gap_count",
+        "tug_assignment_ids.requirement_ids.compliance_issue_count",
+    )
+    def _compute_readiness(self):
+        for order in self:
+            assignments = order.tug_assignment_ids.filtered(lambda assignment: assignment.state != "cancelled")
+            order.tug_assignment_count = len(assignments)
+            if not assignments:
+                if order.state in {"draft", "submitted", "review", "needs_info", "pricing", "quoted"}:
+                    order.readiness_status = "not_planned"
+                    order.readiness_reason = "Order has not reached operations planning."
+                else:
+                    order.readiness_status = "waiting_tug"
+                    order.readiness_reason = "No tugboat has been assigned."
+                continue
+            if len(assignments) < order.number_of_tugs:
+                order.readiness_status = "waiting_tug"
+                order.readiness_reason = "%s of %s requested tugboats are assigned." % (
+                    len(assignments), order.number_of_tugs,
+                )
+                continue
+            unavailable = assignments.filtered(lambda assignment: not assignment.tug_available)
+            if unavailable:
+                order.readiness_status = "blocked_tug"
+                order.readiness_reason = "Unavailable tugboat: %s" % ", ".join(unavailable.mapped("tugboat_id.name"))
+                continue
+            requirements = assignments.mapped("requirement_ids")
+            if not requirements:
+                order.readiness_status = "waiting_crew"
+                order.readiness_reason = "Manning requirements have not been generated."
+                continue
+            compliance = requirements.filtered(lambda requirement: requirement.compliance_issue_count)
+            shortages = requirements.filtered(lambda requirement: requirement.gap_count)
+            if compliance:
+                order.readiness_status = "blocked_crew"
+                order.readiness_reason = "Crew certificate, medical, leave, rank, or schedule issue."
+            elif shortages:
+                ranks = ", ".join(shortages.mapped("rank_id.name"))
+                order.readiness_status = "blocked_crew"
+                order.readiness_reason = "Unfilled manning requirement: %s" % ranks
+            else:
+                order.readiness_status = "ready"
+                order.readiness_reason = "Tugboat and minimum compliant crew are assigned."
 
     @api.depends("requested_start", "estimated_duration_hours")
     def _compute_requested_completion(self):
