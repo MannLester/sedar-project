@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="0">
+    <function model="res.company" name="sedar_ensure_recruitment_demo">
+        <value model="res.company" search="[('id', '=', 1)]"/>
+    </function>
+</odoo>

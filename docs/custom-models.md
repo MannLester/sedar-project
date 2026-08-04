@@ -14,7 +14,7 @@ Update this document in the same change whenever a listed custom field is added,
 | `sedar.client.tariff` | Extended | Governs client- and terminal-specific tariff approval and revision history | `sedar_marine_finance/models/marine_finance.py` |
 | `sedar.marine.billing.adjustment` | New | Stores explained charges or deductions included in the final invoice | `sedar_marine_finance/models/marine_finance.py` |
 | `account.move` | Extended | Links the standard Odoo customer invoice back to its Marine Service Order | `sedar_marine_finance/models/account_move.py` |
-| `res.company` | Method-only extension | Configures the demo company and seeded commercial records to use PHP | `sedar_service_order_demo/models/res_company.py` |
+| `res.company` | Method-only extension | Configures demo currency and reconciles repeatable fictional recruitment demonstration records | `sedar_service_order_demo/models/res_company.py`; `sedar_recruitment_demo/models/res_company.py` |
 | `res.users` | Method-only extension | Assigns the custom Service Order dashboard as the default home action for internal users | `sedar_theme/models/res_users.py` |
 | `hr.recruitment.stage` | Extended | Maps internal recruitment stages to applicant-visible statuses and instructions | `sedar_applicant_portal/models/portal.py` |
 | `hr.applicant` | Extended | Owns portal access, public tracking, HR processing, interviews, requirements, and employee conversion | `sedar_applicant_portal/models/portal.py`; `sedar_recruitment_operations/models/applicant.py` |
@@ -163,6 +163,14 @@ Posting, taxes, receivables, payment registration, reconciliation, credit notes,
 ## `res.company` demo extension
 
 No field is added. `sedar_configure_demo_currency()` changes the main demo company's currency to PHP and updates seeded service types, tariffs, working order currency, and frozen order currency. It is demo bootstrap behavior, not a replacement for normal company accounting configuration.
+
+`sedar_recruitment_demo` also adds the method-only `sedar_ensure_recruitment_demo()` extension.
+It creates and reconciles fictional HR users, portal ownership, recruitment applicants,
+ADM-3 profile/supporting records, interviews, ADM-4 appraisal requests, ADM-5 requirement
+requests, and one converted employee. The method is invoked by XML data during module install
+and upgrade so the Slice 1 recruitment baseline is repeatable. It uses stable external IDs under
+the `sedar_recruitment_demo` module and avoids deleting or replacing unrelated user-created
+records.
 
 ## `res.users` theme extension
 

@@ -157,6 +157,41 @@ The seeded two-tug towage order is completed by both Tug Masters and appears in
 terminal-specific mock tariff. The Billing Officer can complete review and create the draft
 invoice. The Accounting Manager can post it and register payment using standard Odoo Accounting.
 
+## Recruitment Demo Baseline
+
+The `sedar_recruitment_demo` addon is a non-production fixture module for Slice 1. It runs an
+idempotent bootstrap on install and upgrade so a clean Docker database and a reused local
+database both receive the same named fictional recruitment scenarios without creating duplicates.
+
+The seeded recruitment scenarios include:
+
+- New application awaiting HR review
+- Qualified applicant awaiting interview scheduling
+- Scheduled interview awaiting applicant confirmation
+- Interview with reschedule requested
+- Completed interview awaiting HR decision
+- Applicant with pending ADM-5 requirements
+- Applicant with verified ADM-5 requirements
+- Rejected applicant
+- Withdrawn applicant
+- Successful applicant converted to an employee
+
+The scenarios are linked to the existing Chief Engineer vacancy from the manpower demo, which in
+turn traces back to the permanent headcount shortage in the Service Order demo. The manpower demo
+also preserves non-hiring shortage examples for expired medical and leave/temporary reliever
+handling.
+
+Recruitment demo users:
+
+- HR Recruiter: `hr@sedar.demo`, password `recruitdemo`
+- HR Manager: `hrmanager@sedar.demo`, password `recruitdemo`
+- Technical Interviewer: `interviewer@sedar.demo`, password `recruitdemo`
+- Applicant portal user: `applicant@sedar.demo`, password `applicantdemo`
+
+Open **SEDAR Recruitment > Applicant Processing** to review the internal HR scenarios. Open
+`http://localhost:8069/my/applications` as the applicant portal user to inspect the applicant-side
+tracking scenario with a pending ADM-5 request.
+
 Run the Finance workflow tests in an isolated database:
 
 ```powershell
