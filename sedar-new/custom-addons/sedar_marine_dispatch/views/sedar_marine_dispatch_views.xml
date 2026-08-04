@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_marine_operation_search" model="ir.ui.view">
+        <field name="name">sedar.marine.operation.search</field>
+        <field name="model">sedar.marine.operation</field>
+        <field name="arch" type="xml">
+            <search string="Marine Operations">
+                <field name="name"/><field name="order_id"/><field name="client_id"/>
+                <filter name="ready" string="Ready to Dispatch" domain="[('order_id.state','=','ready')]"/>
+                <filter name="dispatched" string="Dispatched" domain="[('state','=','dispatched')]"/>
+                <filter name="in_progress" string="In Progress" domain="[('state','=','in_progress')]"/>
+                <filter name="delayed" string="Delayed" domain="[('delay_ids.state','=','open')]"/>
+                <filter name="completed" string="Completed" domain="[('state','=','completed')]"/>
+                <separator/>
+                <filter name="group_state" string="Group by Status" context="{'group_by':'state'}"/>
+                <filter name="group_port" string="Group by Port" context="{'group_by':'port_id'}"/>
+                <filter name="group_dispatcher" string="Group by Dispatcher" context="{'group_by':'dispatcher_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_marine_operation_list" model="ir.ui.view">
+        <field name="name">sedar.marine.operation.list</field>
+        <field name="model">sedar.marine.operation</field>
+        <field name="arch" type="xml">
+            <list string="Marine Operations" decoration-danger="state == 'cancelled'" decoration-warning="delay_ids">
+                <field name="name"/><field name="order_id"/><field name="client_id"/>
+                <field name="assisted_vessel_id"/><field name="port_id"/><field name="planned_start"/>
+                <field name="dispatcher_id"/><field name="state"/><field name="actual_duration_hours"/>
+                <field name="billing_ready"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_marine_operation_kanban" model="ir.ui.view">
+        <field name="name">sedar.marine.operation.kanban</field>
+        <field name="model">sedar.marine.operation</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_small_column">
+                <field name="name"/><field name="order_id"/><field name="client_id"/>
+                <field name="assisted_vessel_id"/><field name="planned_start"/><field name="state"/>
+                <field name="delay_ids"/><field name="actual_duration_hours"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <strong><field name="name"/></strong>
+                            <span t-if="record.delay_ids.raw_value" class="badge text-bg-warning">Delayed</span>
+                        </div>
+                        <div class="mt-2"><field name="client_id"/></div>
+                        <div><field name="assisted_vessel_id"/></div>
+                        <div class="text-muted mt-2"><field name="planned_start"/></div>
+                        <div class="mt-2"><field name="order_id"/></div>
+                        <div t-if="record.actual_duration_hours.raw_value" class="mt-1"><field name="actual_duration_hours"/> hours actual</div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_marine_operation_form" model="ir.ui.view">
+        <field name="name">sedar.marine.operation.form</field>
+        <field name="model">sedar.marine.operation</field>
+        <field name="arch" type="xml">
+            <form string="Marine Operation">
+                <header>
+                    <button name="action_open_order" type="object" string="Open Service Order" class="btn-secondary"/>
+                    <button name="action_dispatch" type="object" string="Dispatch" class="btn-primary" invisible="state != 'draft'" groups="sedar_marine_dispatch.group_dispatcher"/>
+                    <button name="action_start" type="object" string="Start Operation" class="btn-primary" invisible="state != 'dispatched'" groups="sedar_marine_dispatch.group_dispatcher"/>
+                    <button name="action_return_tugs" type="object" string="Return Tugs" invisible="state not in ['dispatched','in_progress']" groups="sedar_marine_dispatch.group_dispatcher"/>
+                    <button name="action_complete" type="object" string="Complete" class="btn-primary" invisible="state != 'in_progress'" groups="sedar_marine_dispatch.group_dispatch_manager"/>
+                    <button name="action_mark_billing_ready" type="object" string="Mark Billing Ready" invisible="state != 'completed' or billing_ready" groups="sedar_marine_dispatch.group_dispatch_manager"/>
+                    <button name="action_cancel" type="object" string="Cancel" invisible="state in ['completed','cancelled']" groups="sedar_marine_dispatch.group_dispatcher"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,dispatched,in_progress,completed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><label for="name"/><h1><field name="name"/></h1></div>
+                    <group>
+                        <group string="Service Order"><field name="order_id"/><field name="client_id"/><field name="assisted_vessel_id"/><field name="service_type_id"/><field name="port_id"/></group>
+                        <group string="Schedule"><field name="planned_start"/><field name="planned_end"/><field name="dispatch_time"/><field name="dispatcher_id"/><field name="billing_ready"/></group>
+                    </group>
+                    <notebook>
+                        <page string="Tugs and Crew">
+                            <field name="tug_operation_ids">
+                                <list>
+                                    <field name="tugboat_id"/><field name="state"/><field name="departed_base_at"/><field name="arrived_on_scene_at"/><field name="service_released_at"/><field name="returned_base_at"/>
+                                </list>
+                                <form>
+                                    <header><button name="action_mark_on_scene" type="object" string="Mark On Scene"/><button name="action_release" type="object" string="Release Tug"/></header>
+                                    <sheet><group><field name="operation_id"/><field name="tugboat_id"/><field name="state"/><field name="departed_base_at"/><field name="arrived_on_scene_at"/><field name="service_released_at"/><field name="returned_base_at"/></group><field name="crew_manifest_ids"><list><field name="employee_name"/><field name="rank_id"/><field name="certificate_clearance"/><field name="clearance_notes"/><field name="duty_status"/></list></field><field name="remarks"/></sheet>
+                                </form>
+                            </field>
+                        </page>
+                        <page string="Activity Log">
+                            <field name="log_ids">
+                                <list editable="bottom"><field name="event_time"/><field name="event_type"/><field name="operation_tug_id"/><field name="berth_id"/><field name="description"/><field name="client_visible"/><field name="recorded_by"/></list>
+                            </field>
+                        </page>
+                        <page string="Delays">
+                            <field name="delay_ids">
+                                <list editable="bottom"><field name="category"/><field name="responsible_party"/><field name="start_time"/><field name="end_time"/><field name="duration_hours"/><field name="state"/><field name="client_visible"/><field name="description"/></list>
+                            </field>
+                        </page>
+                        <page string="Completion">
+                            <group><field name="actual_start"/><field name="actual_end"/><field name="actual_duration_hours"/><field name="client_representative"/><field name="client_confirmation_time"/></group>
+                            <field name="completion_summary"/><field name="cancellation_reason" invisible="state != 'cancelled'"/>
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_marine_operations" model="ir.actions.act_window">
+        <field name="name">Dispatch Board</field><field name="res_model">sedar.marine.operation</field>
+        <field name="view_mode">kanban,list,form</field><field name="search_view_id" ref="view_marine_operation_search"/>
+    </record>
+
+    <record id="view_service_order_dispatch_inherit" model="ir.ui.view">
+        <field name="name">sedar.marine.service.order.dispatch.inherit</field>
+        <field name="model">sedar.marine.service.order</field>
+        <field name="inherit_id" ref="sedar_marine_operations.view_service_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='state'][@widget='statusbar']" position="attributes">
+                <attribute name="statusbar_visible">draft,submitted,review,needs_info,pricing,quoted,confirmed,planning,ready,dispatched,in_progress,completed,billing_ready</attribute>
+            </xpath>
+            <xpath expr="//header/button[@name='action_plan']" position="after">
+                <button name="action_mark_ready" type="object" string="Mark Ready" class="btn-primary" invisible="state not in ['planning','blocked']" groups="sedar_marine_dispatch.group_dispatch_planner"/>
+                <button name="action_create_operation" type="object" string="Create Operation" class="btn-primary" invisible="state != 'ready' or operation_count" groups="sedar_marine_dispatch.group_dispatch_planner"/>
+                <button name="action_open_operation" type="object" string="Open Operation" invisible="not operation_count" groups="sedar_marine_dispatch.group_dispatch_planner"/>
+            </xpath>
+            <xpath expr="//field[@name='tug_assignment_count']" position="after">
+                <field name="operation_count"/>
+                <field name="operation_state"/>
+            </xpath>
+            <xpath expr="//notebook/page[2]" position="after">
+                <page string="Execution">
+                    <group><field name="operation_count"/><field name="operation_state"/></group>
+                    <field name="operation_ids"><list><field name="name"/><field name="state"/><field name="dispatch_time"/><field name="actual_start"/><field name="actual_end"/><field name="billing_ready"/></list></field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <menuitem id="menu_marine_dispatch" name="Dispatch and Execution" parent="sedar_marine_operations.menu_marine_operations" sequence="70" action="action_marine_operations"/>
+</odoo>

@@ -100,3 +100,22 @@ Open **SEDAR > Marine Operations > Service Order Dashboard** to compare readines
 Use **Tugboats**, **Crew Profiles**, and **Tug and Crew Plans** to inspect the records behind
 each result. The demo addon is separate so its fictional records can be removed independently
 from the production-oriented operational models.
+
+## Dispatch and Service Execution
+
+The optional `sedar_marine_dispatch` addon extends a ready service order into an executable
+marine operation. It records the dispatch-time tug and crew manifest, dispatch and start times,
+per-tug movement milestones, activity logs, delays, completion evidence, actual duration, and
+the billing-ready handoff. It does not create invoices, payroll entries, maintenance work orders,
+or recruitment records.
+
+Install the dispatch module after the service-order modules with:
+
+```powershell
+docker compose exec odoo odoo -c /etc/odoo/odoo.conf -d sedar_demo `
+  -i sedar_marine_dispatch --stop-after-init
+docker compose restart odoo
+```
+
+The separate `sedar_marine_dispatch_demo` addon creates a ready-to-dispatch operation and a
+completed billing-ready operation with client-visible activity logs and a resolved port delay.

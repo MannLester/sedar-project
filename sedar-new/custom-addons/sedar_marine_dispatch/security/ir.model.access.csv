@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_marine_operation_user,marine operation user,model_sedar_marine_operation,base.group_user,1,1,1,0
+access_operation_tug_user,operation tug user,model_sedar_marine_operation_tug,base.group_user,1,1,1,0
+access_operation_crew_user,operation crew user,model_sedar_marine_operation_crew,base.group_user,1,1,1,0
+access_operation_log_user,operation log user,model_sedar_marine_operation_log,base.group_user,1,1,1,0
+access_operation_delay_user,operation delay user,model_sedar_marine_operation_delay,base.group_user,1,1,1,0
+access_marine_operation_portal,marine operation portal,model_sedar_marine_operation,base.group_portal,1,0,0,0
+access_operation_log_portal,operation log portal,model_sedar_marine_operation_log,base.group_portal,1,0,0,0
+access_operation_delay_portal,operation delay portal,model_sedar_marine_operation_delay,base.group_portal,1,0,0,0
