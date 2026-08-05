@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_sedar_corporate_record_manager,sedar.corporate.record manager,model_sedar_corporate_record,sedar_executive_dashboard.group_sedar_executive,1,1,1,0
+access_sedar_executive_dashboard_user,sedar.executive.dashboard user,model_sedar_executive_dashboard,sedar_executive_dashboard.group_sedar_executive,1,0,0,0
+

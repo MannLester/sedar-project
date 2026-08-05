@@ -28,6 +28,7 @@ The shared Docker setup installs these SEDAR addons and their Odoo dependencies:
 | Area | Addons |
 | --- | --- |
 | Document Control | `sedar_document_control` |
+| Corporate Governance and Executive Management | `sedar_executive_dashboard` |
 | Marine Operations | `sedar_marine_operations`, `sedar_marine_dispatch` |
 | Technical Maintenance | `sedar_marine_maintenance` plus standard Odoo `maintenance` |
 | Marine Inventory | `sedar_marine_inventory` plus standard Odoo `stock` |
@@ -49,13 +50,13 @@ The shared Docker setup installs these SEDAR addons and their Odoo dependencies:
 | Marine Finance | Partial | Client Tariffs, Billing Review, customer invoicing, and payment foundation work; broader Finance remains incomplete. |
 | Crewing and manpower | Partial | Crew profiles, manning, certificates, shortages, and hiring demand work; rotation, leave integration, and payroll do not. |
 | HR and recruitment | Partial | The recruitment lifecycle through employee conversion works; attendance, appraisals, payroll, and broader self-service do not. |
-| Document Control | Partial | Generic controlled forms and six recruitment forms work; broader corporate and vessel catalogues remain unseeded. |
+| Document Control | Implemented for demonstration | Generic controlled forms, six recruitment forms, and representative corporate, vessel, insurance, ISO, resolution, legal, and audit records are linked to governance metadata. |
 | Technical Maintenance | Partial | Slice 10 adds marine equipment, planned/corrective work orders, dry-dock plans, equipment history fields, and tug availability holds; Slice 11 adds work-order spare-part lines. |
 | HSSE | Partial | Slice 13 adds incidents, near misses, inspections, findings, risk assessments, permits, corrective actions, safety meetings, training records, and visible operational HSSE exceptions. |
 | Procurement | Partial | Slice 12 adds Purchase Requests, manager approval, source traceability from maintenance/inventory needs, and standard Odoo RFQ/PO handoff. Receipt and supplier-bill walkthroughs remain standard Odoo follow-up demonstrations. |
 | Inventory | Partial | Slice 11 adds standard stock-backed marine products, service-order inventory requirements, tugboat locations, work-order spare parts, and operation fuel/lubricant logs. Barcode, reorder policy, and procurement replenishment remain incomplete. |
-| Marketing and CRM | Partial | Client, contact, vessel, tariff, Service Order, and portal records work; CRM opportunities and campaigns do not. |
-| Executive Management | Partial | Operational and Finance queues exist; no consolidated KPI, profitability, audit, legal, or corporate-governance dashboard exists. |
+| Marketing and CRM | Implemented for demonstration | Client, contact, vessel, tariff, Service Order, CRM opportunity, follow-up activity, and resulting Service Order linkage are visible; campaigns remain deferred. |
+| Executive Management | Implemented for demonstration | Source-backed executive dashboard exposes Finance, Service Orders, fleet, crewing, maintenance, inventory, procurement, HSSE, document expiry, and governance exceptions. Profitability remains separated into revenue and known posted costs. |
 | External integrations | Future integration | Power BI, Microsoft 365, DocuSign, and AIS/GPS are not connected. |
 
 ## 4. Implemented End-to-End Demonstrations
@@ -405,10 +406,22 @@ straight-line fixed-asset depreciation; they do not replace Odoo's accounting le
 Philippine payroll/statutory compliance. CRM includes a sample opportunity with follow-up activity,
 assisted vessel interest, and a resulting Service Order link.
 
-### Slice 15 onward
+### Slice 15: Corporate Documents and Executive Dashboard
 
-Proceed with corporate documents, executive KPI dashboard, and remaining integrations in the order
-defined by `sedar-planning/implementation-slice-roadmap.md`.
+Implemented for demonstration. `sedar_executive_dashboard` adds representative corporate document
+and governance records, validity and renewal metadata, a corporate register, and an executive
+dashboard that computes indicators from standard Odoo Accounting plus Service Orders, Marine
+Operations, tugboats, crew, credentials, Maintenance, Inventory, Procurement, HSSE, and Document
+Control. Dashboard drill-down actions open the source records. Revenue and known posted costs are
+shown separately because approved attributable cost rules are not available; no unsupported
+profitability claim is made. Power BI, AIS/GPS, Microsoft 365, DocuSign, barcode, and bank-feed
+connections remain future integrations and are not presented as live.
+
+### Post-demo production work
+
+The requested demonstration slices are complete. Production readiness still requires SEDAR policy
+validation, statutory payroll and accounting review, security/access review, migration, backups,
+integration contracts, performance testing, training, and formal acceptance.
 
 ## 9. Production Readiness Disclaimer
 

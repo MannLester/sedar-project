@@ -52,6 +52,9 @@ Update this document in the same change whenever a listed custom field is added,
 | `sedar.finance.budget` | New | Demonstration-only budget-versus-actual source because the shared edition has no installable budget module | `sedar_erp_demo/models/erp_demo.py` |
 | `sedar.fixed.asset` | New | Demonstration-only straight-line fixed-asset and depreciation view because the shared edition has no installable fixed-asset module | `sedar_erp_demo/models/erp_demo.py` |
 | `crm.lead` | Extended | Links a CRM opportunity to the interested assisted vessel and resulting SEDAR Service Order | `sedar_erp_demo/models/erp_demo.py` |
+| `sedar.document` | Extended | Adds corporate ownership, validity, renewal, confidentiality, related object, and governance status metadata | `sedar_executive_dashboard/models/corporate.py` |
+| `sedar.corporate.record` | New | Structured corporate governance register for contracts, vessel certificates, insurance, resolutions, ISO, legal, and audit records | `sedar_executive_dashboard/models/corporate.py` |
+| `sedar.executive.dashboard` | New | Computes executive indicators from authoritative Finance, Operations, HR, Maintenance, Inventory, Procurement, HSSE, and Document Control sources | `sedar_executive_dashboard/models/dashboard.py` |
 | `sedar.applicant.portal.event` | New | Stores applicant-visible timeline events | `sedar_applicant_portal/models/portal.py` |
 | `sedar.applicant.stage.history` | New | Provides an auditable history of HR stage changes | `sedar_recruitment_operations/models/applicant.py` |
 | `sedar.applicant.interview` | New | Coordinates interview scheduling, applicant responses, calendar events, and ADM-4 appraisal | `sedar_recruitment_operations/models/interview.py` |
@@ -985,3 +988,17 @@ Fields: `name` (Char), `tugboat_id` (Many2one to `sedar.tugboat`), `equipment_id
 ### `crm.lead` extensions
 
 `sedar_assisted_vessel_id` (Many2one to `sedar.client.vessel`) records the vessel/service interest, `sedar_service_order_id` (Many2one to `sedar.marine.service.order`) links a resulting marine request, `sedar_service_interest` (Char) labels the requested service, and read-only `sedar_demo_only` (Boolean) marks the seeded example. CRM stages remain sales follow-up states; the linked Service Order remains the operational state machine.
+
+## Slice 15 Corporate Governance and Executive Dashboard
+
+### `sedar.document` extensions
+
+`document_category` (Selection) classifies corporate, vessel, commercial, HSSE, or HR evidence; `owner_id` (Many2one to `res.users`) identifies accountability; `valid_from`, `valid_until`, and `renewal_date` (Date) govern validity; `approval_state` (Selection) records pending, approved, or rejected approval; `confidential` (Boolean) marks restricted evidence; `partner_id` and `tugboat_id` (Many2one) identify related business objects; and computed `governance_status` (Selection) exposes current, renewal due, expired, or no-expiry state. Existing source-file storage and document state remain authoritative for controlled evidence.
+
+### `sedar.corporate.record`
+
+One structured register entry represents a contract, vessel certificate, insurance policy, board resolution, ISO document, legal case, internal audit, or corporate permit. Fields are `name`, `reference`, `record_type`, `description`, and `next_action` (Char/Text); `document_id` (required Many2one to `sedar.document`); `owner_id` (required Many2one to `res.users`); optional `partner_id` and `tugboat_id`; `state` and `approval_state` (Selection); `valid_from`, `valid_until`, and `renewal_date` (Date); `confidential` (Boolean); and computed `compliance_status` and `days_to_expiry`. The register preserves source-document linkage and is restricted to the explicit Executive Management group.
+
+### `sedar.executive.dashboard`
+
+The dashboard is a read-only computed presentation record. It stores only `name`, `company_id`, and `last_refreshed`; all KPI fields are non-stored computed values. Finance indicators query posted `account.move` records and show revenue, invoiced, unpaid, collected, and known posted supplier costs. Operational indicators query `sedar.marine.service.order`, `sedar.marine.operation`, and `sedar.tug.assignment`, including actual/planned tug-hour utilization. Fleet and people indicators query `sedar.tugboat`, `sedar.crew.profile`, `sedar.crew.certificate`, `sedar.job.vacancy`, `hr.applicant`, and `sedar.crew.shortage`. Maintenance, inventory, procurement, HSSE, and governance indicators query their owning models directly. Each dashboard action opens a source-model list view; executive aggregation uses the explicit Executive Management role while source drill-downs continue through Odoo access rules. Profitability is intentionally not calculated because attributable fuel, labor, and parts cost rules are not approved.
