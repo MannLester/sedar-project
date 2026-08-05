@@ -354,7 +354,9 @@ paths while preserving the existing Service Order readiness gate.
 
 ### Slice 9: Crew Rotation and Service Order Scheduling
 
-Build the planning layer that assigns deployment-eligible crew to tugboats and Service Orders without overlaps.
+Implemented. Crew assignments now have calendar-ready planned windows, scheduling status,
+confirmation controls, and suggested replacement profiles. Crew rotation plans capture tugboat
+periods, watch, relief crew, handover date, and overlapping-rotation validation.
 
 ### Slice 10 onward
 

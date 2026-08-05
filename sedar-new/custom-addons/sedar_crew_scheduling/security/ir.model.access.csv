@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_crew_rotation_crewing,crew rotation crewing,model_sedar_crew_rotation,sedar_manpower_planning.group_crewing_officer,1,1,1,0
+access_crew_rotation_user,crew rotation user,model_sedar_crew_rotation,base.group_user,1,0,0,0

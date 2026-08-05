@@ -24,6 +24,8 @@ Update this document in the same change whenever a listed custom field is added,
 | `sedar.crew.unavailability` | New | Stores dated leave, medical, training, and temporary crew availability blockers | `sedar_crewing_availability/models/crew_unavailability.py` |
 | `hr.leave` | Extended | Synchronizes approved Odoo Time Off into dated Crew Unavailability records | `sedar_crewing_availability/models/hr_leave.py` |
 | `sedar.crew.shortage.action` | Extended | Records medical/training unavailability evidence and temporary relief crew assignments | `sedar_crewing_availability/models/shortage_action.py` |
+| `sedar.crew.assignment` | Extended | Adds scheduling status, calendar fields, confirmation controls, and replacement suggestions | `sedar_crew_scheduling/models/crew_assignment.py` |
+| `sedar.crew.rotation` | New | Plans crew rotation periods, watch, tugboat, relief crew, and handover | `sedar_crew_scheduling/models/crew_rotation.py` |
 | `sedar.applicant.portal.event` | New | Stores applicant-visible timeline events | `sedar_applicant_portal/models/portal.py` |
 | `sedar.applicant.stage.history` | New | Provides an auditable history of HR stage changes | `sedar_recruitment_operations/models/applicant.py` |
 | `sedar.applicant.interview` | New | Coordinates interview scheduling, applicant responses, calendar events, and ADM-4 appraisal | `sedar_recruitment_operations/models/interview.py` |
@@ -373,6 +375,50 @@ Key behavior:
 - Starting a medical or training action can create a dated unavailability record for the assigned employee's Crew Profile.
 - Completing a temporary reliever action requires an outcome, a relief Crew Profile, matching rank, and an eligible assignment under the existing readiness rules.
 - Temporary relief resolves only the affected `sedar.crew.shortage` and does not change vacancy or manpower fulfillment.
+
+## `sedar.crew.assignment` scheduling extension
+
+The existing Service Order Crew Assignment remains the transactional source for who is planned or confirmed against a manning requirement. Slice 9 adds scheduling fields and actions so Operations and Crewing can use the same record in list and calendar views.
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `planned_start` | Stored related datetime | Mirrors the parent Service Order requested start for calendar and conflict views. |
+| `planned_end` | Stored related datetime | Mirrors the parent Service Order requested completion for calendar and conflict views. |
+| `scheduling_status` | Computed, stored selection | Eligible, blocked, or rejected, derived from assignment state and existing readiness eligibility. |
+| `replacement_candidate_ids` | Computed many-to-many to `sedar.crew.profile` | Decision-support list of compatible available replacement profiles. It is not an automatic assignment. |
+
+Key behavior:
+
+- `action_confirm_assignment()` confirms only eligible crew assignments. Rank mismatch, missing or unverified credentials, dated unavailability, and overlapping assignments block confirmation with the existing eligibility reason.
+- `action_reject_assignment()` marks a planned or blocked assignment rejected and triggers Service Order readiness reevaluation.
+- Writing `state = confirmed` is protected by the same eligibility check, so UI bypasses cannot confirm an ineligible schedule.
+- Updating crew or assignment state triggers the automated readiness sync instead of introducing a human dispatch approval.
+
+## `sedar.crew.rotation`
+
+One record represents a planned or active crew rotation period on a tugboat. It is a scheduling aid and does not replace the Service Order Crew Assignment truth used by the Dispatch Readiness Gate.
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `name` | Computed, stored character | Crew/tugboat label for list and calendar views. |
+| `crew_profile_id` | Required many-to-one to `sedar.crew.profile` | Crew member assigned to the rotation period. |
+| `employee_id` | Stored related many-to-one to `hr.employee` | Employee behind the Crew Profile. |
+| `tugboat_id` | Required many-to-one to `sedar.tugboat` | Tugboat or home vessel for the rotation period. |
+| `rank_id` | Stored related many-to-one to `sedar.crew.rank` | Crew rank for filtering and coverage review. |
+| `date_start` | Required datetime | Rotation start. |
+| `date_end` | Required datetime | Rotation end. |
+| `watch` | Selection | Day watch, night watch, standby, or unassigned for the demonstration. |
+| `relief_crew_profile_id` | Many-to-one to `sedar.crew.profile` | Planned relief crew member, when known. |
+| `handover_date` | Datetime | Planned handover point inside the rotation period. |
+| `state` | Selection | Draft, planned, active, completed, or cancelled. |
+| `notes` | Text | Internal scheduling notes. |
+
+Key behavior:
+
+- Rotation end must be later than start.
+- Handover date must fall inside the rotation period.
+- Planned or active rotations for the same Crew Profile cannot overlap.
+- Rotation workflow actions move draft to planned, planned to active, active to completed, or cancel any unfinished rotation.
 
 ## `sedar.manpower.request` and `sedar.job.vacancy` fulfillment behavior
 
