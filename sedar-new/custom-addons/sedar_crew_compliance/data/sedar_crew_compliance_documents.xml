@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="document_type_crew_credential_evidence" model="sedar.document.type">
+        <field name="name">Crew Credential and Medical Evidence</field>
+        <field name="code">CREW-CRED-EVIDENCE</field>
+        <field name="department">Crewing</field>
+        <field name="description">Controlled evidence request for crew certificates, STCW documents, medicals, and renewal proof.</field>
+        <field name="approval_status">approved</field>
+        <field name="field_definition">Crew Profile; Certificate Type; Certificate Number; Issue Date; Expiry Date; Evidence Attachment; Reviewer Notes. The evidence attachment and expiry date are required before approval.</field>
+    </record>
+
+    <record id="field_crew_cred_profile" model="sedar.document.field">
+        <field name="document_type_id" ref="document_type_crew_credential_evidence"/>
+        <field name="sequence">10</field>
+        <field name="name">Crew Profile</field>
+        <field name="technical_name">crew_profile</field>
+        <field name="field_type">text</field>
+        <field name="required">True</field>
+    </record>
+    <record id="field_crew_cred_type" model="sedar.document.field">
+        <field name="document_type_id" ref="document_type_crew_credential_evidence"/>
+        <field name="sequence">20</field>
+        <field name="name">Certificate / Medical Type</field>
+        <field name="technical_name">certificate_type</field>
+        <field name="field_type">text</field>
+        <field name="required">True</field>
+    </record>
+    <record id="field_crew_cred_number" model="sedar.document.field">
+        <field name="document_type_id" ref="document_type_crew_credential_evidence"/>
+        <field name="sequence">30</field>
+        <field name="name">Certificate Number</field>
+        <field name="technical_name">certificate_number</field>
+        <field name="field_type">text</field>
+        <field name="required">True</field>
+    </record>
+    <record id="field_crew_cred_issue_date" model="sedar.document.field">
+        <field name="document_type_id" ref="document_type_crew_credential_evidence"/>
+        <field name="sequence">40</field>
+        <field name="name">Issue Date</field>
+        <field name="technical_name">issue_date</field>
+        <field name="field_type">date</field>
+    </record>
+    <record id="field_crew_cred_expiry_date" model="sedar.document.field">
+        <field name="document_type_id" ref="document_type_crew_credential_evidence"/>
+        <field name="sequence">50</field>
+        <field name="name">Expiry Date</field>
+        <field name="technical_name">expiry_date</field>
+        <field name="field_type">date</field>
+        <field name="required">True</field>
+    </record>
+    <record id="field_crew_cred_evidence" model="sedar.document.field">
+        <field name="document_type_id" ref="document_type_crew_credential_evidence"/>
+        <field name="sequence">60</field>
+        <field name="name">Evidence Attachment</field>
+        <field name="technical_name">evidence_attachment</field>
+        <field name="field_type">attachment</field>
+        <field name="required">True</field>
+    </record>
+    <record id="field_crew_cred_reviewer_notes" model="sedar.document.field">
+        <field name="document_type_id" ref="document_type_crew_credential_evidence"/>
+        <field name="sequence">70</field>
+        <field name="name">Reviewer Notes</field>
+        <field name="technical_name">reviewer_notes</field>
+        <field name="field_type">text</field>
+    </record>
+</odoo>

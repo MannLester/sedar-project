@@ -20,6 +20,7 @@ Update this document in the same change whenever a listed custom field is added,
 | `hr.applicant` | Extended | Owns portal access, public tracking, HR processing, interviews, requirements, employee conversion, and the marine crewing handoff | `sedar_applicant_portal/models/portal.py`; `sedar_recruitment_operations/models/applicant.py`; `sedar_recruitment_crewing/models/applicant.py` |
 | `hr.employee` | Extended | Preserves traceability from successful applicant conversion into the HR employee master, controls generic HR onboarding, and exposes linked marine crew onboarding cases | `sedar_recruitment_operations/models/employee.py`; `sedar_recruitment_crewing/models/employee.py` |
 | `sedar.crew.onboarding` | New | Controls the handoff from a marine employee to a deployment-eligible Crew Profile | `sedar_recruitment_crewing/models/crew_onboarding.py` |
+| `sedar.crew.certificate` | Extended | Links crew credentials and medicals to controlled document evidence, renewal status, and readiness eligibility | `sedar_crew_compliance/models/crew_certificate.py`; `sedar_crew_compliance/models/crew_assignment.py`; `sedar_crew_compliance/models/crew_onboarding.py` |
 | `sedar.applicant.portal.event` | New | Stores applicant-visible timeline events | `sedar_applicant_portal/models/portal.py` |
 | `sedar.applicant.stage.history` | New | Provides an auditable history of HR stage changes | `sedar_recruitment_operations/models/applicant.py` |
 | `sedar.applicant.interview` | New | Coordinates interview scheduling, applicant responses, calendar events, and ADM-4 appraisal | `sedar_recruitment_operations/models/interview.py` |
@@ -295,7 +296,35 @@ Key behavior:
 - `action_create_crew_profile()` creates or links the existing Crew Profile, sets the vacancy rank, assigns the home tugboat when provided, and keeps the profile unavailable until readiness is verified.
 - `action_mark_deployment_eligible()` sets the case to blocked when rank, home tugboat, Crew Profile, or certificate requirements are missing. When all checks pass, it marks the case deployment eligible and changes the Crew Profile availability to available.
 - Only `sedar_recruitment_crewing.group_crewing_manager` can start, create profile, mark eligible, or cancel onboarding. Internal users have read-only access for traceability.
+- When `sedar_crew_compliance` is installed, deployment eligibility requires verified, unexpired required credentials and medical records. Renewal-requested, submitted, rejected, missing, or expired credentials remain blockers.
 - Deployment eligibility does not close a Service Order crew shortage or create a dated crew assignment. Operations or Crewing must still assign the qualified Crew Profile to a concrete requirement.
+
+## `sedar.crew.certificate` compliance extension
+
+The existing crew credential and medical record remains owned by Marine Operations. Slice 7 extends it so Crewing can prove controlled evidence, track renewal state, and make verified evidence part of readiness.
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `sedar_document_request_id` | Read-only many-to-one to `sedar.document.request` | Links the credential or medical record to the controlled evidence request generated from the `CREW-CRED-EVIDENCE` document type. |
+| `sedar_verification_state` | Selection | Evidence state: verified, renewal requested, submitted for review, or rejected. Existing/demo certificate records default to verified until a renewal request is opened. |
+| `sedar_verified_by_id` | Read-only many-to-one to `res.users` | Crew Compliance Manager who verified the approved controlled evidence. |
+| `sedar_verified_at` | Read-only datetime | Verification timestamp. |
+| `sedar_renewal_requested_by_id` | Read-only many-to-one to `res.users` | Crew Compliance Manager who opened the renewal request. |
+| `sedar_renewal_requested_at` | Read-only datetime | Renewal request timestamp. |
+| `sedar_renewal_due_date` | Computed, stored date | Thirty days before expiry, used for renewal follow-up visibility. |
+| `sedar_expiry_state` | Computed, stored selection | Valid, renewal due, or expired based on the expiry date. |
+| `sedar_is_medical` | Computed, stored boolean | Identifies medical records from the certificate type code or name for medical-readiness filtering. |
+| `sedar_reviewer_note` | Text | Crewing compliance review note, required before evidence is rejected. |
+
+Key behavior:
+
+- `action_sedar_request_renewal()` creates or reuses a controlled Document Request, pre-fills crew, certificate type, number, and validity dates, starts the request, and moves the credential to renewal requested.
+- `action_sedar_sync_from_document()` copies approved request values back to the credential and updates evidence state from the Document Request workflow.
+- `action_sedar_verify()` requires an approved controlled evidence request and then records verification user/time.
+- `action_sedar_reject()` requires a reviewer note and marks the evidence rejected.
+- Direct writes to compliance audit fields are restricted to `sedar_crew_compliance.group_crew_compliance_manager` or workflow context.
+- `sedar.crew.assignment._compute_eligibility()` is overridden by method extension so Service Order crew readiness counts only verified, unexpired required credentials.
+- `sedar.crew.onboarding._compute_deployment_status()` is overridden by method extension so a marine hire cannot become deployment eligible with missing, expired, or unverified required credentials.
 
 ## `sedar.manpower.request` and `sedar.job.vacancy` fulfillment behavior
 

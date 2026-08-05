@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="group_crew_compliance_manager" model="res.groups">
+        <field name="name">Crew Compliance Manager</field>
+        <field name="privilege_id" ref="sedar_marine_operations.privilege_sedar_marine_operations"/>
+        <field name="implied_ids" eval="[Command.link(ref('sedar_recruitment_crewing.group_crewing_manager'))]"/>
+    </record>
+</odoo>

@@ -341,7 +341,10 @@ standard Odoo employee is not automatically usable as crew.
 
 ### Slice 7: Crew Credentials and Medical Renewal
 
-Connect credential and medical validity to controlled evidence, expiry visibility, and readiness.
+Implemented. Crew certificates and medical records now carry controlled evidence state, renewal
+requests create Document Control requests, expiry/renewal status is visible, and Service Order
+crew readiness plus marine onboarding deployment eligibility require verified, unexpired required
+credentials.
 
 ### Slice 8: Leave, Training, and Temporary Relief
 
