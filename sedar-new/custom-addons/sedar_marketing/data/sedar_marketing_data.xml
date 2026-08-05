@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="contact_type_commercial" model="sedar.marketing.contact.type"><field name="name">Commercial</field><field name="code">commercial</field><field name="sequence">10</field></record>
+    <record id="contact_type_operations" model="sedar.marketing.contact.type"><field name="name">Operations</field><field name="code">operations</field><field name="sequence">20</field></record>
+    <record id="contact_type_billing" model="sedar.marketing.contact.type"><field name="name">Billing</field><field name="code">billing</field><field name="sequence">30</field></record>
+    <record id="contact_type_emergency" model="sedar.marketing.contact.type"><field name="name">Emergency</field><field name="code">emergency</field><field name="sequence">40</field></record>
+    <record id="contact_type_signatory" model="sedar.marketing.contact.type"><field name="name">Authorized Signatory</field><field name="code">signatory</field><field name="sequence">50</field></record>
+    <record id="contact_type_other" model="sedar.marketing.contact.type"><field name="name">Other</field><field name="code">other</field><field name="sequence">60</field></record>
+    <record id="availability_monday" model="sedar.marketing.availability.day"><field name="name">Monday</field><field name="code">mon</field><field name="sequence">10</field></record>
+    <record id="availability_tuesday" model="sedar.marketing.availability.day"><field name="name">Tuesday</field><field name="code">tue</field><field name="sequence">20</field></record>
+    <record id="availability_wednesday" model="sedar.marketing.availability.day"><field name="name">Wednesday</field><field name="code">wed</field><field name="sequence">30</field></record>
+    <record id="availability_thursday" model="sedar.marketing.availability.day"><field name="name">Thursday</field><field name="code">thu</field><field name="sequence">40</field></record>
+    <record id="availability_friday" model="sedar.marketing.availability.day"><field name="name">Friday</field><field name="code">fri</field><field name="sequence">50</field></record>
+    <record id="availability_saturday" model="sedar.marketing.availability.day"><field name="name">Saturday</field><field name="code">sat</field><field name="sequence">60</field></record>
+    <record id="availability_sunday" model="sedar.marketing.availability.day"><field name="name">Sunday</field><field name="code">sun</field><field name="sequence">70</field></record>
+    <record id="marketing_dashboard_main" model="sedar.marketing.dashboard">
+        <field name="name">Marketing Dashboard</field><field name="company_id" ref="base.main_company"/>
+    </record>
+    <function model="res.company" name="sedar_ensure_marketing_workspace"/>
+</odoo>

@@ -6,7 +6,7 @@ This glossary defines the shared business language for SEDAR's client-to-tugboat
 
 **Service Order**:
 A client's request for one billable tug assist or move at one terminal. The team may also call it a Job Order; both names refer to the same record. A request containing multiple moves is represented by multiple Service Orders for the MVP.
-_Also known as_: Job Order
+_Also known as_: Job Order, Service Request (in customer-facing and Marketing language)
 
 **Marine Operation**:
 The execution record for a Ready Service Order. It records what happened while the requested work was performed, including the participating tugboats and crew, execution events, delays, completion evidence, and operational history. One Marine Operation is created automatically for each Ready Service Order. Its overall time spans from the earliest participating tug's actual start to the latest participating tug's actual end.

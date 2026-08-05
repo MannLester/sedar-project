@@ -1065,3 +1065,67 @@ One structured register entry represents a contract, vessel certificate, insuran
 ### `sedar.executive.dashboard`
 
 The dashboard is a read-only computed presentation record. It stores only `name`, `company_id`, and `last_refreshed`; all KPI fields are non-stored computed values. Finance indicators query posted `account.move` records and show revenue, invoiced, unpaid, collected, and known posted supplier costs. Operational indicators query `sedar.marine.service.order`, `sedar.marine.operation`, and `sedar.tug.assignment`, including actual/planned tug-hour utilization. Fleet and people indicators query `sedar.tugboat`, `sedar.crew.profile`, `sedar.crew.certificate`, `sedar.job.vacancy`, `hr.applicant`, and `sedar.crew.shortage`. Maintenance, inventory, procurement, HSSE, and governance indicators query their owning models directly. Each dashboard action opens a source-model list view; executive aggregation uses the explicit Executive Management role while source drill-downs continue through Odoo access rules. Profitability is intentionally not calculated because attributable fuel, labor, and parts cost rules are not approved.
+
+## Marketing customer workspace
+
+ADR-0005 defines Marketing as a customer-centred workspace over authoritative customer, Service Order, Accounting, and Document Control records. The workspace calls the existing `sedar.marine.service.order` a Service Request in Marketing-facing copy. Marketing quotations and contracts do not create invoices or replace Client Tariffs. Marketing document records store metadata only, and official source-department records are read-only.
+
+### `res.partner` Marketing extensions
+
+Customer-account fields are `sedar_is_customer_account` (Boolean), unique `sedar_customer_code` (Char), `sedar_customer_type`, `sedar_account_status`, and `sedar_relationship_status` (Selection), `sedar_assigned_marketing_user_id` and `sedar_primary_contact_id` (Many2one), `sedar_lead_source` (Char), `sedar_customer_since` and `sedar_next_follow_up_date` (Date), and `sedar_last_interaction_at` (Datetime). The primary contact must belong to the same commercial partner.
+
+Contact fields are `sedar_contact_type_ids` (Many2many to `sedar.marketing.contact.type`), `sedar_contact_status` and `sedar_preferred_contact_method` (Selection), `sedar_availability_day_ids` (Many2many to `sedar.marketing.availability.day`), `sedar_preferred_contact_start` and `sedar_preferred_contact_end` (Float time), `sedar_can_approve_quotations`, `sedar_can_sign_contracts`, and `sedar_can_coordinate_operations` (Boolean), `sedar_contact_internal_notes` (Text), `sedar_last_contacted_at` (Datetime), and computed `sedar_is_primary_contact` (Boolean). The availability end must be later than the start.
+
+Relationship fields `sedar_service_order_ids`, `sedar_marketing_quotation_ids`, `sedar_marketing_contract_ids`, `sedar_marketing_appointment_ids`, `sedar_marketing_document_ids`, `sedar_marketing_document_request_ids`, `sedar_marketing_activity_ids`, `sedar_marketing_note_ids`, and `sedar_marketing_transaction_ids` expose the customer-profile tabs. Computed counters expose total Service Requests, active quotations, active contracts, and completed services.
+
+### `sedar.marketing.contact.type` and `sedar.marketing.availability.day`
+
+Contact types have unique `code`, `name`, `sequence`, and `active`. Availability days have unique `code`, `name`, and `sequence`. Marketing Managers maintain these configuration records; Marketing Officers read them.
+
+### `sedar.marine.service.order` Marketing extensions
+
+`marketing_status` stores the Marketing lifecycle from draft through review, Operations consultation, quotation, customer approval, scheduling, completion, or cancellation without replacing the operational `state`. `marketing_representative_id` and `requested_operations_reviewer_id` identify accountable users; `marketing_tag_ids` links `sedar.marketing.tag`; `marketing_internal_notes` and `marketing_follow_up_date` hold restricted working context. `marketing_quotation_ids` and `marketing_contract_ids` expose related commercial records. The inherited `priority` selection adds High. Operational completion and cancellation synchronize the Marketing status, while operational readiness and execution remain owned by the existing Service Order workflow.
+
+### `sedar.marketing.quotation` and `sedar.marketing.quotation.line`
+
+A quotation has unique `name`, `revision_number`, `original_quotation_id`, `supersedes_quotation_id`, and `superseded_by_quotation_id`; required `service_order_id`, `customer_id`, and `contact_id`; `subject`, `purchase_order_reference`, terms, response, revision, and internal-note fields; `line_ids`; computed untaxed, tax, and total amounts; `currency_id`; validity and issue dates; `prepared_by_id`; and tracked `status`. The status lifecycle is Draft, For Internal Approval, Ready to Send, Sent, Viewed, Customer Approved, Rejected, Expired, or Superseded. Customer/contact relationships are validated, revisions preserve their family, and quotation approval may advance the Marketing-facing Service Request without bypassing its operational lifecycle.
+
+Quotation lines store `sequence`, required parent and `description`, positive `quantity`, non-negative `unit_price` and `tax_rate`, related currency, and computed subtotal and tax. They are commercial offer lines only and never post accounting entries.
+
+### `sedar.marketing.contract` and `sedar.marketing.contract.signature`
+
+A contract has unique `name`, `title`, required customer/contact/quotation/Service Request links, related service and vessel context, description and terms, required effective and expiration dates, monetary value and currency, prepared/managed users, tracked contract and computed signature statuses, signature records, selected authorized contact, signature timestamps, termination-request fields, and supersession links. The contract lifecycle is Draft, For Internal Review, Ready for Signature, Awaiting Signatures, Active, Terminated, Expired, or Superseded. Activation requires verified SEDAR and customer signatures; termination requires a reviewed request. The record does not replace the Client Tariff or control invoicing.
+
+A signature record stores required contract and party, signatory identity and organization, role, signing time, recording user, supporting-document filename metadata, verification status, and internal notes. Signature image or file bytes are deliberately excluded.
+
+### `calendar.event` Marketing extensions and `sedar.marketing.appointment.status`
+
+`calendar.event` is extended with a Marketing flag; customer and contact; appointment type and status; meeting method, phone/video metadata; optional Service Request, quotation, and contract links; agenda, customer-visible and internal notes; follow-up controls; outcome, response, next action, and no-show party; and status history. Customer and contact must share a commercial partner. Standard Calendar owns the event start, stop, attendees, assigned user, location, and calendar display.
+
+`sedar.marketing.appointment.status` stores the appointment, previous and next status, occurrence time, changing user, reason, notes, and previous start/stop. It is read-only to Marketing users and records confirmation, rescheduling, completion, cancellation, and no-show transitions.
+
+### `sedar.marketing.document`, `sedar.marketing.document.version`, and `sedar.marketing.document.request`
+
+A Marketing document stores a unique reference, customer, title and description, document type, owning department, Marketing-only/shared visibility, Marketing-upload/official source, active/expired/archived status, expiry date, optional links to a Service Request, quotation, contract, invoice, appointment, or official `sedar.document`, version metadata, current version, creator/update/archive audit fields, and computed editability. It stores no file bytes. Marketing may edit, version, archive, restore, or delete only Marketing-owned upload records; official and other-department records are read-only.
+
+Version metadata stores the parent, immutable version number, filename, MIME type, byte size, upload time/user, and notes. Versions are append-only and capped at 25 MB of reported size. A document request stores its reference, customer, title/type/description, requester/time, due date, department, pending/fulfilled/cancelled status, fulfillment document/audit fields, and cancellation reason.
+
+### `sedar.marketing.activity`
+
+The append-only activity log stores customer, occurrence time, module, action, description, actor identity/type/department, visibility, related model/record/reference, sanitized before/after summary, idempotent source-event key, and system-generated flag. Marketing users have read-only access. Passwords, tokens, bank/tax/payment credentials, file content, signature images, and other restricted fields are replaced by `Restricted field updated`; entries cannot be changed or deleted.
+
+### `sedar.marketing.transaction`
+
+The read-only transaction projection stores customer, occurrence time, transaction type, reference, description, amount/currency, normalized status, source department, visibility, source model/record, and optional vessel/service/PO context. Service Requests, completed services, quotations, contracts, invoices, credit notes, and invoice-derived payment facts synchronize from their owning records. Marketing users cannot create, edit, or delete projections.
+
+### `sedar.marketing.internal.note`, `sedar.marketing.tag`, and `sedar.marketing.dashboard`
+
+An internal note stores customer, immutable author, and note text and creates a restricted activity entry. A tag stores a unique name and display color. The dashboard stores only its name and company; all counts, upcoming appointment, recent activities, and recent notes are computed from the authoritative records above.
+
+### `account.move` Marketing behavior
+
+The method-only extension synchronizes linked SEDAR customer invoices, credit notes, and invoice-derived payment state into the read-only Marketing transaction projection. It does not change posting, receivables, payment, reconciliation, or ledger behavior owned by Odoo Accounting and ADR-0001.
+
+### `res.company` Marketing behavior
+
+The method-only `sedar_ensure_marketing_workspace()` reconciliation assigns the Marketing Manager role to the shared administrator, marks existing Service Order clients as customer accounts, assigns stable customer codes where missing, ensures the singleton dashboard exists, and refreshes the read-only transaction projection. The post-install hook, upgrade data function, and shared demo-suite reconciliation call the same idempotent method so a fresh Docker setup and a module upgrade produce the same workspace.

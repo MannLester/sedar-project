@@ -1,0 +1,242 @@
+:root {
+    --sedar-marketing-navy: #0b1f3a;
+    --sedar-marketing-blue: #175cd3;
+    --sedar-marketing-cyan: #12b6cb;
+    --sedar-marketing-bg: #f4f7fb;
+    --sedar-marketing-card: #ffffff;
+    --sedar-marketing-line: #dce4ee;
+    --sedar-marketing-muted: #66758a;
+}
+
+.o_sedar_marketing_priority .o_sedar_nav_priority_link {
+    background: linear-gradient(135deg, #ffffff 0%, #e8f8fb 100%);
+}
+
+.o_form_view.o_sedar_marketing_dashboard,
+.o_form_view.o_sedar_customer_profile {
+    background: var(--sedar-marketing-bg);
+}
+
+.o_sedar_marketing_dashboard .o_form_sheet_bg,
+.o_sedar_customer_profile .o_form_sheet_bg {
+    background: var(--sedar-marketing-bg);
+}
+
+.o_sedar_marketing_dashboard .o_form_sheet,
+.o_sedar_customer_profile .o_form_sheet {
+    max-width: none;
+    width: 100%;
+    border: 0;
+    box-shadow: none;
+    background: transparent;
+    padding: 28px 32px 48px;
+}
+
+.o_sedar_marketing_titlebar,
+.o_sedar_customer_header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 22px;
+}
+
+.o_sedar_marketing_titlebar h1,
+.o_sedar_customer_header h1 {
+    color: var(--sedar-marketing-navy);
+    font-size: 28px;
+    font-weight: 750;
+    margin: 0;
+}
+
+.o_sedar_marketing_titlebar p {
+    color: var(--sedar-marketing-muted);
+    margin: 5px 0 0;
+}
+
+.o_sedar_marketing_actions {
+    display: flex;
+    gap: 10px;
+}
+
+.o_sedar_metric_grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+.o_sedar_metric_card {
+    display: flex;
+    min-height: 118px;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 7px;
+    padding: 18px 20px;
+    border: 1px solid var(--sedar-marketing-line) !important;
+    border-radius: 10px !important;
+    background: var(--sedar-marketing-card) !important;
+    color: var(--sedar-marketing-navy) !important;
+    box-shadow: 0 3px 12px rgba(20, 46, 78, 0.05);
+    text-align: left;
+}
+
+button.o_sedar_metric_card:hover {
+    border-color: #a7c7ee !important;
+    box-shadow: 0 7px 22px rgba(20, 46, 78, 0.1);
+}
+
+.o_sedar_metric_label {
+    color: var(--sedar-marketing-muted);
+    font-size: 11px;
+    font-weight: 750;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.o_sedar_metric_value,
+.o_sedar_metric_value .o_field_integer {
+    color: var(--sedar-marketing-navy);
+    font-size: 28px;
+    font-weight: 780;
+    line-height: 1;
+}
+
+.o_sedar_metric_hint {
+    color: var(--sedar-marketing-muted);
+    font-size: 12px;
+}
+
+.o_sedar_dashboard_columns {
+    display: grid;
+    grid-template-columns: minmax(280px, 0.8fr) minmax(420px, 1.4fr);
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
+.o_sedar_panel {
+    padding: 20px;
+    border: 1px solid var(--sedar-marketing-line);
+    border-radius: 10px;
+    background: var(--sedar-marketing-card);
+    box-shadow: 0 3px 12px rgba(20, 46, 78, 0.04);
+}
+
+.o_sedar_panel h2 {
+    color: var(--sedar-marketing-navy);
+    font-size: 15px;
+    font-weight: 730;
+    margin: 0 0 15px;
+}
+
+.o_sedar_eyebrow {
+    display: block;
+    color: var(--sedar-marketing-blue);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.o_sedar_header_badges {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--sedar-marketing-muted);
+    margin-top: 6px;
+}
+
+.o_sedar_header_meta {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(130px, 1fr));
+    gap: 12px;
+}
+
+.o_sedar_header_meta > div {
+    min-width: 140px;
+    padding: 11px 13px;
+    border-left: 2px solid var(--sedar-marketing-cyan);
+    background: rgba(255, 255, 255, 0.65);
+}
+
+.o_sedar_header_meta span {
+    display: block;
+    color: var(--sedar-marketing-muted);
+    font-size: 9px;
+    font-weight: 750;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+}
+
+.o_sedar_customer_profile .o_notebook_headers {
+    border: 1px solid var(--sedar-marketing-line);
+    border-radius: 9px 9px 0 0;
+    background: #fff;
+    padding: 0 10px;
+}
+
+.o_sedar_customer_profile .o_notebook_content {
+    border: 1px solid var(--sedar-marketing-line);
+    border-top: 0;
+    border-radius: 0 0 9px 9px;
+    background: #fff;
+    padding: 20px;
+}
+
+.o_sedar_activity_timeline .o_kanban_renderer {
+    position: relative;
+    display: block;
+    padding-left: 34px;
+}
+
+.o_sedar_activity_timeline .o_kanban_renderer::before {
+    position: absolute;
+    top: 18px;
+    bottom: 18px;
+    left: 17px;
+    width: 2px;
+    background: var(--sedar-marketing-line);
+    content: "";
+}
+
+.o_sedar_activity_timeline .o_kanban_record {
+    position: relative;
+    width: min(900px, calc(100% - 18px));
+    margin: 0 0 12px 16px;
+    border-color: var(--sedar-marketing-line);
+    border-radius: 9px;
+}
+
+.o_sedar_activity_timeline .o_kanban_record::before {
+    position: absolute;
+    top: 20px;
+    left: -24px;
+    width: 10px;
+    height: 10px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: var(--sedar-marketing-blue);
+    box-shadow: 0 0 0 2px var(--sedar-marketing-line);
+    content: "";
+}
+
+.o_sedar_timeline_card {
+    display: grid;
+    gap: 4px;
+    padding: 4px;
+}
+
+@media (max-width: 1100px) {
+    .o_sedar_metric_grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .o_sedar_dashboard_columns { grid-template-columns: 1fr; }
+    .o_sedar_customer_header { flex-direction: column; }
+}
+
+@media (max-width: 720px) {
+    .o_sedar_marketing_dashboard .o_form_sheet,
+    .o_sedar_customer_profile .o_form_sheet { padding: 18px 14px 36px; }
+    .o_sedar_metric_grid { grid-template-columns: 1fr; }
+    .o_sedar_header_meta { grid-template-columns: 1fr; width: 100%; }
+    .o_sedar_marketing_titlebar { flex-direction: column; }
+}

@@ -20,6 +20,20 @@
                             <a class="o_sedar_nav_priority_link" href="/web#action=sedar_marine_operations.action_service_order_dashboard"><i class="fa fa-th-large"/><span><strong>Service Order Dashboard</strong><small>Job readiness and execution</small></span></a>
                         </div>
                         <details class="o_sedar_nav_group" open="open">
+                            <summary class="o_sedar_nav_parent"><span><i class="fa fa-bullhorn"/>Marketing</span><i class="fa fa-angle-down o_sedar_nav_chevron"/></summary>
+                            <div class="o_sedar_nav_children">
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_marketing.action_sedar_marketing_dashboard"><span>Overview</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_marketing.action_sedar_marketing_customers"><span>Customers</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_marketing.action_sedar_marketing_service_requests"><span>Service Requests</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_marketing.action_sedar_marketing_quotations"><span>Quotations</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_marketing.action_sedar_marketing_contracts"><span>Contracts</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_marketing.action_sedar_marketing_appointments"><span>Appointments</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_marketing.action_sedar_marketing_documents"><span>Documents</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_marketing.action_sedar_marketing_transactions"><span>Transaction History</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_marketing.action_sedar_marketing_activity"><span>Activity Log</span></a>
+                            </div>
+                        </details>
+                        <details class="o_sedar_nav_group" open="open">
                             <summary class="o_sedar_nav_parent"><span><i class="fa fa-ship"/>Marine Operations</span><i class="fa fa-angle-down o_sedar_nav_chevron"/></summary>
                             <div class="o_sedar_nav_children">
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_marine_operations.action_service_order_dashboard"><span>Service Orders</span></a>

@@ -12,7 +12,7 @@
         "sedar_crewing_availability", "sedar_crew_scheduling",
         "sedar_marine_maintenance", "sedar_marine_inventory",
         "sedar_purchase_request", "sedar_hsse", "sedar_erp_demo",
-        "sedar_executive_dashboard", "sedar_theme", "sedar_ui_cards",
+        "sedar_executive_dashboard", "sedar_marketing", "sedar_theme", "sedar_ui_cards",
     ],
     "data": ["data/reconcile.xml"],
     "post_init_hook": "post_init_hook",
