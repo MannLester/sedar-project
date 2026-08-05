@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_sedar_hsse_incident_user,hsse incident user,model_sedar_hsse_incident,group_sedar_hsse_user,1,1,1,0
+access_sedar_hsse_inspection_user,hsse inspection user,model_sedar_hsse_inspection,group_sedar_hsse_user,1,1,1,0
+access_sedar_hsse_inspection_finding_user,hsse inspection finding user,model_sedar_hsse_inspection_finding,group_sedar_hsse_user,1,1,1,0
+access_sedar_hsse_risk_assessment_user,hsse risk assessment user,model_sedar_hsse_risk_assessment,group_sedar_hsse_user,1,1,1,0
+access_sedar_hsse_permit_user,hsse permit user,model_sedar_hsse_permit,group_sedar_hsse_user,1,1,1,0
+access_sedar_hsse_corrective_action_user,hsse corrective action user,model_sedar_hsse_corrective_action,group_sedar_hsse_user,1,1,1,0
+access_sedar_hsse_meeting_user,hsse meeting user,model_sedar_hsse_meeting,group_sedar_hsse_user,1,1,1,0
+access_sedar_hsse_training_user,hsse training user,model_sedar_hsse_training_record,group_sedar_hsse_user,1,1,1,0

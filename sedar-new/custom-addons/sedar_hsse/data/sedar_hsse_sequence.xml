@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="seq_sedar_hsse_incident" model="ir.sequence">
+        <field name="name">SEDAR HSSE Incident</field>
+        <field name="code">sedar.hsse.incident</field>
+        <field name="prefix">HSSE/INC/%(year)s/</field>
+        <field name="padding">5</field>
+    </record>
+    <record id="seq_sedar_hsse_inspection" model="ir.sequence">
+        <field name="name">SEDAR HSSE Inspection</field>
+        <field name="code">sedar.hsse.inspection</field>
+        <field name="prefix">HSSE/INSP/%(year)s/</field>
+        <field name="padding">5</field>
+    </record>
+    <record id="seq_sedar_hsse_risk_assessment" model="ir.sequence">
+        <field name="name">SEDAR HSSE Risk Assessment</field>
+        <field name="code">sedar.hsse.risk.assessment</field>
+        <field name="prefix">HSSE/RA/%(year)s/</field>
+        <field name="padding">5</field>
+    </record>
+    <record id="seq_sedar_hsse_permit" model="ir.sequence">
+        <field name="name">SEDAR HSSE Permit</field>
+        <field name="code">sedar.hsse.permit</field>
+        <field name="prefix">HSSE/PER/%(year)s/</field>
+        <field name="padding">5</field>
+    </record>
+    <record id="seq_sedar_hsse_meeting" model="ir.sequence">
+        <field name="name">SEDAR HSSE Meeting</field>
+        <field name="code">sedar.hsse.meeting</field>
+        <field name="prefix">HSSE/MTG/%(year)s/</field>
+        <field name="padding">5</field>
+    </record>
+    <record id="seq_sedar_hsse_training" model="ir.sequence">
+        <field name="name">SEDAR HSSE Training</field>
+        <field name="code">sedar.hsse.training.record</field>
+        <field name="prefix">HSSE/TRN/%(year)s/</field>
+        <field name="padding">5</field>
+    </record>
+</odoo>

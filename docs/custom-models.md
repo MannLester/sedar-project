@@ -9,7 +9,7 @@ Update this document in the same change whenever a listed custom field is added,
 | Model | Change type | Purpose | Main source |
 | --- | --- | --- | --- |
 | `sedar.tug.assignment` | Extended | Records the assigned Tug Master's actual service time and completion declaration for one tug | `sedar_marine_operations/models/marine_crew.py` |
-| `sedar.marine.service.order` | Extended | Applies automated tug/crew/inventory readiness, aggregates tug completions, freezes confirmed pricing, and tracks billing/payment | `sedar_marine_operations/models/marine_service_order.py`; `sedar_marine_dispatch/models/marine_service_order.py`; `sedar_marine_finance/models/marine_finance.py` |
+| `sedar.marine.service.order` | Extended | Applies automated tug/crew/inventory readiness, aggregates tug completions, freezes confirmed pricing, tracks billing/payment, and surfaces HSSE exceptions | `sedar_marine_operations/models/marine_service_order.py`; `sedar_marine_dispatch/models/marine_service_order.py`; `sedar_marine_finance/models/marine_finance.py`; `sedar_hsse/models/hsse.py` |
 | `sedar.marine.operation` | Workflow changed | Provides the automatically created execution record whose time and completion follow Tug Master records | `sedar_marine_dispatch/models/marine_operation.py` |
 | `sedar.client.tariff` | Extended | Governs client- and terminal-specific tariff approval and revision history | `sedar_marine_finance/models/marine_finance.py` |
 | `sedar.marine.billing.adjustment` | New | Stores explained charges or deductions included in the final invoice | `sedar_marine_finance/models/marine_finance.py` |
@@ -26,7 +26,7 @@ Update this document in the same change whenever a listed custom field is added,
 | `sedar.crew.shortage.action` | Extended | Records medical/training unavailability evidence and temporary relief crew assignments | `sedar_crewing_availability/models/shortage_action.py` |
 | `sedar.crew.assignment` | Extended | Adds scheduling status, calendar fields, confirmation controls, and replacement suggestions | `sedar_crew_scheduling/models/crew_assignment.py` |
 | `sedar.crew.rotation` | New | Plans crew rotation periods, watch, tugboat, relief crew, and handover | `sedar_crew_scheduling/models/crew_rotation.py` |
-| `sedar.tugboat` | Extended | Exposes technical equipment, maintenance blockers, dry-dock plans, readiness reason, and tugboat stock location | `sedar_marine_maintenance/models/tugboat.py`; `sedar_marine_inventory/models/tugboat.py` |
+| `sedar.tugboat` | Extended | Exposes technical equipment, maintenance blockers, dry-dock plans, readiness reason, tugboat stock location, and HSSE exceptions | `sedar_marine_maintenance/models/tugboat.py`; `sedar_marine_inventory/models/tugboat.py`; `sedar_hsse/models/hsse.py` |
 | `maintenance.equipment` | Extended | Links standard Odoo equipment to SEDAR tugboats and marine equipment hierarchy/criticality | `sedar_marine_maintenance/models/maintenance_equipment.py` |
 | `maintenance.request` | Extended | Adds SEDAR work-order type, tug availability impact, release evidence, dry-dock linkage, and spare-part status/lines | `sedar_marine_maintenance/models/maintenance_request.py`; `sedar_marine_inventory/models/maintenance_parts.py` |
 | `sedar.drydock.plan` | New | Represents dry-dock planning, milestones, availability impact, and controlled release | `sedar_marine_maintenance/models/drydock.py` |
@@ -39,6 +39,14 @@ Update this document in the same change whenever a listed custom field is added,
 | `sedar.marine.operation` | Extended | Exposes operation fuel/lubricant logs and consumption summary | `sedar_marine_inventory/models/operation_fuel.py` |
 | `sedar.purchase.request` | New | Captures department purchase requests, approval, and the handoff to standard Odoo RFQs/Purchase Orders | `sedar_purchase_request/models/purchase_request.py` |
 | `sedar.purchase.request.line` | New | Captures requested products, quantities, estimated costs, and maintenance/inventory source traceability | `sedar_purchase_request/models/purchase_request.py` |
+| `sedar.hsse.incident` | New | Tracks incidents, near misses, investigation, source links, confidential evidence, corrective actions, and verified closure | `sedar_hsse/models/hsse.py` |
+| `sedar.hsse.inspection` | New | Tracks HSSE inspections, source links, findings, overdue counts, and verification | `sedar_hsse/models/hsse.py` |
+| `sedar.hsse.inspection.finding` | New | Tracks checklist findings, assigned owner, due date, overdue state, and corrective-action conversion | `sedar_hsse/models/hsse.py` |
+| `sedar.hsse.risk.assessment` | New | Tracks hazards, controls, likelihood, impact, residual risk, owner, approval, and linked actions | `sedar_hsse/models/hsse.py` |
+| `sedar.hsse.permit` | New | Tracks operational permits, validity, controlled evidence links, and expired-permit exceptions | `sedar_hsse/models/hsse.py` |
+| `sedar.hsse.corrective.action` | New | Tracks corrective actions, due dates, evidence, overdue state, critical controls, completion, and verification | `sedar_hsse/models/hsse.py` |
+| `sedar.hsse.meeting` | New | Tracks safety meetings, attendance, topics, minutes, source links, and follow-up actions | `sedar_hsse/models/hsse.py` |
+| `sedar.hsse.training.record` | New | Tracks HSSE training completion, expiry, evidence, and crew-readiness applicability | `sedar_hsse/models/hsse.py` |
 | `sedar.applicant.portal.event` | New | Stores applicant-visible timeline events | `sedar_applicant_portal/models/portal.py` |
 | `sedar.applicant.stage.history` | New | Provides an auditable history of HR stage changes | `sedar_recruitment_operations/models/applicant.py` |
 | `sedar.applicant.interview` | New | Coordinates interview scheduling, applicant responses, calendar events, and ADM-4 appraisal | `sedar_recruitment_operations/models/interview.py` |
@@ -745,6 +753,93 @@ Access rules:
 - Marine Inventory Users and Marine Maintenance Users can create, read, and update requests so stock and maintenance shortages can become procurement requests.
 - Purchase Request Managers inherit standard Odoo Purchase Manager authority and control approval, rejection, and RFQ creation server-side.
 - The addon does not add fields to `purchase.order` and does not create receipts, supplier bills, payments, or ledger entries.
+
+## HSSE and Operational Compliance
+
+Slice 13 adds `sedar_hsse` as the authoritative demonstration addon for Health, Safety, Security, and Environment workflows. HSSE records link to Service Orders, Marine Operations, tugboats, terminals, crew profiles, employees, maintenance work orders, and controlled document requests without copying those master records.
+
+### Shared source links
+
+Incident, inspection, risk, permit, and meeting records share these optional source links: `service_order_id`, `operation_id`, `tugboat_id`, `berth_id`, `maintenance_request_id`, and `document_request_id`. Selecting a Marine Operation can populate the Service Order, and selecting a Service Order can populate the starting berth.
+
+### `sedar.hsse.incident`
+
+One record captures an incident, near miss, or unsafe condition.
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `name` | Read-only character | Sequence-generated incident number. |
+| `incident_type` | Required selection | Incident, near miss, or unsafe condition. |
+| `category` | Required selection | People, vessel/equipment, environment, security, operation, or other. |
+| `severity` | Required selection | Low, medium, high, or critical. |
+| `occurrence_datetime` | Required datetime | When the event occurred. |
+| `reported_by_id` | Required many-to-one to `res.users` | Reporter. |
+| `investigator_id` | Many-to-one to `res.users` | HSSE investigator assigned by workflow. |
+| `employee_ids` | Many-to-many to `hr.employee` | People involved. |
+| `crew_profile_ids` | Many-to-many to `sedar.crew.profile` | Crew profiles involved. |
+| `summary` | Required text | Initial report. |
+| `immediate_action` | Text | Immediate containment or stop-work action. |
+| `investigation_summary` | Text | Investigation result required before closure. |
+| `root_cause` | Text | Root cause required before closure. |
+| `confidential` | Boolean | Marks investigation content as confidential for later portal filtering. |
+| `corrective_action_ids` | One-to-many to `sedar.hsse.corrective.action` | Follow-up actions linked to the incident. |
+| `open_corrective_action_count` | Computed, stored integer | Unverified and uncancelled corrective actions. |
+| `state` | Required selection | Reported, investigating, action required, verified closed, or cancelled. |
+| `closed_by_id`, `closed_at`, `verified_by_id`, `verified_at` | Read-only audit fields | Closure and verification traceability. |
+
+HSSE Managers control investigation start, action-required transition, cancellation, and verified closure. Verified closure requires investigation summary, root cause, and no open corrective actions.
+
+### `sedar.hsse.inspection` and `sedar.hsse.inspection.finding`
+
+An inspection record captures vessel, workplace, permit, PPE, environmental, or other inspections. Findings capture assigned owner, due date, severity, description, overdue state, and optional corrective action.
+
+Important fields:
+
+- `sedar.hsse.inspection.finding.is_overdue` is true when the due date has passed and the finding remains open or action-created.
+- `sedar.hsse.inspection.overdue_finding_count` summarizes overdue findings for list views.
+- `action_create_corrective_action()` creates one linked corrective action from a finding and preserves the assigned owner, due date, severity, and description.
+- Inspection verification is blocked until every finding is closed or cancelled.
+
+### `sedar.hsse.risk.assessment`
+
+One record captures an activity hazard and approved control set.
+
+Key fields include `activity`, `hazard`, `existing_controls`, `additional_controls`, `likelihood`, `impact`, computed `residual_risk_score`, computed `residual_risk_level`, `owner_id`, `approved_by_id`, `approved_at`, `corrective_action_ids`, and `state`. Likelihood and impact must be between 1 and 5. HSSE Managers approve risk assessments.
+
+### `sedar.hsse.permit`
+
+One record is a permit register entry.
+
+Key fields include `permit_type`, `permit_number`, `issuing_authority`, `valid_from`, `valid_until`, `required_for_operations`, computed `is_expired`, computed `operational_exception`, computed `state`, source links, and `note`. An expired permit required for operations becomes an operational exception and is surfaced on linked Service Orders and tugboats.
+
+### `sedar.hsse.corrective.action`
+
+One record is an assigned corrective or preventive action linked to exactly one incident, inspection finding, or risk assessment. Safety meeting actions may also be linked to a meeting.
+
+Key fields include `assigned_user_id`, `due_date`, `severity`, `critical_control`, `description`, `completion_note`, `evidence`, `completed_by_id`, `completed_at`, `verified_by_id`, `verified_at`, computed `is_overdue`, computed `operational_exception`, and `state`. Critical controls remain operational exceptions until verified or cancelled. Completion requires a completion note, and verification requires HSSE Manager authority.
+
+### `sedar.hsse.meeting`
+
+One record stores safety meetings, toolbox talks, or HSSE committee meetings. It records facilitator, attendees, topic, minutes, source links, and linked follow-up corrective actions.
+
+### `sedar.hsse.training.record`
+
+One record stores HSSE training completion for an employee and optional crew profile. It records course, type, completion date, optional expiry date, controlled document evidence, readiness applicability, computed expiry state, and note.
+
+### Service Order and tugboat HSSE extensions
+
+| Model | Field | Type | How it is used |
+| --- | --- | --- | --- |
+| `sedar.marine.service.order` | `hsse_exception_count` | Computed integer | Counts expired required permits and unresolved critical HSSE actions linked to the Service Order. |
+| `sedar.marine.service.order` | `hsse_exception_summary` | Computed character | Human-readable summary of Service Order HSSE exceptions. |
+| `sedar.tugboat` | `hsse_exception_count` | Computed integer | Counts expired required permits and unresolved critical HSSE actions linked to the tugboat. |
+| `sedar.tugboat` | `hsse_exception_summary` | Computed character | Human-readable summary of tugboat HSSE exceptions. |
+
+Access rules:
+
+- HSSE Users can create, read, and update HSSE records but cannot delete them through normal access.
+- HSSE Managers control investigation, risk approval, inspection verification, corrective-action verification, and cancellation actions.
+- Portal-safe HSSE exposure is deferred; confidential investigation details are not exposed through a public route in this slice.
 
 ## `sedar.manpower.request` and `sedar.job.vacancy` fulfillment behavior
 

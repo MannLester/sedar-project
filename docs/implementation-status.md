@@ -32,6 +32,7 @@ The shared Docker setup installs these SEDAR addons and their Odoo dependencies:
 | Technical Maintenance | `sedar_marine_maintenance` plus standard Odoo `maintenance` |
 | Marine Inventory | `sedar_marine_inventory` plus standard Odoo `stock` |
 | Procurement | `sedar_purchase_request` plus standard Odoo `purchase` |
+| HSSE | `sedar_hsse` |
 | Marine Finance | `sedar_marine_finance` plus standard Odoo `account` |
 | Manpower and Careers | `sedar_manpower_planning`, `sedar_careers` |
 | Recruitment | `sedar_applicant_intake`, `sedar_applicant_portal`, `sedar_recruitment_operations` |
@@ -50,7 +51,7 @@ The shared Docker setup installs these SEDAR addons and their Odoo dependencies:
 | HR and recruitment | Partial | The recruitment lifecycle through employee conversion works; attendance, appraisals, payroll, and broader self-service do not. |
 | Document Control | Partial | Generic controlled forms and six recruitment forms work; broader corporate and vessel catalogues remain unseeded. |
 | Technical Maintenance | Partial | Slice 10 adds marine equipment, planned/corrective work orders, dry-dock plans, equipment history fields, and tug availability holds; Slice 11 adds work-order spare-part lines. |
-| HSSE | Not implemented | Safety metadata exists in operations, but no formal HSSE module or workflow exists. |
+| HSSE | Partial | Slice 13 adds incidents, near misses, inspections, findings, risk assessments, permits, corrective actions, safety meetings, training records, and visible operational HSSE exceptions. |
 | Procurement | Partial | Slice 12 adds Purchase Requests, manager approval, source traceability from maintenance/inventory needs, and standard Odoo RFQ/PO handoff. Receipt and supplier-bill walkthroughs remain standard Odoo follow-up demonstrations. |
 | Inventory | Partial | Slice 11 adds standard stock-backed marine products, service-order inventory requirements, tugboat locations, work-order spare parts, and operation fuel/lubricant logs. Barcode, reorder policy, and procurement replenishment remain incomplete. |
 | Marketing and CRM | Partial | Client, contact, vessel, tariff, Service Order, and portal records work; CRM opportunities and campaigns do not. |
@@ -157,15 +158,15 @@ Approved source forms currently represented include:
 
 | Requirement | Status | Current evidence | Remaining demonstration work |
 | --- | --- | --- | --- |
-| Service safety metadata | Partial | Service Orders include safety and permit-related planning information; completion evidence and delays can be recorded. | Formalize HSSE ownership and exception behavior. |
-| Incident reporting | Not implemented | No incident model or workflow exists. | Add incident classification, investigation, evidence, actions, and closure. |
-| Near-miss reporting | Not implemented | No near-miss workflow exists. | Add a near-miss type using the shared incident foundation. |
-| Inspections | Not implemented | No inspection checklist or findings model exists. | Add vessel and workplace inspection examples. |
-| Permits | Partial | Documents can be catalogued and Service Orders can carry permit requirements, but there is no permit register with validity. | Add permit records, expiry, owner, and operational impact. |
-| Risk assessments | Not implemented | No risk matrix or assessment workflow exists. | Add hazards, controls, likelihood, impact, residual risk, and approval. |
-| Compliance audits | Not implemented | No audit and corrective-action workflow exists. | Add a representative audit and overdue finding. |
-| Safety meetings | Not implemented | No meeting, attendance, topic, or action workflow exists. | Add a sample toolbox or safety meeting. |
-| Training records | Partial | Crew certificates and expiry exist, but general HSSE training plans and attendance do not. | Add training requirements, sessions, attendance, and expiry. |
+| Service safety metadata | Partial | Service Orders include safety and permit planning fields plus Slice 13 HSSE exception count and summary. | Add final production rules for whether HSSE exceptions block dispatch or only warn. |
+| Incident reporting | Implemented | `sedar.hsse.incident` captures classification, severity, people, location, evidence link, investigation, root cause, actions, and verified closure. | Add production notification and external reporting forms after discovery. |
+| Near-miss reporting | Implemented | Near miss is a controlled incident type with the same investigation and corrective-action workflow. | Confirm SEDAR's final category list and reporting thresholds. |
+| Inspections | Implemented | `sedar.hsse.inspection` and findings capture checklist outcomes, assigned owner, overdue state, and corrective-action conversion. | Add detailed checklist templates after SEDAR confirms inspection forms. |
+| Permits | Implemented | `sedar.hsse.permit` tracks permit validity, source links, controlled evidence, and expired required permit exceptions. | Add renewal reminders and real permit types after discovery. |
+| Risk assessments | Implemented | `sedar.hsse.risk.assessment` tracks hazard, controls, likelihood, impact, residual risk, owner, and approval. | Confirm SEDAR's exact risk matrix and approval authority. |
+| Compliance audits | Partial | Corrective actions and overdue findings exist, but no dedicated audit-plan model exists. | Add audit plans, findings, and ISO/corporate audit linkage if needed for the pitch. |
+| Safety meetings | Implemented | `sedar.hsse.meeting` records meeting type, facilitator, attendees, topic, minutes, source links, and follow-up actions. | Add agenda templates and recurring meeting plans later. |
+| Training records | Implemented | `sedar.hsse.training.record` tracks course, employee, crew profile, evidence, expiry, and readiness applicability. | Connect specific training requirements into crew deployment readiness after SEDAR confirms rules. |
 
 ### 5.5 Crewing
 
@@ -253,7 +254,7 @@ Approved source forms currently represented include:
 | Fleet utilization | Partial | Tug assignments, operation timing, and availability exist as source data. | Add approved utilization formulas and KPI cards. |
 | Vessel availability | Partial | Tugboat availability and readiness blockers exist. | Add trend and reason summaries sourced from Maintenance. |
 | Profitability | Not implemented | Revenue can be calculated, but attributable operating costs are absent. | Add fuel, labor, parts, and other approved cost sources. |
-| HSSE KPIs | Not implemented | No incident, inspection, risk, or audit models exist. | Build after HSSE workflows. |
+| HSSE KPIs | Partial | Incident, inspection, risk, permit, action, meeting, and training source records now exist. | Add management KPI cards and trends in the executive dashboard slice. |
 | Executive KPI dashboard | Not implemented | No cross-functional management dashboard exists. | Add drill-down KPIs using governed source records. |
 | Board resolutions | Not implemented | No corporate-resolution workflow exists. | Add representative controlled records. |
 | Legal cases | Not implemented | No legal-case model exists. | Add case, counsel, dates, exposure, documents, and actions. |
@@ -329,7 +330,7 @@ These are the highest-value missing capabilities because they already connect to
 1. Crew certificate and medical records should link to controlled document evidence and renewal actions.
 2. Leave, training, and temporary relief should provide dated crew availability facts.
 3. Procurement now creates approved RFQs from maintenance and inventory shortages; receipt, supplier-bill, and replenishment walkthroughs still need to be demonstrated.
-4. HSSE should formalize incidents, inspections, risks, permits, and corrective actions.
+4. HSSE now formalizes incidents, inspections, risks, permits, corrective actions, meetings, and training; broader dashboards and portal-safe exposure remain later work.
 5. Executive KPIs should use the operational, HR, technical, inventory, procurement, safety, and financial source records already available.
 
 ## 8. Recommended Next Demonstration Slices
@@ -385,9 +386,17 @@ manager approval, rejection, estimated totals, and one-time creation of a standa
 Order. Standard Odoo Purchase, Inventory, and Accounting remain responsible for RFQ confirmation,
 receipts, supplier bills, payments, and ledger records.
 
-### Slice 13 onward
+### Slice 13: HSSE and Operational Compliance
 
-Proceed with procurement receipt and supplier-bill walkthroughs, HSSE, broader ERP demonstrations,
+Implemented for demonstration. `sedar_hsse` adds source-linked incidents and near misses,
+inspections and findings, risk assessments, permit validity, corrective actions, safety meetings,
+and training records. Expired required permits and unresolved critical HSSE actions are visible as
+operational exceptions on linked Service Orders and tugboats. Confidential investigation details are
+not exposed through a portal route in this slice.
+
+### Slice 14 onward
+
+Proceed with procurement receipt and supplier-bill walkthroughs, broader ERP demonstrations,
 and the final executive dashboard in the order defined by `sedar-planning/implementation-slice-roadmap.md`.
 
 ## 9. Production Readiness Disclaimer
