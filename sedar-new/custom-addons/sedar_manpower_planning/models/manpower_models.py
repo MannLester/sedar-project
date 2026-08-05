@@ -280,9 +280,16 @@ class SedarManpowerRequest(models.Model):
                     "publication_state": "internal",
                 })
                 line.vacancy_id = vacancy.id
-                line.shortage_ids.write({"review_state": "resolved", "status": "resolved", "resolved_at": fields.Datetime.now()})
             request.write({"state": "position_open"})
         return True
+
+    def _sedar_sync_headcount_fulfillment(self):
+        for request in self:
+            if request.state not in ("position_open", "approved"):
+                continue
+            vacancies = request.line_ids.mapped("vacancy_id")
+            if vacancies and all(not vacancy.remaining_openings for vacancy in vacancies):
+                request.write({"state": "closed"})
 
     def action_reject(self):
         self._ensure_group("sedar_manpower_planning.group_hr_reviewer")
@@ -381,6 +388,22 @@ class SedarJobVacancy(models.Model):
 
     def action_close(self):
         self.write({"state": "closed", "publication_state": "closed"})
+
+    def _sedar_sync_hiring_fulfillment(self):
+        employee_model = self.env["hr.employee"].sudo()
+        for vacancy in self:
+            hired_count = employee_model.search_count([("sedar_source_vacancy_id", "=", vacancy.id)])
+            filled = min(hired_count, vacancy.approved_openings)
+            values = {"filled_openings": filled}
+            if filled >= vacancy.approved_openings and vacancy.state not in ("closed", "cancelled"):
+                values["state"] = "filled"
+                values["publication_state"] = "closed"
+            elif vacancy.state == "filled" and filled < vacancy.approved_openings:
+                values["state"] = "open"
+                if vacancy.publication_state == "closed":
+                    values["publication_state"] = "approved"
+            vacancy.write(values)
+            vacancy.request_line_id.request_id._sedar_sync_headcount_fulfillment()
 
 
 class SedarMarineServiceOrder(models.Model):

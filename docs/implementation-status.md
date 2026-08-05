@@ -4,7 +4,7 @@
 | --- | --- |
 | Assessment date | 2026-08-05 |
 | Branch assessed | `sedar-new` |
-| Baseline commit | `9eba466` |
+| Baseline commit | `f7c3952` before Slice 5 working-tree changes |
 | Active implementation | `sedar-new/` Odoo 19 Docker stack |
 | Requirements source | `docs/project-requirements.md` |
 
@@ -86,8 +86,9 @@ Crew shortage
         -> Applicant portal
         -> HR review and stage history
         -> Interview and ADM-4 appraisal
+        -> accepted offer
         -> ADM-5 requirements
-        -> Odoo employee conversion
+        -> Odoo employee conversion and HR onboarding source links
 ```
 
 The shortage workflow distinguishes genuine permanent headcount demand from medical, certificate, leave, and temporary replacement issues.
@@ -293,45 +294,60 @@ Hiring Decisions and Offers menu. The applicant portal can accept or decline an 
 employment requirements and employee conversion are now gated by an accepted offer, so the demo no
 longer treats document submission alone as the hiring decision.
 
+Slice 5 adds traceable Applicant-to-Employee Onboarding. Employee conversion remains based on Odoo
+Recruitment's native employee creation, but SEDAR now writes source links from employee to applicant,
+vacancy, accepted offer, and approved ADM-5 request. The conversion action is idempotent and updates
+vacancy/manpower fulfillment exactly once from linked employee records. ADR-0003 separates HR
+headcount fulfillment from operational shortage resolution: opening a vacancy and hiring an employee
+do not automatically mark the original Service Order crew shortage resolved.
+
+A Slice 2-5 control-hardening pass now closes the realignment gaps found before Slice 6. Assigned
+interviewers see only assigned interviews and appraisal records. Confidential recruitment document
+requests and values are no longer broadly visible to every internal user. HR Recruitment Manager
+authority is enforced server-side for background/orientation approval, offer decisions, internal offer
+acceptance, employee conversion, and onboarding control. Offer acceptance records actor and source,
+and employee conversion assigns an onboarding owner, checklist, activity, and portal-to-employee
+identity link.
+
 The repository contains automated tests for the marine readiness/completion lifecycle and Marine Finance calculations and controls. Applicant portal and recruitment slices have been manually verified through Odoo module upgrades and representative portal/backend workflows.
 
 ## 7. Demonstration Gaps That Affect Existing Flows
 
 These are the highest-value missing capabilities because they already connect to implemented records:
 
-1. Maintenance should become the source of tugboat technical availability.
-2. Inventory should replace manual Inventory Readiness Confirmation and supply fuel and spare-part facts.
-3. Procurement should replenish maintenance and inventory shortages.
-4. Crew certificate and medical records should link to controlled document evidence and renewal actions.
-5. Successful employee conversion should continue into crew-profile onboarding when the hired role is marine crew.
-6. A clean, repeatable applicant fixture should demonstrate the complete HR lifecycle after every fresh Docker setup.
-7. Executive KPIs should use the operational, HR, and financial source records already available.
+1. Successful employee conversion should continue into crew-profile onboarding when the hired role is marine crew.
+2. Crew certificate and medical records should link to controlled document evidence and renewal actions.
+3. Leave, training, and temporary relief should provide dated crew availability facts.
+4. Crew rotation and Service Order scheduling should consume deployment-eligible crew facts.
+5. Maintenance should become the source of tugboat technical availability.
+6. Inventory should replace manual Inventory Readiness Confirmation and supply fuel and spare-part facts.
+7. Procurement should replenish maintenance and inventory shortages.
+8. Executive KPIs should use the operational, HR, and financial source records already available.
 
 ## 8. Recommended Next Demonstration Slices
 
-### Slice 1: Technical Maintenance Foundation
+### Slice 6: Marine Crew Onboarding
 
-Add tugboat equipment, planned maintenance, defect reports, work orders, maintenance hold, and equipment history. This is the next logical operational dependency because tug availability already participates in Service Order readiness.
+Create the explicit handoff from successful HR hire to marine Crew Profile, rank, home tugboat,
+credential requirements, and deployment-eligibility state. This is the next dependency because a
+standard Odoo employee is not automatically usable as crew.
 
-### Slice 2: Inventory and Fuel Foundation
+### Slice 7: Crew Credentials and Medical Renewal
 
-Add standard Odoo products, warehouses, vessel locations, receipts, issues, spare parts, fuel, lubricants, and operation consumption. Replace manual inventory confirmation with a computed readiness result.
+Connect credential and medical validity to controlled evidence, expiry visibility, and readiness.
 
-### Slice 3: Procurement Handoff
+### Slice 8: Leave, Training, and Temporary Relief
 
-Add Purchase Requests, approval, supplier Purchase Orders, receipts, and supplier bills originating from stock or maintenance demand.
+Add dated unavailability and relief workflows so not every crew shortage becomes hiring demand.
 
-### Slice 4: HSSE Foundation
+### Slice 9: Crew Rotation and Service Order Scheduling
 
-Add incidents, near misses, inspections, risks, permits, corrective actions, and training records linked to tugboats, crew, Service Orders, and documents.
+Build the planning layer that assigns deployment-eligible crew to tugboats and Service Orders without overlaps.
 
-### Slice 5: Corporate Documents and Executive Dashboard
+### Slice 10 onward
 
-Seed contracts, vessel certificates, insurance, permits, board resolutions, and ISO documents, then build an executive view across service revenue, utilization, availability, maintenance, HSSE, staffing, and document expiry.
-
-### Slice 6: Broader Standard Odoo Demonstrations
-
-Configure representative Accounts Payable, budgeting, cash reporting, fixed assets, attendance, performance evaluation, CRM, and approved payroll inputs. These should remain demonstrations until SEDAR confirms actual policy and statutory rules.
+Proceed with Technical Maintenance, Inventory/Fuel, Procurement, HSSE, broader ERP demonstrations,
+and the final executive dashboard in the order defined by `sedar-planning/implementation-slice-roadmap.md`.
 
 ## 9. Production Readiness Disclaimer
 

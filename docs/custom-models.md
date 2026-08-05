@@ -18,11 +18,14 @@ Update this document in the same change whenever a listed custom field is added,
 | `res.users` | Method-only extension | Assigns the custom Service Order dashboard as the default home action for internal users | `sedar_theme/models/res_users.py` |
 | `hr.recruitment.stage` | Extended | Maps internal recruitment stages to applicant-visible statuses and instructions | `sedar_applicant_portal/models/portal.py` |
 | `hr.applicant` | Extended | Owns portal access, public tracking, HR processing, interviews, requirements, and employee conversion | `sedar_applicant_portal/models/portal.py`; `sedar_recruitment_operations/models/applicant.py` |
+| `hr.employee` | Extended | Preserves traceability from successful applicant conversion into the HR employee master and controls generic HR onboarding | `sedar_recruitment_operations/models/employee.py` |
 | `sedar.applicant.portal.event` | New | Stores applicant-visible timeline events | `sedar_applicant_portal/models/portal.py` |
 | `sedar.applicant.stage.history` | New | Provides an auditable history of HR stage changes | `sedar_recruitment_operations/models/applicant.py` |
 | `sedar.applicant.interview` | New | Coordinates interview scheduling, applicant responses, calendar events, and ADM-4 appraisal | `sedar_recruitment_operations/models/interview.py` |
 | `sedar.applicant.offer` | New | Records the HR hiring decision, offer issue, applicant response, and ADM-5 gate | `sedar_recruitment_operations/models/offer.py` |
-| `sedar.document.request` | Extended | Links controlled document requests to applicants and interviews and governs portal visibility | `sedar_recruitment_operations/models/interview.py` |
+| `sedar.manpower.request` | Workflow changed | Closes approved headcount demand only after linked vacancies are filled | `sedar_manpower_planning/models/manpower_models.py` |
+| `sedar.job.vacancy` | Workflow changed | Synchronizes filled openings from traceable employee conversions | `sedar_manpower_planning/models/manpower_models.py` |
+| `sedar.document.request` | Extended | Links controlled document requests to applicants and interviews and governs portal/internal recruitment visibility | `sedar_recruitment_operations/models/interview.py`; `sedar_recruitment_operations/security/sedar_recruitment_security.xml` |
 
 ## `sedar.tug.assignment`
 
@@ -228,7 +231,38 @@ Applicant creation generates a random activation token and initial timeline even
 | `sedar_current_offer_id` | Computed many-to-one to `sedar.applicant.offer` | Exposes the active issued or accepted offer, if one exists. |
 | `sedar_is_overdue` | Computed, searchable boolean | Identifies applications whose next-action date is before today. |
 
-Workflow actions move applicants through controlled SEDAR stages, synchronize the public status, and create stage history. Interview completion requires a submitted ADM-4 appraisal. For marine crew applicants in the demonstration, ADM-4A Background Inquiry and CM-053 Company Interview Orientation are mandatory internal HR controls after interview completion. HR must issue an offer and the applicant must accept it before ADM-5 employment requirements may be requested. Employment-requirement verification requires an ADM-5 request to be submitted and approved. Employee conversion uses Odoo Recruitment's native employee creation and is blocked until both an accepted offer and the approved ADM-5 request exist.
+Workflow actions move applicants through controlled SEDAR stages, synchronize the public status, and create stage history. Interview completion requires a submitted ADM-4 appraisal. For marine crew applicants in the demonstration, ADM-4A Background Inquiry and CM-053 Company Interview Orientation are mandatory internal HR controls after interview completion. HR must issue an offer and the applicant must accept it before ADM-5 employment requirements may be requested. Employment-requirement verification requires an ADM-5 request to be submitted and approved. Employee conversion uses Odoo Recruitment's native employee creation and is blocked until both an accepted offer and the approved ADM-5 request exist. Conversion is idempotent: if a linked employee already exists, the action opens that employee rather than creating another one. A successful conversion writes recruitment source fields to the employee and synchronizes vacancy/manpower fulfillment, but it does not resolve the original operational crew shortage.
+
+## `hr.employee` recruitment onboarding extension
+
+The existing Odoo employee remains the HR master record. SEDAR adds only source and onboarding fields needed to prove where a demonstration hire came from and what generic onboarding state HR still owns.
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `sedar_source_applicant_id` | Read-only indexed many-to-one to `hr.applicant` | Links the employee to the application that created the employee profile. Used to prevent duplicate employee creation. |
+| `sedar_source_vacancy_id` | Read-only indexed many-to-one to `sedar.job.vacancy` | Links the employee to the approved vacancy whose headcount demand the hire fulfills. |
+| `sedar_source_offer_id` | Read-only many-to-one to `sedar.applicant.offer` | Links the employee to the accepted offer used for the conversion gate. |
+| `sedar_source_requirement_request_id` | Read-only many-to-one to `sedar.document.request` | Links the employee to the approved ADM-5 employment requirements request. |
+| `sedar_employment_type` | Read-only selection | Stores the demonstration employment type accepted in the offer: probationary, regular, project-based, or contract. |
+| `sedar_planned_start_date` | Read-only date | Stores the proposed start date accepted in the offer. |
+| `sedar_onboarding_state` | Selection | Tracks generic HR onboarding as pending, in progress, or done. It does not represent marine deployment eligibility. |
+| `sedar_onboarding_owner_id` | Many-to-one to `res.users` | HR owner responsible for completing the generic onboarding checklist and scheduled activity. |
+| `sedar_onboarding_started_at` | Read-only datetime | Audit timestamp written when HR starts SEDAR onboarding. |
+| `sedar_onboarding_completed_at` | Read-only datetime | Audit timestamp written when HR completes SEDAR onboarding. |
+| `sedar_onboarding_checklist` | Text | Demonstration checklist covering employee master data, manager/job setup, access/payroll preparation, and the later marine Crew Profile handoff. |
+
+These fields are written by `hr.applicant.action_sedar_create_employee_profile()` after the standard Odoo employee is created. Non-marine hires stop at this HR employee record. Marine readiness remains owned by the later Crew Profile onboarding workflow.
+When the source applicant owns a portal account, conversion links the employee work contact to that same portal partner so the applicant dashboard can transition to the employee dashboard without creating a second identity. HR Recruitment Managers, not ordinary recruitment users, control onboarding start/completion actions. Conversion schedules a `SEDAR Employee Onboarding` activity for the onboarding owner.
+
+## `sedar.manpower.request` and `sedar.job.vacancy` fulfillment behavior
+
+No new field is added to either model in this slice, but their workflow contract changed materially under ADR-0003:
+
+- `sedar.manpower.request.action_open_vacancies()` creates or links vacancy records and moves the request to `position_open`; it no longer resolves linked operational crew shortages.
+- `sedar.job.vacancy._sedar_sync_hiring_fulfillment()` derives the vacancy's `filled_openings` from employees whose `sedar_source_vacancy_id` points to that vacancy.
+- A vacancy moves to `filled` and closes publication when filled openings meet approved openings.
+- `sedar.manpower.request._sedar_sync_headcount_fulfillment()` closes the request only when all linked vacancies have no remaining openings.
+- Linked `sedar.crew.shortage` records remain open/escalated until Operations or Crewing records a concrete operational resolution.
 
 ## `sedar.applicant.portal.event`
 
@@ -304,10 +338,12 @@ One record captures a hiring decision and offer version for one applicant. HR Re
 | `issued_by_id` | Read-only many-to-one to `res.users` | HR user who issued the offer. |
 | `issued_at` | Read-only datetime | Issue timestamp. |
 | `accepted_at` | Read-only datetime | Acceptance timestamp. |
+| `accepted_by_id` | Read-only many-to-one to `res.users` | User who accepted or recorded acceptance of the offer. Portal acceptance records the portal user; internal confirmation records the HR manager. |
+| `acceptance_source` | Read-only selection | Distinguishes applicant portal acceptance from internal HR confirmation. |
 | `declined_at` | Read-only datetime | Decline timestamp. |
 | `applicant_response_note` | Text | Applicant or HR response note captured through portal or backend action. |
 
-Issuing an offer requires approved ADM-4A and CM-053 controls for marine crew applicants and prevents a second active offer from being issued at the same time. Accepting an offer moves the applicant to the offer-accepted stage and unlocks ADM-5. Declined or expired offers close the application through the controlled rejection stage while preserving the offer history.
+Issuing an offer requires approved ADM-4A and CM-053 controls for marine crew applicants and prevents a second active offer from being issued at the same time. Offer issue, internal acceptance confirmation, withdrawal, and expiry require the HR Recruitment Manager group server-side. Portal acceptance and decline require ownership checks in the applicant portal controller and record the applicant response against the same offer. Accepting an offer moves the applicant to the offer-accepted stage and unlocks ADM-5. Declined or expired offers close the application through the controlled rejection stage while preserving the offer history.
 
 ## `sedar.document.request` recruitment extension
 
@@ -322,3 +358,14 @@ The existing controlled document request is extended so recruitment can use the 
 | `applicant_submission_note` | Text | Applicant's note accompanying a portal submission. |
 
 Portal submission is restricted to the verified owner, applicant-visible requests, active applications, and editable request states. Typed document values remain governed by Document Control validation; uploaded attachments are stored in the existing binary value field. ADM-5 submission advances the applicant to requirements review. ADM-4A Background Inquiry and CM-053 Company Interview Orientation requests are created as internal-only recruitment controls for marine crew applicants; their detailed content remains hidden from the applicant portal and must be approved before HR can request ADM-5 in the demo workflow.
+Internal recruitment document visibility is also restricted by record rules in `sedar_recruitment_operations`: ordinary internal users can read non-recruitment document requests plus recruitment requests assigned to them, assigned to their applicant, or linked to their interview panel. HR Recruitment Managers can read all recruitment document requests and values for supervision. This closes the earlier gap where every internal user inherited broad Document Control access to confidential ADM-4A and orientation content.
+
+## Recruitment operations security hardening
+
+`sedar_recruitment_operations` adds record rules for `sedar.applicant.interview`, `sedar.applicant.offer`, `sedar.document.request`, and `sedar.document.value`.
+
+- Interview access for ordinary recruitment users is limited to coordinator, interviewer, or applicant recruiter assignments. HR Recruitment Managers can supervise all interviews.
+- Offer access for ordinary recruitment users is limited to offers for their assigned applicants. HR Recruitment Managers can supervise and act on all offers.
+- Recruitment document request and value access is limited to non-recruitment documents, assigned HR users, applicant recruiters, or interview panel users. HR Recruitment Managers can supervise all recruitment documents.
+- Server-side actions enforce HR Recruitment Manager authority for background/orientation approval, offer creation/issue/internal acceptance/withdrawal/expiry, and employee conversion/onboarding control.
+- Applicant portal routes continue to use ownership checks and `sudo()` only after verifying the signed-in portal user's partner owns the application, interview, document request, or offer.

@@ -8,7 +8,9 @@
     "depends": ["sedar_applicant_portal", "sedar_document_control", "hr_recruitment", "calendar", "mail"],
     "data": [
         "security/ir.model.access.csv",
+        "security/sedar_recruitment_security.xml",
         "data/sedar_recruitment_stage_data.xml",
+        "data/sedar_recruitment_activity_data.xml",
         "views/sedar_recruitment_views.xml",
         "views/sedar_interview_portal_templates.xml",
     ],

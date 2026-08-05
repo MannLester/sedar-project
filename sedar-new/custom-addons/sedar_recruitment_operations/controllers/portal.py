@@ -87,7 +87,7 @@ class SedarRecruitmentInterviewPortal(http.Controller):
         note = (post.get("applicant_response_note") or "").strip()
         if note:
             offer.write({"applicant_response_note": note})
-        offer.action_accept()
+        offer.action_accept_from_portal(request.env.user)
         offer.applicant_id._create_portal_event(
             "offer",
             "Offer Accepted",
@@ -103,7 +103,7 @@ class SedarRecruitmentInterviewPortal(http.Controller):
         note = (post.get("applicant_response_note") or "").strip()
         if note:
             offer.write({"applicant_response_note": note})
-        offer.action_decline()
+        offer.action_decline_from_portal(request.env.user)
         offer.applicant_id._create_portal_event(
             "closed",
             "Offer Declined",

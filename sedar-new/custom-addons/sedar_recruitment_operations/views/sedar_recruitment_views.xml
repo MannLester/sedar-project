@@ -183,6 +183,41 @@
         <field name="help" type="html"><p>Review applications, assign recruiters, and move applicants through the SEDAR recruitment pipeline.</p></field>
     </record>
 
+    <record id="view_hr_employee_sedar_onboarding_inherit" model="ir.ui.view">
+        <field name="name">hr.employee.sedar.onboarding.inherit</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_sedar_start_onboarding" type="object" string="Start SEDAR Onboarding" class="btn-primary" invisible="sedar_onboarding_state != 'pending'" groups="hr_recruitment.group_hr_recruitment_manager"/>
+                <button name="action_sedar_complete_onboarding" type="object" string="Complete SEDAR Onboarding" class="btn-primary" invisible="sedar_onboarding_state != 'in_progress'" groups="hr_recruitment.group_hr_recruitment_manager"/>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="SEDAR Onboarding" name="sedar_onboarding">
+                    <group>
+                        <group string="Recruitment Source">
+                            <field name="sedar_source_applicant_id" readonly="1"/>
+                            <field name="sedar_source_vacancy_id" readonly="1"/>
+                            <field name="sedar_source_offer_id" readonly="1"/>
+                            <field name="sedar_source_requirement_request_id" readonly="1"/>
+                        </group>
+                        <group string="Employment Setup">
+                            <field name="sedar_employment_type" readonly="1"/>
+                            <field name="sedar_planned_start_date" readonly="1"/>
+                            <field name="sedar_onboarding_owner_id" groups="hr_recruitment.group_hr_recruitment_manager"/>
+                            <field name="sedar_onboarding_state" readonly="1"/>
+                            <field name="sedar_onboarding_started_at" readonly="1"/>
+                            <field name="sedar_onboarding_completed_at" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Checklist">
+                        <field name="sedar_onboarding_checklist" groups="hr_recruitment.group_hr_recruitment_manager"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
     <record id="action_sedar_applicant_action_queue" model="ir.actions.act_window">
         <field name="name">Applicant Action Queue</field>
         <field name="res_model">hr.applicant</field>
@@ -497,11 +532,11 @@
         <field name="arch" type="xml">
             <form string="Hiring Decision / Offer">
                 <header>
-                    <button name="action_issue" type="object" string="Issue Offer" class="btn-primary" invisible="state != 'draft'"/>
-                    <button name="action_accept" type="object" string="Mark Accepted" class="btn-primary" invisible="state != 'issued'"/>
-                    <button name="action_decline" type="object" string="Mark Declined" invisible="state != 'issued'"/>
-                    <button name="action_withdraw" type="object" string="Withdraw" invisible="state not in ['draft', 'issued']"/>
-                    <button name="action_expire" type="object" string="Expire" invisible="state != 'issued'"/>
+                    <button name="action_issue" type="object" string="Issue Offer" class="btn-primary" invisible="state != 'draft'" groups="hr_recruitment.group_hr_recruitment_manager"/>
+                    <button name="action_accept" type="object" string="Mark Accepted" class="btn-primary" invisible="state != 'issued'" groups="hr_recruitment.group_hr_recruitment_manager"/>
+                    <button name="action_decline" type="object" string="Mark Declined" invisible="state != 'issued'" groups="hr_recruitment.group_hr_recruitment_manager"/>
+                    <button name="action_withdraw" type="object" string="Withdraw" invisible="state not in ['draft', 'issued']" groups="hr_recruitment.group_hr_recruitment_manager"/>
+                    <button name="action_expire" type="object" string="Expire" invisible="state != 'issued'" groups="hr_recruitment.group_hr_recruitment_manager"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,issued,accepted"/>
                 </header>
                 <sheet>
@@ -523,13 +558,15 @@
                     <group string="Applicant-Visible Offer Summary">
                         <field name="offer_summary"/>
                     </group>
-                    <group string="Internal Decision Rationale">
+                    <group string="Internal Decision Rationale" groups="hr_recruitment.group_hr_recruitment_manager">
                         <field name="decision_reason"/>
                     </group>
                     <group string="Issue and Response">
                         <field name="issued_by_id" readonly="1"/>
                         <field name="issued_at" readonly="1"/>
                         <field name="accepted_at" readonly="1"/>
+                        <field name="accepted_by_id" readonly="1"/>
+                        <field name="acceptance_source" readonly="1"/>
                         <field name="declined_at" readonly="1"/>
                         <field name="applicant_response_note"/>
                     </group>

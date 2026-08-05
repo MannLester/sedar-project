@@ -234,11 +234,38 @@ class ResCompany(models.Model):
                     "job_id": job.id,
                     "work_email": "converted.chief.engineer@sedar-demo.example.com",
                     "company_id": company.id,
+                    "sedar_source_applicant_id": applicant.id,
+                    "sedar_source_vacancy_id": applicant.sedar_vacancy_id.id,
+                    "sedar_source_offer_id": self.env.ref("%s.offer_converted_employee" % MODULE, raise_if_not_found=False).id if self.env.ref("%s.offer_converted_employee" % MODULE, raise_if_not_found=False) else False,
+                    "sedar_employment_type": "probationary",
+                    "sedar_planned_start_date": "2026-09-01",
+                    "sedar_onboarding_state": "pending",
                 })
                 applicant.employee_id = employee.id
+            if spec.get("employee") and applicant.employee_id:
+                requirement = self.env.ref("%s.request_converted_employee" % MODULE, raise_if_not_found=False)
+                offer = self.env.ref("%s.offer_converted_employee" % MODULE, raise_if_not_found=False)
+                applicant.employee_id.write({
+                    "sedar_source_applicant_id": applicant.id,
+                    "sedar_source_vacancy_id": applicant.sedar_vacancy_id.id,
+                    "sedar_source_offer_id": offer.id if offer else False,
+                    "sedar_source_requirement_request_id": requirement.id if requirement else False,
+                    "sedar_employment_type": "probationary",
+                    "sedar_planned_start_date": "2026-09-01",
+                    "sedar_onboarding_state": applicant.employee_id.sedar_onboarding_state or "pending",
+                    "sedar_onboarding_owner_id": hr_manager.id,
+                    "sedar_onboarding_checklist": applicant.employee_id.sedar_onboarding_checklist or "\n".join([
+                        "Confirm employee master data from ADM-3 and ADM-5.",
+                        "Assign department, job position, and reporting manager.",
+                        "Prepare contract, payroll, attendance, and system access setup.",
+                        "For marine crew, continue with Crew Profile onboarding and deployment eligibility.",
+                    ]),
+                })
+                applicant.sedar_vacancy_id._sedar_sync_hiring_fulfillment()
             self._sedar_prune_duplicate_portal_events(applicant)
 
         self._sedar_demo_portal_owner()
+        self._sedar_demo_align_headcount_shortage()
         return True
 
     def _sedar_demo_user(self, xmlid, name, login, groups):
@@ -465,8 +492,12 @@ class ResCompany(models.Model):
             values = {"state": spec["state"]}
             if spec["state"] == "accepted":
                 values["accepted_at"] = _dt(23, 10)
+                values["accepted_by_id"] = hr_manager.id
+                values["acceptance_source"] = "internal_hr_confirmation"
             elif spec["state"] == "issued":
                 values["accepted_at"] = False
+                values["accepted_by_id"] = False
+                values["acceptance_source"] = False
                 values["declined_at"] = False
             offer.write(values)
         return offer
@@ -493,6 +524,20 @@ class ResCompany(models.Model):
             "sedar_portal_partner_id": partner.id,
             "sedar_portal_claimed_at": _dt(18, 10),
             "sedar_claim_token": False,
+        })
+
+    def _sedar_demo_align_headcount_shortage(self):
+        shortage = self.env.ref("sedar_service_order_demo.shortage_missing_engineer_cheng", raise_if_not_found=False)
+        line = self.env.ref("sedar_manpower_planning_demo.request_chief_engineer_line", raise_if_not_found=False)
+        if not shortage or not line:
+            return
+        shortage.write({
+            "review_state": "escalated",
+            "root_cause": "permanent_headcount",
+            "resolution_action": "manpower_request",
+            "status": "open",
+            "resolved_at": False,
+            "manpower_request_line_id": line.id,
         })
 
     def _fill_document_request(self, request, values):

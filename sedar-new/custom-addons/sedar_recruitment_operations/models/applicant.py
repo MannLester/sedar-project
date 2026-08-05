@@ -36,6 +36,11 @@ class SedarApplicantOperations(models.Model):
     )
     sedar_is_overdue = fields.Boolean(compute="_compute_sedar_is_overdue", search="_search_sedar_is_overdue")
 
+    def _sedar_ensure_hr_decision_authority(self):
+        if not self.env.user.has_group("hr_recruitment.group_hr_recruitment_manager"):
+            raise UserError("Only an HR Recruitment Manager may perform this controlled hiring decision.")
+        return True
+
     @api.depends("sedar_next_action_date")
     def _compute_sedar_is_overdue(self):
         today = fields.Date.context_today(self)
@@ -157,6 +162,7 @@ class SedarApplicantOperations(models.Model):
         return True
 
     def action_sedar_verify_recruitment_controls(self):
+        self._sedar_ensure_hr_decision_authority()
         for applicant in self:
             applicant._ensure_recruitment_controls_approved(auto_approve=True)
             applicant.write({
@@ -169,6 +175,7 @@ class SedarApplicantOperations(models.Model):
         return True
 
     def action_sedar_create_offer(self):
+        self._sedar_ensure_hr_decision_authority()
         action = False
         for applicant in self:
             if applicant.sedar_public_status != "final_review":
@@ -222,20 +229,34 @@ class SedarApplicantOperations(models.Model):
         return True
 
     def action_sedar_create_employee_profile(self):
+        self._sedar_ensure_hr_decision_authority()
         action = False
         for applicant in self:
-            if applicant.employee_id:
+            existing_employee = applicant.employee_id or self.env["hr.employee"].sudo().search([
+                ("sedar_source_applicant_id", "=", applicant.id),
+            ], limit=1)
+            if existing_employee:
+                if not applicant.employee_id:
+                    applicant.employee_id = existing_employee.id
                 action = applicant.action_open_employee()
                 continue
             if applicant.sedar_public_status != "offer":
                 raise UserError("Create the employee profile only after requirements are verified.")
-            applicant._ensure_offer_accepted()
+            offer = applicant._sedar_accepted_offer()
             request = applicant.sedar_requirement_request_ids.filtered(
                 lambda item: item.sedar_request_purpose == "employment_requirements"
             )[:1]
             if not request or request.state != "approved":
                 raise UserError("Approve the ADM-5 employment requirements before creating the employee profile.")
-            action = applicant.create_employee_from_applicant()
+            action = applicant.sudo().create_employee_from_applicant()
+            employee = applicant.sudo().employee_id
+            if not employee and isinstance(action, dict) and action.get("res_id"):
+                employee = self.env["hr.employee"].sudo().browse(action["res_id"]).exists()
+                if employee:
+                    applicant.employee_id = employee.id
+            if not employee:
+                raise UserError("Odoo did not return the created employee profile. Please retry the conversion.")
+            applicant._sedar_apply_employee_onboarding_sources(employee, offer, request)
             applicant._move_to_sedar_stage(
                 "sedar_recruitment_operations.stage_employee_created",
                 next_action="Complete employee onboarding setup",
@@ -294,10 +315,48 @@ class SedarApplicantOperations(models.Model):
 
     def _ensure_offer_accepted(self):
         for applicant in self:
-            offer = applicant.sedar_offer_ids.filtered(lambda item: item.state == "accepted")[:1]
-            if not offer:
-                raise UserError("An accepted hiring offer is required before requesting ADM-5 employment requirements or creating an employee profile.")
+            applicant._sedar_accepted_offer()
         return True
+
+    def _sedar_accepted_offer(self):
+        self.ensure_one()
+        offer = self.sedar_offer_ids.filtered(lambda item: item.state == "accepted")[:1]
+        if not offer:
+            raise UserError("An accepted hiring offer is required before requesting ADM-5 employment requirements or creating an employee profile.")
+        return offer
+
+    def _sedar_apply_employee_onboarding_sources(self, employee, offer, request):
+        self.ensure_one()
+        values = {
+            "sedar_source_applicant_id": self.id,
+            "sedar_source_vacancy_id": self.sedar_vacancy_id.id,
+            "sedar_source_offer_id": offer.id,
+            "sedar_source_requirement_request_id": request.id,
+            "sedar_employment_type": offer.employment_type,
+            "sedar_planned_start_date": offer.proposed_start_date,
+            "sedar_onboarding_state": "pending",
+            "sedar_onboarding_owner_id": self.user_id.id or self.env.user.id,
+            "sedar_onboarding_checklist": self._sedar_default_onboarding_checklist(),
+        }
+        if self.sedar_portal_partner_id and "work_contact_id" in employee._fields:
+            values["work_contact_id"] = self.sedar_portal_partner_id.id
+        if self.department_id and not employee.department_id:
+            values["department_id"] = self.department_id.id
+        if self.job_id and not employee.job_id:
+            values["job_id"] = self.job_id.id
+        employee.sudo().write(values)
+        if self.sedar_vacancy_id:
+            self.sedar_vacancy_id._sedar_sync_hiring_fulfillment()
+        employee.sudo()._sedar_schedule_onboarding_activity()
+
+    def _sedar_default_onboarding_checklist(self):
+        self.ensure_one()
+        return "\n".join([
+            "Confirm employee master data from ADM-3 and ADM-5.",
+            "Assign department, job position, and reporting manager.",
+            "Prepare contract, payroll, attendance, and system access setup.",
+            "For marine crew, continue with Crew Profile onboarding and deployment eligibility.",
+        ])
 
     def _sedar_applicant_name(self):
         self.ensure_one()

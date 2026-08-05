@@ -71,7 +71,7 @@ def post_init_hook(env):
     })
     line.vacancy_id = vacancy.id
     missing_engineer.manpower_request_line_id = line.id
-    missing_engineer.write({"review_state": "resolved", "status": "resolved", "resolved_at": _dt(16, 10)})
+    missing_engineer.write({"review_state": "escalated", "status": "open", "resolved_at": False})
 
     expired_medical.write({
         "review_state": "action_required", "root_cause": "medical",

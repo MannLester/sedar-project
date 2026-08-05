@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mail_activity_employee_onboarding" model="mail.activity.type">
+        <field name="name">SEDAR Employee Onboarding</field>
+        <field name="icon">fa-check-square-o</field>
+        <field name="category">default</field>
+        <field name="res_model">hr.employee</field>
+        <field name="summary">Complete SEDAR employee onboarding setup</field>
+    </record>
+</odoo>

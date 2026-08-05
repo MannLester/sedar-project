@@ -39,6 +39,16 @@ class SedarApplicantOffer(models.Model):
     issued_by_id = fields.Many2one("res.users", string="Issued By", readonly=True, copy=False, ondelete="restrict")
     issued_at = fields.Datetime(string="Issued At", readonly=True, copy=False)
     accepted_at = fields.Datetime(string="Accepted At", readonly=True, copy=False)
+    accepted_by_id = fields.Many2one("res.users", string="Accepted By", readonly=True, copy=False, ondelete="restrict")
+    acceptance_source = fields.Selection(
+        [
+            ("portal", "Applicant Portal"),
+            ("internal_hr_confirmation", "Internal HR Confirmation"),
+        ],
+        string="Acceptance Source",
+        readonly=True,
+        copy=False,
+    )
     declined_at = fields.Datetime(string="Declined At", readonly=True, copy=False)
     applicant_response_note = fields.Text(string="Applicant Response Note")
 
@@ -57,6 +67,7 @@ class SedarApplicantOffer(models.Model):
         return super().create(vals_list)
 
     def action_issue(self):
+        self._ensure_offer_decision_authority()
         for offer in self:
             if offer.state != "draft":
                 raise UserError("Only draft offers can be issued.")
@@ -83,10 +94,24 @@ class SedarApplicantOffer(models.Model):
         return True
 
     def action_accept(self):
+        self._ensure_offer_decision_authority()
+        return self._action_accept_with_audit(self.env.user, "internal_hr_confirmation")
+
+    def action_accept_from_portal(self, response_user):
+        if not response_user or response_user._is_public():
+            raise UserError("A signed-in applicant portal user is required to accept an offer.")
+        return self._action_accept_with_audit(response_user, "portal")
+
+    def _action_accept_with_audit(self, response_user, source):
         for offer in self:
             if offer.state != "issued":
                 raise UserError("Only an issued offer can be accepted.")
-            offer.write({"state": "accepted", "accepted_at": fields.Datetime.now()})
+            offer.write({
+                "state": "accepted",
+                "accepted_at": fields.Datetime.now(),
+                "accepted_by_id": response_user.id,
+                "acceptance_source": source,
+            })
             offer.applicant_id._move_to_sedar_stage(
                 "sedar_recruitment_operations.stage_offer_accepted",
                 next_action="Request applicant employment requirements",
@@ -95,7 +120,21 @@ class SedarApplicantOffer(models.Model):
             )
         return True
 
+    def _ensure_offer_decision_authority(self):
+        if not self.env.user.has_group("hr_recruitment.group_hr_recruitment_manager"):
+            raise UserError("Only an HR Recruitment Manager may issue or confirm hiring offers.")
+        return True
+
     def action_decline(self):
+        self._ensure_offer_decision_authority()
+        return self._action_decline_with_audit()
+
+    def action_decline_from_portal(self, response_user):
+        if not response_user or response_user._is_public():
+            raise UserError("A signed-in applicant portal user is required to decline an offer.")
+        return self._action_decline_with_audit()
+
+    def _action_decline_with_audit(self):
         for offer in self:
             if offer.state != "issued":
                 raise UserError("Only an issued offer can be declined.")
@@ -108,6 +147,7 @@ class SedarApplicantOffer(models.Model):
         return True
 
     def action_withdraw(self):
+        self._ensure_offer_decision_authority()
         for offer in self:
             if offer.state not in ("draft", "issued"):
                 raise UserError("Only draft or issued offers can be withdrawn.")
@@ -120,6 +160,7 @@ class SedarApplicantOffer(models.Model):
         return True
 
     def action_expire(self):
+        self._ensure_offer_decision_authority()
         for offer in self:
             if offer.state != "issued":
                 raise UserError("Only issued offers can expire.")
