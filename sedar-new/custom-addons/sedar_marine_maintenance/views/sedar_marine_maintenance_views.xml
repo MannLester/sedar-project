@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_marine_equipment_search" model="ir.ui.view">
+        <field name="name">maintenance.equipment.search.sedar.marine</field>
+        <field name="model">maintenance.equipment</field>
+        <field name="arch" type="xml">
+            <search string="Marine Equipment">
+                <field name="name"/>
+                <field name="sedar_tugboat_id"/>
+                <field name="sedar_system"/>
+                <filter name="critical" string="Critical" domain="[('sedar_criticality', '=', 'critical')]"/>
+                <separator/>
+                <filter name="group_tugboat" string="Group by Tugboat" context="{'group_by': 'sedar_tugboat_id'}"/>
+                <filter name="group_system" string="Group by System" context="{'group_by': 'sedar_system'}"/>
+                <filter name="group_criticality" string="Group by Criticality" context="{'group_by': 'sedar_criticality'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_marine_equipment_list" model="ir.ui.view">
+        <field name="name">maintenance.equipment.list.sedar.marine</field>
+        <field name="model">maintenance.equipment</field>
+        <field name="arch" type="xml">
+            <list string="Marine Equipment" decoration-danger="sedar_criticality == 'critical'">
+                <field name="name"/>
+                <field name="sedar_tugboat_id"/>
+                <field name="sedar_parent_equipment_id"/>
+                <field name="sedar_system"/>
+                <field name="sedar_criticality"/>
+                <field name="sedar_installation_date"/>
+                <field name="sedar_running_interval_hours"/>
+                <field name="sedar_last_service_date"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_marine_equipment_form" model="ir.ui.view">
+        <field name="name">maintenance.equipment.form.sedar.marine</field>
+        <field name="model">maintenance.equipment</field>
+        <field name="arch" type="xml">
+            <form string="Marine Equipment">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="sedar_tugboat_id"/>
+                            <field name="category_id"/>
+                            <field name="sedar_parent_equipment_id"/>
+                            <field name="sedar_system"/>
+                            <field name="sedar_criticality"/>
+                        </group>
+                        <group>
+                            <field name="maintenance_team_id"/>
+                            <field name="technician_user_id"/>
+                            <field name="sedar_installation_date"/>
+                            <field name="sedar_running_interval_hours"/>
+                            <field name="sedar_last_service_date"/>
+                            <field name="sedar_last_service_hours"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Sub Equipment">
+                            <field name="sedar_child_equipment_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="sedar_system"/>
+                                    <field name="sedar_criticality"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes">
+                            <field name="note"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_maintenance_request_search_marine" model="ir.ui.view">
+        <field name="name">maintenance.request.search.sedar.marine</field>
+        <field name="model">maintenance.request</field>
+        <field name="arch" type="xml">
+            <search string="Maintenance Work Orders">
+                <field name="name"/>
+                <field name="sedar_tugboat_id"/>
+                <field name="equipment_id"/>
+                <field name="sedar_work_order_type"/>
+                <filter name="blocking" string="Blocking Tug Readiness" domain="[('sedar_blocks_tug_readiness', '=', True)]"/>
+                <filter name="open" string="Open" domain="[('close_date', '=', False)]"/>
+                <separator/>
+                <filter name="group_tugboat" string="Group by Tugboat" context="{'group_by': 'sedar_tugboat_id'}"/>
+                <filter name="group_type" string="Group by Type" context="{'group_by': 'sedar_work_order_type'}"/>
+                <filter name="group_impact" string="Group by Availability Impact" context="{'group_by': 'sedar_availability_impact'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_maintenance_request_list_marine" model="ir.ui.view">
+        <field name="name">maintenance.request.list.sedar.marine</field>
+        <field name="model">maintenance.request</field>
+        <field name="arch" type="xml">
+            <list string="Maintenance Work Orders" decoration-danger="sedar_blocks_tug_readiness" decoration-muted="close_date">
+                <field name="name"/>
+                <field name="sedar_tugboat_id"/>
+                <field name="equipment_id"/>
+                <field name="sedar_work_order_type"/>
+                <field name="maintenance_type"/>
+                <field name="sedar_priority"/>
+                <field name="sedar_availability_impact"/>
+                <field name="schedule_date"/>
+                <field name="close_date"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_maintenance_request_calendar_marine" model="ir.ui.view">
+        <field name="name">maintenance.request.calendar.sedar.marine</field>
+        <field name="model">maintenance.request</field>
+        <field name="arch" type="xml">
+            <calendar string="Maintenance Work Orders" date_start="schedule_date" color="sedar_tugboat_id" mode="month">
+                <field name="sedar_tugboat_id"/>
+                <field name="equipment_id"/>
+                <field name="sedar_work_order_type"/>
+                <field name="sedar_availability_impact"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="view_maintenance_request_form_marine" model="ir.ui.view">
+        <field name="name">maintenance.request.form.sedar.marine</field>
+        <field name="model">maintenance.request</field>
+        <field name="arch" type="xml">
+            <form string="Maintenance Work Order">
+                <header>
+                    <button name="action_sedar_mark_blocking" type="object" string="Mark Blocking" class="btn-primary" groups="sedar_marine_maintenance.group_marine_maintenance_manager" invisible="sedar_availability_impact == 'blocking' or close_date"/>
+                    <button name="action_sedar_release_tug" type="object" string="Release Tug" groups="sedar_marine_maintenance.group_marine_maintenance_manager" invisible="not sedar_blocks_tug_readiness"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="sedar_tugboat_id"/>
+                            <field name="equipment_id"/>
+                            <field name="sedar_work_order_type"/>
+                            <field name="maintenance_type"/>
+                            <field name="sedar_drydock_plan_id"/>
+                        </group>
+                        <group>
+                            <field name="maintenance_team_id"/>
+                            <field name="user_id"/>
+                            <field name="schedule_date"/>
+                            <field name="duration"/>
+                            <field name="priority"/>
+                            <field name="sedar_priority"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="sedar_availability_impact"/>
+                        <field name="sedar_blocks_tug_readiness" readonly="1"/>
+                        <field name="sedar_defect_source"/>
+                    </group>
+                    <notebook>
+                        <page string="Work Scope">
+                            <field name="description"/>
+                            <field name="sedar_spare_part_note"/>
+                        </page>
+                        <page string="Verification">
+                            <group>
+                                <field name="sedar_running_hours_at_service"/>
+                                <field name="close_date" readonly="1"/>
+                                <field name="sedar_released_by_id" readonly="1"/>
+                                <field name="sedar_released_at" readonly="1"/>
+                            </group>
+                            <field name="sedar_closure_note"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_drydock_plan_search" model="ir.ui.view">
+        <field name="name">sedar.drydock.plan.search</field>
+        <field name="model">sedar.drydock.plan</field>
+        <field name="arch" type="xml">
+            <search string="Dry Dock Plans">
+                <field name="name"/>
+                <field name="tugboat_id"/>
+                <field name="yard_name"/>
+                <filter name="active" string="Planned / In Progress" domain="[('state', 'in', ['planned', 'in_progress'])]"/>
+                <filter name="blocking" string="Blocking Tug Readiness" domain="[('sedar_blocks_tug_readiness', '=', True)]"/>
+                <separator/>
+                <filter name="group_tugboat" string="Group by Tugboat" context="{'group_by': 'tugboat_id'}"/>
+                <filter name="group_state" string="Group by State" context="{'group_by': 'state'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_drydock_plan_list" model="ir.ui.view">
+        <field name="name">sedar.drydock.plan.list</field>
+        <field name="model">sedar.drydock.plan</field>
+        <field name="arch" type="xml">
+            <list string="Dry Dock Plans" decoration-danger="sedar_blocks_tug_readiness" decoration-muted="state in ['completed', 'cancelled']">
+                <field name="name"/>
+                <field name="tugboat_id"/>
+                <field name="yard_name"/>
+                <field name="planned_start"/>
+                <field name="planned_end"/>
+                <field name="availability_impact"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_drydock_plan_calendar" model="ir.ui.view">
+        <field name="name">sedar.drydock.plan.calendar</field>
+        <field name="model">sedar.drydock.plan</field>
+        <field name="arch" type="xml">
+            <calendar string="Dry Dock Plans" date_start="planned_start" date_stop="planned_end" color="tugboat_id" mode="month">
+                <field name="tugboat_id"/>
+                <field name="yard_name"/>
+                <field name="state"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="view_drydock_plan_form" model="ir.ui.view">
+        <field name="name">sedar.drydock.plan.form</field>
+        <field name="model">sedar.drydock.plan</field>
+        <field name="arch" type="xml">
+            <form string="Dry Dock Plan">
+                <header>
+                    <button name="action_plan" type="object" string="Plan" class="btn-primary" groups="sedar_marine_maintenance.group_marine_maintenance_manager" invisible="state != 'draft'"/>
+                    <button name="action_start" type="object" string="Start" class="btn-primary" groups="sedar_marine_maintenance.group_marine_maintenance_manager" invisible="state != 'planned'"/>
+                    <button name="action_complete" type="object" string="Complete" groups="sedar_marine_maintenance.group_marine_maintenance_manager" invisible="state != 'in_progress'"/>
+                    <button name="action_cancel" type="object" string="Cancel" groups="sedar_marine_maintenance.group_marine_maintenance_manager" invisible="state in ['completed', 'cancelled']"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,planned,in_progress,completed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="tugboat_id"/>
+                            <field name="yard_name"/>
+                            <field name="availability_impact"/>
+                            <field name="sedar_blocks_tug_readiness" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="planned_start"/>
+                            <field name="planned_end"/>
+                            <field name="released_by_id" readonly="1"/>
+                            <field name="released_at" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Scope">
+                            <field name="scope_summary"/>
+                        </page>
+                        <page string="Milestones">
+                            <field name="milestone_ids">
+                                <list editable="bottom">
+                                    <field name="sequence"/>
+                                    <field name="name"/>
+                                    <field name="planned_date"/>
+                                    <field name="actual_date"/>
+                                    <field name="responsible_id"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Work Orders">
+                            <field name="work_order_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="equipment_id"/>
+                                    <field name="sedar_availability_impact"/>
+                                    <field name="schedule_date"/>
+                                    <field name="close_date"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Release">
+                            <field name="release_note"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_tugboat_form_maintenance" model="ir.ui.view">
+        <field name="name">sedar.tugboat.form.maintenance</field>
+        <field name="model">sedar.tugboat</field>
+        <field name="inherit_id" ref="sedar_marine_operations.view_tugboat_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='home_crew_ids']" position="before">
+                <group string="Technical Availability">
+                    <field name="open_maintenance_blocker_count" readonly="1"/>
+                    <field name="maintenance_readiness_reason" readonly="1"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_marine_equipment" model="ir.actions.act_window">
+        <field name="name">Marine Equipment</field>
+        <field name="res_model">maintenance.equipment</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_marine_equipment_search"/>
+        <field name="domain">[('sedar_tugboat_id', '!=', False)]</field>
+    </record>
+
+    <record id="action_marine_maintenance_work_orders" model="ir.actions.act_window">
+        <field name="name">Maintenance Work Orders</field>
+        <field name="res_model">maintenance.request</field>
+        <field name="view_mode">calendar,list,form</field>
+        <field name="search_view_id" ref="view_maintenance_request_search_marine"/>
+        <field name="domain">[('sedar_tugboat_id', '!=', False)]</field>
+    </record>
+
+    <record id="action_drydock_plans" model="ir.actions.act_window">
+        <field name="name">Dry Dock Plans</field>
+        <field name="res_model">sedar.drydock.plan</field>
+        <field name="view_mode">calendar,list,form</field>
+        <field name="search_view_id" ref="view_drydock_plan_search"/>
+    </record>
+
+    <menuitem id="menu_marine_maintenance_root" name="Technical Maintenance" parent="sedar_marine_operations.menu_marine_operations" sequence="70" groups="sedar_marine_maintenance.group_marine_maintenance_user,sedar_marine_operations.group_operations_manager"/>
+    <menuitem id="menu_marine_equipment" name="Marine Equipment" parent="menu_marine_maintenance_root" action="action_marine_equipment" sequence="10"/>
+    <menuitem id="menu_marine_maintenance_work_orders" name="Maintenance Work Orders" parent="menu_marine_maintenance_root" action="action_marine_maintenance_work_orders" sequence="20"/>
+    <menuitem id="menu_drydock_plans" name="Dry Dock Plans" parent="menu_marine_maintenance_root" action="action_drydock_plans" sequence="30"/>
+</odoo>

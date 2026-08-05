@@ -26,6 +26,17 @@ Update this document in the same change whenever a listed custom field is added,
 | `sedar.crew.shortage.action` | Extended | Records medical/training unavailability evidence and temporary relief crew assignments | `sedar_crewing_availability/models/shortage_action.py` |
 | `sedar.crew.assignment` | Extended | Adds scheduling status, calendar fields, confirmation controls, and replacement suggestions | `sedar_crew_scheduling/models/crew_assignment.py` |
 | `sedar.crew.rotation` | New | Plans crew rotation periods, watch, tugboat, relief crew, and handover | `sedar_crew_scheduling/models/crew_rotation.py` |
+| `sedar.tugboat` | Extended | Exposes technical equipment, maintenance blockers, dry-dock plans, readiness reason, and tugboat stock location | `sedar_marine_maintenance/models/tugboat.py`; `sedar_marine_inventory/models/tugboat.py` |
+| `maintenance.equipment` | Extended | Links standard Odoo equipment to SEDAR tugboats and marine equipment hierarchy/criticality | `sedar_marine_maintenance/models/maintenance_equipment.py` |
+| `maintenance.request` | Extended | Adds SEDAR work-order type, tug availability impact, release evidence, dry-dock linkage, and spare-part status/lines | `sedar_marine_maintenance/models/maintenance_request.py`; `sedar_marine_inventory/models/maintenance_parts.py` |
+| `sedar.drydock.plan` | New | Represents dry-dock planning, milestones, availability impact, and controlled release | `sedar_marine_maintenance/models/drydock.py` |
+| `sedar.drydock.milestone` | New | Tracks planned and actual dry-dock milestones | `sedar_marine_maintenance/models/drydock.py` |
+| `sedar.inventory.template` | New | Defines stock-backed inventory requirements generated for a Service Order service type | `sedar_marine_inventory/models/inventory_models.py` |
+| `sedar.inventory.template.line` | New | Defines product quantities required by an inventory template | `sedar_marine_inventory/models/inventory_models.py` |
+| `sedar.inventory.requirement` | New | Stores generated or manual stock requirements that drive the inventory component of readiness | `sedar_marine_inventory/models/service_order.py` |
+| `sedar.maintenance.part.line` | New | Tracks requested, reserved, issued, and consumed spare parts for maintenance work orders | `sedar_marine_inventory/models/maintenance_parts.py` |
+| `sedar.operation.fuel.log` | New | Tracks operation fuel/lubricant issue, consumption, and remaining balance by tugboat | `sedar_marine_inventory/models/operation_fuel.py` |
+| `sedar.marine.operation` | Extended | Exposes operation fuel/lubricant logs and consumption summary | `sedar_marine_inventory/models/operation_fuel.py` |
 | `sedar.applicant.portal.event` | New | Stores applicant-visible timeline events | `sedar_applicant_portal/models/portal.py` |
 | `sedar.applicant.stage.history` | New | Provides an auditable history of HR stage changes | `sedar_recruitment_operations/models/applicant.py` |
 | `sedar.applicant.interview` | New | Coordinates interview scheduling, applicant responses, calendar events, and ADM-4 appraisal | `sedar_recruitment_operations/models/interview.py` |
@@ -71,11 +82,15 @@ The existing Service Order remains the workflow aggregate. Operations determines
 | --- | --- | --- |
 | `tug_completion_count` | Computed, stored integer | Counts active tug assignments whose completion is submitted. |
 | `all_tugs_complete` | Computed, stored boolean | Becomes true only when at least the requested number of active tug assignments exists and every active assignment is submitted. |
-| `inventory_ready` | Tracked boolean | Temporary manual confirmation that required inventory is ready. Its inline help states that the dedicated Inventory module will revamp and replace this band-aid control. |
+| `inventory_ready` | Tracked boolean | Historical readiness flag. Slice 11 writes this from stock-derived inventory requirement lines when they exist; the earlier manual confirmation remains only for records with no generated requirements. |
 | `inventory_ready_by_id` | Read-only many-to-one to `res.users` | Audit identity of the authorized Operations user who confirmed inventory readiness. |
 | `inventory_ready_at` | Read-only datetime | Audit time of the current inventory confirmation. |
+| `inventory_requirement_ids` | One-to-many to `sedar.inventory.requirement` | Stock-backed products and quantities required before execution. |
+| `inventory_requirement_count` | Computed, stored integer | Counts Service Order inventory requirement lines. |
+| `inventory_auto_ready` | Computed, stored boolean | True only when at least one inventory requirement exists and all requirement lines have enough available stock. |
+| `inventory_shortage_summary` | Computed, stored character | Summarizes the first stock shortages shown in readiness reason. |
 
-The `readiness_status` selection now includes `waiting_inventory`. Relevant changes to service, scope, tug requirements, terminal, schedule, cargo, permits, or safety requirements clear all three inventory confirmation fields. Automated dispatch creates one awaiting-start Marine Operation only when tugboat, crew, and inventory readiness all pass.
+The `readiness_status` selection includes `waiting_inventory`. Before Slice 11, relevant changes to service, scope, tug requirements, terminal, schedule, cargo, permits, or safety requirements cleared the manual inventory confirmation. Slice 11 regenerates stock-backed requirements for planned/blocked/ready orders when relevant service inputs change and uses those lines as the inventory readiness truth. Automated dispatch creates one awaiting-start Marine Operation only when tugboat, crew, and inventory readiness all pass.
 
 `_sync_completion_from_tugs()` moves a dispatched or in-progress order to `completed` when all required tugs are complete. Returning or removing a completion moves a completed order back to `in_progress`.
 
@@ -419,6 +434,241 @@ Key behavior:
 - Handover date must fall inside the rotation period.
 - Planned or active rotations for the same Crew Profile cannot overlap.
 - Rotation workflow actions move draft to planned, planned to active, active to completed, or cancel any unfinished rotation.
+
+## Technical Maintenance Foundation
+
+Slice 10 adds `sedar_marine_maintenance`, a focused integration addon on top of standard Odoo Maintenance. Standard `maintenance.equipment` and `maintenance.request` remain the work-order/equipment foundation. SEDAR fields add marine relationships and availability rules needed by the Dispatch Readiness Gate.
+
+### `sedar.tugboat` maintenance extension
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `maintenance_equipment_ids` | One-to-many to `maintenance.equipment` | Lists marine equipment installed on the tugboat. |
+| `maintenance_request_ids` | One-to-many to `maintenance.request` | Lists maintenance work orders affecting the tugboat. |
+| `drydock_plan_ids` | One-to-many to `sedar.drydock.plan` | Lists dry-dock plans for the tugboat. |
+| `open_maintenance_blocker_count` | Computed, stored integer | Counts open blocking work orders and active blocking dry-dock plans. |
+| `maintenance_readiness_reason` | Computed, stored character | Summarizes the first blocking technical records for operational readiness visibility. |
+
+Key behavior:
+
+- `_sedar_sync_maintenance_availability()` sets `availability_status` to `maintenance` when blocking technical records exist.
+- The same method restores `availability_status` to `available` only when no blocking maintenance request or dry-dock plan remains.
+- Existing Service Order readiness continues to consume `sedar.tugboat.availability_status`; Maintenance becomes the source that controls the maintenance hold.
+
+### `maintenance.equipment` marine extension
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `sedar_tugboat_id` | Many-to-one to `sedar.tugboat` | Identifies the tugboat carrying the equipment. |
+| `sedar_parent_equipment_id` | Many-to-one to `maintenance.equipment` | Allows a marine equipment hierarchy such as tugboat, engine, pump, or subsystem. |
+| `sedar_child_equipment_ids` | One-to-many to `maintenance.equipment` | Shows child equipment records. |
+| `sedar_system` | Selection | Demonstration system grouping: propulsion, electrical, navigation, hull, deck machinery, safety, auxiliary, or other. |
+| `sedar_criticality` | Selection | Critical, major, or minor equipment criticality for maintenance prioritization. |
+| `sedar_installation_date` | Date | Installation date when known. |
+| `sedar_running_interval_hours` | Float | Representative planned-maintenance interval in running hours. Real intervals require SEDAR confirmation. |
+| `sedar_last_service_date` | Date | Last verified service date for PMS visibility. |
+| `sedar_last_service_hours` | Float | Last service running-hour reading. |
+
+### `maintenance.request` marine extension
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `sedar_tugboat_id` | Many-to-one to `sedar.tugboat` | Affected tugboat. Defaults from linked marine equipment when available. |
+| `sedar_work_order_type` | Selection | Planned maintenance, defect/corrective, or dry-dock work. |
+| `sedar_priority` | Selection | Low, medium, high, or critical marine priority. |
+| `sedar_defect_source` | Character | Source of a corrective defect report. Required for defect work orders. |
+| `sedar_availability_impact` | Selection | No impact, monitor only, or blocks tug readiness. |
+| `sedar_blocks_tug_readiness` | Computed, stored boolean | True when availability impact is blocking and the work order is not closed. |
+| `sedar_drydock_plan_id` | Many-to-one to `sedar.drydock.plan` | Optional dry-dock plan that owns or groups the work order. |
+| `sedar_spare_part_note` | Text | Legacy placeholder retained for historical Slice 10 records; Slice 11 uses structured spare-part lines. |
+| `sedar_part_line_ids` | One-to-many to `sedar.maintenance.part.line` | Spare parts requested, reserved, issued, and consumed for the work order. |
+| `sedar_parts_status` | Computed, stored selection | Summarizes whether the work order has no parts, shortage, reserved, issued, or consumed parts. |
+| `sedar_running_hours_at_service` | Float | Running-hour reading at service verification. |
+| `sedar_closure_note` | Text | Required verification note before releasing a blocking work order. |
+| `sedar_released_by_id` | Read-only many-to-one to `res.users` | Marine Maintenance Manager who released the tug from the work-order hold. |
+| `sedar_released_at` | Read-only datetime | Release timestamp. |
+
+Key behavior:
+
+- Blocking work orders require an affected tugboat.
+- Defect work orders require a defect source.
+- `action_sedar_mark_blocking()` is restricted to Marine Maintenance Managers and places the affected tugboat on maintenance hold.
+- `action_sedar_release_tug()` is restricted to Marine Maintenance Managers, requires a closure note, closes the work order if needed, records release audit fields, and restores the tug only when no other technical blocker remains.
+
+### `sedar.drydock.plan`
+
+One record represents a planned dry-dock event for one tugboat. It provides planning visibility without inventing SEDAR regulatory intervals.
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `name` | Required character | Dry-dock plan title. |
+| `tugboat_id` | Required many-to-one to `sedar.tugboat` | Tugboat affected by the dry dock. |
+| `planned_start` | Required datetime | Planned start. |
+| `planned_end` | Required datetime | Planned completion; must be later than start. |
+| `yard_name` | Required character | Shipyard or repair facility for the plan. |
+| `scope_summary` | Required text | Summary of planned dry-dock scope. |
+| `state` | Selection | Draft, planned, in progress, completed, or cancelled. |
+| `availability_impact` | Selection | No impact or blocks tug readiness. |
+| `sedar_blocks_tug_readiness` | Computed, stored boolean | True for planned or in-progress blocking dry dock. |
+| `milestone_ids` | One-to-many to `sedar.drydock.milestone` | Planned dry-dock milestone checklist. |
+| `work_order_ids` | One-to-many to `maintenance.request` | Maintenance work orders grouped under the dry-dock plan. |
+| `release_note` | Text | Required before completing a dry-dock plan. |
+| `released_by_id` | Read-only many-to-one to `res.users` | Marine Maintenance Manager who completed release. |
+| `released_at` | Read-only datetime | Release timestamp. |
+
+Key behavior:
+
+- Planned or in-progress blocking dry dock records place the tugboat on maintenance hold.
+- Completion requires a release note and records release user/time.
+- Cancelling or completing a dry dock reevaluates tug availability.
+
+### `sedar.drydock.milestone`
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `plan_id` | Required many-to-one to `sedar.drydock.plan` | Parent dry-dock plan. |
+| `sequence` | Integer | Milestone ordering. |
+| `name` | Required character | Milestone description. |
+| `planned_date` | Required datetime | Planned milestone date. |
+| `actual_date` | Datetime | Actual completion date when recorded. |
+| `responsible_id` | Many-to-one to `res.users` | Responsible user. |
+| `state` | Selection | Pending, done, or cancelled. |
+| `note` | Text | Internal milestone note. |
+
+Access rules:
+
+- Marine Maintenance Users can read and maintain marine equipment, maintenance requests, dry-dock plans, and milestones, but cannot delete them through normal access.
+- Marine Maintenance Managers control technical release actions.
+- Operations Managers can read dry-dock plans and milestones for readiness context.
+
+## Marine Inventory Foundation
+
+Slice 11 adds `sedar_marine_inventory`, a focused integration addon on top of standard Odoo Inventory. Standard `product.product`, `stock.location`, and `stock.quant` remain the product, location, and quantity foundation. SEDAR records add marine operating context so Service Orders, maintenance work orders, tugboats, and Marine Operations consume the same stock facts.
+
+### `sedar.tugboat` inventory extension
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `stock_location_id` | Many-to-one to `stock.location` | Internal stock location representing onboard fuel, lubricant, and vessel stores assigned to the tugboat. |
+
+### `sedar.inventory.template`
+
+One record defines the stock products normally required for one Service Order service type.
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `name` | Required character | Template label. |
+| `service_type_id` | Required many-to-one to `sedar.marine.service.type` | Service type that triggers this requirement template. |
+| `tug_class_id` | Many-to-one to `sedar.tug.class` | Optional tug-class-specific requirement rule. |
+| `source_location_id` | Required many-to-one to `stock.location` | Internal stock location checked for available quantity. |
+| `line_ids` | One-to-many to `sedar.inventory.template.line` | Products and quantities generated for matching Service Orders. |
+| `active` | Boolean | Allows old demo templates to be retired without deleting history. |
+
+### `sedar.inventory.template.line`
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `template_id` | Required many-to-one to `sedar.inventory.template` | Parent template. |
+| `sequence` | Integer | Display order. |
+| `product_id` | Required many-to-one to `product.product` | Stock product required by the Service Order. |
+| `product_uom_id` | Related, stored many-to-one to `uom.uom` | Product unit of measure. |
+| `required_qty` | Required float | Base required quantity; must be greater than zero. |
+| `per_tug` | Boolean | Multiplies the required quantity by `number_of_tugs` when generated. |
+
+### `sedar.inventory.requirement`
+
+One record is a stock-backed Service Order inventory requirement. It replaces the manual Inventory Readiness Confirmation whenever requirement lines exist.
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `order_id` | Required many-to-one to `sedar.marine.service.order` | Parent Service Order. |
+| `product_id` | Required many-to-one to `product.product` | Required stock product. |
+| `product_uom_id` | Related, stored many-to-one to `uom.uom` | Product unit of measure. |
+| `source_location_id` | Required many-to-one to `stock.location` | Internal location checked for available quantity. |
+| `required_qty` | Required float | Required quantity; must be greater than zero. |
+| `available_qty` | Computed, stored float | Available quantity from standard Odoo stock quants at the source location. |
+| `shortage_qty` | Computed, stored float | Required quantity not currently available. |
+| `readiness_state` | Computed, stored selection | `ready` or `shortage`; feeds the Dispatch Readiness Gate. |
+| `auto_generated` | Boolean | Marks lines generated from a Service Order inventory template. |
+| `note` | Text | Optional operational inventory note. |
+
+Key behavior:
+
+- `action_generate_inventory_requirements()` regenerates auto-generated requirement lines from the matching template for planned, blocked, or ready Service Orders.
+- `_sync_inventory_readiness()` writes the legacy `inventory_ready` flag from requirement-line availability only when requirement lines exist.
+- `action_confirm_inventory_ready()` is blocked for orders with requirement lines because readiness is stock-derived.
+- Service Order readiness shows `waiting_inventory` with a shortage summary when any requirement line is short.
+
+### `maintenance.request` inventory extension
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `sedar_part_line_ids` | One-to-many to `sedar.maintenance.part.line` | Work-order spare parts. |
+| `sedar_parts_status` | Computed, stored selection | No parts, parts shortage, reserved, issued, or consumed. |
+
+### `sedar.maintenance.part.line`
+
+One record represents one spare-part product required by a maintenance work order.
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `maintenance_request_id` | Required many-to-one to `maintenance.request` | Parent work order. |
+| `product_id` | Required many-to-one to `product.product` | Spare-part product. |
+| `product_uom_id` | Related, stored many-to-one to `uom.uom` | Product unit of measure. |
+| `source_location_id` | Required many-to-one to `stock.location` | Internal stock location used for the issue. |
+| `requested_qty` | Required float | Required part quantity; must be greater than zero. |
+| `available_qty` | Computed, stored float | Current available stock at the source location. |
+| `reserved_qty` | Float | Quantity reserved for the work order in the demo control. |
+| `issued_qty` | Float | Quantity issued from stock for the work order. |
+| `consumed_qty` | Float | Quantity consumed by the work order. |
+| `shortage_qty` | Computed, stored float | Quantity still short. |
+| `state` | Computed, stored selection | Shortage, reserved, issued, or consumed. |
+| `note` | Text | Optional maintenance inventory note. |
+
+Key behavior:
+
+- Reserve, issue, and consume actions are restricted to Marine Inventory Managers.
+- Issuing parts decreases standard Odoo stock quantity at the source location.
+- Consumed quantity cannot exceed issued quantity, and issued quantity cannot exceed reserved quantity.
+
+### `sedar.marine.operation` inventory extension
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `fuel_log_ids` | One-to-many to `sedar.operation.fuel.log` | Fuel and lubricant logs for the operation. |
+| `fuel_consumed_qty` | Computed, stored float | Sum of consumed fuel/lubricant quantities across operation logs. |
+
+### `sedar.operation.fuel.log`
+
+One record tracks fuel or lubricant issue and consumption for one tugboat in one Marine Operation.
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `operation_id` | Required many-to-one to `sedar.marine.operation` | Parent Marine Operation. |
+| `tugboat_id` | Required many-to-one to `sedar.tugboat` | Tugboat consuming fuel or lubricant. |
+| `product_id` | Required many-to-one to `product.product` | Fuel or lubricant product. |
+| `product_uom_id` | Related, stored many-to-one to `uom.uom` | Product unit of measure. |
+| `source_location_id` | Required many-to-one to `stock.location` | Internal source stock location. |
+| `tug_location_id` | Required many-to-one to `stock.location` | Tugboat onboard stock location. |
+| `opening_qty` | Float | Starting onboard quantity for the operation. |
+| `issued_qty` | Float | Quantity issued from source stock to the tugboat. |
+| `consumed_qty` | Float | Quantity consumed during the operation. |
+| `remaining_qty` | Computed, stored float | Opening plus issued minus consumed quantity. |
+| `state` | Selection | Draft, issued, or consumption recorded. |
+| `note` | Text | Optional operational fuel note. |
+
+Key behavior:
+
+- Issue and consumption actions are restricted to Marine Inventory Managers.
+- Issuing decreases source stock and increases tugboat stock.
+- Recording consumption decreases tugboat stock and updates operation fuel summary.
+- Consumption cannot exceed opening plus issued quantity.
+
+Access rules:
+
+- Marine Inventory Users can read and maintain inventory templates, Service Order requirements, maintenance part lines, and operation fuel logs, but cannot delete them through normal access.
+- Operations Managers can read Service Order inventory requirements and operation fuel logs for dispatch and operational context.
+- Marine Maintenance Users can read and maintain work-order spare-part lines for maintenance execution context.
 
 ## `sedar.manpower.request` and `sedar.job.vacancy` fulfillment behavior
 

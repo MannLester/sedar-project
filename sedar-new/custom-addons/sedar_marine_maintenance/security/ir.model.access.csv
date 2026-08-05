@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_maintenance_equipment_marine_user,maintenance equipment marine user,maintenance.model_maintenance_equipment,group_marine_maintenance_user,1,1,1,0
+access_maintenance_request_marine_user,maintenance request marine user,maintenance.model_maintenance_request,group_marine_maintenance_user,1,1,1,0
+access_drydock_plan_user,dry dock plan user,model_sedar_drydock_plan,group_marine_maintenance_user,1,1,1,0
+access_drydock_milestone_user,dry dock milestone user,model_sedar_drydock_milestone,group_marine_maintenance_user,1,1,1,0
+access_drydock_plan_operations,dry dock plan operations,model_sedar_drydock_plan,sedar_marine_operations.group_operations_manager,1,0,0,0
+access_drydock_milestone_operations,dry dock milestone operations,model_sedar_drydock_milestone,sedar_marine_operations.group_operations_manager,1,0,0,0

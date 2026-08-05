@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_service_order_form_inventory" model="ir.ui.view">
+        <field name="name">sedar.marine.service.order.form.inventory</field>
+        <field name="model">sedar.marine.service.order</field>
+        <field name="inherit_id" ref="sedar_marine_operations.view_service_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_confirm_inventory_ready']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='inventory_ready']/ancestor::group[1]" position="replace">
+                <group string="Inventory Readiness">
+                    <field name="inventory_requirement_count" readonly="1"/>
+                    <field name="inventory_auto_ready" readonly="1"/>
+                    <field name="inventory_shortage_summary" readonly="1"/>
+                    <field name="inventory_ready" readonly="1"/>
+                </group>
+            </xpath>
+            <xpath expr="//field[@name='tug_assignment_ids']/ancestor::page[1]" position="after">
+                <page string="Inventory">
+                    <button name="action_generate_inventory_requirements" type="object" string="Generate Inventory Requirements" class="btn-secondary" invisible="state not in ['planning','blocked','ready']"/>
+                    <field name="inventory_requirement_ids">
+                        <list editable="bottom" decoration-danger="readiness_state == 'shortage'">
+                            <field name="product_id"/>
+                            <field name="source_location_id"/>
+                            <field name="required_qty"/>
+                            <field name="product_uom_id"/>
+                            <field name="available_qty"/>
+                            <field name="shortage_qty"/>
+                            <field name="readiness_state"/>
+                            <field name="auto_generated"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_tugboat_form_inventory" model="ir.ui.view">
+        <field name="name">sedar.tugboat.form.inventory</field>
+        <field name="model">sedar.tugboat</field>
+        <field name="inherit_id" ref="sedar_marine_operations.view_tugboat_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='fuel_capacity']" position="after">
+                <field name="stock_location_id"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_maintenance_request_form_inventory" model="ir.ui.view">
+        <field name="name">maintenance.request.form.sedar.inventory</field>
+        <field name="model">maintenance.request</field>
+        <field name="inherit_id" ref="sedar_marine_maintenance.view_maintenance_request_form_marine"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='sedar_spare_part_note']" position="replace">
+                <field name="sedar_parts_status" readonly="1"/>
+            </xpath>
+            <xpath expr="//field[@name='description']/ancestor::page[1]" position="after">
+                <page string="Spare Parts">
+                    <button name="action_sedar_reserve_parts" type="object" string="Reserve Parts" class="btn-secondary" groups="sedar_marine_inventory.group_marine_inventory_manager"/>
+                    <button name="action_sedar_issue_parts" type="object" string="Issue Parts" class="btn-secondary" groups="sedar_marine_inventory.group_marine_inventory_manager"/>
+                    <button name="action_sedar_consume_parts" type="object" string="Consume Parts" class="btn-secondary" groups="sedar_marine_inventory.group_marine_inventory_manager"/>
+                    <field name="sedar_part_line_ids">
+                        <list editable="bottom" decoration-danger="state == 'shortage'">
+                            <field name="product_id"/>
+                            <field name="source_location_id"/>
+                            <field name="requested_qty"/>
+                            <field name="product_uom_id"/>
+                            <field name="available_qty"/>
+                            <field name="reserved_qty"/>
+                            <field name="issued_qty"/>
+                            <field name="consumed_qty"/>
+                            <field name="shortage_qty"/>
+                            <field name="state"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_marine_operation_form_inventory" model="ir.ui.view">
+        <field name="name">sedar.marine.operation.form.inventory</field>
+        <field name="model">sedar.marine.operation</field>
+        <field name="inherit_id" ref="sedar_marine_dispatch.view_marine_operation_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Fuel and Lubricants">
+                    <group>
+                        <field name="fuel_consumed_qty" readonly="1"/>
+                    </group>
+                    <field name="fuel_log_ids">
+                        <list editable="bottom">
+                            <field name="tugboat_id"/>
+                            <field name="product_id"/>
+                            <field name="source_location_id"/>
+                            <field name="tug_location_id"/>
+                            <field name="opening_qty"/>
+                            <field name="issued_qty"/>
+                            <field name="consumed_qty"/>
+                            <field name="remaining_qty"/>
+                            <field name="state"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_inventory_template_list" model="ir.ui.view">
+        <field name="name">sedar.inventory.template.list</field>
+        <field name="model">sedar.inventory.template</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="service_type_id"/>
+                <field name="tug_class_id"/>
+                <field name="source_location_id"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_inventory_template_form" model="ir.ui.view">
+        <field name="name">sedar.inventory.template.form</field>
+        <field name="model">sedar.inventory.template</field>
+        <field name="arch" type="xml">
+            <form string="Inventory Template">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="service_type_id"/>
+                            <field name="tug_class_id"/>
+                        </group>
+                        <group>
+                            <field name="source_location_id"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <field name="line_ids">
+                        <list editable="bottom">
+                            <field name="sequence"/>
+                            <field name="product_id"/>
+                            <field name="required_qty"/>
+                            <field name="product_uom_id"/>
+                            <field name="per_tug"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_inventory_requirement_search" model="ir.ui.view">
+        <field name="name">sedar.inventory.requirement.search</field>
+        <field name="model">sedar.inventory.requirement</field>
+        <field name="arch" type="xml">
+            <search string="Inventory Requirements">
+                <field name="order_id"/>
+                <field name="product_id"/>
+                <field name="source_location_id"/>
+                <filter name="shortage" string="Shortage" domain="[('readiness_state', '=', 'shortage')]"/>
+                <filter name="group_order" string="Group by Service Order" context="{'group_by': 'order_id'}"/>
+                <filter name="group_product" string="Group by Product" context="{'group_by': 'product_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_inventory_requirement_list" model="ir.ui.view">
+        <field name="name">sedar.inventory.requirement.list</field>
+        <field name="model">sedar.inventory.requirement</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="readiness_state == 'shortage'">
+                <field name="order_id"/>
+                <field name="product_id"/>
+                <field name="source_location_id"/>
+                <field name="required_qty"/>
+                <field name="available_qty"/>
+                <field name="shortage_qty"/>
+                <field name="readiness_state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_inventory_templates" model="ir.actions.act_window">
+        <field name="name">Inventory Templates</field>
+        <field name="res_model">sedar.inventory.template</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_inventory_requirements" model="ir.actions.act_window">
+        <field name="name">Service Inventory Requirements</field>
+        <field name="res_model">sedar.inventory.requirement</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_inventory_requirement_search"/>
+    </record>
+
+    <menuitem id="menu_marine_inventory_root" name="Marine Inventory" parent="sedar_marine_operations.menu_marine_operations" sequence="75" groups="sedar_marine_inventory.group_marine_inventory_user,sedar_marine_operations.group_operations_manager"/>
+    <menuitem id="menu_inventory_requirements" name="Service Inventory Requirements" parent="menu_marine_inventory_root" action="action_inventory_requirements" sequence="10"/>
+    <menuitem id="menu_inventory_templates" name="Inventory Templates" parent="menu_marine_inventory_root" action="action_inventory_templates" sequence="20"/>
+</odoo>

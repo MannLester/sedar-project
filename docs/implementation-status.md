@@ -29,6 +29,8 @@ The shared Docker setup installs these SEDAR addons and their Odoo dependencies:
 | --- | --- |
 | Document Control | `sedar_document_control` |
 | Marine Operations | `sedar_marine_operations`, `sedar_marine_dispatch` |
+| Technical Maintenance | `sedar_marine_maintenance` plus standard Odoo `maintenance` |
+| Marine Inventory | `sedar_marine_inventory` plus standard Odoo `stock` |
 | Marine Finance | `sedar_marine_finance` plus standard Odoo `account` |
 | Manpower and Careers | `sedar_manpower_planning`, `sedar_careers` |
 | Recruitment | `sedar_applicant_intake`, `sedar_applicant_portal`, `sedar_recruitment_operations` |
@@ -46,10 +48,10 @@ The shared Docker setup installs these SEDAR addons and their Odoo dependencies:
 | Crewing and manpower | Partial | Crew profiles, manning, certificates, shortages, and hiring demand work; rotation, leave integration, and payroll do not. |
 | HR and recruitment | Partial | The recruitment lifecycle through employee conversion works; attendance, appraisals, payroll, and broader self-service do not. |
 | Document Control | Partial | Generic controlled forms and six recruitment forms work; broader corporate and vessel catalogues remain unseeded. |
-| Technical Maintenance | Not implemented | Only a tugboat maintenance availability state exists; no PMS, defects, work orders, dry dock, or equipment history. |
+| Technical Maintenance | Partial | Slice 10 adds marine equipment, planned/corrective work orders, dry-dock plans, equipment history fields, and tug availability holds; Slice 11 adds work-order spare-part lines. |
 | HSSE | Not implemented | Safety metadata exists in operations, but no formal HSSE module or workflow exists. |
 | Procurement | Not implemented | No Purchase Request, approval, Purchase Order, supplier, receipt, or supplier-bill demonstration exists. |
-| Inventory | Partial | A manual readiness confirmation exists; no stock, warehouse, spare-part, fuel, lubricant, or barcode workflow exists. |
+| Inventory | Partial | Slice 11 adds standard stock-backed marine products, service-order inventory requirements, tugboat locations, work-order spare parts, and operation fuel/lubricant logs. Barcode, reorder policy, and procurement replenishment remain incomplete. |
 | Marketing and CRM | Partial | Client, contact, vessel, tariff, Service Order, and portal records work; CRM opportunities and campaigns do not. |
 | Executive Management | Partial | Operational and Finance queues exist; no consolidated KPI, profitability, audit, legal, or corporate-governance dashboard exists. |
 | External integrations | Future integration | Power BI, Microsoft 365, DocuSign, and AIS/GPS are not connected. |
@@ -72,7 +74,7 @@ Client / Customer Relations
         -> Standard posting and payment
 ```
 
-Demonstrable behavior includes client-specific tariffs, normalized service and location data, tug and crew assignments, certificate readiness, manual audited inventory confirmation, automatic operation creation, multi-tug completion, actual tug-hour billing, Billing Adjustments, draft invoicing, and standard Odoo payment status.
+Demonstrable behavior includes client-specific tariffs, normalized service and location data, tug and crew assignments, certificate readiness, stock-derived inventory requirements, automatic operation creation, multi-tug completion, actual tug-hour billing, Billing Adjustments, draft invoicing, and standard Odoo payment status.
 
 ### 4.2 Crew Shortage to Employee
 
@@ -130,11 +132,11 @@ Approved source forms currently represented include:
 | Service Order intake | Implemented | Internal dashboard and client portal creation use normalized service, vessel, location, schedule, and tug fields. | Refine demo data and role-specific walkthrough. |
 | Client dashboard | Implemented | Portal users can create and view only their commercial account's Service Orders. | Expand client notifications and documents if needed. |
 | Tug assignment and planning | Implemented | Tug assignments, tug classes, bollard pull, manning templates, and requested timing are modeled. | A calendar or timeline scheduling UI would improve demonstration clarity. |
-| Automated readiness | Implemented | Tugboat, crew, certificate, and manual inventory readiness determine whether an order is Ready. | Replace manual inventory confirmation with Inventory truth. |
+| Automated readiness | Implemented | Tugboat, crew, certificate, and stock-derived inventory requirements determine whether an order is Ready. | Confirm final inventory policy and exception handling with SEDAR. |
 | Dispatch and Marine Operation | Implemented | Ready orders create one execution record with tug and crew manifests. | Add richer operator walkthrough and notifications if required. |
 | Voyage or operation logs | Partial | Movement milestones, activity logs, delays, actual times, notes, and evidence exist. | Add a dedicated voyage-log presentation and any statutory log fields confirmed by SEDAR. |
 | Tug Completion | Implemented | Assigned Tug Masters record actual time and completion; all active tugs are required. | Confirm operational evidence and correction policy with SEDAR. |
-| Fuel monitoring | Not implemented | Tugboat fuel capacity exists, but no fuel transaction or consumption workflow exists. | Add fuel receipts, issues, sounding/remaining balance, and operation consumption. |
+| Fuel monitoring | Partial | Slice 11 adds fuel/lubricant products, tugboat stock locations, operation fuel logs, issued quantity, consumed quantity, and remaining balance. | Add production sounding evidence, receipt workflow, and approved fuel policies. |
 | Towage billing | Implemented | Marine facts hand off automatically to Finance Billing Review. | Confirm tariff formulas and exception rules. |
 | AIS/GPS tracking | Future integration | No live or mock position feed is installed. | Add a provider adapter or clearly labeled mock tracking dashboard. |
 
@@ -143,12 +145,12 @@ Approved source forms currently represented include:
 | Requirement | Status | Current evidence | Remaining demonstration work |
 | --- | --- | --- | --- |
 | Tug availability | Partial | Tugboats have availability states, including maintenance hold, which affect readiness. | Make Maintenance the authoritative source of availability. |
-| Planned Maintenance System | Not implemented | No maintenance plan or interval model is installed. | Add standard Odoo Maintenance or a marine PMS extension. |
-| Defect reporting | Not implemented | No defect workflow exists. | Add defect classification, severity, assignment, and closure. |
-| Work orders | Not implemented | No technical work-order workflow exists. | Add planned and corrective work orders. |
-| Dry-dock planning | Not implemented | No dry-dock records or milestones exist. | Add a representative dry-dock plan. |
-| Spare parts consumption | Not implemented | No Inventory or work-order parts issue exists. | Connect work orders to stock reservations and consumption. |
-| Equipment history | Not implemented | Tugboat master data exists, but onboard equipment history does not. | Add equipment hierarchy, maintenance, replacement, and defect history. |
+| Planned Maintenance System | Partial | Standard Odoo Maintenance is extended with marine equipment, planned work orders, and representative running-hour interval fields. | Confirm real intervals and later automate PMS generation after SEDAR discovery. |
+| Defect reporting | Implemented | Corrective work orders capture defect source, priority, affected equipment/tugboat, blocking impact, and closure evidence. | Confirm exact defect classifications and escalation targets. |
+| Work orders | Implemented | Maintenance Work Orders can represent planned, defect, and dry-dock work and can block/release tug readiness. | Add labor, parts, and richer technical approval details after discovery. |
+| Dry-dock planning | Implemented | Dry Dock Plans include tugboat, yard, planned dates, scope, milestones, work orders, state, and release note. | Confirm regulatory intervals and yard approval process. |
+| Spare parts consumption | Partial | Slice 11 adds work-order spare-part lines with requested, reserved, issued, consumed, shortage, and stock quantity checks. | Connect shortages to Procurement and confirm production valuation/issue policy. |
+| Equipment history | Partial | Marine Equipment links to tugboats, parent systems, criticality, installation dates, and last-service facts. | Add component replacement history and automated service intervals after production discovery. |
 
 ### 5.4 HSSE
 
@@ -192,12 +194,12 @@ Approved source forms currently represented include:
 
 | Requirement | Status | Current evidence | Remaining demonstration work |
 | --- | --- | --- | --- |
-| Inventory readiness | Partial | Operations records an audited manual readiness confirmation. | Replace it with authoritative stock availability. |
-| Spare parts | Not implemented | No product and stock workflow is installed for spare parts. | Add parts catalogue, quantities, locations, and reorder rules. |
-| Fuel and lubricants | Not implemented | Fuel capacity exists only as tugboat master data. | Add products, tanks/locations, receipts, issues, and consumption. |
+| Inventory readiness | Implemented | Service Orders generate stock-backed requirement lines from inventory templates; shortages block only the inventory component of readiness. | Confirm SEDAR's exact service stock policy. |
+| Spare parts | Partial | Demo spare-part products and maintenance part lines exist with reserved, issued, and consumed quantities. | Add reorder rules and supplier replenishment in Procurement. |
+| Fuel and lubricants | Partial | Demo fuel and lubricant products, main stock, tugboat locations, and operation consumption logs exist. | Add production receipt/sounding evidence and tank measurement policy. |
 | Office supplies | Not implemented | No supply stock records exist. | Add representative consumable products and transactions. |
-| Warehouse management | Not implemented | No warehouse, vessel location, receipt, issue, or transfer demo exists. | Install and configure standard Odoo Inventory. |
-| Barcode support | Not implemented | No Barcode application or scan scenario is installed. | Add a representative barcode receipt or issue. |
+| Warehouse management | Partial | Standard Odoo Inventory is installed; the demo seeds a main warehouse and tugboat stock locations. | Add receipt, transfer, return, and adjustment walkthroughs. |
+| Barcode support | Partial | Demo products include representative barcode values. | Add a working Barcode-app scan flow if the installed edition supports it. |
 
 ### 5.8 Human Resources and Recruitment
 
@@ -325,11 +327,9 @@ These are the highest-value missing capabilities because they already connect to
 
 1. Crew certificate and medical records should link to controlled document evidence and renewal actions.
 2. Leave, training, and temporary relief should provide dated crew availability facts.
-3. Crew rotation and Service Order scheduling should consume deployment-eligible crew facts.
-4. Maintenance should become the source of tugboat technical availability.
-5. Inventory should replace manual Inventory Readiness Confirmation and supply fuel and spare-part facts.
-6. Procurement should replenish maintenance and inventory shortages.
-7. Executive KPIs should use the operational, HR, and financial source records already available.
+3. Procurement should replenish maintenance and inventory shortages.
+4. HSSE should formalize incidents, inspections, risks, permits, and corrective actions.
+5. Executive KPIs should use the operational, HR, technical, inventory, procurement, safety, and financial source records already available.
 
 ## 8. Recommended Next Demonstration Slices
 
@@ -358,9 +358,27 @@ Implemented. Crew assignments now have calendar-ready planned windows, schedulin
 confirmation controls, and suggested replacement profiles. Crew rotation plans capture tugboat
 periods, watch, relief crew, handover date, and overlapping-rotation validation.
 
-### Slice 10 onward
+### Slice 10: Technical Maintenance Foundation
 
-Proceed with Technical Maintenance, Inventory/Fuel, Procurement, HSSE, broader ERP demonstrations,
+Implemented. Standard Odoo Maintenance now carries SEDAR marine equipment and maintenance work-order
+fields. Open blocking work orders and planned/in-progress blocking dry-dock plans place the affected
+tugboat on maintenance hold, which the existing Service Order readiness gate consumes as a blocked tug.
+Verified work-order release and dry-dock completion restore tug availability only when no other
+technical blocker remains.
+
+### Slice 11: Inventory, Spare Parts, Fuel, and Lubricants
+
+Implemented for demonstration. Standard Odoo Inventory is installed as the stock foundation.
+`sedar_marine_inventory` adds service-order inventory templates and requirement lines,
+stock-derived inventory readiness, tugboat internal stock locations, work-order spare-part
+reservation/issue/consumption records, and Marine Operation fuel/lubricant logs. The old manual
+Inventory Readiness Confirmation fields remain visible only as historical audit fields when no
+stock requirement lines exist. Procurement replenishment, formal reorder policy, valuation, and a
+full barcode walkthrough remain later slices.
+
+### Slice 12 onward
+
+Proceed with Procurement, HSSE, broader ERP demonstrations,
 and the final executive dashboard in the order defined by `sedar-planning/implementation-slice-roadmap.md`.
 
 ## 9. Production Readiness Disclaimer
