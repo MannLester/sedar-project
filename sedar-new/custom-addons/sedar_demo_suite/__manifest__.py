@@ -1,0 +1,21 @@
+{
+    "name": "SEDAR Demonstration Suite",
+    "version": "19.0.1.0.0",
+    "category": "Operations",
+    "summary": "Final deterministic reconciliation for the SEDAR demonstration",
+    "author": "SEDAR Development Team",
+    "license": "LGPL-3",
+    "depends": [
+        "sedar_service_order_demo", "sedar_marine_dispatch_demo",
+        "sedar_manpower_planning_demo", "sedar_recruitment_demo",
+        "sedar_recruitment_crewing", "sedar_crew_compliance",
+        "sedar_crewing_availability", "sedar_crew_scheduling",
+        "sedar_marine_maintenance", "sedar_marine_inventory",
+        "sedar_purchase_request", "sedar_hsse", "sedar_erp_demo",
+        "sedar_executive_dashboard", "sedar_theme", "sedar_ui_cards",
+    ],
+    "data": ["data/reconcile.xml"],
+    "post_init_hook": "post_init_hook",
+    "installable": True,
+    "application": False,
+}

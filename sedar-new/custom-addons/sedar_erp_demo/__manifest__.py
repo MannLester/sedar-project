@@ -7,7 +7,7 @@
     "license": "LGPL-3",
     "depends": [
         "hr_attendance", "hr_holidays", "crm", "account", "sedar_marine_finance",
-        "sedar_marine_operations", "sedar_recruitment_crewing", "mail",
+        "sedar_marine_operations", "sedar_service_order_demo", "sedar_recruitment_crewing", "mail",
     ],
     "data": [
         "security/ir.model.access.csv",
@@ -16,5 +16,5 @@
     ],
     "installable": True,
     "application": False,
+    "post_init_hook": "post_init_hook",
 }
-

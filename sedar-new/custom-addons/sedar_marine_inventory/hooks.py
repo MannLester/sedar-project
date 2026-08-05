@@ -28,7 +28,9 @@ def _available(env, product, location):
 
 def _set_available(env, product, location, quantity):
     current = _available(env, product, location)
-    env["stock.quant"]._update_available_quantity(product, location, quantity - current)
+    delta = quantity - current
+    if abs(delta) > 1e-6:
+        env["stock.quant"]._update_available_quantity(product, location, delta)
 
 
 def post_init_hook(env):

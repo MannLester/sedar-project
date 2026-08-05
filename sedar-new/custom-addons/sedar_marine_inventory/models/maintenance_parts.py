@@ -78,6 +78,7 @@ class SedarMaintenancePartLine(models.Model):
     reserved_qty = fields.Float(default=0.0)
     issued_qty = fields.Float(default=0.0)
     consumed_qty = fields.Float(default=0.0)
+    stock_move_ids = fields.Many2many("stock.move", string="Inventory Movements", copy=False)
     shortage_qty = fields.Float(compute="_compute_state", store=True)
     state = fields.Selection(
         [("shortage", "Shortage"), ("reserved", "Reserved"), ("issued", "Issued"), ("consumed", "Consumed")],
@@ -126,8 +127,12 @@ class SedarMaintenancePartLine(models.Model):
         for line in self:
             if line.reserved_qty < line.requested_qty:
                 line.action_reserve()
-            line._sedar_adjust_stock(line.product_id, line.source_location_id, -line.requested_qty)
-            line.write({"issued_qty": line.requested_qty})
+            move = line._sedar_create_done_move(
+                line.product_id, line.requested_qty, line.source_location_id,
+                line._sedar_consumption_location(),
+                "Maintenance parts issue: %s" % line.maintenance_request_id.display_name,
+            )
+            line.write({"issued_qty": line.requested_qty, "stock_move_ids": [(4, move.id)]})
         return True
 
     def action_consume(self):

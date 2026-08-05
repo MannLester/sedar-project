@@ -4,6 +4,15 @@ This document records the Odoo models and fields introduced or extended by the S
 
 Update this document in the same change whenever a listed custom field is added, renamed, removed, or given a materially different workflow meaning.
 
+P0 implementation note: `sedar_demo_suite` adds a method-only `res.company` reconciliation
+(`sedar_reconcile_demo_suite`) that is intentionally idempotent and runs after dependency
+installation and on upgrade. It repairs the flagship completed-operation scenarios,
+creates linked accounting/procurement demonstration records, and does not introduce a
+new business model. `sedar.maintenance.part.line.stock_move_ids` and
+`sedar.operation.fuel.log.stock_move_ids` link operational issue/consumption records to
+standard Odoo `stock.move` records; direct quant updates remain limited to opening-balance
+fixture seeding.
+
 ## Model summary
 
 | Model | Change type | Purpose | Main source |

@@ -39,6 +39,7 @@ class SedarOperationFuelLog(models.Model):
     opening_qty = fields.Float(default=0.0)
     issued_qty = fields.Float(default=0.0)
     consumed_qty = fields.Float(default=0.0)
+    stock_move_ids = fields.Many2many("stock.move", string="Inventory Movements", copy=False)
     remaining_qty = fields.Float(compute="_compute_remaining_qty", store=True)
     state = fields.Selection(
         [("draft", "Draft"), ("issued", "Issued"), ("consumed", "Consumption Recorded")],
@@ -81,8 +82,11 @@ class SedarOperationFuelLog(models.Model):
             available = log._sedar_available_qty(log.product_id, log.source_location_id)
             if available < log.issued_qty:
                 raise UserError("%s is short by %.2f." % (log.product_id.display_name, log.issued_qty - available))
-            log._sedar_adjust_stock(log.product_id, log.source_location_id, -log.issued_qty)
-            log._sedar_adjust_stock(log.product_id, log.tug_location_id, log.issued_qty)
+            move = log._sedar_create_done_move(
+                log.product_id, log.issued_qty, log.source_location_id,
+                log.tug_location_id, "Fuel issue: %s" % log.operation_id.display_name,
+            )
+            log.write({"stock_move_ids": [(4, move.id)]})
             log.state = "issued"
         return True
 
@@ -93,6 +97,10 @@ class SedarOperationFuelLog(models.Model):
                 raise UserError("Enter consumed quantity before recording consumption.")
             if log.state == "draft":
                 log.action_issue_to_tug()
-            log._sedar_adjust_stock(log.product_id, log.tug_location_id, -log.consumed_qty)
+            move = log._sedar_create_done_move(
+                log.product_id, log.consumed_qty, log.tug_location_id,
+                log.source_location_id, "Fuel consumption: %s" % log.operation_id.display_name,
+            )
+            log.write({"stock_move_ids": [(4, move.id)]})
             log.state = "consumed"
         return True

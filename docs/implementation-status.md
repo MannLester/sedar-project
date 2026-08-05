@@ -12,6 +12,14 @@
 
 This document records what the SEDAR demonstration currently implements and what remains to be demonstrated. It is a repository evidence assessment, not a claim of production readiness.
 
+P0 reconciliation update (2026-08-05): the active Docker bootstrap now installs the
+`sedar_demo_suite` reconciler. A clean or upgraded database is expected to contain both
+completed marine operations (including the two-tug flagship), one linked posted/paid
+customer invoice, a confirmed purchase order with a completed receipt/stock move, and a
+posted supplier bill. Operational spare-part and fuel actions now create standard Odoo
+stock moves; direct quant mutation is retained only for opening fixture balances. These
+records are demonstration evidence, not production policy or real financial data.
+
 ## 2. Status Definitions
 
 | Status | Meaning |

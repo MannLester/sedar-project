@@ -1,0 +1,5 @@
+<odoo noupdate="0">
+    <function model="res.company" name="sedar_reconcile_demo_suite">
+        <value model="res.company" search="[('id', '=', 1)]"/>
+    </function>
+</odoo>

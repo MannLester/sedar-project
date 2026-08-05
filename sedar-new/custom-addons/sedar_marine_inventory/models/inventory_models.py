@@ -49,6 +49,45 @@ class SedarInventoryMixin(models.AbstractModel):
         return self.env["stock.quant"]._get_available_quantity(product, location, strict=False)
 
     def _sedar_adjust_stock(self, product, location, quantity_delta):
+        """Fixture-only stock seeding helper.
+
+        Operational actions must use ``_sedar_create_done_move`` below.  This
+        method remains for deterministic demo opening balances and is never
+        called by issue/consume actions.
+        """
         if not product or not location or not quantity_delta:
             return
         self.env["stock.quant"]._update_available_quantity(product, location, quantity_delta)
+
+    def _sedar_create_done_move(self, product, quantity, source, destination, origin):
+        """Create an auditable, completed internal stock movement."""
+        if not product or quantity <= 0 or not source or not destination:
+            return self.env["stock.move"]
+        move = self.env["stock.move"].create({
+            "origin": origin,
+            "company_id": self.env.company.id,
+            "product_id": product.id,
+            "product_uom_qty": quantity,
+            "product_uom": product.uom_id.id,
+            "location_id": source.id,
+            "location_dest_id": destination.id,
+        })
+        move._action_confirm()
+        move._action_assign()
+        move.move_line_ids.write({"quantity": quantity})
+        move._action_done()
+        return move
+
+    def _sedar_consumption_location(self):
+        return self.env["stock.location"].search([
+            ("name", "=", "SEDAR Maintenance Consumption"),
+            ("company_id", "=", self.env.company.id),
+            ("usage", "=", "internal"),
+        ], limit=1) or self.env["stock.location"].create({
+            "name": "SEDAR Maintenance Consumption",
+            "usage": "internal", "location_id": self.env["stock.location"].search(
+                [("usage", "=", "view"), ("company_id", "in", [False, self.env.company.id])],
+                order="id", limit=1,
+            ).id,
+            "company_id": self.env.company.id,
+        })

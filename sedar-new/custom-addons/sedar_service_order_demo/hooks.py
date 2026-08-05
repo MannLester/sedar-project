@@ -13,6 +13,11 @@ def _record(env, model, xmlid, values):
     if data:
         record = env[model].browse(data.res_id).exists()
         if record:
+            record.with_context(
+                sedar_demo_reconcile=True,
+                sedar_tariff_supersede=True,
+                sedar_automated_dispatch=True,
+            ).write(values)
             return record
         data.unlink()
     record = env[model].create(values)

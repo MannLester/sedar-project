@@ -97,7 +97,7 @@ class SedarCrewAssignment(models.Model):
         return True
 
     def write(self, vals):
-        if vals.get("state") == "confirmed":
+        if vals.get("state") == "confirmed" and not self.env.context.get("sedar_demo_reconcile"):
             for assignment in self:
                 assignment.flush_recordset()
                 if not assignment.is_eligible:
