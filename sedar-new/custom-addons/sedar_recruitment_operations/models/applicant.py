@@ -346,7 +346,7 @@ class SedarApplicantOperations(models.Model):
             values["job_id"] = self.job_id.id
         employee.sudo().write(values)
         if self.sedar_vacancy_id:
-            self.sedar_vacancy_id._sedar_sync_hiring_fulfillment()
+            self.sedar_vacancy_id.sudo()._sedar_sync_hiring_fulfillment()
         employee.sudo()._sedar_schedule_onboarding_activity()
 
     def _sedar_default_onboarding_checklist(self):

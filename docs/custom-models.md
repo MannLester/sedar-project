@@ -14,11 +14,12 @@ Update this document in the same change whenever a listed custom field is added,
 | `sedar.client.tariff` | Extended | Governs client- and terminal-specific tariff approval and revision history | `sedar_marine_finance/models/marine_finance.py` |
 | `sedar.marine.billing.adjustment` | New | Stores explained charges or deductions included in the final invoice | `sedar_marine_finance/models/marine_finance.py` |
 | `account.move` | Extended | Links the standard Odoo customer invoice back to its Marine Service Order | `sedar_marine_finance/models/account_move.py` |
-| `res.company` | Method-only extension | Configures demo currency and reconciles repeatable fictional recruitment demonstration records | `sedar_service_order_demo/models/res_company.py`; `sedar_recruitment_demo/models/res_company.py` |
+| `res.company` | Method-only extension | Configures demo currency and reconciles repeatable fictional recruitment and crew-onboarding demonstration records | `sedar_service_order_demo/models/res_company.py`; `sedar_recruitment_demo/models/res_company.py`; `sedar_recruitment_crewing/models/res_company.py` |
 | `res.users` | Method-only extension | Assigns the custom Service Order dashboard as the default home action for internal users | `sedar_theme/models/res_users.py` |
 | `hr.recruitment.stage` | Extended | Maps internal recruitment stages to applicant-visible statuses and instructions | `sedar_applicant_portal/models/portal.py` |
-| `hr.applicant` | Extended | Owns portal access, public tracking, HR processing, interviews, requirements, and employee conversion | `sedar_applicant_portal/models/portal.py`; `sedar_recruitment_operations/models/applicant.py` |
-| `hr.employee` | Extended | Preserves traceability from successful applicant conversion into the HR employee master and controls generic HR onboarding | `sedar_recruitment_operations/models/employee.py` |
+| `hr.applicant` | Extended | Owns portal access, public tracking, HR processing, interviews, requirements, employee conversion, and the marine crewing handoff | `sedar_applicant_portal/models/portal.py`; `sedar_recruitment_operations/models/applicant.py`; `sedar_recruitment_crewing/models/applicant.py` |
+| `hr.employee` | Extended | Preserves traceability from successful applicant conversion into the HR employee master, controls generic HR onboarding, and exposes linked marine crew onboarding cases | `sedar_recruitment_operations/models/employee.py`; `sedar_recruitment_crewing/models/employee.py` |
+| `sedar.crew.onboarding` | New | Controls the handoff from a marine employee to a deployment-eligible Crew Profile | `sedar_recruitment_crewing/models/crew_onboarding.py` |
 | `sedar.applicant.portal.event` | New | Stores applicant-visible timeline events | `sedar_applicant_portal/models/portal.py` |
 | `sedar.applicant.stage.history` | New | Provides an auditable history of HR stage changes | `sedar_recruitment_operations/models/applicant.py` |
 | `sedar.applicant.interview` | New | Coordinates interview scheduling, applicant responses, calendar events, and ADM-4 appraisal | `sedar_recruitment_operations/models/interview.py` |
@@ -176,6 +177,11 @@ and upgrade so the Slice 1 recruitment baseline is repeatable. It uses stable ex
 the `sedar_recruitment_demo` module and avoids deleting or replacing unrelated user-created
 records.
 
+`sedar_recruitment_crewing` adds the method-only `sedar_ensure_crew_onboarding_demo()` extension.
+It reconciles a fictional marine crew onboarding case for the converted Chief Engineer demo hire
+when the recruitment and service-order demo records are available. It is demo bootstrap behavior
+only; it does not make recruitment the owner of crew deployment eligibility.
+
 ## `res.users` theme extension
 
 No field is added. `sedar_set_default_home_action()` assigns the Marine Operations Service Order dashboard to the standard `action_id` field of every internal user. The theme bootstrap calls it so a fresh shared Docker installation opens on the team's custom dashboard instead of the stock Odoo home screen. If the dashboard action is unavailable, the method exits without changing users.
@@ -250,9 +256,46 @@ The existing Odoo employee remains the HR master record. SEDAR adds only source 
 | `sedar_onboarding_started_at` | Read-only datetime | Audit timestamp written when HR starts SEDAR onboarding. |
 | `sedar_onboarding_completed_at` | Read-only datetime | Audit timestamp written when HR completes SEDAR onboarding. |
 | `sedar_onboarding_checklist` | Text | Demonstration checklist covering employee master data, manager/job setup, access/payroll preparation, and the later marine Crew Profile handoff. |
+| `sedar_crew_onboarding_ids` | One-to-many to `sedar.crew.onboarding` | Read-only list of marine crew onboarding cases linked to this employee. Non-marine employees normally have none. |
 
 These fields are written by `hr.applicant.action_sedar_create_employee_profile()` after the standard Odoo employee is created. Non-marine hires stop at this HR employee record. Marine readiness remains owned by the later Crew Profile onboarding workflow.
 When the source applicant owns a portal account, conversion links the employee work contact to that same portal partner so the applicant dashboard can transition to the employee dashboard without creating a second identity. HR Recruitment Managers, not ordinary recruitment users, control onboarding start/completion actions. Conversion schedules a `SEDAR Employee Onboarding` activity for the onboarding owner.
+
+When `sedar_recruitment_crewing` is installed, the applicant-to-employee conversion method is extended method-only: after the generic employee source links are written, a marine vacancy with `crew_rank_id` creates or reuses one `sedar.crew.onboarding` case. Non-marine hires do not receive a Crew Profile or crew onboarding case.
+
+## `sedar.crew.onboarding`
+
+One record controls the crewing-owned handoff from a successful marine hire to an existing `sedar.crew.profile`. It proves that an employee exists, but does not by itself make the person assignable to Service Orders.
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `name` | Sequenced character | Crew onboarding reference generated from `sedar.crew.onboarding`. |
+| `employee_id` | Required many-to-one to `hr.employee` | Employee being prepared for marine crew deployment. Unique per employee. |
+| `applicant_id` | Stored related many-to-one to `hr.applicant` | Source application from the employee source fields. |
+| `vacancy_id` | Stored related many-to-one to `sedar.job.vacancy` | Source marine vacancy from the employee source fields. |
+| `manpower_request_line_id` | Stored related many-to-one to `sedar.manpower.request.line` | Approved manpower demand that created the vacancy. |
+| `rank_id` | Required many-to-one to `sedar.crew.rank` | Marine rank being onboarded; must match the source vacancy rank when a vacancy exists. |
+| `home_tugboat_id` | Many-to-one to `sedar.tugboat` | Crewing-selected home tugboat for the profile; required before deployment eligibility. |
+| `crew_profile_id` | Read-only many-to-one to `sedar.crew.profile` | Existing or created Crew Profile controlled by this onboarding case. |
+| `state` | Selection | Draft, in progress, blocked, deployment eligible, or cancelled. |
+| `required_certificate_type_ids` | Many-to-many to `sedar.crew.certificate.type` | Required credentials and medical records, inherited from the manpower request line when available or derived from matching manning templates. |
+| `missing_certificate_type_ids` | Computed, stored many-to-many to `sedar.crew.certificate.type` | Required certificates without a currently valid Crew Profile certificate. |
+| `deployment_eligible` | Computed, stored boolean | True only when the Crew Profile exists, is active, has the correct rank, has a home tugboat, and has all required certificates valid as of today. |
+| `blocker_summary` | Computed, stored character | Human-readable reason deployment eligibility is blocked. |
+| `opened_by_id` | Read-only many-to-one to `res.users` | User who opened the case. |
+| `opened_at` | Read-only datetime | Case creation timestamp. |
+| `verified_by_id` | Read-only many-to-one to `res.users` | Crewing Manager who marked the profile deployment eligible. |
+| `verified_at` | Read-only datetime | Deployment eligibility timestamp. |
+| `notes` | Text | Internal crewing notes. |
+
+Key behavior:
+
+- `hr.applicant._sedar_apply_employee_onboarding_sources()` creates one onboarding case only for marine vacancies.
+- `_sedar_get_or_create_from_employee()` is idempotent and returns no case for non-marine employees.
+- `action_create_crew_profile()` creates or links the existing Crew Profile, sets the vacancy rank, assigns the home tugboat when provided, and keeps the profile unavailable until readiness is verified.
+- `action_mark_deployment_eligible()` sets the case to blocked when rank, home tugboat, Crew Profile, or certificate requirements are missing. When all checks pass, it marks the case deployment eligible and changes the Crew Profile availability to available.
+- Only `sedar_recruitment_crewing.group_crewing_manager` can start, create profile, mark eligible, or cancel onboarding. Internal users have read-only access for traceability.
+- Deployment eligibility does not close a Service Order crew shortage or create a dated crew assignment. Operations or Crewing must still assign the qualified Crew Profile to a concrete requirement.
 
 ## `sedar.manpower.request` and `sedar.job.vacancy` fulfillment behavior
 

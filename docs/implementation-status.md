@@ -309,20 +309,27 @@ acceptance, employee conversion, and onboarding control. Offer acceptance record
 and employee conversion assigns an onboarding owner, checklist, activity, and portal-to-employee
 identity link.
 
+Slice 6 adds the first Marine Crew Onboarding handoff. Marine hires now receive a crewing-owned
+`sedar.crew.onboarding` case after employee conversion. The case creates or links a Crew Profile,
+inherits required credential and medical types from the manpower request or manning templates,
+tracks blockers, and marks the profile deployment eligible only after Crewing assigns the home
+tugboat and valid required credentials exist. Non-marine hires stop at the HR employee record.
+Deployment eligibility still does not resolve the original Service Order shortage until Operations
+or Crewing assigns a qualified profile to a concrete requirement.
+
 The repository contains automated tests for the marine readiness/completion lifecycle and Marine Finance calculations and controls. Applicant portal and recruitment slices have been manually verified through Odoo module upgrades and representative portal/backend workflows.
 
 ## 7. Demonstration Gaps That Affect Existing Flows
 
 These are the highest-value missing capabilities because they already connect to implemented records:
 
-1. Successful employee conversion should continue into crew-profile onboarding when the hired role is marine crew.
-2. Crew certificate and medical records should link to controlled document evidence and renewal actions.
-3. Leave, training, and temporary relief should provide dated crew availability facts.
-4. Crew rotation and Service Order scheduling should consume deployment-eligible crew facts.
-5. Maintenance should become the source of tugboat technical availability.
-6. Inventory should replace manual Inventory Readiness Confirmation and supply fuel and spare-part facts.
-7. Procurement should replenish maintenance and inventory shortages.
-8. Executive KPIs should use the operational, HR, and financial source records already available.
+1. Crew certificate and medical records should link to controlled document evidence and renewal actions.
+2. Leave, training, and temporary relief should provide dated crew availability facts.
+3. Crew rotation and Service Order scheduling should consume deployment-eligible crew facts.
+4. Maintenance should become the source of tugboat technical availability.
+5. Inventory should replace manual Inventory Readiness Confirmation and supply fuel and spare-part facts.
+6. Procurement should replenish maintenance and inventory shortages.
+7. Executive KPIs should use the operational, HR, and financial source records already available.
 
 ## 8. Recommended Next Demonstration Slices
 

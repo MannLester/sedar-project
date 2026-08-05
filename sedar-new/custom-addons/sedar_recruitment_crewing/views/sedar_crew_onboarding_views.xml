@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sedar_crew_onboarding_list" model="ir.ui.view">
+        <field name="name">sedar.crew.onboarding.list</field>
+        <field name="model">sedar.crew.onboarding</field>
+        <field name="arch" type="xml">
+            <list string="Marine Crew Onboarding" decoration-danger="state == 'blocked'" decoration-success="state == 'deployment_eligible'">
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="rank_id"/>
+                <field name="home_tugboat_id"/>
+                <field name="crew_profile_id"/>
+                <field name="deployment_eligible"/>
+                <field name="blocker_summary"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sedar_crew_onboarding_search" model="ir.ui.view">
+        <field name="name">sedar.crew.onboarding.search</field>
+        <field name="model">sedar.crew.onboarding</field>
+        <field name="arch" type="xml">
+            <search string="Search Marine Crew Onboarding">
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="rank_id"/>
+                <field name="home_tugboat_id"/>
+                <field name="state"/>
+                <filter name="blocked" string="Blocked" domain="[('state', '=', 'blocked')]"/>
+                <filter name="in_progress" string="In Progress" domain="[('state', '=', 'in_progress')]"/>
+                <filter name="eligible" string="Deployment Eligible" domain="[('state', '=', 'deployment_eligible')]"/>
+                <group>
+                    <filter name="group_state" string="State" context="{'group_by': 'state'}"/>
+                    <filter name="group_rank" string="Rank" context="{'group_by': 'rank_id'}"/>
+                    <filter name="group_tugboat" string="Home Tugboat" context="{'group_by': 'home_tugboat_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_sedar_crew_onboarding_form" model="ir.ui.view">
+        <field name="name">sedar.crew.onboarding.form</field>
+        <field name="model">sedar.crew.onboarding</field>
+        <field name="arch" type="xml">
+            <form string="Marine Crew Onboarding">
+                <header>
+                    <button name="action_start" type="object" string="Start" class="btn-primary" invisible="state not in ['draft', 'blocked']" groups="sedar_recruitment_crewing.group_crewing_manager"/>
+                    <button name="action_create_crew_profile" type="object" string="Create Crew Profile" class="btn-primary" invisible="crew_profile_id" groups="sedar_recruitment_crewing.group_crewing_manager"/>
+                    <button name="action_mark_deployment_eligible" type="object" string="Mark Deployment Eligible" class="btn-primary" invisible="state == 'deployment_eligible'" groups="sedar_recruitment_crewing.group_crewing_manager"/>
+                    <button name="action_cancel" type="object" string="Cancel" invisible="state in ['deployment_eligible', 'cancelled']" groups="sedar_recruitment_crewing.group_crewing_manager"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,in_progress,blocked,deployment_eligible"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Source">
+                            <field name="employee_id" readonly="1"/>
+                            <field name="applicant_id" readonly="1"/>
+                            <field name="vacancy_id" readonly="1"/>
+                            <field name="manpower_request_line_id" readonly="1"/>
+                        </group>
+                        <group string="Crew Setup">
+                            <field name="rank_id"/>
+                            <field name="home_tugboat_id"/>
+                            <field name="crew_profile_id" readonly="1"/>
+                            <field name="deployment_eligible" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Readiness">
+                        <field name="required_certificate_type_ids" widget="many2many_tags"/>
+                        <field name="missing_certificate_type_ids" widget="many2many_tags" readonly="1"/>
+                        <field name="blocker_summary" readonly="1"/>
+                    </group>
+                    <group string="Audit">
+                        <field name="opened_by_id" readonly="1"/>
+                        <field name="opened_at" readonly="1"/>
+                        <field name="verified_by_id" readonly="1"/>
+                        <field name="verified_at" readonly="1"/>
+                    </group>
+                    <field name="notes"/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sedar_crew_onboarding" model="ir.actions.act_window">
+        <field name="name">Marine Crew Onboarding</field>
+        <field name="res_model">sedar.crew.onboarding</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_sedar_crew_onboarding_search"/>
+        <field name="context">{'search_default_in_progress': 1}</field>
+    </record>
+
+    <record id="view_hr_employee_sedar_crew_onboarding_inherit" model="ir.ui.view">
+        <field name="name">hr.employee.sedar.crew.onboarding.inherit</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Marine Crew Onboarding" name="sedar_marine_crew_onboarding">
+                    <field name="sedar_crew_onboarding_ids" readonly="1">
+                        <list>
+                            <field name="name"/>
+                            <field name="rank_id"/>
+                            <field name="home_tugboat_id"/>
+                            <field name="crew_profile_id"/>
+                            <field name="blocker_summary"/>
+                            <field name="state"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <menuitem id="menu_sedar_crew_onboarding" name="Marine Crew Onboarding" parent="sedar_marine_operations.menu_marine_operations" action="action_sedar_crew_onboarding" sequence="55"/>
+</odoo>

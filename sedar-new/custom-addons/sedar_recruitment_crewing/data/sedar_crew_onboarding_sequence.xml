@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sequence_sedar_crew_onboarding" model="ir.sequence">
+        <field name="name">SEDAR Crew Onboarding</field>
+        <field name="code">sedar.crew.onboarding</field>
+        <field name="prefix">CRO/%(year)s/</field>
+        <field name="padding">5</field>
+    </record>
+    <record id="sequence_sedar_crew_profile" model="ir.sequence">
+        <field name="name">SEDAR Crew Profile Number</field>
+        <field name="code">sedar.crew.profile</field>
+        <field name="prefix">SEDAR-CREW-</field>
+        <field name="padding">5</field>
+    </record>
+</odoo>
