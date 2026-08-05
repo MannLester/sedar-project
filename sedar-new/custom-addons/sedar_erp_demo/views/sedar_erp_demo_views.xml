@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sedar_hr_performance_review_list" model="ir.ui.view">
+        <field name="name">sedar.hr.performance.review.list</field><field name="model">sedar.hr.performance.review</field>
+        <field name="arch" type="xml"><list string="Performance Reviews"><field name="name"/><field name="employee_id"/><field name="review_date"/><field name="rating"/><field name="state"/><field name="demonstration_only"/></list></field>
+    </record>
+    <record id="view_sedar_hr_performance_review_form" model="ir.ui.view">
+        <field name="name">sedar.hr.performance.review.form</field><field name="model">sedar.hr.performance.review</field>
+        <field name="arch" type="xml"><form string="Performance Review"><sheet><group><field name="name"/><field name="employee_id"/><field name="reviewer_id"/><field name="review_date"/><field name="period_start"/><field name="period_end"/><field name="rating"/><field name="state"/><field name="demonstration_only" readonly="1"/></group><notebook><page string="Review"><field name="strengths"/><field name="development_goals"/><field name="manager_summary"/></page></notebook></sheet></form></field>
+    </record>
+    <record id="view_sedar_hr_payroll_input_list" model="ir.ui.view">
+        <field name="name">sedar.hr.payroll.input.list</field><field name="model">sedar.hr.payroll.input</field>
+        <field name="arch" type="xml"><list string="Payroll Input Facts"><field name="name"/><field name="employee_id"/><field name="period_start"/><field name="period_end"/><field name="attendance_hours"/><field name="approved_leave_hours"/><field name="eligible_crew_days"/><field name="demonstration_only"/></list></field>
+    </record>
+    <record id="view_sedar_finance_budget_list" model="ir.ui.view">
+        <field name="name">sedar.finance.budget.list</field><field name="model">sedar.finance.budget</field>
+        <field name="arch" type="xml"><list string="Budget Demonstrations"><field name="name"/><field name="department_id"/><field name="tugboat_id"/><field name="planned_amount"/><field name="actual_amount"/><field name="variance"/><field name="demonstration_only"/></list></field>
+    </record>
+    <record id="view_sedar_fixed_asset_list" model="ir.ui.view">
+        <field name="name">sedar.fixed.asset.list</field><field name="model">sedar.fixed.asset</field>
+        <field name="arch" type="xml"><list string="Fixed Asset Demonstrations"><field name="name"/><field name="tugboat_id"/><field name="acquisition_date"/><field name="original_value"/><field name="monthly_depreciation"/><field name="accumulated_depreciation"/><field name="demonstration_only"/></list></field>
+    </record>
+
+    <record id="action_sedar_hr_performance_reviews" model="ir.actions.act_window"><field name="name">Performance Reviews</field><field name="res_model">sedar.hr.performance.review</field><field name="view_mode">list,form</field></record>
+    <record id="action_sedar_hr_payroll_inputs" model="ir.actions.act_window"><field name="name">Payroll Input Facts</field><field name="res_model">sedar.hr.payroll.input</field><field name="view_mode">list</field></record>
+    <record id="action_sedar_finance_budgets" model="ir.actions.act_window"><field name="name">Budget Demonstrations</field><field name="res_model">sedar.finance.budget</field><field name="view_mode">list</field></record>
+    <record id="action_sedar_fixed_assets" model="ir.actions.act_window"><field name="name">Fixed Asset Demonstrations</field><field name="res_model">sedar.fixed.asset</field><field name="view_mode">list</field></record>
+
+    <menuitem id="menu_sedar_erp_demo" name="SEDAR ERP Demonstration" sequence="80" groups="base.group_user"/>
+    <menuitem id="menu_sedar_erp_hr" name="HR Operations" parent="menu_sedar_erp_demo" sequence="10"/>
+    <menuitem id="menu_sedar_erp_performance" name="Performance Reviews" parent="menu_sedar_erp_hr" action="action_sedar_hr_performance_reviews" sequence="10"/>
+    <menuitem id="menu_sedar_erp_payroll" name="Payroll Input Facts" parent="menu_sedar_erp_hr" action="action_sedar_hr_payroll_inputs" sequence="20"/>
+    <menuitem id="menu_sedar_erp_finance" name="Finance Demonstrations" parent="menu_sedar_erp_demo" sequence="20"/>
+    <menuitem id="menu_sedar_erp_budget" name="Budget vs Actual" parent="menu_sedar_erp_finance" action="action_sedar_finance_budgets" sequence="10"/>
+    <menuitem id="menu_sedar_erp_asset" name="Fixed Assets and Depreciation" parent="menu_sedar_erp_finance" action="action_sedar_fixed_assets" sequence="20"/>
+</odoo>
+

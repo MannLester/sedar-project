@@ -394,10 +394,21 @@ and training records. Expired required permits and unresolved critical HSSE acti
 operational exceptions on linked Service Orders and tugboats. Confidential investigation details are
 not exposed through a portal route in this slice.
 
-### Slice 14 onward
+### Slice 14: Broader Standard ERP Demonstrations
 
-Proceed with procurement receipt and supplier-bill walkthroughs, broader ERP demonstrations,
-and the final executive dashboard in the order defined by `sedar-planning/implementation-slice-roadmap.md`.
+Implemented for demonstration. Standard Attendance, Time Off, Accounting, CRM, and activities are
+installed and seeded using shared employee, partner, invoice, journal, vessel, crew, and Service
+Order records. The demo includes performance review history and payroll-input facts. Because this
+Odoo 19 Community edition has no installable Appraisals, Budget, or Fixed Assets modules, thin
+clearly labeled presentation models provide performance reviews, budget-versus-actual, and
+straight-line fixed-asset depreciation; they do not replace Odoo's accounting ledger or claim
+Philippine payroll/statutory compliance. CRM includes a sample opportunity with follow-up activity,
+assisted vessel interest, and a resulting Service Order link.
+
+### Slice 15 onward
+
+Proceed with corporate documents, executive KPI dashboard, and remaining integrations in the order
+defined by `sedar-planning/implementation-slice-roadmap.md`.
 
 ## 9. Production Readiness Disclaimer
 

@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_sedar_hr_performance_user,sedar.hr.performance.review user,model_sedar_hr_performance_review,base.group_user,1,1,1,0
+access_sedar_hr_payroll_input_user,sedar.hr.payroll.input user,model_sedar_hr_payroll_input,base.group_user,1,1,1,0
+access_sedar_finance_budget_user,sedar.finance.budget user,model_sedar_finance_budget,base.group_user,1,1,1,0
+access_sedar_fixed_asset_user,sedar.fixed.asset user,model_sedar_fixed_asset,base.group_user,1,1,1,0
+

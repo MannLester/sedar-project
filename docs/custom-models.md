@@ -47,6 +47,11 @@ Update this document in the same change whenever a listed custom field is added,
 | `sedar.hsse.corrective.action` | New | Tracks corrective actions, due dates, evidence, overdue state, critical controls, completion, and verification | `sedar_hsse/models/hsse.py` |
 | `sedar.hsse.meeting` | New | Tracks safety meetings, attendance, topics, minutes, source links, and follow-up actions | `sedar_hsse/models/hsse.py` |
 | `sedar.hsse.training.record` | New | Tracks HSSE training completion, expiry, evidence, and crew-readiness applicability | `sedar_hsse/models/hsse.py` |
+| `sedar.hr.performance.review` | New | Demonstration-only employee performance review history because Odoo Appraisals is unavailable in the shared edition | `sedar_erp_demo/models/erp_demo.py` |
+| `sedar.hr.payroll.input` | New | Demonstration-only payroll input facts sourced from standard Attendance, Time Off, and eligible crew records | `sedar_erp_demo/models/erp_demo.py` |
+| `sedar.finance.budget` | New | Demonstration-only budget-versus-actual source because the shared edition has no installable budget module | `sedar_erp_demo/models/erp_demo.py` |
+| `sedar.fixed.asset` | New | Demonstration-only straight-line fixed-asset and depreciation view because the shared edition has no installable fixed-asset module | `sedar_erp_demo/models/erp_demo.py` |
+| `crm.lead` | Extended | Links a CRM opportunity to the interested assisted vessel and resulting SEDAR Service Order | `sedar_erp_demo/models/erp_demo.py` |
 | `sedar.applicant.portal.event` | New | Stores applicant-visible timeline events | `sedar_applicant_portal/models/portal.py` |
 | `sedar.applicant.stage.history` | New | Provides an auditable history of HR stage changes | `sedar_recruitment_operations/models/applicant.py` |
 | `sedar.applicant.interview` | New | Coordinates interview scheduling, applicant responses, calendar events, and ADM-4 appraisal | `sedar_recruitment_operations/models/interview.py` |
@@ -956,3 +961,27 @@ Internal recruitment document visibility is also restricted by record rules in `
 - Recruitment document request and value access is limited to non-recruitment documents, assigned HR users, applicant recruiters, or interview panel users. HR Recruitment Managers can supervise all recruitment documents.
 - Server-side actions enforce HR Recruitment Manager authority for background/orientation approval, offer creation/issue/internal acceptance/withdrawal/expiry, and employee conversion/onboarding control.
 - Applicant portal routes continue to use ownership checks and `sudo()` only after verifying the signed-in portal user's partner owns the application, interview, document request, or offer.
+
+## Slice 14 ERP demonstration models
+
+These records are explicitly demonstration-only. Standard Odoo Attendance (`hr.attendance`), Time Off (`hr.leave`), Accounting (`account.move`, `account.journal`, and `account.account`), CRM (`crm.lead`), activities, employees, partners, tugboats, crew profiles, and Service Orders remain the source records. The custom models below do not replace Odoo's accounting ledger or payroll engine.
+
+### `sedar.hr.performance.review`
+
+Fields: `name` (Char), `employee_id` (Many2one to `hr.employee`), `reviewer_id` (Many2one to `res.users`), `period_start` and `period_end` (Date), `review_date` (Date), `state` (Selection), `rating` (Selection), `strengths`, `development_goals`, and `manager_summary` (Text), and read-only `demonstration_only` (Boolean). It provides review history because `hr_appraisal` is uninstallable in the shared Odoo edition. It is an HR demonstration record, not a statutory appraisal policy.
+
+### `sedar.hr.payroll.input`
+
+Fields: `name` (Char), `employee_id` (Many2one to `hr.employee`), `period_start` and `period_end` (Date), `attendance_hours`, `approved_leave_hours`, and `eligible_crew_days` (Float), `source_note` (Text), and read-only `demonstration_only` (Boolean). It summarizes source facts for a future payroll integration and deliberately does not calculate Philippine payroll, taxes, or statutory deductions.
+
+### `sedar.finance.budget`
+
+Fields: `name` (Char), `department_id` (Many2one to `hr.department`), `tugboat_id` (Many2one to `sedar.tugboat`), `date_from` and `date_to` (Date), `currency_id` (Many2one to `res.currency`), `planned_amount`, `actual_amount`, and computed `variance` (Monetary), `note` (Text), and read-only `demonstration_only` (Boolean). This is a presentation extension because no installable budget model is available in the shared Odoo edition; it is not a custom ledger.
+
+### `sedar.fixed.asset`
+
+Fields: `name` (Char), `tugboat_id` (Many2one to `sedar.tugboat`), `equipment_id` (Many2one to `maintenance.equipment`), `acquisition_date` (Date), `currency_id` (Many2one to `res.currency`), `original_value` and `residual_value` (Monetary), `useful_life_months` (Integer), computed `monthly_depreciation` and `accumulated_depreciation` (Monetary), and read-only `demonstration_only` (Boolean). It presents straight-line depreciation only because no installable fixed-asset model is available; production accounting must use an approved Odoo asset solution.
+
+### `crm.lead` extensions
+
+`sedar_assisted_vessel_id` (Many2one to `sedar.client.vessel`) records the vessel/service interest, `sedar_service_order_id` (Many2one to `sedar.marine.service.order`) links a resulting marine request, `sedar_service_interest` (Char) labels the requested service, and read-only `sedar_demo_only` (Boolean) marks the seeded example. CRM stages remain sales follow-up states; the linked Service Order remains the operational state machine.
