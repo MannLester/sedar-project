@@ -26,6 +26,8 @@
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_marine_operations.action_tugboats"><span>Tugboats</span></a>
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_marine_operations.action_tug_assignments"><span>Tug and Crew Plans</span></a>
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_marine_operations.action_client_vessels"><span>Client Vessels</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_marine_inventory.action_inventory_check"><span>Inventory Check</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_marine_inventory.action_inventory_issues"><span>Issue History</span></a>
                             </div>
                         </details>
                         <details class="o_sedar_nav_group">

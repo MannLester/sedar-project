@@ -1,3 +1,6 @@
+from odoo import Command
+
+
 MODULE = "sedar_marine_inventory"
 
 
@@ -23,7 +26,7 @@ def _record(env, model, xmlid, values):
 
 
 def _available(env, product, location):
-    return env["stock.quant"]._get_available_quantity(product, location, strict=False)
+    return env["stock.quant"]._get_available_quantity(product, location, strict=True)
 
 
 def _set_available(env, product, location, quantity):
@@ -62,6 +65,10 @@ def post_init_hook(env):
             "uom_id": liter.id,
             "default_code": "SEDAR-FUEL-DIESEL",
             "barcode": "SEDAR000001",
+            "sedar_inventory_item": True,
+            "sedar_manufacturer_part_number": "DMA-ISO8217",
+            "sedar_compatibility_scope": "fleet",
+            "sedar_reorder_point": 30000,
         }),
         "lube": _record(env, "product.product", "product_engine_lube", {
             "name": "Demo Engine Lube Oil",
@@ -70,6 +77,10 @@ def post_init_hook(env):
             "uom_id": liter.id,
             "default_code": "SEDAR-LUBE-ENGINE",
             "barcode": "SEDAR000002",
+            "sedar_inventory_item": True,
+            "sedar_manufacturer_part_number": "MEO-15W40-CI4",
+            "sedar_compatibility_scope": "fleet",
+            "sedar_reorder_point": 250,
         }),
         "filter": _record(env, "product.product", "product_fuel_filter", {
             "name": "Demo Fuel Filter Element",
@@ -78,6 +89,20 @@ def post_init_hook(env):
             "uom_id": unit.id,
             "default_code": "SEDAR-SP-FILTER",
             "barcode": "SEDAR000003",
+            "sedar_inventory_item": True,
+            "sedar_manufacturer_part_number": "FF-9001-KR",
+            "sedar_reorder_point": 10,
+        }),
+        "oring": _record(env, "product.product", "product_oring_kit", {
+            "name": "Demo Main Engine O-Ring Kit",
+            "type": "consu",
+            "is_storable": True,
+            "uom_id": unit.id,
+            "default_code": "SEDAR-SP-ORING",
+            "barcode": "SEDAR000005",
+            "sedar_inventory_item": True,
+            "sedar_manufacturer_part_number": "OR-KIT-220-ME",
+            "sedar_reorder_point": 6,
         }),
         "packing": _record(env, "product.product", "product_pump_packing", {
             "name": "Demo Pump Packing Kit",
@@ -86,13 +111,17 @@ def post_init_hook(env):
             "uom_id": unit.id,
             "default_code": "SEDAR-SP-PACKING",
             "barcode": "SEDAR000004",
+            "sedar_inventory_item": True,
+            "sedar_manufacturer_part_number": "PPK-440-KR",
+            "sedar_reorder_point": 2,
         }),
     }
 
     _set_available(env, products["diesel"], stock_location, 180000)
     _set_available(env, products["lube"], stock_location, 1200)
     _set_available(env, products["filter"], stock_location, 24)
-    _set_available(env, products["packing"], stock_location, 2)
+    _set_available(env, products["oring"], stock_location, 4)
+    _set_available(env, products["packing"], stock_location, 0)
 
     services = {
         key: env.ref(f"sedar_marine_operations.service_type_{key}")
@@ -141,6 +170,32 @@ def post_init_hook(env):
         _set_available(env, products["diesel"], location, 12000)
         _set_available(env, products["lube"], location, 80)
 
+    tug_atlas = env.ref("sedar_service_order_demo.tug_atlas")
+    tug_harbor_one = env.ref("sedar_service_order_demo.tug_harbor_one")
+    tug_matikas = env.ref("sedar_service_order_demo.tug_matikas")
+    tug_bantay = env.ref("sedar_service_order_demo.tug_bantay")
+    tug_lakas = env.ref("sedar_service_order_demo.tug_lakas")
+    products["diesel"].write({
+        "sedar_compatibility_scope": "fleet",
+        "sedar_compatible_tugboat_ids": [Command.clear()],
+    })
+    products["lube"].write({
+        "sedar_compatibility_scope": "fleet",
+        "sedar_compatible_tugboat_ids": [Command.clear()],
+    })
+    products["filter"].write({
+        "sedar_compatibility_scope": "restricted",
+        "sedar_compatible_tugboat_ids": [Command.set([tug_atlas.id, tug_harbor_one.id])],
+    })
+    products["oring"].write({
+        "sedar_compatibility_scope": "restricted",
+        "sedar_compatible_tugboat_ids": [Command.set([tug_matikas.id])],
+    })
+    products["packing"].write({
+        "sedar_compatibility_scope": "restricted",
+        "sedar_compatible_tugboat_ids": [Command.set([tug_bantay.id, tug_lakas.id])],
+    })
+
     orders = env["sedar.marine.service.order"].search([
         ("state", "in", ["planning", "blocked", "ready", "dispatched", "in_progress", "completed"]),
     ])
@@ -167,7 +222,7 @@ def post_init_hook(env):
     completed_operation = env.ref("sedar_marine_dispatch_demo.operation_completed", raise_if_not_found=False)
     if completed_operation and completed_operation.tug_operation_ids:
         tug = completed_operation.tug_operation_ids[:1].tugboat_id
-        _record(env, "sedar.operation.fuel.log", "fuel_completed_operation", {
+        fuel_log = _record(env, "sedar.operation.fuel.log", "fuel_completed_operation", {
             "operation_id": completed_operation.id,
             "tugboat_id": tug.id,
             "product_id": products["diesel"].id,
@@ -179,3 +234,15 @@ def post_init_hook(env):
             "state": "consumed",
             "note": "Demo completed-operation fuel consumption.",
         })
+        if not fuel_log.stock_move_ids:
+            fuel_log.state = "draft"
+            fuel_log.action_record_consumption()
+        for move in fuel_log.stock_move_ids.filtered(
+            lambda item: item.state not in {"done", "cancel"}
+        ):
+            if move.state == "draft":
+                move._action_confirm()
+            move._action_assign()
+            move.move_line_ids.write({"quantity": move.product_uom_qty})
+            move.picked = True
+            move._action_done()

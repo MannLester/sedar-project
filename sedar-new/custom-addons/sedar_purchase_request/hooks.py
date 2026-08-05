@@ -40,7 +40,7 @@ def post_init_hook(env):
     })
 
     manager = _record(env, "res.users", "user_procurement_manager", {
-        "name": "Demo Procurement Manager",
+        "name": "Demo Procurement and Inventory Officer",
         "login": "procurement@sedar.demo",
         "password": "procdemo",
         "company_id": company.id,
@@ -50,6 +50,12 @@ def post_init_hook(env):
             env.ref("sedar_purchase_request.group_sedar_purchase_request_manager").id,
         ])],
     }, update=False)
+    manager.write({
+        "name": "Demo Procurement and Inventory Officer",
+        "group_ids": [Command.link(
+            env.ref("sedar_marine_inventory.group_marine_inventory_manager").id
+        )],
+    })
 
     part_line = env.ref("sedar_marine_inventory.line_demo_filter_shortage", raise_if_not_found=False)
     product = part_line.product_id if part_line else env.ref(

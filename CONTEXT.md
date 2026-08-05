@@ -73,5 +73,33 @@ An automated decision that allows a Service Order to proceed to execution only w
 _Avoid_: Dispatch Manager approval
 
 **Inventory Readiness Confirmation**:
-A temporary manual confirmation by an authorized Operations user that the inventory required by a Service Order is available for execution. The confirmer and confirmation time are recorded. It satisfies the inventory part of the Dispatch Readiness Gate until a dedicated Inventory module provides that status.
+A historical manual confirmation by an authorized Operations user that the inventory required by a Service Order was available for execution. Stock-backed Inventory Requirements now provide the normal readiness truth; the confirmer and confirmation time remain for older records without generated requirements.
 _Avoid_: Automated inventory check
+
+**Item Type**:
+A stock product identified by one SEDAR Item Code and tracked as a quantity by location. It represents a kind of fuel, lubricant, spare part, or consumable rather than an individual physical unit.
+_Avoid_: Serialized unit, individual item
+
+**SEDAR Item Code**:
+SEDAR's unique internal identifier for an Item Type. It becomes immutable after the Item Type has a stock transaction.
+_Avoid_: Manufacturer Part Number, serial number
+
+**Manufacturer Part Number**:
+The item reference assigned by the manufacturer and printed on the item, packaging, or manufacturer documentation. It is searchable but is separate from the SEDAR Item Code and need not be globally unique.
+_Avoid_: SEDAR Item Code
+
+**Available to Issue**:
+The physical quantity at the warehouse stock location minus quantities reserved there. It excludes stock at child or tug locations, damaged stock, and quantities not yet received.
+_Avoid_: Company-wide stock, forecast stock
+
+**Reorder Point**:
+The manually maintained Available-to-Issue threshold at or below which an Item Type is Low Stock. Automatic purchasing is outside the initial Inventory Check demo.
+_Avoid_: Purchase Request, automatic replenishment
+
+**Tug Compatibility**:
+The rule that an Item Type is either fleet-wide or restricted to one or more explicitly selected tugboats. An incompatible Item Type cannot be issued to a tugboat.
+_Avoid_: Tug ownership
+
+**Inventory Issue**:
+An immutable, audited release of an Item Type from warehouse stock to a named tugboat for a stated purpose. For the initial demo it is one-step consumption: warehouse stock decreases immediately and no onboard tug balance is maintained.
+_Avoid_: Transfer to Tug, stock adjustment

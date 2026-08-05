@@ -46,7 +46,7 @@ class SedarInventoryMixin(models.AbstractModel):
     def _sedar_available_qty(self, product, location):
         if not product or not location:
             return 0.0
-        return self.env["stock.quant"]._get_available_quantity(product, location, strict=False)
+        return self.env["stock.quant"]._get_available_quantity(product, location, strict=True)
 
     def _sedar_adjust_stock(self, product, location, quantity_delta):
         """Fixture-only stock seeding helper.
@@ -75,19 +75,27 @@ class SedarInventoryMixin(models.AbstractModel):
         move._action_confirm()
         move._action_assign()
         move.move_line_ids.write({"quantity": quantity})
+        move.picked = True
         move._action_done()
+        move.invalidate_recordset(["state"])
         return move
 
     def _sedar_consumption_location(self):
-        return self.env["stock.location"].search([
-            ("name", "=", "SEDAR Maintenance Consumption"),
+        Location = self.env["stock.location"]
+        location = Location.search([
+            ("name", "=", "SEDAR Tug Issue Consumption"),
             ("company_id", "=", self.env.company.id),
-            ("usage", "=", "internal"),
-        ], limit=1) or self.env["stock.location"].create({
-            "name": "SEDAR Maintenance Consumption",
-            "usage": "internal", "location_id": self.env["stock.location"].search(
-                [("usage", "=", "view"), ("company_id", "in", [False, self.env.company.id])],
-                order="id", limit=1,
-            ).id,
+            ("usage", "=", "inventory"),
+        ], limit=1)
+        if location:
+            return location
+        virtual_parent = Location.search([
+            ("usage", "=", "view"),
+            ("company_id", "in", [False, self.env.company.id]),
+        ], order="company_id desc, id", limit=1)
+        return Location.create({
+            "name": "SEDAR Tug Issue Consumption",
+            "usage": "inventory",
+            "location_id": virtual_parent.id,
             "company_id": self.env.company.id,
         })

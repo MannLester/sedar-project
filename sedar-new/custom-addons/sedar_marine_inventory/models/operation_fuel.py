@@ -99,7 +99,8 @@ class SedarOperationFuelLog(models.Model):
                 log.action_issue_to_tug()
             move = log._sedar_create_done_move(
                 log.product_id, log.consumed_qty, log.tug_location_id,
-                log.source_location_id, "Fuel consumption: %s" % log.operation_id.display_name,
+                log._sedar_consumption_location(),
+                "Fuel consumption: %s" % log.operation_id.display_name,
             )
             log.write({"stock_move_ids": [(4, move.id)]})
             log.state = "consumed"

@@ -43,6 +43,8 @@ fixture seeding.
 | `sedar.inventory.template` | New | Defines stock-backed inventory requirements generated for a Service Order service type | `sedar_marine_inventory/models/inventory_models.py` |
 | `sedar.inventory.template.line` | New | Defines product quantities required by an inventory template | `sedar_marine_inventory/models/inventory_models.py` |
 | `sedar.inventory.requirement` | New | Stores generated or manual stock requirements that drive the inventory component of readiness | `sedar_marine_inventory/models/service_order.py` |
+| `product.product` | Extended | Provides the SEDAR Inventory Check item identity, warehouse availability, reorder status, and tug compatibility | `sedar_marine_inventory/models/inventory_item.py` |
+| `sedar.inventory.issue` | New | Preserves the immutable audit record and Odoo stock movement for one-step issuance to a tugboat | `sedar_marine_inventory/models/inventory_item.py` |
 | `sedar.maintenance.part.line` | New | Tracks requested, reserved, issued, and consumed spare parts for maintenance work orders | `sedar_marine_inventory/models/maintenance_parts.py` |
 | `sedar.operation.fuel.log` | New | Tracks operation fuel/lubricant issue, consumption, and remaining balance by tugboat | `sedar_marine_inventory/models/operation_fuel.py` |
 | `sedar.marine.operation` | Extended | Exposes operation fuel/lubricant logs and consumption summary | `sedar_marine_inventory/models/operation_fuel.py` |
@@ -572,6 +574,57 @@ Access rules:
 
 Slice 11 adds `sedar_marine_inventory`, a focused integration addon on top of standard Odoo Inventory. Standard `product.product`, `stock.location`, and `stock.quant` remain the product, location, and quantity foundation. SEDAR records add marine operating context so Service Orders, maintenance work orders, tugboats, and Marine Operations consume the same stock facts.
 
+### `product.product` Inventory Check extension
+
+One storable Odoo product represents an Item Type. Inventory Check exposes only products explicitly marked as SEDAR Inventory Items; Odoo stock quants and moves remain quantity truth.
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `sedar_inventory_item` | Boolean, indexed | Includes the product in the Inventory Check workspace. |
+| `sedar_manufacturer_part_number` | Character, indexed | Searchable manufacturer-assigned reference kept separate from `default_code`, which is labeled SEDAR Item Code in this workspace. |
+| `sedar_compatibility_scope` | Required selection | Marks an Item Type as fleet-wide or restricted to selected tugboats. |
+| `sedar_compatible_tugboat_ids` | Many-to-many to `sedar.tugboat` | Explicit list required for restricted compatibility. |
+| `sedar_reorder_point` | Float | Manually maintained low-stock threshold; cannot be negative. |
+| `sedar_stock_location_id` | Computed many-to-one to `stock.location` | Current company's primary warehouse stock location. |
+| `sedar_on_hand_qty` | Computed float | Physical quantity at the exact warehouse stock location. |
+| `sedar_reserved_qty` | Computed float | Quantity reserved at that exact location. |
+| `sedar_available_to_issue` | Computed float | On Hand minus Reserved at that exact warehouse location. |
+| `sedar_stock_status` | Computed selection | In Stock, Low Stock, or Out of Stock from Available to Issue and Reorder Point. |
+| `sedar_compatibility_display` | Computed character | Fleet-wide or a readable list of compatible tugboats. |
+| `sedar_code_locked` | Computed boolean | Makes the SEDAR Item Code immutable after the first non-cancelled stock movement. |
+
+Key behavior:
+
+- The SEDAR Item Code (`default_code` in the Odoo product foundation) is required and unique among SEDAR Inventory Items.
+- Restricted Item Types require at least one explicitly compatible tugboat.
+- Inventory Check excludes quantities stored in child and tug locations from Available to Issue.
+- Procurement and Inventory Officers may create and maintain Item Types but cannot directly edit stock balances or change an Item Code after stock movement begins.
+
+### `sedar.inventory.issue`
+
+One record is an immutable issue of an Item Type from warehouse stock to a named tugboat. The initial workflow treats issuance as immediate consumption and does not maintain an onboard balance.
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `name` | Required read-only character | Sequence-generated reference using `SII/<year>/#####`. |
+| `product_id` | Required read-only many-to-one to `product.product` | Issued Item Type. |
+| `manufacturer_part_number` | Read-only related character | Manufacturer reference visible in the audit record. |
+| `tugboat_id` | Required read-only many-to-one to `sedar.tugboat` | Tugboat receiving the issued item. |
+| `source_location_id` | Required read-only many-to-one to `stock.location` | Exact warehouse location reduced by the issue. |
+| `quantity` | Required read-only float | Quantity issued; must be positive and no greater than Available to Issue. |
+| `product_uom_id` | Read-only related many-to-one to `uom.uom` | Product unit of measure. |
+| `purpose` | Required read-only text | Operational reason for the issue. |
+| `issued_by_id` | Required read-only many-to-one to `res.users` | Procurement and Inventory Officer who confirmed the issue. |
+| `issued_at` | Required read-only datetime | Confirmation time. |
+| `stock_move_id` | Required read-only many-to-one to `stock.move` | Completed Odoo movement from warehouse to the controlled consumption location. |
+
+Key behavior:
+
+- Issue to Tug hard-blocks incompatible tugboats and insufficient Available to Issue.
+- Completion creates a standard done Odoo stock movement and then the immutable SEDAR audit record.
+- Completed issues cannot be edited or deleted.
+- Return to Warehouse and issuance-correction rules are deliberately deferred and marked inline for the next inventory iteration.
+
 ### `sedar.tugboat` inventory extension
 
 | Field | Type | How it is used |
@@ -686,14 +739,15 @@ One record tracks fuel or lubricant issue and consumption for one tugboat in one
 
 Key behavior:
 
-- Issue and consumption actions are restricted to Marine Inventory Managers.
+- Issue and consumption actions are restricted to Procurement and Inventory Officers.
 - Issuing decreases source stock and increases tugboat stock.
 - Recording consumption decreases tugboat stock and updates operation fuel summary.
 - Consumption cannot exceed opening plus issued quantity.
 
 Access rules:
 
-- Marine Inventory Users can read and maintain inventory templates, Service Order requirements, maintenance part lines, and operation fuel logs, but cannot delete them through normal access.
+- Inventory Check Users can read Inventory Check records, immutable issue history, inventory templates, Service Order requirements, maintenance part lines, and operation fuel logs.
+- Procurement and Inventory Officers may maintain Item Types and use controlled issue actions, but cannot directly edit stock balances or alter completed Inventory Issues.
 - Operations Managers can read Service Order inventory requirements and operation fuel logs for dispatch and operational context.
 - Marine Maintenance Users can read and maintain work-order spare-part lines for maintenance execution context.
 

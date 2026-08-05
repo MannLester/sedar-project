@@ -121,6 +121,151 @@
         </field>
     </record>
 
+    <record id="view_inventory_check_search" model="ir.ui.view">
+        <field name="name">product.product.sedar.inventory.check.search</field>
+        <field name="model">product.product</field>
+        <field name="arch" type="xml">
+            <search string="Inventory Check">
+                <field name="default_code" string="SEDAR Item Code"/>
+                <field name="sedar_manufacturer_part_number"/>
+                <field name="name"/>
+                <field name="sedar_compatible_tugboat_ids"/>
+                <filter name="in_stock" string="In Stock" domain="[('sedar_stock_status', '=', 'in_stock')]"/>
+                <filter name="low_stock" string="Low Stock" domain="[('sedar_stock_status', '=', 'low_stock')]"/>
+                <filter name="out_of_stock" string="Out of Stock" domain="[('sedar_stock_status', '=', 'out_of_stock')]"/>
+                <filter name="fleet_wide" string="Fleet-wide" domain="[('sedar_compatibility_scope', '=', 'fleet')]"/>
+                <separator/>
+                <filter name="group_compatibility" string="Group by Compatibility" context="{'group_by': 'sedar_compatibility_scope'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_inventory_check_list" model="ir.ui.view">
+        <field name="name">product.product.sedar.inventory.check.list</field>
+        <field name="model">product.product</field>
+        <field name="arch" type="xml">
+            <list decoration-warning="sedar_stock_status == 'low_stock'" decoration-danger="sedar_stock_status == 'out_of_stock'">
+                <field name="default_code" string="SEDAR Item Code"/>
+                <field name="name" string="Item Type"/>
+                <field name="sedar_manufacturer_part_number"/>
+                <field name="uom_id" string="Unit"/>
+                <field name="sedar_on_hand_qty"/>
+                <field name="sedar_reserved_qty"/>
+                <field name="sedar_available_to_issue"/>
+                <field name="sedar_reorder_point"/>
+                <field name="sedar_stock_status" widget="badge"/>
+                <field name="sedar_compatibility_display"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_inventory_check_form" model="ir.ui.view">
+        <field name="name">product.product.sedar.inventory.check.form</field>
+        <field name="model">product.product</field>
+        <field name="arch" type="xml">
+            <form string="Inventory Item Type">
+                <header>
+                    <button name="action_open_sedar_issue_wizard" type="object" string="Issue to Tug" class="btn-primary" groups="sedar_marine_inventory.group_marine_inventory_manager"/>
+                </header>
+                <sheet>
+                    <field name="sedar_inventory_item" invisible="1"/>
+                    <field name="is_storable" invisible="1"/>
+                    <field name="sedar_code_locked" invisible="1"/>
+                    <div class="oe_title"><h1><field name="name" placeholder="Item Type"/></h1></div>
+                    <group>
+                        <group string="Item Identity">
+                            <field name="default_code" string="SEDAR Item Code" readonly="sedar_code_locked"/>
+                            <field name="sedar_manufacturer_part_number"/>
+                            <field name="uom_id"/>
+                            <field name="active"/>
+                        </group>
+                        <group string="Warehouse Balance">
+                            <field name="sedar_stock_location_id" readonly="1"/>
+                            <field name="sedar_on_hand_qty" readonly="1"/>
+                            <field name="sedar_reserved_qty" readonly="1"/>
+                            <field name="sedar_available_to_issue" readonly="1"/>
+                            <field name="sedar_reorder_point"/>
+                            <field name="sedar_stock_status" widget="badge" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Tug Compatibility">
+                        <field name="sedar_compatibility_scope"/>
+                        <field name="sedar_compatible_tugboat_ids" widget="many2many_tags" invisible="sedar_compatibility_scope != 'restricted'"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_inventory_issue_list" model="ir.ui.view">
+        <field name="name">sedar.inventory.issue.list</field>
+        <field name="model">sedar.inventory.issue</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0">
+                <field name="name"/>
+                <field name="issued_at"/>
+                <field name="product_id"/>
+                <field name="manufacturer_part_number"/>
+                <field name="tugboat_id"/>
+                <field name="quantity"/>
+                <field name="product_uom_id"/>
+                <field name="issued_by_id"/>
+                <field name="stock_move_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_inventory_issue_form" model="ir.ui.view">
+        <field name="name">sedar.inventory.issue.form</field>
+        <field name="model">sedar.inventory.issue</field>
+        <field name="arch" type="xml">
+            <form string="Inventory Issue" create="0" edit="0" delete="0">
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="product_id"/>
+                            <field name="manufacturer_part_number"/>
+                            <field name="tugboat_id"/>
+                            <field name="quantity"/>
+                            <field name="product_uom_id"/>
+                        </group>
+                        <group>
+                            <field name="source_location_id"/>
+                            <field name="issued_by_id"/>
+                            <field name="issued_at"/>
+                            <field name="stock_move_id"/>
+                        </group>
+                    </group>
+                    <group><field name="purpose"/></group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_inventory_issue_wizard_form" model="ir.ui.view">
+        <field name="name">sedar.inventory.issue.wizard.form</field>
+        <field name="model">sedar.inventory.issue.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Issue to Tug">
+                <group>
+                    <field name="product_id"/>
+                    <field name="manufacturer_part_number"/>
+                    <field name="source_location_id"/>
+                    <field name="available_to_issue"/>
+                    <field name="tugboat_id"/>
+                    <field name="quantity"/>
+                    <field name="product_uom_id"/>
+                    <field name="purpose" placeholder="Why is this item being issued?"/>
+                </group>
+                <footer>
+                    <button name="action_issue" type="object" string="Issue to Tug" class="btn-primary"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
     <record id="view_inventory_template_form" model="ir.ui.view">
         <field name="name">sedar.inventory.template.form</field>
         <field name="model">sedar.inventory.template</field>
@@ -196,7 +341,26 @@
         <field name="search_view_id" ref="view_inventory_requirement_search"/>
     </record>
 
+    <record id="action_inventory_check" model="ir.actions.act_window">
+        <field name="name">Inventory Check</field>
+        <field name="res_model">product.product</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('sedar_inventory_item', '=', True)]</field>
+        <field name="context">{'default_sedar_inventory_item': True, 'default_type': 'consu', 'default_is_storable': True}</field>
+        <field name="search_view_id" ref="view_inventory_check_search"/>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('view_inventory_check_list')}), (0, 0, {'view_mode': 'form', 'view_id': ref('view_inventory_check_form')})]"/>
+    </record>
+
+    <record id="action_inventory_issues" model="ir.actions.act_window">
+        <field name="name">Issue History</field>
+        <field name="res_model">sedar.inventory.issue</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('view_inventory_issue_list')}), (0, 0, {'view_mode': 'form', 'view_id': ref('view_inventory_issue_form')})]"/>
+    </record>
+
     <menuitem id="menu_marine_inventory_root" name="Marine Inventory" parent="sedar_marine_operations.menu_marine_operations" sequence="75" groups="sedar_marine_inventory.group_marine_inventory_user,sedar_marine_operations.group_operations_manager"/>
-    <menuitem id="menu_inventory_requirements" name="Service Inventory Requirements" parent="menu_marine_inventory_root" action="action_inventory_requirements" sequence="10"/>
-    <menuitem id="menu_inventory_templates" name="Inventory Templates" parent="menu_marine_inventory_root" action="action_inventory_templates" sequence="20"/>
+    <menuitem id="menu_inventory_check" name="Inventory Check" parent="sedar_marine_operations.menu_marine_operations" action="action_inventory_check" sequence="75" groups="sedar_marine_inventory.group_marine_inventory_user"/>
+    <menuitem id="menu_inventory_issues" name="Issue History" parent="sedar_marine_operations.menu_marine_operations" action="action_inventory_issues" sequence="76" groups="sedar_marine_inventory.group_marine_inventory_user"/>
+    <menuitem id="menu_inventory_requirements" name="Service Inventory Requirements" parent="menu_marine_inventory_root" action="action_inventory_requirements" sequence="20"/>
+    <menuitem id="menu_inventory_templates" name="Inventory Templates" parent="menu_marine_inventory_root" action="action_inventory_templates" sequence="30"/>
 </odoo>
