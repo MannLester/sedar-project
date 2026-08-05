@@ -348,7 +348,9 @@ credentials.
 
 ### Slice 8: Leave, Training, and Temporary Relief
 
-Add dated unavailability and relief workflows so not every crew shortage becomes hiring demand.
+Implemented. Dated crew unavailability, approved-leave synchronization, medical/training blockers,
+and temporary-relief assignment checks now let non-headcount shortages follow non-hiring resolution
+paths while preserving the existing Service Order readiness gate.
 
 ### Slice 9: Crew Rotation and Service Order Scheduling
 

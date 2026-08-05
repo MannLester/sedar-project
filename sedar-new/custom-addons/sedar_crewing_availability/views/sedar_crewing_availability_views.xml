@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_crew_unavailability_search" model="ir.ui.view">
+        <field name="name">sedar.crew.unavailability.search</field>
+        <field name="model">sedar.crew.unavailability</field>
+        <field name="arch" type="xml">
+            <search string="Crew Availability">
+                <field name="crew_profile_id"/>
+                <field name="employee_id"/>
+                <field name="source"/>
+                <filter name="active" string="Active / Planned" domain="[('state', 'in', ['planned', 'active'])]"/>
+                <filter name="leave" string="Leave" domain="[('source', '=', 'leave')]"/>
+                <filter name="medical" string="Medical" domain="[('source', '=', 'medical')]"/>
+                <filter name="training" string="Training" domain="[('source', '=', 'training')]"/>
+                <separator/>
+                <filter name="group_crew" string="Group by Crew" context="{'group_by': 'crew_profile_id'}"/>
+                <filter name="group_source" string="Group by Source" context="{'group_by': 'source'}"/>
+                <filter name="group_state" string="Group by State" context="{'group_by': 'state'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_crew_unavailability_list" model="ir.ui.view">
+        <field name="name">sedar.crew.unavailability.list</field>
+        <field name="model">sedar.crew.unavailability</field>
+        <field name="arch" type="xml">
+            <list string="Crew Availability" decoration-warning="state in ['planned', 'active']" decoration-muted="state in ['done', 'cancelled']">
+                <field name="crew_profile_id"/>
+                <field name="employee_id"/>
+                <field name="source"/>
+                <field name="reason"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="shortage_id"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_crew_unavailability_form" model="ir.ui.view">
+        <field name="name">sedar.crew.unavailability.form</field>
+        <field name="model">sedar.crew.unavailability</field>
+        <field name="arch" type="xml">
+            <form string="Crew Availability">
+                <sheet>
+                    <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="crew_profile_id"/>
+                            <field name="employee_id" readonly="1"/>
+                            <field name="source"/>
+                            <field name="reason"/>
+                        </group>
+                        <group>
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                            <field name="state"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="leave_id" readonly="1"/>
+                        <field name="shortage_id"/>
+                        <field name="action_id"/>
+                    </group>
+                    <field name="notes"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_crew_profile_form_availability" model="ir.ui.view">
+        <field name="name">sedar.crew.profile.form.availability</field>
+        <field name="model">sedar.crew.profile</field>
+        <field name="inherit_id" ref="sedar_marine_operations.view_crew_profile_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='certificate_ids']" position="after">
+                <field name="unavailability_ids">
+                    <list editable="bottom">
+                        <field name="source"/>
+                        <field name="reason"/>
+                        <field name="date_start"/>
+                        <field name="date_end"/>
+                        <field name="state"/>
+                    </list>
+                </field>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_shortage_action_form_availability" model="ir.ui.view">
+        <field name="name">sedar.crew.shortage.action.form.availability</field>
+        <field name="model">sedar.crew.shortage.action</field>
+        <field name="inherit_id" ref="sedar_manpower_planning.view_shortage_action_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='assigned_employee_id']" position="after">
+                <field name="relief_crew_profile_id" invisible="action_type != 'temporary_reliever'"/>
+                <field name="relief_assignment_id" readonly="1" invisible="action_type != 'temporary_reliever'"/>
+            </xpath>
+            <xpath expr="//field[@name='planned_date']" position="after">
+                <field name="unavailability_start" invisible="action_type not in ['medical', 'training']"/>
+                <field name="unavailability_end" invisible="action_type not in ['medical', 'training']"/>
+                <field name="unavailability_reason" invisible="action_type not in ['medical', 'training']"/>
+                <field name="unavailability_id" readonly="1" invisible="action_type not in ['medical', 'training']"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_crew_unavailability" model="ir.actions.act_window">
+        <field name="name">Crew Availability</field>
+        <field name="res_model">sedar.crew.unavailability</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_crew_unavailability_search"/>
+        <field name="domain">[('state', 'in', ['planned', 'active'])]</field>
+    </record>
+
+    <menuitem id="menu_crew_availability" name="Crew Availability" parent="sedar_marine_operations.menu_marine_operations" action="action_crew_unavailability" sequence="58"/>
+</odoo>

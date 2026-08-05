@@ -21,6 +21,9 @@ Update this document in the same change whenever a listed custom field is added,
 | `hr.employee` | Extended | Preserves traceability from successful applicant conversion into the HR employee master, controls generic HR onboarding, and exposes linked marine crew onboarding cases | `sedar_recruitment_operations/models/employee.py`; `sedar_recruitment_crewing/models/employee.py` |
 | `sedar.crew.onboarding` | New | Controls the handoff from a marine employee to a deployment-eligible Crew Profile | `sedar_recruitment_crewing/models/crew_onboarding.py` |
 | `sedar.crew.certificate` | Extended | Links crew credentials and medicals to controlled document evidence, renewal status, and readiness eligibility | `sedar_crew_compliance/models/crew_certificate.py`; `sedar_crew_compliance/models/crew_assignment.py`; `sedar_crew_compliance/models/crew_onboarding.py` |
+| `sedar.crew.unavailability` | New | Stores dated leave, medical, training, and temporary crew availability blockers | `sedar_crewing_availability/models/crew_unavailability.py` |
+| `hr.leave` | Extended | Synchronizes approved Odoo Time Off into dated Crew Unavailability records | `sedar_crewing_availability/models/hr_leave.py` |
+| `sedar.crew.shortage.action` | Extended | Records medical/training unavailability evidence and temporary relief crew assignments | `sedar_crewing_availability/models/shortage_action.py` |
 | `sedar.applicant.portal.event` | New | Stores applicant-visible timeline events | `sedar_applicant_portal/models/portal.py` |
 | `sedar.applicant.stage.history` | New | Provides an auditable history of HR stage changes | `sedar_recruitment_operations/models/applicant.py` |
 | `sedar.applicant.interview` | New | Coordinates interview scheduling, applicant responses, calendar events, and ADM-4 appraisal | `sedar_recruitment_operations/models/interview.py` |
@@ -325,6 +328,51 @@ Key behavior:
 - Direct writes to compliance audit fields are restricted to `sedar_crew_compliance.group_crew_compliance_manager` or workflow context.
 - `sedar.crew.assignment._compute_eligibility()` is overridden by method extension so Service Order crew readiness counts only verified, unexpired required credentials.
 - `sedar.crew.onboarding._compute_deployment_status()` is overridden by method extension so a marine hire cannot become deployment eligible with missing, expired, or unverified required credentials.
+
+## `sedar.crew.unavailability`
+
+One record is a dated reason why a Crew Profile is unavailable for assignment. It gives Crewing a temporary resolution path for leave, medical, training, or similar blockers without creating permanent headcount demand.
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `name` | Computed, stored character | Human-readable label combining Crew Profile and source. |
+| `crew_profile_id` | Required many-to-one to `sedar.crew.profile` | Crew member whose availability is blocked. |
+| `employee_id` | Stored related many-to-one to `hr.employee` | Employee linked through the Crew Profile. |
+| `source` | Selection | Leave, medical restriction, training blocker, temporary unavailability, or other. |
+| `leave_id` | Many-to-one to `hr.leave` | Standard Odoo Time Off record that created or updates the unavailability. |
+| `shortage_id` | Many-to-one to `sedar.crew.shortage` | Operational shortage that caused the non-hiring action, when applicable. |
+| `action_id` | Many-to-one to `sedar.crew.shortage.action` | Resolution action that created the medical or training blocker, when applicable. |
+| `date_start` | Required datetime | Start of the unavailable period. |
+| `date_end` | Datetime | End of the unavailable period; empty represents an open-ended blocker for the demo. |
+| `state` | Selection | Planned, active, done, or cancelled. Planned and active records block overlapping crew assignments. |
+| `reason` | Required character | Short operational reason displayed in readiness explanations. |
+| `notes` | Text | Internal Crewing context. |
+
+Key behavior:
+
+- `hr.leave` is extended method-only with `sedar_crew_unavailability_id`; approved Time Off for an employee with a Crew Profile creates or updates a leave-sourced unavailability record, while cancelled/non-approved leave cancels the linked blocker.
+- `sedar.crew.profile` is extended with `unavailability_ids`.
+- `sedar.crew.assignment._compute_eligibility()` is overridden by method extension so Service Order crew readiness checks dated leave, medical, training, temporary blockers, verified credentials, rank, availability status, and overlapping assignments together.
+
+## `sedar.crew.shortage.action` availability extension
+
+The existing shortage action remains the action log for operational shortage resolution. Slice 8 extends it so non-hiring actions can produce availability facts and temporary relief can create the concrete replacement assignment required by ADR-0003.
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `action_type` | Selection extension | Adds `temporary_reliever` alongside existing replacement, reschedule, certificate, medical, training, and manpower actions. |
+| `relief_crew_profile_id` | Many-to-one to `sedar.crew.profile` | Candidate relief crew for a temporary reliever action. |
+| `relief_assignment_id` | Read-only many-to-one to `sedar.crew.assignment` | Concrete Service Order crew assignment created after the relief candidate passes eligibility checks. |
+| `unavailability_id` | Read-only many-to-one to `sedar.crew.unavailability` | Medical or training blocker created from the action. |
+| `unavailability_start` | Datetime | Start date/time used for medical or training unavailability created from the action. |
+| `unavailability_end` | Datetime | Optional end date/time for the medical or training blocker. |
+| `unavailability_reason` | Character | Reason copied into the generated unavailability record. |
+
+Key behavior:
+
+- Starting a medical or training action can create a dated unavailability record for the assigned employee's Crew Profile.
+- Completing a temporary reliever action requires an outcome, a relief Crew Profile, matching rank, and an eligible assignment under the existing readiness rules.
+- Temporary relief resolves only the affected `sedar.crew.shortage` and does not change vacancy or manpower fulfillment.
 
 ## `sedar.manpower.request` and `sedar.job.vacancy` fulfillment behavior
 
