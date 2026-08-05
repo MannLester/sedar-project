@@ -37,6 +37,8 @@ Update this document in the same change whenever a listed custom field is added,
 | `sedar.maintenance.part.line` | New | Tracks requested, reserved, issued, and consumed spare parts for maintenance work orders | `sedar_marine_inventory/models/maintenance_parts.py` |
 | `sedar.operation.fuel.log` | New | Tracks operation fuel/lubricant issue, consumption, and remaining balance by tugboat | `sedar_marine_inventory/models/operation_fuel.py` |
 | `sedar.marine.operation` | Extended | Exposes operation fuel/lubricant logs and consumption summary | `sedar_marine_inventory/models/operation_fuel.py` |
+| `sedar.purchase.request` | New | Captures department purchase requests, approval, and the handoff to standard Odoo RFQs/Purchase Orders | `sedar_purchase_request/models/purchase_request.py` |
+| `sedar.purchase.request.line` | New | Captures requested products, quantities, estimated costs, and maintenance/inventory source traceability | `sedar_purchase_request/models/purchase_request.py` |
 | `sedar.applicant.portal.event` | New | Stores applicant-visible timeline events | `sedar_applicant_portal/models/portal.py` |
 | `sedar.applicant.stage.history` | New | Provides an auditable history of HR stage changes | `sedar_recruitment_operations/models/applicant.py` |
 | `sedar.applicant.interview` | New | Coordinates interview scheduling, applicant responses, calendar events, and ADM-4 appraisal | `sedar_recruitment_operations/models/interview.py` |
@@ -669,6 +671,80 @@ Access rules:
 - Marine Inventory Users can read and maintain inventory templates, Service Order requirements, maintenance part lines, and operation fuel logs, but cannot delete them through normal access.
 - Operations Managers can read Service Order inventory requirements and operation fuel logs for dispatch and operational context.
 - Marine Maintenance Users can read and maintain work-order spare-part lines for maintenance execution context.
+
+## Procurement Handoff
+
+Slice 12 adds `sedar_purchase_request`, a focused procurement-control addon on top of standard Odoo Purchase. SEDAR owns the request, approval, and source traceability. Standard `purchase.order`, stock receipts, supplier bills, payments, and accounting entries remain owned by Odoo Purchase, Inventory, and Accounting.
+
+### `sedar.purchase.request`
+
+One record is a department request to buy goods needed by maintenance, inventory, operations, or a manual business need.
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `name` | Read-only character | Sequence-generated request number using `SPR/<year>/#####`. |
+| `requester_id` | Required many-to-one to `res.users` | User requesting the purchase. |
+| `department_id` | Many-to-one to `hr.department` | Optional requesting department. |
+| `company_id` | Required many-to-one to `res.company` | Company context for the request and generated RFQ. |
+| `currency_id` | Required many-to-one to `res.currency` | Currency for estimated request totals and generated RFQ lines. |
+| `vendor_id` | Many-to-one to `res.partner` | Preferred supplier; required before approval and RFQ creation. |
+| `source_type` | Required selection | Maintenance, inventory, operations, or manual source classification. |
+| `maintenance_request_id` | Many-to-one to `maintenance.request` | Optional work-order source for spare-part replenishment. |
+| `service_order_id` | Many-to-one to `sedar.marine.service.order` | Optional Service Order source for operations or inventory replenishment. |
+| `required_date` | Required datetime | Need-by date copied to the generated RFQ planned date. |
+| `priority` | Required selection | Normal, urgent, or emergency. |
+| `justification` | Required text | Business reason for the purchase. |
+| `line_ids` | One-to-many to `sedar.purchase.request.line` | Requested products, quantities, estimated costs, and source traceability. |
+| `purchase_order_id` | Read-only many-to-one to `purchase.order` | Standard Odoo RFQ/Purchase Order created from the approved request. |
+| `purchase_order_state` | Related selection | Mirrors the linked standard RFQ/PO state for visibility. |
+| `state` | Required selection | Draft, submitted, approved, RFQ created, rejected, or cancelled. |
+| `approved_by_id` | Read-only many-to-one to `res.users` | Manager who approved the request. |
+| `approved_at` | Read-only datetime | Approval timestamp. |
+| `rejected_by_id` | Read-only many-to-one to `res.users` | Manager who rejected the request. |
+| `rejected_at` | Read-only datetime | Rejection timestamp. |
+| `rejection_reason` | Text | Required explanation before rejection. |
+| `estimated_total` | Computed, stored monetary | Sum of all request-line estimated subtotals. |
+
+Key behavior:
+
+- `action_submit()` requires at least one request line and moves draft or rejected requests to submitted.
+- `action_approve()` requires Purchase Request Manager authority, submitted state, a preferred vendor, and records approval audit fields.
+- `action_reject()` requires Purchase Request Manager authority and a rejection reason.
+- `action_create_rfq()` requires Purchase Request Manager authority, approved state, a preferred vendor, and creates one standard Odoo `purchase.order` with standard `purchase.order.line` records.
+- RFQ creation is idempotent from the request side; a second RFQ cannot be created for the same Purchase Request.
+- Generated RFQs use the Purchase Request number in `purchase.order.origin` so downstream receipts and supplier bills remain traceable without custom accounting records.
+
+### `sedar.purchase.request.line`
+
+One record is one requested product line under a Purchase Request.
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `request_id` | Required many-to-one to `sedar.purchase.request` | Parent Purchase Request; deleting the request cascades to its lines. |
+| `sequence` | Integer | Line display order. |
+| `product_id` | Required many-to-one to `product.product` | Product to purchase. |
+| `product_uom_id` | Related, stored many-to-one to `uom.uom` | Product unit of measure used on the RFQ line. |
+| `quantity` | Required float | Requested quantity; must be greater than zero. |
+| `estimated_unit_price` | Monetary | Estimated supplier unit cost; cannot be negative. |
+| `currency_id` | Related, stored many-to-one to `res.currency` | Currency inherited from the parent request. |
+| `estimated_subtotal` | Computed, stored monetary | Quantity multiplied by estimated unit price. |
+| `source_location_id` | Many-to-one to `stock.location` | Internal stock location whose shortage or replenishment need triggered the request. |
+| `maintenance_part_line_id` | Many-to-one to `sedar.maintenance.part.line` | Optional maintenance spare-part shortage source. |
+| `inventory_requirement_id` | Many-to-one to `sedar.inventory.requirement` | Optional Service Order inventory shortage source. |
+| `need_reason` | Text | Optional line-specific explanation. |
+
+Key behavior:
+
+- Selecting a maintenance part line or inventory requirement populates product, quantity, and source location.
+- A request line may reference either one maintenance part line or one inventory requirement, not both.
+- The line validates positive quantity and non-negative estimated unit price.
+
+Access rules:
+
+- Purchase Request Users can create, read, and update Purchase Requests and lines, but cannot delete them through normal access.
+- Marine Inventory Users and Marine Maintenance Users can create, read, and update requests so stock and maintenance shortages can become procurement requests.
+- Purchase Request Managers inherit standard Odoo Purchase Manager authority and control approval, rejection, and RFQ creation server-side.
+- The addon does not add fields to `purchase.order` and does not create receipts, supplier bills, payments, or ledger entries.
 
 ## `sedar.manpower.request` and `sedar.job.vacancy` fulfillment behavior
 

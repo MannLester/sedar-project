@@ -31,6 +31,7 @@ The shared Docker setup installs these SEDAR addons and their Odoo dependencies:
 | Marine Operations | `sedar_marine_operations`, `sedar_marine_dispatch` |
 | Technical Maintenance | `sedar_marine_maintenance` plus standard Odoo `maintenance` |
 | Marine Inventory | `sedar_marine_inventory` plus standard Odoo `stock` |
+| Procurement | `sedar_purchase_request` plus standard Odoo `purchase` |
 | Marine Finance | `sedar_marine_finance` plus standard Odoo `account` |
 | Manpower and Careers | `sedar_manpower_planning`, `sedar_careers` |
 | Recruitment | `sedar_applicant_intake`, `sedar_applicant_portal`, `sedar_recruitment_operations` |
@@ -50,7 +51,7 @@ The shared Docker setup installs these SEDAR addons and their Odoo dependencies:
 | Document Control | Partial | Generic controlled forms and six recruitment forms work; broader corporate and vessel catalogues remain unseeded. |
 | Technical Maintenance | Partial | Slice 10 adds marine equipment, planned/corrective work orders, dry-dock plans, equipment history fields, and tug availability holds; Slice 11 adds work-order spare-part lines. |
 | HSSE | Not implemented | Safety metadata exists in operations, but no formal HSSE module or workflow exists. |
-| Procurement | Not implemented | No Purchase Request, approval, Purchase Order, supplier, receipt, or supplier-bill demonstration exists. |
+| Procurement | Partial | Slice 12 adds Purchase Requests, manager approval, source traceability from maintenance/inventory needs, and standard Odoo RFQ/PO handoff. Receipt and supplier-bill walkthroughs remain standard Odoo follow-up demonstrations. |
 | Inventory | Partial | Slice 11 adds standard stock-backed marine products, service-order inventory requirements, tugboat locations, work-order spare parts, and operation fuel/lubricant logs. Barcode, reorder policy, and procurement replenishment remain incomplete. |
 | Marketing and CRM | Partial | Client, contact, vessel, tariff, Service Order, and portal records work; CRM opportunities and campaigns do not. |
 | Executive Management | Partial | Operational and Finance queues exist; no consolidated KPI, profitability, audit, legal, or corporate-governance dashboard exists. |
@@ -184,11 +185,11 @@ Approved source forms currently represented include:
 
 | Requirement | Status | Current evidence | Remaining demonstration work |
 | --- | --- | --- | --- |
-| Purchase Requests | Not implemented | No request model or approval workflow is installed. | Add department requests linked to maintenance or stock need. |
-| Purchase Orders | Not implemented | Odoo Purchase is not part of the shared custom-module bootstrap. | Install and configure standard Purchase with a sample order. |
-| Supplier management | Not implemented | Shared partner records exist, but no supplier qualification or procurement view is demonstrated. | Add suppliers, terms, documents, and performance. |
-| Approval workflow | Not implemented | Manpower approvals exist but are not reusable procurement approvals. | Add amount- or category-based Purchase Request approval. |
-| Finance and receipt linkage | Not implemented | No request-to-order-to-receipt-to-bill chain exists. | Demonstrate the standard Odoo handoffs. |
+| Purchase Requests | Implemented | `sedar.purchase.request` captures requester, source, department, vendor, required date, priority, justification, lines, and estimated total. | Add richer category, amount threshold, and department budget controls after discovery. |
+| Purchase Orders | Partial | Approved Purchase Requests create one linked standard Odoo RFQ/Purchase Order with copied products, quantities, estimated prices, vendor, and origin. | Demonstrate RFQ confirmation, receipt, and supplier-bill flow using standard Odoo. |
+| Supplier management | Partial | A demo supplier is seeded and standard Odoo supplier partners are used for RFQ creation. | Add supplier terms, documents, qualification, and performance if included in the pitch. |
+| Approval workflow | Implemented | Server-side manager controls approve, reject, and create RFQs; normal users can submit requests but cannot approve them. | Add amount- or product-category-based approval tiers after SEDAR confirms authority rules. |
+| Finance and receipt linkage | Partial | The request hands off to standard Odoo Purchase; Accounting remains the ledger owner under ADR-0001. | Complete a request-to-RFQ-to-receipt-to-supplier-bill demonstration without custom accounting records. |
 
 ### 5.7 Inventory
 
@@ -327,7 +328,7 @@ These are the highest-value missing capabilities because they already connect to
 
 1. Crew certificate and medical records should link to controlled document evidence and renewal actions.
 2. Leave, training, and temporary relief should provide dated crew availability facts.
-3. Procurement should replenish maintenance and inventory shortages.
+3. Procurement now creates approved RFQs from maintenance and inventory shortages; receipt, supplier-bill, and replenishment walkthroughs still need to be demonstrated.
 4. HSSE should formalize incidents, inspections, risks, permits, and corrective actions.
 5. Executive KPIs should use the operational, HR, technical, inventory, procurement, safety, and financial source records already available.
 
@@ -376,9 +377,17 @@ Inventory Readiness Confirmation fields remain visible only as historical audit 
 stock requirement lines exist. Procurement replenishment, formal reorder policy, valuation, and a
 full barcode walkthrough remain later slices.
 
-### Slice 12 onward
+### Slice 12: Purchase Request and Standard Purchase Handoff
 
-Proceed with Procurement, HSSE, broader ERP demonstrations,
+Implemented for demonstration. `sedar_purchase_request` captures department purchase requests,
+maintenance spare-part shortages, Service Order inventory shortage sources, preferred vendors,
+manager approval, rejection, estimated totals, and one-time creation of a standard Odoo RFQ/Purchase
+Order. Standard Odoo Purchase, Inventory, and Accounting remain responsible for RFQ confirmation,
+receipts, supplier bills, payments, and ledger records.
+
+### Slice 13 onward
+
+Proceed with procurement receipt and supplier-bill walkthroughs, HSSE, broader ERP demonstrations,
 and the final executive dashboard in the order defined by `sedar-planning/implementation-slice-roadmap.md`.
 
 ## 9. Production Readiness Disclaimer
