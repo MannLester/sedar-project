@@ -36,6 +36,7 @@ fixture seeding.
 | `sedar.crew.assignment` | Extended | Adds scheduling status, calendar fields, confirmation controls, and replacement suggestions | `sedar_crew_scheduling/models/crew_assignment.py` |
 | `sedar.crew.rotation` | New | Plans crew rotation periods, watch, tugboat, relief crew, and handover | `sedar_crew_scheduling/models/crew_rotation.py` |
 | `sedar.tugboat` | Extended | Exposes technical equipment, maintenance blockers, dry-dock plans, readiness reason, tugboat stock location, and HSSE exceptions | `sedar_marine_maintenance/models/tugboat.py`; `sedar_marine_inventory/models/tugboat.py`; `sedar_hsse/models/hsse.py` |
+| `sedar.ais.position` | New | Stores the current fictional AIS/GPS report consumed by the offline fleet-monitoring demonstration | `sedar_ais_demo/models/ais_position.py` |
 | `maintenance.equipment` | Extended | Links standard Odoo equipment to SEDAR tugboats and marine equipment hierarchy/criticality | `sedar_marine_maintenance/models/maintenance_equipment.py` |
 | `maintenance.request` | Extended | Adds SEDAR work-order type, tug availability impact, release evidence, dry-dock linkage, and spare-part status/lines | `sedar_marine_maintenance/models/maintenance_request.py`; `sedar_marine_inventory/models/maintenance_parts.py` |
 | `sedar.drydock.plan` | New | Represents dry-dock planning, milestones, availability impact, and controlled release | `sedar_marine_maintenance/models/drydock.py` |
@@ -1129,3 +1130,37 @@ The method-only extension synchronizes linked SEDAR customer invoices, credit no
 ### `res.company` Marketing behavior
 
 The method-only `sedar_ensure_marketing_workspace()` reconciliation assigns the Marketing Manager role to the shared administrator, marks existing Service Order clients as customer accounts, assigns stable customer codes where missing, ensures the singleton dashboard exists, and refreshes the read-only transaction projection. The post-install hook, upgrade data function, and shared demo-suite reconciliation call the same idempotent method so a fresh Docker setup and a module upgrade produce the same workspace.
+
+## Simulated AIS Fleet Monitoring
+
+### `sedar.ais.position`
+
+One current demonstration position is stored per tugboat. AIS Fleet Monitoring Users may read the
+feed, while AIS Simulation Managers may advance or maintain it. Records may not be deleted through
+normal access. The dashboard service combines these simulated positions with authoritative tugboat,
+crew assignment, Marine Operation, maintenance-request, and dry-dock records.
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `tugboat_id` | Required unique many-to-one to `sedar.tugboat` | Tugboat represented by the current report; deleting the tugboat cascades to its simulated position. |
+| `latitude`, `longitude` | Required float | Fictional geographic position, constrained to valid coordinate ranges. |
+| `previous_latitude`, `previous_longitude` | Float | Previous fictional report used to animate movement toward the current waypoint. |
+| `speed_knots` | Float | Non-negative fictional speed over ground in knots. |
+| `course_degrees` | Float | Fictional course constrained to 0–359 degrees. |
+| `navigation_status` | Required selection | Underway, assisting, standby, berthed, dry dock, maintenance hold, or signal offline. |
+| `location_label`, `destination` | Character | Human-readable fictional operating area and destination. |
+| `eta` | Datetime | Optional fictional estimated arrival. |
+| `last_reported_at` | Required datetime | Time at which the simulation produced the current report. |
+| `signal_quality` | Required selection | Strong, fair, or weak simulated signal presentation. |
+| `route_index` | Integer | Internal pointer to the next fictional waypoint. |
+| `simulated` | Read-only boolean | Permanently identifies the record as non-live demonstration data. |
+
+### `sedar.tugboat` AIS extension
+
+`ais_position_ids` is a one-to-many relationship to `sedar.ais.position`. The uniqueness constraint
+on the position model means it exposes at most one current simulated report per tugboat.
+
+### `res.company` AIS demo extension
+
+`sedar_ensure_ais_demo()` reconciles the fictional fleet-monitoring user and one simulated position
+per seeded tugboat. The method is used only for repeatable demonstration bootstrap and upgrade.

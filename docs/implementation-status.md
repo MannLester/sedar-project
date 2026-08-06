@@ -38,6 +38,7 @@ The shared Docker setup installs these SEDAR addons and their Odoo dependencies:
 | Document Control | `sedar_document_control` |
 | Corporate Governance and Executive Management | `sedar_executive_dashboard` |
 | Marine Operations | `sedar_marine_operations`, `sedar_marine_dispatch` |
+| Simulated Fleet Monitoring | `sedar_ais_demo` |
 | Technical Maintenance | `sedar_marine_maintenance` plus standard Odoo `maintenance` |
 | Marine Inventory | `sedar_marine_inventory` plus standard Odoo `stock` |
 | Procurement | `sedar_purchase_request` plus standard Odoo `purchase` |
@@ -54,7 +55,7 @@ The shared Docker setup installs these SEDAR addons and their Odoo dependencies:
 | Business area | Overall status | Summary |
 | --- | --- | --- |
 | Platform and shared data | Implemented | Odoo 19, PostgreSQL, Docker bootstrap, roles, portals, and shared records are working. |
-| Tug Operations | Partial | Core Service Order, readiness, dispatch, execution, completion, and billing handoff work; fuel and AIS/GPS do not. |
+| Tug Operations | Partial | Core Service Order, readiness, dispatch, execution, completion, billing handoff, fuel demonstration, and simulated AIS fleet monitoring work; production fuel evidence and live AIS/GPS do not. |
 | Marine Finance | Partial | Client Tariffs, Billing Review, customer invoicing, and payment foundation work; broader Finance remains incomplete. |
 | Crewing and manpower | Partial | Crew profiles, manning, certificates, shortages, and hiring demand work; rotation, leave integration, and payroll do not. |
 | HR and recruitment | Partial | The recruitment lifecycle through employee conversion works; attendance, appraisals, payroll, and broader self-service do not. |
@@ -65,7 +66,7 @@ The shared Docker setup installs these SEDAR addons and their Odoo dependencies:
 | Inventory | Partial | Slice 11 adds standard stock-backed marine products, service-order inventory requirements, tugboat locations, work-order spare parts, and operation fuel/lubricant logs. Barcode, reorder policy, and procurement replenishment remain incomplete. |
 | Marketing and CRM | Implemented for demonstration | Client, contact, vessel, tariff, Service Order, CRM opportunity, follow-up activity, and resulting Service Order linkage are visible; campaigns remain deferred. |
 | Executive Management | Implemented for demonstration | Source-backed executive dashboard exposes Finance, Service Orders, fleet, crewing, maintenance, inventory, procurement, HSSE, document expiry, and governance exceptions. Profitability remains separated into revenue and known posted costs. |
-| External integrations | Future integration | Power BI, Microsoft 365, DocuSign, and AIS/GPS are not connected. |
+| External integrations | Future integration | Power BI, Microsoft 365, DocuSign, and a live AIS/GPS provider are not connected; AIS/GPS is represented by an explicitly fictional simulation. |
 
 ## 4. Implemented End-to-End Demonstrations
 
@@ -149,7 +150,7 @@ Approved source forms currently represented include:
 | Tug Completion | Implemented | Assigned Tug Masters record actual time and completion; all active tugs are required. | Confirm operational evidence and correction policy with SEDAR. |
 | Fuel monitoring | Partial | Slice 11 adds fuel/lubricant products, tugboat stock locations, operation fuel logs, issued quantity, consumed quantity, and remaining balance. | Add production sounding evidence, receipt workflow, and approved fuel policies. |
 | Towage billing | Implemented | Marine facts hand off automatically to Finance Billing Review. | Confirm tariff formulas and exception rules. |
-| AIS/GPS tracking | Future integration | No live or mock position feed is installed. | Add a provider adapter or clearly labeled mock tracking dashboard. |
+| AIS/GPS tracking | Implemented for simulation | `sedar_ais_demo` provides an offline maritime chart, animated fictional tug positions, crew visibility, operational status, and dry-dock/maintenance overlays. | Select a live provider and define its adapter, data contract, polling, history, alerting, and retention policy before production use. |
 
 ### 5.3 Technical and Maintenance
 
@@ -277,7 +278,7 @@ Approved source forms currently represented include:
 | Power BI | Future integration | Odoo records provide potential source data, but no dataset or report exists. | Define governed datasets and create a mock or live executive report. |
 | Microsoft 365 | Future integration | No Outlook, Teams, or SharePoint integration exists. | Select specific use cases and configure approved connectors. |
 | DocuSign | Future integration | Odoo stores signatures and attachments, but no envelope integration exists. | Add mock or live contract signing status. |
-| AIS/GPS | Future integration | No location provider or map exists. | Select provider, data contract, update interval, and retention policy. |
+| AIS/GPS | Implemented for simulation | `sedar_ais_demo` provides an offline Batangas Bay operations map, animated fictional tug positions, crew visibility, operational status, and dry-dock/maintenance overlays. | Select a provider, data contract, polling interval, history, alerting, and retention policy before any live integration. |
 
 ## 6. Current Demo Data and Verification Notes
 
@@ -422,7 +423,7 @@ dashboard that computes indicators from standard Odoo Accounting plus Service Or
 Operations, tugboats, crew, credentials, Maintenance, Inventory, Procurement, HSSE, and Document
 Control. Dashboard drill-down actions open the source records. Revenue and known posted costs are
 shown separately because approved attributable cost rules are not available; no unsupported
-profitability claim is made. Power BI, AIS/GPS, Microsoft 365, DocuSign, barcode, and bank-feed
+profitability claim is made. Power BI, live AIS/GPS, Microsoft 365, DocuSign, barcode, and bank-feed
 connections remain future integrations and are not presented as live.
 
 ### Post-demo production work

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sedar_ais_demo.AisDashboard">
+        <div class="o_sedar_ais_dashboard">
+            <header class="o_sedar_ais_header">
+                <div>
+                    <div class="o_sedar_ais_eyebrow"><span class="o_sedar_ais_live_dot"/> Fleet Operations Center</div>
+                    <h1>Batangas Bay Fleet Monitoring</h1>
+                    <p>Simulated vessel positions, operational state, and onboard crew visibility</p>
+                </div>
+                <div class="o_sedar_ais_header_actions">
+                    <span class="o_sedar_ais_demo_badge"><i class="fa fa-flask"/> SIMULATION — NOT LIVE GPS</span>
+                    <button class="btn btn-light" t-on-click="togglePlayback">
+                        <i t-att-class="state.playing ? 'fa fa-pause' : 'fa fa-play'"/>
+                        <t t-esc="state.playing ? ' Pause movement' : ' Play movement'"/>
+                    </button>
+                    <button t-if="state.canAdvance" class="btn btn-primary" t-att-disabled="state.advancing" t-on-click="advanceSimulation">
+                        <i class="fa fa-forward"/> <t t-esc="state.advancing ? 'Advancing…' : 'Advance feed'"/>
+                    </button>
+                    <button class="btn btn-outline-light" t-on-click="loadDashboard"><i class="fa fa-refresh"/> Refresh</button>
+                </div>
+            </header>
+
+            <section class="o_sedar_ais_summary">
+                <button class="o_sedar_ais_metric" t-att-class="state.filter === 'all' ? 'is-active' : ''" t-on-click="() => this.setFilter('all')"><span>Fleet tracked</span><strong t-esc="summary.total"/><small>Simulated transponders</small></button>
+                <button class="o_sedar_ais_metric" t-att-class="state.filter === 'underway' ? 'is-active' : ''" t-on-click="() => this.setFilter('underway')"><span>Underway</span><strong t-esc="summary.moving"/><small>Moving on the map</small></button>
+                <button class="o_sedar_ais_metric" t-att-class="state.filter === 'standby' ? 'is-active' : ''" t-on-click="() => this.setFilter('standby')"><span>Standby / berthed</span><strong t-esc="summary.standby"/><small>Available or alongside</small></button>
+                <button class="o_sedar_ais_metric o_sedar_ais_metric--warning" t-att-class="state.filter === 'attention' ? 'is-active' : ''" t-on-click="() => this.setFilter('attention')"><span>Attention</span><strong t-esc="summary.attention"/><small>Dry dock, hold, or offline</small></button>
+            </section>
+
+            <div t-if="state.loading" class="o_sedar_ais_loading"><i class="fa fa-circle-o-notch fa-spin"/> Loading simulated fleet feed…</div>
+            <main t-else="" class="o_sedar_ais_workspace">
+                <aside class="o_sedar_ais_fleet_panel">
+                    <div class="o_sedar_ais_panel_heading">
+                        <div><strong>Fleet</strong><small><t t-esc="visibleFleet.length"/> tugboats displayed</small></div>
+                        <select class="form-select form-select-sm" t-on-change="onTugSelect">
+                            <option value="">Select tugboat</option>
+                            <t t-foreach="state.fleet" t-as="tug" t-key="tug.id"><option t-att-value="tug.id" t-att-selected="tug.id === state.selectedId"><t t-esc="tug.name"/></option></t>
+                        </select>
+                    </div>
+                    <div class="o_sedar_ais_fleet_list">
+                        <article t-foreach="visibleFleet" t-as="tug" t-key="tug.id" t-att-class="tug.id === state.selectedId ? 'o_sedar_ais_tug_card is-selected' : 'o_sedar_ais_tug_card'" t-on-click="() => this.selectTug(tug.id)">
+                            <div class="o_sedar_ais_tug_card_top">
+                                <div class="o_sedar_ais_vessel_icon"><i class="fa fa-ship"/></div>
+                                <div class="o_sedar_ais_tug_identity"><strong t-esc="tug.name"/><small><t t-esc="tug.call_sign"/> · <t t-esc="tug.registration"/></small></div>
+                                <span t-att-class="statusClass(tug.status)" t-esc="tug.status_label"/>
+                            </div>
+                            <div class="o_sedar_ais_tug_location"><i class="fa fa-map-marker"/><span t-esc="tug.location"/></div>
+                            <div class="o_sedar_ais_tug_stats"><span><b t-esc="tug.speed.toFixed(1)"/> kn<small>Speed</small></span><span><b><t t-esc="Math.round(tug.course)"/>°</b><small>Course</small></span><span><b t-esc="tug.crew.length"/><small>Crew</small></span></div>
+                            <div t-if="tug.drydock" class="o_sedar_ais_alert"><i class="fa fa-wrench"/><span><strong>Dry dock:</strong> <t t-esc="tug.drydock.yard"/></span></div>
+                            <div t-elif="tug.maintenance_blockers" class="o_sedar_ais_alert"><i class="fa fa-exclamation-triangle"/><span><t t-esc="tug.maintenance_blockers"/> readiness-blocking work order(s)</span></div>
+                        </article>
+                        <div t-if="!visibleFleet.length" class="o_sedar_ais_empty">No tugboats match this filter.</div>
+                    </div>
+                </aside>
+
+                <section class="o_sedar_ais_map_shell">
+                    <div class="o_sedar_ais_map_toolbar">
+                        <div><i class="fa fa-map"/> Operations chart <span>Batangas Bay · simulated coverage</span></div>
+                        <div class="o_sedar_ais_legend"><span><i class="is-moving"/> Underway</span><span><i class="is-standby"/> Standby</span><span><i class="is-alert"/> Attention</span></div>
+                    </div>
+                    <div class="o_sedar_ais_map">
+                        <div class="o_sedar_ais_grid"/>
+                        <svg class="o_sedar_ais_coast" viewBox="0 0 1000 620" preserveAspectRatio="none" aria-hidden="true">
+                            <path class="o_sedar_ais_land" d="M0,0 H1000 V108 C904,118 858,153 782,152 C712,150 676,118 605,136 C533,154 520,206 453,224 C372,246 320,206 250,233 C159,268 116,352 0,362 Z"/>
+                            <path class="o_sedar_ais_land o_sedar_ais_land--south" d="M0,574 C128,541 188,563 274,526 C350,493 374,443 460,443 C535,444 572,479 658,458 C761,432 828,372 1000,402 V620 H0 Z"/>
+                            <path class="o_sedar_ais_shore" d="M0,362 C116,352 159,268 250,233 C320,206 372,246 453,224 C520,206 533,154 605,136 C676,118 712,150 782,152 C858,153 904,118 1000,108"/>
+                            <path class="o_sedar_ais_route" d="M160,350 C305,308 402,349 517,305 S741,238 896,299"/>
+                            <path class="o_sedar_ais_route o_sedar_ais_route--secondary" d="M240,490 C368,410 459,392 590,354 S762,310 828,194"/>
+                        </svg>
+                        <div class="o_sedar_ais_map_label o_sedar_ais_map_label--city"><b>BATANGAS CITY</b><span>Port district</span></div>
+                        <div class="o_sedar_ais_map_label o_sedar_ais_map_label--bay">BATANGAS BAY</div>
+                        <div class="o_sedar_ais_map_label o_sedar_ais_map_label--base"><i class="fa fa-anchor"/> SEDAR BASE</div>
+                        <div class="o_sedar_ais_map_label o_sedar_ais_map_label--yard"><i class="fa fa-wrench"/> REPAIR YARD</div>
+                        <div class="o_sedar_ais_compass"><i class="fa fa-location-arrow"/><b>N</b></div>
+                        <div class="o_sedar_ais_scale"><span/> 2 nautical miles</div>
+
+                        <button t-foreach="state.fleet" t-as="tug" t-key="tug.id" t-att-class="markerClass(tug)" t-att-style="markerStyle(tug)" t-on-click="() => this.selectTug(tug.id)" t-att-title="tug.name + ' — ' + tug.location">
+                            <span class="o_sedar_ais_marker_pulse"/>
+                            <span class="o_sedar_ais_marker_ship"><i t-att-class="tug.status === 'dry_dock' ? 'fa fa-wrench' : 'fa fa-ship'"/></span>
+                            <span class="o_sedar_ais_marker_label"><b t-esc="tug.name"/><small><t t-esc="tug.speed.toFixed(1)"/> kn</small></span>
+                        </button>
+
+                        <section t-if="selectedTug" class="o_sedar_ais_detail">
+                            <button class="o_sedar_ais_detail_open" t-on-click="() => this.openTugboat(selectedTug.id)" title="Open tugboat record"><i class="fa fa-external-link"/></button>
+                            <div class="o_sedar_ais_detail_title"><div class="o_sedar_ais_vessel_icon"><i class="fa fa-ship"/></div><div><h2 t-esc="selectedTug.name"/><p><t t-esc="selectedTug.tug_class"/> · <t t-esc="selectedTug.bollard_pull"/> T bollard pull</p></div><span t-att-class="statusClass(selectedTug.status)" t-esc="selectedTug.status_label"/></div>
+                            <div class="o_sedar_ais_detail_grid">
+                                <div><span>Current location</span><strong t-esc="selectedTug.location"/><small><t t-esc="formatCoordinate(selectedTug.latitude, 'N', 'S')"/> · <t t-esc="formatCoordinate(selectedTug.longitude, 'E', 'W')"/></small></div>
+                                <div><span>Voyage</span><strong t-esc="selectedTug.destination"/><small t-esc="selectedTug.service_order || 'No active Service Order'"/></div>
+                                <div><span>AIS report</span><strong><t t-esc="selectedTug.signal"/> signal</strong><small t-esc="selectedTug.last_reported"/></div>
+                            </div>
+                            <details class="o_sedar_ais_crew" open="open">
+                                <summary><span><i class="fa fa-users"/> Crew aboard / assigned</span><small><t t-esc="selectedTug.crew.length"/> people · <t t-esc="selectedTug.crew_source"/></small></summary>
+                                <div class="o_sedar_ais_crew_grid">
+                                    <div t-foreach="selectedTug.crew" t-as="member" t-key="member.id" class="o_sedar_ais_crew_member"><span class="o_sedar_ais_avatar" t-esc="member.name.charAt(0)"/><div><strong t-esc="member.name"/><small><t t-esc="member.rank"/> · <t t-esc="member.availability"/></small></div></div>
+                                    <div t-if="!selectedTug.crew.length" class="o_sedar_ais_empty">No active or home crew roster is linked.</div>
+                                </div>
+                            </details>
+                            <div t-if="selectedTug.drydock" class="o_sedar_ais_drydock_detail"><i class="fa fa-wrench"/><div><strong>Dry-dock plan active</strong><span><t t-esc="selectedTug.drydock.name"/> at <t t-esc="selectedTug.drydock.yard"/></span><small>Planned completion: <t t-esc="selectedTug.drydock.planned_end"/></small></div></div>
+                        </section>
+                    </div>
+                    <footer class="o_sedar_ais_map_footer"><span><i class="fa fa-info-circle"/> Positions are fictional and move only inside this demonstration.</span><span>Feed generated: <t t-esc="state.generatedAt"/></span></footer>
+                </section>
+            </main>
+        </div>
+    </t>
+</templates>

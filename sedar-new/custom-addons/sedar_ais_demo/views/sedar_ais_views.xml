@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sedar_ais_position_list" model="ir.ui.view">
+        <field name="name">sedar.ais.position.list</field>
+        <field name="model">sedar.ais.position</field>
+        <field name="arch" type="xml">
+            <list string="Simulated AIS Position Feed" create="0" delete="0">
+                <field name="tugboat_id"/>
+                <field name="navigation_status" widget="badge"/>
+                <field name="location_label"/>
+                <field name="speed_knots"/>
+                <field name="course_degrees"/>
+                <field name="destination"/>
+                <field name="signal_quality" widget="badge"/>
+                <field name="last_reported_at"/>
+                <field name="simulated"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_sedar_ais_position_form" model="ir.ui.view">
+        <field name="name">sedar.ais.position.form</field>
+        <field name="model">sedar.ais.position</field>
+        <field name="arch" type="xml">
+            <form string="Simulated AIS Position" create="0" delete="0">
+                <sheet>
+                    <div class="alert alert-warning" role="alert">
+                        Demonstration simulation only. This record is not a live AIS or GPS report.
+                    </div>
+                    <group>
+                        <group>
+                            <field name="tugboat_id"/>
+                            <field name="navigation_status"/>
+                            <field name="location_label"/>
+                            <field name="destination"/>
+                            <field name="eta"/>
+                        </group>
+                        <group>
+                            <field name="latitude"/>
+                            <field name="longitude"/>
+                            <field name="speed_knots"/>
+                            <field name="course_degrees"/>
+                            <field name="signal_quality"/>
+                            <field name="last_reported_at"/>
+                            <field name="simulated"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="view_sedar_tugboat_form_ais" model="ir.ui.view">
+        <field name="name">sedar.tugboat.form.ais</field>
+        <field name="model">sedar.tugboat</field>
+        <field name="inherit_id" ref="sedar_marine_operations.view_tugboat_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <notebook>
+                    <page string="Simulated AIS" groups="sedar_ais_demo.group_sedar_ais_user">
+                        <div class="alert alert-info" role="alert">Simulated demonstration positions only.</div>
+                        <field name="ais_position_ids" readonly="1">
+                            <list><field name="navigation_status"/><field name="location_label"/><field name="speed_knots"/><field name="course_degrees"/><field name="last_reported_at"/></list>
+                        </field>
+                    </page>
+                </notebook>
+            </xpath>
+        </field>
+    </record>
+    <record id="action_sedar_ais_dashboard" model="ir.actions.client">
+        <field name="name">Fleet AIS Monitoring</field>
+        <field name="tag">sedar_ais_demo.dashboard</field>
+    </record>
+    <record id="action_sedar_ais_positions" model="ir.actions.act_window">
+        <field name="name">Simulated Position Feed</field>
+        <field name="res_model">sedar.ais.position</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <menuitem id="menu_sedar_ais_root" name="Fleet Monitoring" parent="sedar_document_control.menu_sedar_root" sequence="24" groups="group_sedar_ais_user"/>
+    <menuitem id="menu_sedar_ais_dashboard" name="AIS Operations Map" parent="menu_sedar_ais_root" action="action_sedar_ais_dashboard" sequence="10"/>
+    <menuitem id="menu_sedar_ais_positions" name="Simulated Position Feed" parent="menu_sedar_ais_root" action="action_sedar_ais_positions" sequence="20" groups="group_sedar_ais_manager"/>
+</odoo>

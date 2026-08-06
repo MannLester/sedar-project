@@ -38,6 +38,7 @@
                             <div class="o_sedar_nav_children">
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_marine_operations.action_service_order_dashboard"><span>Service Orders</span></a>
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_marine_operations.action_tugboats"><span>Tugboats</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_ais_demo.action_sedar_ais_dashboard"><span>Live Fleet Map <small>(Simulated)</small></span></a>
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_marine_operations.action_tug_assignments"><span>Tug and Crew Plans</span></a>
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_marine_operations.action_client_vessels"><span>Client Vessels</span></a>
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_marine_inventory.action_inventory_check"><span>Inventory Check</span></a>

@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_sedar_ais_position_user,simulated AIS position user,model_sedar_ais_position,group_sedar_ais_user,1,0,0,0
+access_sedar_ais_position_manager,simulated AIS position manager,model_sedar_ais_position,group_sedar_ais_manager,1,1,1,0

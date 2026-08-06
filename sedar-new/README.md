@@ -215,3 +215,19 @@ docker compose run --rm -T odoo odoo -c /etc/odoo/odoo.conf `
 
 These accounts, tariffs, completions, and prices are fictional demo fixtures. Replace them with
 approved SEDAR data and change all passwords before any non-local use.
+
+## Simulated AIS Fleet Monitoring
+
+Open **SEDAR > Fleet Monitoring > AIS Operations Map** for the offline-safe Batangas Bay fleet
+dashboard. The screen shows animated fictional tugboat markers, speed, course, position, destination,
+current or home crew, active Service Order context, maintenance holds, and dry-dock details. Use
+**Advance feed** to move underway tugboats to their next fictional waypoint; browser animation can be
+paused independently.
+
+Demo fleet-monitoring credentials:
+
+- Login: `ais@sedar.demo`
+- Password: `aisdemo`
+
+Every position and screen is labeled as simulation-only. No Google Maps, AIS provider, GPS device,
+or internet connection is used, and the data must not be treated as navigational evidence.

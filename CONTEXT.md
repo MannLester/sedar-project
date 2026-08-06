@@ -103,3 +103,10 @@ _Avoid_: Tug ownership
 **Inventory Issue**:
 An immutable, audited release of an Item Type from warehouse stock to a named tugboat for a stated purpose. For the initial demo it is one-step consumption: warehouse stock decreases immediately and no onboard tug balance is maintained.
 _Avoid_: Transfer to Tug, stock adjustment
+
+**Simulated AIS Feed**:
+A clearly labeled demonstration-only stream of fictional tugboat positions used to present fleet
+monitoring without claiming a live AIS or GPS connection. Tugboat, crew, operation, maintenance,
+and dry-dock facts still come from their owning Odoo records; only geographic reports and movement
+between fictional waypoints are simulated.
+_Avoid_: Live AIS, live GPS, navigational evidence
