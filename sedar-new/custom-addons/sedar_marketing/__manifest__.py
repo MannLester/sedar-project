@@ -18,6 +18,7 @@
         "security/ir.model.access.csv",
         "data/sedar_marketing_sequences.xml",
         "data/sedar_marketing_data.xml",
+        "data/sedar_marketing_reconcile.xml",
         "views/sedar_marketing_views.xml",
     ],
     "assets": {

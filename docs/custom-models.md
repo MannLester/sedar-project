@@ -1131,6 +1131,8 @@ The method-only extension synchronizes linked SEDAR customer invoices, credit no
 
 The method-only `sedar_ensure_marketing_workspace()` reconciliation assigns the Marketing Manager role to the shared administrator, marks existing Service Order clients as customer accounts, assigns stable customer codes where missing, ensures the singleton dashboard exists, and refreshes the read-only transaction projection. The post-install hook, upgrade data function, and shared demo-suite reconciliation call the same idempotent method so a fresh Docker setup and a module upgrade produce the same workspace.
 
+The Marketing post-install and shared demo-suite hooks also run the repeatable `ensure_marketing_demo()` bootstrap after the Service Order fixtures exist. It owns only fictional demonstration records identified by stable `sedar_marketing` XML IDs: an approved and a pending quotation, an executed contract with verified signature metadata, an upcoming customer appointment, a versioned Marketing document metadata record, a pending document request, and an internal note. Reconciliation updates those records without duplicating them and does not store file bytes, create invoices, or alter the authoritative operational and accounting workflows.
+
 ## Simulated AIS Fleet Monitoring
 
 ### `sedar.ais.position`

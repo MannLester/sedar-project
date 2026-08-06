@@ -4,6 +4,8 @@ from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError
 from odoo.tests.common import TransactionCase
 
+from odoo.addons.sedar_marketing.hooks import ensure_marketing_demo
+
 
 class TestSedarMarketing(TransactionCase):
     @classmethod
@@ -184,3 +186,55 @@ class TestSedarMarketing(TransactionCase):
             "sedar_assigned_marketing_user_id": self.customer.sedar_assigned_marketing_user_id.id,
         })
         self.assertEqual(activity_model.search_count(partner_domain), before_partner)
+
+    def test_workspace_reconciliation_is_repeatable(self):
+        company = self.env.company
+        dashboard_model = self.env["sedar.marketing.dashboard"]
+        transaction_model = self.env["sedar.marketing.transaction"]
+
+        company.sedar_ensure_marketing_workspace()
+        customer_code = self.customer.sedar_customer_code
+        dashboard_count = dashboard_model.search_count([("company_id", "=", company.id)])
+        transaction_count = transaction_model.search_count([])
+
+        company.sedar_ensure_marketing_workspace()
+
+        self.assertTrue(customer_code)
+        self.assertEqual(self.customer.sedar_customer_code, customer_code)
+        self.assertEqual(
+            dashboard_model.search_count([("company_id", "=", company.id)]),
+            dashboard_count,
+        )
+        self.assertEqual(transaction_model.search_count([]), transaction_count)
+        self.assertIn(
+            self.env.ref("sedar_marketing.group_marketing_manager"),
+            self.env.ref("base.user_admin").group_ids,
+        )
+
+    def test_marketing_demo_reconciliation_is_repeatable(self):
+        self.assertTrue(ensure_marketing_demo(self.env))
+        models = {
+            "sedar.marketing.quotation": self.env["sedar.marketing.quotation"].search_count([]),
+            "sedar.marketing.contract": self.env["sedar.marketing.contract"].search_count([]),
+            "calendar.event": self.env["calendar.event"].search_count([
+                ("sedar_is_marketing_appointment", "=", True),
+            ]),
+            "sedar.marketing.document": self.env["sedar.marketing.document"].search_count([]),
+            "sedar.marketing.document.request": self.env["sedar.marketing.document.request"].search_count([]),
+            "sedar.marketing.internal.note": self.env["sedar.marketing.internal.note"].search_count([]),
+        }
+
+        self.assertTrue(ensure_marketing_demo(self.env))
+
+        self.assertEqual(self.env["sedar.marketing.quotation"].search_count([]), models["sedar.marketing.quotation"])
+        self.assertEqual(self.env["sedar.marketing.contract"].search_count([]), models["sedar.marketing.contract"])
+        self.assertEqual(self.env["calendar.event"].search_count([
+            ("sedar_is_marketing_appointment", "=", True),
+        ]), models["calendar.event"])
+        self.assertEqual(self.env["sedar.marketing.document"].search_count([]), models["sedar.marketing.document"])
+        self.assertEqual(self.env["sedar.marketing.document.request"].search_count([]), models["sedar.marketing.document.request"])
+        self.assertEqual(self.env["sedar.marketing.internal.note"].search_count([]), models["sedar.marketing.internal.note"])
+        self.assertEqual(
+            self.env.ref("sedar_marketing.demo_contract_active").signature_status,
+            "fully_executed",
+        )

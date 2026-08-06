@@ -14,6 +14,8 @@ def post_init_hook(env):
     from odoo.addons.sedar_marine_inventory.hooks import post_init_hook as reconcile_inventory
     from odoo.addons.sedar_marine_maintenance.hooks import post_init_hook as reconcile_maintenance
     from odoo.addons.sedar_purchase_request.hooks import post_init_hook as reconcile_purchase
+    from odoo.addons.sedar_marketing.hooks import post_init_hook as reconcile_marketing
+    from odoo.addons.sedar_ais_demo.hooks import post_init_hook as reconcile_ais
 
     for reconciler in (reconcile_orders, reconcile_dispatch, reconcile_inventory, reconcile_maintenance, reconcile_purchase):
         reconciler(env)
@@ -24,6 +26,11 @@ def post_init_hook(env):
     company._sedar_ensure_accounting_demo(company)
     _ensure_paid_service_demo(env)
     _ensure_procurement_demo(env)
+    # Reconcile customer projections after the final Service Order, invoice,
+    # maintenance, and procurement fixtures exist. AIS then reads the final
+    # authoritative fleet state for its fictional positions.
+    reconcile_marketing(env)
+    reconcile_ais(env)
     company.sedar_ensure_executive_demo()
     return True
 

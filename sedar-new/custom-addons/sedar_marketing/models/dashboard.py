@@ -99,6 +99,9 @@ class ResCompany(models.Model):
         """Idempotently expose existing demo customers and roles in Marketing."""
         env = self.env
         company = self[:1] or env.company
+        dashboard_model = env["sedar.marketing.dashboard"]
+        if not dashboard_model.search_count([("company_id", "=", company.id)]):
+            dashboard_model.create({"name": "Marketing Dashboard", "company_id": company.id})
         officer_group = env.ref("sedar_marketing.group_marketing_officer")
         manager_group = env.ref("sedar_marketing.group_marketing_manager")
         customer_relations = env.ref("sedar_marine_operations.group_customer_relations")
