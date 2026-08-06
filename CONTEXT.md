@@ -76,6 +76,10 @@ _Avoid_: Dispatch Manager approval
 A historical manual confirmation by an authorized Operations user that the inventory required by a Service Order was available for execution. Stock-backed Inventory Requirements now provide the normal readiness truth; the confirmer and confirmation time remain for older records without generated requirements.
 _Avoid_: Automated inventory check
 
+**Inventory Check**:
+A Procurement review of a Service Order's stock-backed Inventory Requirements and related Item Types. The system determines Ready or Shortage from stock facts; the review is not a manual approval or readiness confirmation.
+_Avoid_: Inventory approval, manual readiness gate
+
 **Item Type**:
 A stock product identified by one SEDAR Item Code and tracked as a quantity by location. It represents a kind of fuel, lubricant, spare part, or consumable rather than an individual physical unit.
 _Avoid_: Serialized unit, individual item

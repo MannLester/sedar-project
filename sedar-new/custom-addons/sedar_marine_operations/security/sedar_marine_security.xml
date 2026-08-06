@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- TODO(post-demo access hardening): Replace the broad base.group_user operational
+         access in ir.model.access.csv with explicit role-based permissions before this
+         system is used beyond the demonstration. Internal-user editing is intentionally
+         accepted for the current demo only. -->
     <record id="module_category_sedar_marine" model="ir.module.category">
         <field name="name">SEDAR Marine Operations</field>
         <field name="sequence">20</field>

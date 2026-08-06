@@ -99,29 +99,27 @@ def post_init_hook(env):
         "inventory_ready_by_id": env.user.id,
         "inventory_ready_at": _dt(14, 6),
     })
-    _reconcile_demo_completions(two_tug_order, _dt(14, 8), _dt(14, 13))
+    _reconcile_demo_completions(two_tug_order, _dt(14, 8), _dt(14, 14))
     two_tug_operation = _record(env, "sedar.marine.operation", "operation_two_tug", {
         "order_id": two_tug_order.id,
     })
     two_tug_operation.tug_operation_ids.write({
         "state": "returned", "departed_base_at": _dt(14, 7),
-        "arrived_on_scene_at": _dt(14, 8), "service_released_at": _dt(14, 12),
-        "returned_base_at": _dt(14, 13),
+        "arrived_on_scene_at": _dt(14, 8), "service_released_at": _dt(14, 13),
+        "returned_base_at": _dt(14, 14),
     })
     two_tug_operation.write({
         "state": "completed", "dispatcher_id": env.user.id,
         "dispatch_time": _dt(14, 6, 30), "actual_start": _dt(14, 8),
-        "actual_end": _dt(14, 13),
+        "actual_end": _dt(14, 14),
         "completion_summary": "Demonstration two-tug towage completed without incident.",
         "client_representative": "Demo Client Operations Contact",
-        "client_confirmation_time": _dt(14, 13, 30),
+        "client_confirmation_time": _dt(14, 14, 30),
     })
 
 
 def _reconcile_demo_completions(order, actual_start, actual_end):
     for assignment in order.tug_assignment_ids.filtered(lambda item: item.state != "cancelled"):
-        if assignment.completion_state == "submitted":
-            continue
         master = assignment.requirement_ids.filtered(lambda item: item.rank_id.code == "MASTER").mapped(
             "crew_assignment_ids.crew_profile_id"
         )[:1]
