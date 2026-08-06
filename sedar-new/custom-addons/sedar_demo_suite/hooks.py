@@ -40,6 +40,7 @@ def post_init_hook(env):
     _ensure_broader_demo_data(env)
     _ensure_inventory_shortage_demo(env)
     company.sedar_ensure_executive_demo()
+    _ensure_demo_administrator_access(env)
     return True
 
 
@@ -68,6 +69,36 @@ def _record(env, model, xmlid, values, update=True):
 
 def _first(env, model, domain=None, order="id"):
     return env[model].search(domain or [], order=order, limit=1)
+
+
+def _ensure_demo_administrator_access(env):
+    """Make the local Administrator a deliberate all-workspaces demo account."""
+    admin = env.ref("base.user_admin", raise_if_not_found=False)
+    if not admin:
+        return
+    manager_group_xmlids = (
+        "sedar_ais_demo.group_sedar_ais_manager",
+        "sedar_crew_compliance.group_crew_compliance_manager",
+        "sedar_executive_dashboard.group_sedar_executive",
+        "sedar_hsse.group_sedar_hsse_manager",
+        "sedar_manpower_planning.group_hr_manager",
+        "sedar_marine_dispatch.group_dispatch_manager",
+        "sedar_marine_finance.group_accounting_manager",
+        "sedar_marine_inventory.group_marine_inventory_manager",
+        "sedar_marine_maintenance.group_marine_maintenance_manager",
+        "sedar_marine_operations.group_commercial_manager",
+        "sedar_marine_operations.group_operations_manager",
+        "sedar_marketing.group_marketing_manager",
+        "sedar_purchase_request.group_sedar_purchase_request_manager",
+        "sedar_recruitment_crewing.group_crewing_manager",
+    )
+    groups = [
+        env.ref(xmlid, raise_if_not_found=False)
+        for xmlid in manager_group_xmlids
+    ]
+    admin.sudo().write({
+        "group_ids": [Command.link(group.id) for group in groups if group],
+    })
 
 
 def _ensure_accounting_foundation(env, company):

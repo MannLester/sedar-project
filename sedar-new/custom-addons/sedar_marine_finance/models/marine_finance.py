@@ -267,6 +267,7 @@ class SedarMarineServiceOrder(models.Model):
     def create(self, vals_list):
         if (
             not self.env.su
+            and not self.env.user.has_group("base.group_system")
             and self.env.user.has_group("sedar_marine_finance.group_billing_officer")
         ):
             raise AccessError(_("Billing Officers review existing Service Orders and cannot create them."))
@@ -284,6 +285,7 @@ class SedarMarineServiceOrder(models.Model):
             raise AccessError(_("Only Finance may update the billing note."))
         if (
             not self.env.su
+            and not self.env.user.has_group("base.group_system")
             and self.env.user.has_group("sedar_marine_finance.group_billing_officer")
             and not any(self.env.context.get(key) for key in (
                 "sedar_finance_internal", "sedar_operation_sync", "sedar_readiness_sync",

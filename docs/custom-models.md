@@ -14,7 +14,11 @@ fixtures for Service Orders, standard Odoo invoices, maintenance work orders, pu
 requests, HSSE records, inventory items/issues, and controlled documents so demonstration
 list views do not appear empty. It preserves one tug-compatible, stock-derived Job Order
 shortage so the Procurement Inventory Check demonstration includes both Ready and Shortage
-requirements. Odoo Accounting continues to own the resulting journals,
+requirements. For the local demonstration only, reconciliation also grants Odoo's built-in
+Administrator the highest SEDAR manager role in every installed workspace so every visible
+sidebar destination opens without switching accounts. Dedicated role accounts retain their
+normal restrictions, and the Administrator exception does not apply outside that seeded user.
+Odoo Accounting continues to own the resulting journals,
 accounts, invoices, payments, and ledger lifecycle. `sedar.maintenance.part.line.stock_move_ids` and
 `sedar.operation.fuel.log.stock_move_ids` link operational issue/consumption records to
 standard Odoo `stock.move` records; direct quant updates remain limited to opening-balance
