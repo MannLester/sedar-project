@@ -13,7 +13,7 @@
         "sedar_marine_maintenance", "sedar_marine_inventory",
         "sedar_purchase_request", "sedar_hsse", "sedar_erp_demo",
         "sedar_executive_dashboard", "sedar_marketing", "sedar_ais_demo",
-        "sedar_theme", "sedar_ui_cards",
+        "sedar_theme", "sedar_portal_theme", "sedar_ui_cards",
     ],
     "data": ["data/reconcile.xml"],
     "post_init_hook": "post_init_hook",

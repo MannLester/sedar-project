@@ -1,0 +1,285 @@
+:root {
+    --sedar-portal-navy: #071d39;
+    --sedar-portal-navy-2: #0a315f;
+    --sedar-portal-blue: #1768ac;
+    --sedar-portal-cyan: #0f98c8;
+    --sedar-portal-ink: #142333;
+    --sedar-portal-muted: #607285;
+    --sedar-portal-line: #d9e3ec;
+    --sedar-portal-bg: #f4f7fa;
+    --sedar-portal-panel: #ffffff;
+    --sedar-portal-success: #16865a;
+    --sedar-portal-warning: #b7791f;
+    --sedar-portal-danger: #c2413b;
+    --sedar-portal-radius: 8px;
+}
+
+.o_sedar_portal_hero,
+.o_sedar_public_page {
+    background: var(--sedar-portal-bg);
+    color: var(--sedar-portal-ink);
+    font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+    letter-spacing: 0;
+}
+
+.o_sedar_portal_page header,
+.o_sedar_public_page header {
+    border-bottom: 1px solid rgba(7, 29, 57, 0.12);
+    box-shadow: 0 12px 28px rgba(7, 29, 57, 0.08);
+}
+
+.o_sedar_portal_page main,
+.o_sedar_public_page main {
+    background: var(--sedar-portal-bg);
+}
+
+.o_sedar_portal_page h1,
+.o_sedar_portal_hero h1,
+.o_sedar_portal_page h2,
+.o_sedar_portal_hero h2,
+.o_sedar_portal_page h3,
+.o_sedar_portal_hero h3,
+.o_sedar_public_page h1,
+.o_sedar_public_page h2,
+.o_sedar_public_page h3 {
+    color: var(--sedar-portal-navy);
+    font-weight: 800;
+    letter-spacing: 0;
+}
+
+.o_sedar_portal_page .text-muted,
+.o_sedar_portal_hero .text-muted,
+.o_sedar_public_page .text-muted {
+    color: var(--sedar-portal-muted) !important;
+}
+
+.o_sedar_portal_page .btn,
+.o_sedar_portal_hero .btn,
+.o_sedar_public_page .btn {
+    border-radius: 6px;
+    font-weight: 700;
+}
+
+.o_sedar_portal_page .btn-primary,
+.o_sedar_portal_hero .btn-primary,
+.o_sedar_public_page .btn-primary {
+    background: var(--sedar-portal-navy-2);
+    border-color: var(--sedar-portal-navy-2);
+    box-shadow: 0 8px 18px rgba(7, 29, 57, 0.16);
+}
+
+.o_sedar_portal_page .btn-primary:hover,
+.o_sedar_portal_hero .btn-primary:hover,
+.o_sedar_public_page .btn-primary:hover {
+    background: var(--sedar-portal-blue);
+    border-color: var(--sedar-portal-blue);
+}
+
+.o_sedar_portal_page .btn-outline-secondary,
+.o_sedar_portal_hero .btn-outline-secondary,
+.o_sedar_public_page .btn-outline-secondary,
+.o_sedar_portal_page .btn-outline-primary,
+.o_sedar_portal_hero .btn-outline-primary,
+.o_sedar_public_page .btn-outline-primary {
+    border-color: #b8c7d4;
+    color: var(--sedar-portal-navy-2);
+}
+
+.o_sedar_portal_page .badge,
+.o_sedar_portal_hero .badge,
+.o_sedar_public_page .badge {
+    border-radius: 999px;
+    padding: 0.42rem 0.68rem;
+    font-weight: 800;
+}
+
+.o_sedar_portal_page .text-bg-primary,
+.o_sedar_portal_hero .text-bg-primary,
+.o_sedar_public_page .text-bg-primary {
+    background-color: rgba(15, 104, 172, 0.13) !important;
+    color: var(--sedar-portal-navy-2) !important;
+}
+
+.o_sedar_portal_page .text-bg-secondary,
+.o_sedar_portal_hero .text-bg-secondary,
+.o_sedar_public_page .text-bg-secondary {
+    background-color: rgba(96, 114, 133, 0.15) !important;
+    color: #34495f !important;
+}
+
+.o_sedar_portal_page .alert,
+.o_sedar_public_page .alert {
+    border: 1px solid var(--sedar-portal-line);
+    border-radius: var(--sedar-portal-radius);
+    box-shadow: none;
+}
+
+.o_sedar_portal_page .alert-info,
+.o_sedar_public_page .alert-info {
+    background: #eaf6fb;
+    color: #16445c;
+}
+
+.o_sedar_portal_page .alert-warning,
+.o_sedar_public_page .alert-warning {
+    background: #fff7e6;
+    color: #69440f;
+}
+
+.o_sedar_portal_page .alert-danger,
+.o_sedar_public_page .alert-danger {
+    background: #fff1ef;
+    color: #7f2724;
+}
+
+.o_sedar_portal_page .alert-success,
+.o_sedar_public_page .alert-success {
+    background: #ebf8f2;
+    color: #0f5132;
+}
+
+.o_sedar_portal_page,
+.o_sedar_public_page,
+.o_sedar_portal_hero {
+    background:
+        linear-gradient(180deg, rgba(7, 29, 57, 0.08), rgba(244, 247, 250, 0) 220px),
+        var(--sedar-portal-bg) !important;
+}
+
+.o_sedar_portal_hero {
+    margin: -16px -12px 22px;
+    padding: 28px 24px;
+    border-bottom: 1px solid var(--sedar-portal-line);
+}
+
+.o_sedar_client_hero h2,
+.o_sedar_applicant_page h1,
+.o_sedar_careers_page h1 {
+    margin-bottom: 0.35rem;
+}
+
+.o_sedar_record_card,
+.o_sedar_portal_page .card,
+.o_sedar_public_page .card,
+.o_sedar_portal_page form.o_sedar_form,
+.o_sedar_public_page form.o_sedar_form {
+    border: 1px solid var(--sedar-portal-line) !important;
+    border-radius: var(--sedar-portal-radius) !important;
+    background: var(--sedar-portal-panel) !important;
+    box-shadow: 0 10px 28px rgba(7, 29, 57, 0.08) !important;
+}
+
+.o_sedar_record_card .card-body,
+.o_sedar_portal_page .card-body,
+.o_sedar_public_page .card-body {
+    padding: 1.25rem;
+}
+
+.o_sedar_form {
+    padding: 1.25rem;
+}
+
+.o_sedar_form_section {
+    border-color: var(--sedar-portal-line) !important;
+}
+
+.o_sedar_form h3,
+.o_sedar_form h5,
+.o_sedar_form_section h5 {
+    color: var(--sedar-portal-navy);
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.o_sedar_form .form-label {
+    color: #334b62;
+    font-size: 0.88rem;
+    font-weight: 700;
+}
+
+.o_sedar_portal_page .form-control,
+.o_sedar_portal_page .form-select,
+.o_sedar_public_page .form-control,
+.o_sedar_public_page .form-select {
+    border-color: #cbd8e4;
+    border-radius: 6px;
+    color: var(--sedar-portal-ink);
+}
+
+.o_sedar_portal_page .form-control:focus,
+.o_sedar_portal_page .form-select:focus,
+.o_sedar_public_page .form-control:focus,
+.o_sedar_public_page .form-select:focus {
+    border-color: var(--sedar-portal-cyan);
+    box-shadow: 0 0 0 0.2rem rgba(15, 152, 200, 0.16);
+}
+
+.o_sedar_table {
+    border: 1px solid var(--sedar-portal-line);
+    border-radius: var(--sedar-portal-radius);
+    overflow: hidden;
+}
+
+.o_sedar_table thead th {
+    background: #eaf1f7;
+    color: var(--sedar-portal-navy);
+    font-size: 0.82rem;
+    text-transform: uppercase;
+}
+
+.o_sedar_table tbody tr {
+    background: var(--sedar-portal-panel);
+}
+
+.o_sedar_detail_grid dl {
+    margin-bottom: 0;
+}
+
+.o_sedar_detail_grid dt {
+    color: var(--sedar-portal-muted);
+    font-weight: 700;
+}
+
+.o_sedar_detail_grid dd {
+    color: var(--sedar-portal-ink);
+    font-weight: 600;
+}
+
+.o_sedar_applicant_page .border-start {
+    border-color: var(--sedar-portal-cyan) !important;
+}
+
+.o_sedar_applicant_page a.text-decoration-none {
+    color: var(--sedar-portal-navy-2);
+    font-weight: 700;
+}
+
+.o_sedar_careers_page form.o_sedar_form h3 {
+    padding-top: 0.2rem;
+}
+
+.o_sedar_careers_page .oe_structure,
+.o_sedar_applicant_page.bg-light {
+    background: transparent !important;
+}
+
+@media (max-width: 767.98px) {
+    .o_sedar_portal_hero {
+        margin: -12px -12px 18px;
+        padding: 22px 16px;
+    }
+
+    .o_sedar_portal_hero .btn,
+    .o_sedar_record_card .btn,
+    .o_sedar_applicant_page .btn {
+        width: 100%;
+    }
+
+    .o_sedar_form {
+        padding: 1rem;
+    }
+
+    .o_sedar_table {
+        min-width: 680px;
+    }
+}

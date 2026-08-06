@@ -216,6 +216,17 @@ docker compose run --rm -T odoo odoo -c /etc/odoo/odoo.conf `
 These accounts, tariffs, completions, and prices are fictional demo fixtures. Replace them with
 approved SEDAR data and change all passwords before any non-local use.
 
+## Portal Theme
+
+The `sedar_portal_theme` addon provides a shared SEDAR frontend style for the Client Portal,
+Applicant Portal, and public application pages. It is a presentation-only integration layer: client
+Service Orders, applicant tracking, and recruitment intake continue to be owned by their existing
+modules and controllers.
+
+Docker installs and upgrades this module with the rest of the demo stack so portal users receive the
+same navy/blue SEDAR branding, typography, buttons, cards, forms, tables, status badges, and mobile
+spacing as the internal Odoo theme family.
+
 ## Simulated AIS Fleet Monitoring
 
 Open **SEDAR > Fleet Monitoring > AIS Operations Map** for the offline-safe Batangas Bay fleet

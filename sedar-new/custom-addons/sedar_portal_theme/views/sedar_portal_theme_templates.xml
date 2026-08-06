@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="client_orders_theme" inherit_id="sedar_marine_operations.portal_my_sedar_orders" priority="90">
+        <xpath expr="//t[@t-call='portal.portal_layout']/div[1]" position="attributes">
+            <attribute name="class" add="o_sedar_portal_hero o_sedar_client_hero" separator=" "/>
+        </xpath>
+        <xpath expr="//table" position="attributes">
+            <attribute name="class" add="o_sedar_table" separator=" "/>
+        </xpath>
+    </template>
+
+    <template id="client_order_form_theme" inherit_id="sedar_marine_operations.portal_sedar_order_form" priority="90">
+        <xpath expr="//t[@t-call='portal.portal_layout']/div[1]" position="attributes">
+            <attribute name="class" add="o_sedar_portal_hero o_sedar_client_hero" separator=" "/>
+        </xpath>
+        <xpath expr="//form" position="attributes">
+            <attribute name="class" add="o_sedar_form" separator=" "/>
+        </xpath>
+        <xpath expr="//section" position="attributes">
+            <attribute name="class" add="o_sedar_form_section" separator=" "/>
+        </xpath>
+    </template>
+
+    <template id="client_order_detail_theme" inherit_id="sedar_marine_operations.portal_sedar_order_detail" priority="90">
+        <xpath expr="//t[@t-call='portal.portal_layout']/div[1]" position="attributes">
+            <attribute name="class" add="o_sedar_portal_hero o_sedar_client_hero" separator=" "/>
+        </xpath>
+        <xpath expr="//div[hasclass('row')]" position="attributes">
+            <attribute name="class" add="o_sedar_detail_grid" separator=" "/>
+        </xpath>
+    </template>
+
+    <template id="applicant_dashboard_theme" inherit_id="sedar_applicant_portal.dashboard" priority="90">
+        <xpath expr="//t[@t-call='website.layout']" position="attributes">
+            <attribute name="t-call">portal.portal_layout</attribute>
+        </xpath>
+        <xpath expr="//div[@id='wrap']" position="attributes">
+            <attribute name="class" add="o_sedar_portal_page o_sedar_applicant_page" separator=" "/>
+        </xpath>
+        <xpath expr="//div[contains(@t-foreach, 'applications')]" position="attributes">
+            <attribute name="class" add="o_sedar_record_card" separator=" "/>
+        </xpath>
+    </template>
+
+    <template id="applicant_detail_theme" inherit_id="sedar_applicant_portal.application_detail" priority="90">
+        <xpath expr="//t[@t-call='website.layout']" position="attributes">
+            <attribute name="t-call">portal.portal_layout</attribute>
+        </xpath>
+        <xpath expr="//div[@id='wrap']" position="attributes">
+            <attribute name="class" add="o_sedar_portal_page o_sedar_applicant_page" separator=" "/>
+        </xpath>
+        <xpath expr="//div[hasclass('card')]" position="attributes">
+            <attribute name="class" add="o_sedar_record_card" separator=" "/>
+        </xpath>
+    </template>
+
+    <template id="activation_form_theme" inherit_id="sedar_applicant_portal.activation_form" priority="90">
+        <xpath expr="//div[@id='wrap']" position="attributes">
+            <attribute name="class" add="o_sedar_public_page o_sedar_applicant_page" separator=" "/>
+        </xpath>
+        <xpath expr="//form" position="attributes">
+            <attribute name="class" add="o_sedar_form" separator=" "/>
+        </xpath>
+    </template>
+
+    <template id="activation_complete_theme" inherit_id="sedar_applicant_portal.activation_complete" priority="90">
+        <xpath expr="//div[@id='wrap']" position="attributes">
+            <attribute name="class" add="o_sedar_public_page o_sedar_applicant_page" separator=" "/>
+        </xpath>
+    </template>
+
+    <template id="activation_expired_theme" inherit_id="sedar_applicant_portal.activation_expired" priority="90">
+        <xpath expr="//div[@id='wrap']" position="attributes">
+            <attribute name="class" add="o_sedar_public_page o_sedar_applicant_page" separator=" "/>
+        </xpath>
+    </template>
+
+    <template id="application_form_theme" inherit_id="sedar_applicant_intake.application_form" priority="90">
+        <xpath expr="//div[@id='wrap']" position="attributes">
+            <attribute name="class" add="o_sedar_public_page o_sedar_careers_page" separator=" "/>
+        </xpath>
+        <xpath expr="//form" position="attributes">
+            <attribute name="class" add="o_sedar_form" separator=" "/>
+        </xpath>
+    </template>
+
+    <template id="application_submitted_theme" inherit_id="sedar_applicant_intake.application_submitted" priority="90">
+        <xpath expr="//div[@id='wrap']" position="attributes">
+            <attribute name="class" add="o_sedar_public_page o_sedar_careers_page" separator=" "/>
+        </xpath>
+    </template>
+
+    <template id="application_status_theme" inherit_id="sedar_applicant_intake.application_status" priority="90">
+        <xpath expr="//div[@id='wrap']" position="attributes">
+            <attribute name="class" add="o_sedar_public_page o_sedar_careers_page" separator=" "/>
+        </xpath>
+    </template>
+</odoo>
