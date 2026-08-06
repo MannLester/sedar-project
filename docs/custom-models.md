@@ -8,7 +8,10 @@ P0 implementation note: `sedar_demo_suite` adds a method-only `res.company` reco
 (`sedar_reconcile_demo_suite`) that is intentionally idempotent and runs after dependency
 installation and on upgrade. It repairs the flagship completed-operation scenarios,
 creates linked accounting/procurement demonstration records, and does not introduce a
-new business model. `sedar.maintenance.part.line.stock_move_ids` and
+new business model. It also adds moderate, idempotent dashboard-volume fixtures for
+Service Orders, standard Odoo invoices, maintenance work orders, purchase requests,
+HSSE records, inventory items/issues, and controlled documents so demonstration list
+views do not appear empty. `sedar.maintenance.part.line.stock_move_ids` and
 `sedar.operation.fuel.log.stock_move_ids` link operational issue/consumption records to
 standard Odoo `stock.move` records; direct quant updates remain limited to opening-balance
 fixture seeding.
