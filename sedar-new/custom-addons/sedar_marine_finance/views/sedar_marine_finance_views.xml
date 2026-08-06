@@ -81,14 +81,101 @@
         </field>
     </record>
 
+    <record id="view_billing_review_form" model="ir.ui.view">
+        <field name="name">sedar.marine.service.order.billing.form</field>
+        <field name="model">sedar.marine.service.order</field>
+        <field name="arch" type="xml">
+            <form string="Billing Review" create="0" delete="0" duplicate="0">
+                <header>
+                    <button name="action_mark_billing_reviewed" type="object" string="Complete Billing Review" class="btn-primary"
+                            groups="sedar_marine_finance.group_billing_officer" invisible="billing_status != 'review' or billing_reviewed_at"/>
+                    <button name="action_create_draft_invoice" type="object" string="Create Draft Invoice" class="btn-primary"
+                            groups="sedar_marine_finance.group_billing_officer" invisible="billing_status != 'review' or not billing_reviewed_at"/>
+                    <field name="billing_status" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_invoices" type="object" class="oe_stat_button" icon="fa-file-text-o" invisible="invoice_count == 0">
+                            <field name="invoice_count" widget="statinfo" string="Invoices"/>
+                        </button>
+                    </div>
+                    <div class="oe_title"><label for="name"/><h1><field name="name" readonly="1"/></h1></div>
+                    <group>
+                        <group string="Service Summary">
+                            <field name="client_id" readonly="1"/>
+                            <field name="assisted_vessel_name" readonly="1"/>
+                            <field name="service_type_id" readonly="1"/>
+                            <field name="number_of_tugs" readonly="1"/>
+                        </group>
+                        <group string="Schedule and Location">
+                            <field name="requested_start" readonly="1"/>
+                            <field name="port_id" readonly="1"/>
+                            <field name="terminal_id" readonly="1"/>
+                            <field name="state" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Billing Review">
+                            <group>
+                                <group string="Review">
+                                    <field name="automated_completion_handoff" readonly="1"/>
+                                    <field name="billing_reviewed_by_id" readonly="1"/>
+                                    <field name="billing_reviewed_at" readonly="1"/>
+                                    <field name="billing_note"/>
+                                </group>
+                                <group string="Frozen Client Pricing">
+                                    <field name="confirmed_tariff_id" readonly="1"/>
+                                    <field name="confirmed_pricing_basis" readonly="1"/>
+                                    <field name="confirmed_service_date" readonly="1"/>
+                                    <field name="confirmed_service_date_changed" readonly="1"/>
+                                    <field name="pricing_frozen_at" readonly="1"/>
+                                    <field name="confirmed_unit_rate" readonly="1"/>
+                                    <field name="confirmed_minimum_charge" readonly="1"/>
+                                    <field name="confirmed_currency_id" invisible="1"/>
+                                </group>
+                            </group>
+                            <group string="Final Charge">
+                                <field name="actual_billable_quantity" readonly="1"/>
+                                <field name="base_billable_amount" readonly="1"/>
+                                <field name="adjustment_amount" readonly="1"/>
+                                <field name="total_billable_amount" readonly="1"/>
+                            </group>
+                            <field name="billing_adjustment_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/><field name="description"/>
+                                    <field name="adjustment_type"/><field name="quantity"/><field name="unit_rate"/>
+                                    <field name="amount" sum="Total"/><field name="reason"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Tug Completions">
+                            <field name="tug_assignment_ids" readonly="1">
+                                <list create="0" delete="0">
+                                    <field name="tugboat_id"/><field name="tug_master_profile_id"/>
+                                    <field name="actual_start"/><field name="actual_end"/>
+                                    <field name="completion_state"/><field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
     <record id="action_billing_reviews" model="ir.actions.act_window">
         <field name="name">Billing Reviews</field><field name="res_model">sedar.marine.service.order</field>
-        <field name="view_mode">list,form</field><field name="view_id" ref="view_billing_review_list"/>
+        <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('view_billing_review_list')}), (0, 0, {'view_mode': 'form', 'view_id': ref('view_billing_review_form')})]"/>
+        <field name="context">{'create': False}</field>
         <field name="domain">[('billing_status','in',['review','draft_invoice','invoiced','partial','paid'])]</field>
     </record>
     <record id="action_pricing_exceptions" model="ir.actions.act_window">
         <field name="name">Pricing Exceptions</field><field name="res_model">sedar.marine.service.order</field>
-        <field name="view_mode">list,form</field><field name="view_id" ref="view_billing_review_list"/>
+        <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('view_billing_review_list')}), (0, 0, {'view_mode': 'form', 'view_id': ref('view_billing_review_form')})]"/>
+        <field name="context">{'create': False}</field>
         <field name="domain">[('billing_status','=','pricing_exception')]</field>
     </record>
 

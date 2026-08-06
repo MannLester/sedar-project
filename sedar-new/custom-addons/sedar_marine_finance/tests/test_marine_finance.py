@@ -193,6 +193,26 @@ class TestMarineFinanceWorkflow(TransactionCase):
         with self.assertRaises(AccessError):
             assignment.with_user(self.billing).write({"actual_end": start + timedelta(hours=4)})
 
+    def test_billing_officer_can_only_update_billing_note_on_service_order(self):
+        order = self._make_order(tug_count=1)
+
+        order.with_user(self.billing).write({"billing_note": "Reviewed supporting documents."})
+        self.assertEqual(order.billing_note, "Reviewed supporting documents.")
+
+        with self.assertRaises(AccessError):
+            order.with_user(self.billing).write({"requested_start": order.requested_start + timedelta(hours=1)})
+
+        with self.assertRaises(AccessError):
+            self.env["sedar.marine.service.order"].with_user(self.billing).create({
+                "client_id": self.client.id,
+                "assisted_vessel_name": "MV Unauthorized Creation",
+                "service_type_id": self.service.id,
+                "number_of_tugs": 1,
+                "scope_of_work": "Must not be created by Finance.",
+                "port_id": self.port.id,
+                "requested_start": datetime(2026, 8, 6, 8, 0, 0),
+            })
+
     def test_operation_completion_alone_does_not_enter_billing(self):
         order = self._make_order(tug_count=2, state="completed")
         self._add_completed_operation(order)

@@ -263,6 +263,15 @@ class SedarMarineServiceOrder(models.Model):
     def _onchange_terminal_tariff(self):
         self._apply_tariff()
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        if (
+            not self.env.su
+            and self.env.user.has_group("sedar_marine_finance.group_billing_officer")
+        ):
+            raise AccessError(_("Billing Officers review existing Service Orders and cannot create them."))
+        return super().create(vals_list)
+
     def write(self, vals):
         frozen_fields = {
             "confirmed_tariff_id", "confirmed_pricing_basis", "confirmed_unit_rate",
@@ -273,6 +282,15 @@ class SedarMarineServiceOrder(models.Model):
             raise AccessError(_("Frozen pricing and billing audit fields can only be changed by workflow actions."))
         if "billing_note" in vals and not self.env.user.has_group("sedar_marine_finance.group_billing_officer") and not self.env.su:
             raise AccessError(_("Only Finance may update the billing note."))
+        if (
+            not self.env.su
+            and self.env.user.has_group("sedar_marine_finance.group_billing_officer")
+            and not any(self.env.context.get(key) for key in (
+                "sedar_finance_internal", "sedar_operation_sync", "sedar_readiness_sync",
+            ))
+            and set(vals) - {"billing_note"}
+        ):
+            raise AccessError(_("Billing Officers may review Service Orders and update only the billing note."))
         result = super().write(vals)
         return result
 

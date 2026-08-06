@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <!-- TODO: Replace the default public website with SEDAR-branded content in a later website scope. -->
     <template id="sedar_login_content" inherit_id="web.login" name="SEDAR Login Content" priority="30">
         <xpath expr="//form[@role='form']" position="before">
             <div class="o_sedar_login_panel_header">

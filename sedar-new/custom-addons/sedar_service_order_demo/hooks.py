@@ -101,6 +101,21 @@ def post_init_hook(env):
                 "phone": f"+63 917 555 {index}{contact_number}00",
             })
 
+    portal_partner = _record(env, "res.partner", "partner_client_portal", {
+        "name": "Demo Client Portal User",
+        "parent_id": clients[0].id,
+        "email": "client@sedar.demo",
+    })
+    _record(env, "res.users", "user_client_portal", {
+        "name": "Demo Client Portal User",
+        "login": "client@sedar.demo",
+        "password": "clientdemo",
+        "partner_id": portal_partner.id,
+        "company_id": company.id,
+        "company_ids": [Command.set([company.id])],
+        "group_ids": [Command.set([env.ref("base.group_portal").id])],
+    })
+
     vessel_specs = [
         ("mv_luzon_star", "MV Luzon Star", 0, "cargo", "9876101", 18200),
         ("mv_visayas_trader", "MV Visayas Trader", 0, "cargo", "9876102", 12400),

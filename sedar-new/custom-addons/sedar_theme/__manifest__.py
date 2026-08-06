@@ -9,6 +9,8 @@
         'web.assets_backend': [
             'sedar_theme/static/src/xml/sedar_sidebar.xml',
             'sedar_theme/static/src/css/sedar_sidebar.css',
+            'sedar_theme/static/src/js/sedar_sidebar_context.js',
+            'sedar_theme/static/src/js/disable_push_notifications.js',
         ],
         'web.assets_frontend': [
             'sedar_theme/static/src/css/sedar_login.css',

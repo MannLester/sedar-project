@@ -1,6 +1,8 @@
+from odoo.tests import tagged
 from odoo.tests.common import TransactionCase
 
 
+@tagged("post_install", "-at_install")
 class TestSedarErpDemo(TransactionCase):
     def test_hr_finance_and_crm_demo_sources_exist(self):
         self.assertTrue(self.env["hr.attendance"].search_count([]))
@@ -19,4 +21,3 @@ class TestSedarErpDemo(TransactionCase):
         moves = self.env["account.move"].search([("ref", "in", ["SEDAR-ERP-DEMO-SALE", "SEDAR-ERP-DEMO-BILL"])])
         self.assertEqual(len(moves), 2)
         self.assertTrue(all(move.state == "posted" for move in moves))
-

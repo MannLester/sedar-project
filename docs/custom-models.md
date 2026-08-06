@@ -7,11 +7,13 @@ Update this document in the same change whenever a listed custom field is added,
 P0 implementation note: `sedar_demo_suite` adds a method-only `res.company` reconciliation
 (`sedar_reconcile_demo_suite`) that is intentionally idempotent and runs after dependency
 installation and on upgrade. It repairs the flagship completed-operation scenarios,
-creates linked accounting/procurement demonstration records, and does not introduce a
-new business model. It also adds moderate, idempotent dashboard-volume fixtures for
-Service Orders, standard Odoo invoices, maintenance work orders, purchase requests,
-HSSE records, inventory items/issues, and controlled documents so demonstration list
-views do not appear empty. `sedar.maintenance.part.line.stock_move_ids` and
+loads Odoo's generic chart of accounts only when a fresh demo company has no accounting
+foundation, creates linked accounting/procurement demonstration records, and does not
+introduce a new business model. It also adds moderate, idempotent dashboard-volume
+fixtures for Service Orders, standard Odoo invoices, maintenance work orders, purchase
+requests, HSSE records, inventory items/issues, and controlled documents so demonstration
+list views do not appear empty. Odoo Accounting continues to own the resulting journals,
+accounts, invoices, payments, and ledger lifecycle. `sedar.maintenance.part.line.stock_move_ids` and
 `sedar.operation.fuel.log.stock_move_ids` link operational issue/consumption records to
 standard Odoo `stock.move` records; direct quant updates remain limited to opening-balance
 fixture seeding.
@@ -161,6 +163,7 @@ Key behavior:
 - `action_mark_billing_reviewed()` requires the automated completion handoff and a non-negative result.
 - `action_create_draft_invoice()` creates a draft customer invoice in standard Odoo Accounting and adds the base service plus each adjustment as invoice lines.
 - `_compute_billing_status()` reflects standard `account.move` posting and payment state rather than maintaining a separate ledger.
+- Billing Officers review existing Service Orders. They may update `billing_note` and maintain separate billing-adjustment records, but cannot create Service Orders or directly edit operational Service Order fields.
 
 ## `sedar.marine.operation` integration behavior
 

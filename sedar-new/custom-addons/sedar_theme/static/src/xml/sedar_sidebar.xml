@@ -73,8 +73,8 @@
                     <div class="o_sedar_sidebar_footer">
                         <div class="o_sedar_user_avatar"><img src="/sedar_theme/static/src/img/sedar-logo.png" alt="SEDAR"/></div>
                         <div class="o_sedar_footer_copy">
-                            <div class="o_sedar_user_name" t-esc="this.env.services.user.name || 'SEDAR User'"/>
-                            <div class="o_sedar_user_role" t-esc="currentApp ? currentApp.name : (this.env.services.user.activeCompany ? this.env.services.user.activeCompany.name : 'SEDAR ERP')"/>
+                            <div class="o_sedar_user_name" t-esc="sedarUserName"/>
+                            <div class="o_sedar_user_role" t-esc="sedarUserContext"/>
                         </div>
                         <i class="fa fa-sign-out o_sedar_footer_icon" aria-hidden="true"/>
                     </div>

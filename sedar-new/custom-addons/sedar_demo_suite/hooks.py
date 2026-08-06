@@ -9,6 +9,7 @@ from odoo import Command
 def post_init_hook(env):
     company = env.company
     company.sedar_configure_demo_currency()
+    _ensure_accounting_foundation(env, company)
     company.sedar_ensure_erp_demo()
     company.sedar_ensure_recruitment_demo()
     company.sedar_ensure_crew_onboarding_demo()
@@ -66,6 +67,21 @@ def _record(env, model, xmlid, values, update=True):
 
 def _first(env, model, domain=None, order="id"):
     return env[model].search(domain or [], order=order, limit=1)
+
+
+def _ensure_accounting_foundation(env, company):
+    """Load Odoo's generic chart only when a fresh demo company has no ledger setup."""
+    journals = env["account.journal"].search_count([
+        ("company_id", "=", company.id),
+        ("type", "in", ["sale", "purchase", "bank"]),
+    ])
+    if journals:
+        return
+    env["account.chart.template"].try_loading(
+        "generic_coa", company, install_demo=False
+    )
+    # Generic COA defaults to USD. The fictional SEDAR company operates in PHP.
+    company.sedar_configure_demo_currency()
 
 
 def _ensure_paid_service_demo(env):
