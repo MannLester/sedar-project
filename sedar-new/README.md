@@ -191,7 +191,7 @@ Recruitment demo users:
 - Applicant portal user: `applicant@sedar.demo`, password `applicantdemo`
 
 Open **SEDAR Recruitment > Applicant Processing** to review the internal HR scenarios. Open
-`http://localhost:8069/my/applications` as the applicant portal user to inspect the applicant-side
+`http://localhost:8069/my/sedar` as the applicant portal user to inspect the applicant-side
 tracking scenario with a pending ADM-5 request.
 
 For the Slice 3 HR-control demo, open the completed-interview applicant, then use **Create HR
