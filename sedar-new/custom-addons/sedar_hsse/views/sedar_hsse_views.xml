@@ -6,8 +6,8 @@
         <field name="inherit_id" ref="sedar_marine_operations.view_service_order_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='safety_requirements']" position="after">
-                <field name="hsse_exception_count" readonly="1"/>
-                <field name="hsse_exception_summary" readonly="1"/>
+                <field name="hsse_exception_count" readonly="1" groups="sedar_hsse.group_sedar_hsse_user"/>
+                <field name="hsse_exception_summary" readonly="1" groups="sedar_hsse.group_sedar_hsse_user"/>
             </xpath>
         </field>
     </record>
@@ -18,8 +18,8 @@
         <field name="inherit_id" ref="sedar_marine_operations.view_tugboat_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='availability_status']" position="after">
-                <field name="hsse_exception_count" readonly="1"/>
-                <field name="hsse_exception_summary" readonly="1"/>
+                <field name="hsse_exception_count" readonly="1" groups="sedar_hsse.group_sedar_hsse_user"/>
+                <field name="hsse_exception_summary" readonly="1" groups="sedar_hsse.group_sedar_hsse_user"/>
             </xpath>
         </field>
     </record>

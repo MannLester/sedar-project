@@ -84,6 +84,9 @@
     <record id="view_billing_review_form" model="ir.ui.view">
         <field name="name">sedar.marine.service.order.billing.form</field>
         <field name="model">sedar.marine.service.order</field>
+        <!-- This specialized form is selected explicitly by the Billing Reviews action.
+             Keep it behind the operational form in Odoo's default-view resolution. -->
+        <field name="priority">90</field>
         <field name="arch" type="xml">
             <form string="Billing Review" create="0" delete="0" duplicate="0">
                 <header>

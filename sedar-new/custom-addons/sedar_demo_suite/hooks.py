@@ -38,6 +38,7 @@ def post_init_hook(env):
     reconcile_marketing(env)
     reconcile_ais(env)
     _ensure_broader_demo_data(env)
+    _ensure_inventory_shortage_demo(env)
     company.sedar_ensure_executive_demo()
     return True
 
@@ -219,6 +220,27 @@ def _ensure_inventory_issue(env, xmlid, product, tugboat, quantity, purpose, man
         "noupdate": True,
     })
     return issue.id
+
+
+def _ensure_inventory_shortage_demo(env):
+    """Keep one stock-derived Job Order shortage available for Procurement QA."""
+    order = env.ref("sedar_service_order_demo.order_missing_engineer", raise_if_not_found=False)
+    product = env.ref("sedar_marine_inventory.product_pump_packing", raise_if_not_found=False)
+    warehouse = _first(env, "stock.warehouse", [("company_id", "=", env.company.id)])
+    if not order or not product or not warehouse:
+        return
+
+    requirement = _record(env, "sedar.inventory.requirement", "job_order_inventory_shortage", {
+        "order_id": order.id,
+        "product_id": product.id,
+        "source_location_id": warehouse.lot_stock_id.id,
+        "required_qty": 1.0,
+        "auto_generated": False,
+        "note": "Demo shortage: tug-compatible pump packing is unavailable for STS Lakas.",
+    })
+    requirement._compute_stock_status()
+    order._sync_inventory_readiness()
+    order._sync_automated_readiness()
 
 
 def _ensure_service_order_breadth(env):

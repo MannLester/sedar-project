@@ -213,6 +213,23 @@ class TestMarineFinanceWorkflow(TransactionCase):
                 "requested_start": datetime(2026, 8, 6, 8, 0, 0),
             })
 
+    def test_default_service_order_form_is_not_the_billing_review_form(self):
+        internal_user = new_test_user(
+            self.env,
+            login="sedar_finance_test_internal_user",
+            groups="base.group_user",
+        )
+
+        view = self.env["sedar.marine.service.order"].with_user(internal_user).get_view(
+            view_type="form"
+        )
+
+        self.assertEqual(
+            view["id"],
+            self.env.ref("sedar_marine_operations.view_service_order_form").id,
+        )
+        self.assertNotIn("billing_adjustment_ids", view["arch"])
+
     def test_operation_completion_alone_does_not_enter_billing(self):
         order = self._make_order(tug_count=2, state="completed")
         self._add_completed_operation(order)

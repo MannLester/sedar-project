@@ -12,7 +12,9 @@ foundation, creates linked accounting/procurement demonstration records, and doe
 introduce a new business model. It also adds moderate, idempotent dashboard-volume
 fixtures for Service Orders, standard Odoo invoices, maintenance work orders, purchase
 requests, HSSE records, inventory items/issues, and controlled documents so demonstration
-list views do not appear empty. Odoo Accounting continues to own the resulting journals,
+list views do not appear empty. It preserves one tug-compatible, stock-derived Job Order
+shortage so the Procurement Inventory Check demonstration includes both Ready and Shortage
+requirements. Odoo Accounting continues to own the resulting journals,
 accounts, invoices, payments, and ledger lifecycle. `sedar.maintenance.part.line.stock_move_ids` and
 `sedar.operation.fuel.log.stock_move_ids` link operational issue/consumption records to
 standard Odoo `stock.move` records; direct quant updates remain limited to opening-balance
