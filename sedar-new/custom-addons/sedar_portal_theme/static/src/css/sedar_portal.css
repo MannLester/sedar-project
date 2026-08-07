@@ -14,6 +14,222 @@
     --sedar-portal-radius: 8px;
 }
 
+body.o_sedar_portal_body {
+    overflow: hidden;
+    background: var(--sedar-portal-bg);
+}
+
+.o_sedar_portal_body #wrapwrap {
+    min-height: 100vh;
+}
+
+.o_sedar_portal_menu_control {
+    position: fixed;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.o_sedar_portal_shell {
+    display: flex;
+    min-height: 100vh;
+    color: var(--sedar-portal-ink);
+    background: var(--sedar-portal-bg);
+    font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+.o_sedar_portal_sidebar {
+    position: relative;
+    z-index: 1045;
+    display: flex;
+    flex: 0 0 256px;
+    flex-direction: column;
+    width: 256px;
+    min-height: 100vh;
+    color: #fff;
+    background: var(--sedar-portal-navy);
+    box-shadow: 8px 0 24px rgba(7, 29, 57, 0.12);
+}
+
+.o_sedar_portal_brand {
+    display: flex;
+    align-items: center;
+    height: 88px;
+    padding: 0 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.o_sedar_portal_brand img {
+    width: 174px;
+    max-height: 48px;
+    object-fit: contain;
+}
+
+.o_sedar_portal_nav {
+    flex: 1 1 auto;
+    padding: 26px 16px;
+}
+
+.o_sedar_portal_nav_label {
+    margin: 0 12px 10px;
+    color: #8094aa;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.o_sedar_portal_nav_item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 6px;
+    padding: 12px 14px;
+    border-radius: 7px;
+    color: #d5e1ec;
+    font-size: 0.92rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 140ms ease, color 140ms ease;
+}
+
+.o_sedar_portal_nav_item i {
+    width: 20px;
+    color: #8fb4d2;
+    font-size: 1rem;
+    text-align: center;
+}
+
+.o_sedar_portal_nav_item:hover,
+.o_sedar_portal_nav_item.active {
+    color: var(--sedar-portal-navy);
+    background: #fff;
+}
+
+.o_sedar_portal_nav_item:hover i,
+.o_sedar_portal_nav_item.active i {
+    color: var(--sedar-portal-blue);
+}
+
+.o_sedar_portal_identity {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 82px;
+    padding: 16px 18px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.o_sedar_portal_avatar {
+    display: grid;
+    flex: 0 0 36px;
+    width: 36px;
+    height: 36px;
+    place-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 50%;
+    color: #fff;
+    background: var(--sedar-portal-blue);
+    font-weight: 800;
+}
+
+.o_sedar_portal_identity_text {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+}
+
+.o_sedar_portal_identity_text strong,
+.o_sedar_portal_identity_text small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.o_sedar_portal_identity_text strong {
+    font-size: 0.85rem;
+}
+
+.o_sedar_portal_identity_text small {
+    color: #9eb0c2;
+    font-size: 0.72rem;
+}
+
+.o_sedar_portal_identity > a {
+    padding: 6px;
+    color: #b9c9d8;
+}
+
+.o_sedar_portal_main {
+    display: flex;
+    min-width: 0;
+    min-height: 100vh;
+    flex: 1 1 auto;
+    flex-direction: column;
+}
+
+.o_sedar_portal_topbar {
+    position: relative;
+    z-index: 1030;
+    display: flex;
+    align-items: center;
+    min-height: 64px;
+    padding: 0 28px;
+    color: #fff;
+    background: var(--sedar-portal-navy);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.o_sedar_portal_page_title {
+    font-size: 0.95rem;
+}
+
+.o_sedar_portal_account {
+    margin-left: auto;
+}
+
+.o_sedar_portal_account .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.o_sedar_portal_account img {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+}
+
+.o_sedar_portal_menu_button {
+    display: none;
+    margin-right: 14px;
+    padding: 7px 9px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.o_sedar_portal_content {
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: auto;
+    padding: 34px 40px 48px;
+}
+
+.o_sedar_portal_content > .container,
+.o_sedar_portal_content > .container-fluid,
+.o_sedar_portal_content > #wrap > .container {
+    max-width: 1480px;
+}
+
+.o_sedar_portal_backdrop {
+    display: none;
+}
+
 .o_sedar_portal_hero,
 .o_sedar_public_page {
     background: var(--sedar-portal-bg);
@@ -281,5 +497,40 @@
 
     .o_sedar_table {
         min-width: 680px;
+    }
+}
+
+@media (max-width: 991.98px) {
+    body.o_sedar_portal_body {
+        overflow: auto;
+    }
+
+    .o_sedar_portal_sidebar {
+        position: fixed;
+        inset: 0 auto 0 0;
+        width: min(82vw, 280px);
+        transform: translateX(-105%);
+        transition: transform 180ms ease;
+    }
+
+    .o_sedar_portal_menu_button {
+        display: inline-flex;
+    }
+
+    .o_sedar_portal_content {
+        padding: 22px 18px 36px;
+        overflow: visible;
+    }
+
+    .o_sedar_portal_menu_control:checked + .o_sedar_portal_shell .o_sedar_portal_sidebar {
+        transform: translateX(0);
+    }
+
+    .o_sedar_portal_menu_control:checked + .o_sedar_portal_shell .o_sedar_portal_backdrop {
+        position: fixed;
+        z-index: 1040;
+        inset: 0;
+        display: block;
+        background: rgba(3, 15, 29, 0.52);
     }
 }

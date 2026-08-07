@@ -1,12 +1,97 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <template id="portal_shell" name="SEDAR Portal Shell">
+        <t t-call="web.frontend_layout">
+            <t t-set="no_header" t-value="True"/>
+            <t t-set="no_footer" t-value="True"/>
+            <t t-set="body_classname" t-value="'o_sedar_portal_body'"/>
+            <t t-set="user_id" t-value="request.env.user"/>
+            <t t-set="partner" t-value="user_id.partner_id"/>
+            <t t-set="current_path" t-value="request.httprequest.path"/>
+            <t t-set="has_applications" t-value="request.env['hr.applicant'].sudo().search_count([('sedar_portal_partner_id', '=', partner.id), ('active', '=', True)])"/>
+            <t t-set="has_client_account" t-value="partner.commercial_partner_id.sedar_is_customer_account"/>
+            <link rel="stylesheet" href="/sedar_portal_theme/static/src/css/sedar_portal.css?v=19.0.1.0.4"/>
+
+            <input id="o_sedar_portal_menu" class="o_sedar_portal_menu_control" type="checkbox"/>
+            <div class="o_sedar_portal_shell">
+                <aside class="o_sedar_portal_sidebar">
+                    <div class="o_sedar_portal_brand">
+                        <img src="/sedar_theme/static/src/img/sedar-logo-wide.png" alt="SEDAR Tug Service Corp."/>
+                    </div>
+
+                    <nav class="o_sedar_portal_nav" aria-label="Portal navigation">
+                        <p class="o_sedar_portal_nav_label">Portal</p>
+                        <a t-if="has_applications" href="/my/sedar" t-attf-class="o_sedar_portal_nav_item #{'active' if current_path.startswith('/my/sedar') and not current_path.startswith('/my/sedar/orders') else ''}">
+                            <i class="fa fa-file-text-o" aria-hidden="true"/>
+                            <span>Applicants</span>
+                        </a>
+                        <a t-if="has_client_account" href="/my/sedar/orders" t-attf-class="o_sedar_portal_nav_item #{'active' if current_path.startswith('/my/sedar/orders') else ''}">
+                            <i class="fa fa-ship" aria-hidden="true"/>
+                            <span>Service Orders</span>
+                        </a>
+                    </nav>
+
+                    <div class="o_sedar_portal_identity">
+                        <span class="o_sedar_portal_avatar"><t t-out="(user_id.name or 'U')[:1].upper()"/></span>
+                        <span class="o_sedar_portal_identity_text">
+                            <strong t-out="user_id.name"/>
+                            <small><t t-if="has_applications">Applicant</t><t t-elif="has_client_account">Client</t><t t-else="">Portal user</t></small>
+                        </span>
+                        <a href="/web/session/logout?redirect=/web/login" title="Sign out" aria-label="Sign out"><i class="fa fa-sign-out"/></a>
+                    </div>
+                </aside>
+
+                <label for="o_sedar_portal_menu" class="o_sedar_portal_backdrop" aria-label="Close navigation"/>
+                <section class="o_sedar_portal_main">
+                    <header class="o_sedar_portal_topbar">
+                        <label for="o_sedar_portal_menu" class="o_sedar_portal_menu_button" aria-label="Open navigation"><i class="fa fa-bars"/></label>
+                        <strong class="o_sedar_portal_page_title"><t t-if="has_applications">Applicant Portal</t><t t-elif="has_client_account">Client Portal</t><t t-else="">My Account</t></strong>
+                        <div class="o_sedar_portal_account">
+                            <t t-call="portal.user_dropdown">
+                                <t t-set="_user_name" t-value="True"/>
+                                <t t-set="_avatar" t-value="True"/>
+                                <t t-set="_item_class" t-value="'dropdown'"/>
+                                <t t-set="_link_class" t-value="'nav-link dropdown-toggle'"/>
+                                <t t-set="_dropdown_menu_class" t-value="'dropdown-menu-end'"/>
+                            </t>
+                        </div>
+                    </header>
+                    <main class="o_sedar_portal_content">
+                        <t t-out="0"/>
+                    </main>
+                </section>
+            </div>
+        </t>
+    </template>
+
+    <template id="account_dropdown_target" inherit_id="portal.user_dropdown" priority="100">
+        <xpath expr="//a[@href='/my/home']" position="attributes">
+            <attribute name="href">/my/account</attribute>
+        </xpath>
+    </template>
+
+    <template id="account_details_shell" inherit_id="portal.portal_my_details" priority="90">
+        <xpath expr="//t[@t-call='portal.portal_layout']" position="attributes">
+            <attribute name="t-call">sedar_portal_theme.portal_shell</attribute>
+        </xpath>
+    </template>
+
+    <template id="applicant_dashboard_shell" inherit_id="sedar_applicant_portal.dashboard" priority="90">
+        <xpath expr="//t[@t-call='portal.portal_layout']" position="attributes">
+            <attribute name="t-call">sedar_portal_theme.portal_shell</attribute>
+        </xpath>
+    </template>
+
     <template id="client_orders_theme" inherit_id="sedar_marine_operations.portal_my_sedar_orders" priority="90">
         <xpath expr="//t[@t-call='portal.portal_layout']/div[1]" position="attributes">
             <attribute name="class" add="o_sedar_portal_hero o_sedar_client_hero" separator=" "/>
         </xpath>
         <xpath expr="//table" position="attributes">
             <attribute name="class" add="o_sedar_table" separator=" "/>
+        </xpath>
+        <xpath expr="//t[@t-call='portal.portal_layout']" position="attributes">
+            <attribute name="t-call">sedar_portal_theme.portal_shell</attribute>
         </xpath>
     </template>
 
@@ -20,6 +105,9 @@
         <xpath expr="//section" position="attributes">
             <attribute name="class" add="o_sedar_form_section" separator=" "/>
         </xpath>
+        <xpath expr="//t[@t-call='portal.portal_layout']" position="attributes">
+            <attribute name="t-call">sedar_portal_theme.portal_shell</attribute>
+        </xpath>
     </template>
 
     <template id="client_order_detail_theme" inherit_id="sedar_marine_operations.portal_sedar_order_detail" priority="90">
@@ -29,23 +117,14 @@
         <xpath expr="//div[hasclass('row')]" position="attributes">
             <attribute name="class" add="o_sedar_detail_grid" separator=" "/>
         </xpath>
-    </template>
-
-    <template id="applicant_dashboard_theme" inherit_id="sedar_applicant_portal.dashboard" priority="90">
-        <xpath expr="//t[@t-call='website.layout']" position="attributes">
-            <attribute name="t-call">portal.portal_layout</attribute>
-        </xpath>
-        <xpath expr="//div[@id='wrap']" position="attributes">
-            <attribute name="class" add="o_sedar_portal_page o_sedar_applicant_page" separator=" "/>
-        </xpath>
-        <xpath expr="//div[contains(@t-foreach, 'applications')]" position="attributes">
-            <attribute name="class" add="o_sedar_record_card" separator=" "/>
+        <xpath expr="//t[@t-call='portal.portal_layout']" position="attributes">
+            <attribute name="t-call">sedar_portal_theme.portal_shell</attribute>
         </xpath>
     </template>
 
     <template id="applicant_detail_theme" inherit_id="sedar_applicant_portal.application_detail" priority="90">
         <xpath expr="//t[@t-call='website.layout']" position="attributes">
-            <attribute name="t-call">portal.portal_layout</attribute>
+            <attribute name="t-call">sedar_portal_theme.portal_shell</attribute>
         </xpath>
         <xpath expr="//div[@id='wrap']" position="attributes">
             <attribute name="class" add="o_sedar_portal_page o_sedar_applicant_page" separator=" "/>

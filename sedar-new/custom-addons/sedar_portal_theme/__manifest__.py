@@ -1,12 +1,13 @@
 {
     "name": "SEDAR Portal Theme",
-    "version": "19.0.1.0.0",
+    "version": "19.0.1.0.6",
     "category": "Theme/Frontend",
     "summary": "Shared SEDAR visual language for client and applicant portals",
     "author": "SEDAR Development Team",
     "license": "LGPL-3",
     "depends": [
         "sedar_theme",
+        "sedar_marketing",
         "portal",
         "website",
         "sedar_marine_operations",
