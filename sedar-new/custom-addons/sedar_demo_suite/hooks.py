@@ -6,6 +6,24 @@ from datetime import date, datetime, timedelta
 from odoo import Command
 
 
+DEMO_MANAGER_GROUP_XMLIDS = (
+    "sedar_ais_demo.group_sedar_ais_manager",
+    "sedar_crew_compliance.group_crew_compliance_manager",
+    "sedar_executive_dashboard.group_sedar_executive",
+    "sedar_hsse.group_sedar_hsse_manager",
+    "sedar_manpower_planning.group_hr_manager",
+    "sedar_marine_dispatch.group_dispatch_manager",
+    "sedar_marine_finance.group_accounting_manager",
+    "sedar_marine_inventory.group_marine_inventory_manager",
+    "sedar_marine_maintenance.group_marine_maintenance_manager",
+    "sedar_marine_operations.group_commercial_manager",
+    "sedar_marine_operations.group_operations_manager",
+    "sedar_marketing.group_marketing_manager",
+    "sedar_purchase_request.group_sedar_purchase_request_manager",
+    "sedar_recruitment_crewing.group_crewing_manager",
+)
+
+
 def post_init_hook(env):
     company = env.company
     company.sedar_configure_demo_currency()
@@ -40,7 +58,7 @@ def post_init_hook(env):
     _ensure_broader_demo_data(env)
     _ensure_inventory_shortage_demo(env)
     company.sedar_ensure_executive_demo()
-    _ensure_demo_administrator_access(env)
+    _ensure_demo_internal_access(env)
     return True
 
 
@@ -71,32 +89,24 @@ def _first(env, model, domain=None, order="id"):
     return env[model].search(domain or [], order=order, limit=1)
 
 
-def _ensure_demo_administrator_access(env):
-    """Make the local Administrator a deliberate all-workspaces demo account."""
+def _ensure_demo_internal_access(env):
+    """Apply the temporary all-workspaces override to internal demo personas."""
     admin = env.ref("base.user_admin", raise_if_not_found=False)
-    if not admin:
+    demo_users = env["res.users"].sudo().search([
+        ("active", "=", True),
+        ("share", "=", False),
+        ("login", "=like", "%@sedar.demo"),
+    ])
+    users = demo_users | admin if admin else demo_users
+    if not users:
         return
-    manager_group_xmlids = (
-        "sedar_ais_demo.group_sedar_ais_manager",
-        "sedar_crew_compliance.group_crew_compliance_manager",
-        "sedar_executive_dashboard.group_sedar_executive",
-        "sedar_hsse.group_sedar_hsse_manager",
-        "sedar_manpower_planning.group_hr_manager",
-        "sedar_marine_dispatch.group_dispatch_manager",
-        "sedar_marine_finance.group_accounting_manager",
-        "sedar_marine_inventory.group_marine_inventory_manager",
-        "sedar_marine_maintenance.group_marine_maintenance_manager",
-        "sedar_marine_operations.group_commercial_manager",
-        "sedar_marine_operations.group_operations_manager",
-        "sedar_marketing.group_marketing_manager",
-        "sedar_purchase_request.group_sedar_purchase_request_manager",
-        "sedar_recruitment_crewing.group_crewing_manager",
-    )
     groups = [
         env.ref(xmlid, raise_if_not_found=False)
-        for xmlid in manager_group_xmlids
+        for xmlid in DEMO_MANAGER_GROUP_XMLIDS
     ]
-    admin.sudo().write({
+    # TODO(post-demo access hardening): Remove this shared override and assign
+    # role-scoped groups and permission-aware sidebar entries to each persona.
+    users.write({
         "group_ids": [Command.link(group.id) for group in groups if group],
     })
 

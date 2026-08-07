@@ -4,6 +4,14 @@ This glossary defines the shared business language for SEDAR's client-to-tugboat
 
 ## Language
 
+**Demo Persona**:
+A named user representing one department or an explicitly combined set of responsibilities during the demonstration.
+_Avoid_: Test user, production role
+
+**Demo Access Override**:
+A temporary demonstration rule granting every internal employee Demo Persona all SEDAR and required Odoo manager permissions. Customer, applicant, and other portal accounts remain restricted; role-scoped employee permissions must replace this override after the demonstration.
+_Avoid_: Production access policy, portal access
+
 **Service Order**:
 A client's request for one billable tug assist or move at one terminal. The team may also call it a Job Order; both names refer to the same record. A request containing multiple moves is represented by multiple Service Orders for the MVP.
 _Also known as_: Job Order, Service Request (in customer-facing and Marketing language)

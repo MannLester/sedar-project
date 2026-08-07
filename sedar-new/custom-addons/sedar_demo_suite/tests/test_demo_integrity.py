@@ -3,29 +3,15 @@ from datetime import datetime
 from odoo.tests import tagged
 from odoo.tests.common import TransactionCase
 
+from odoo.addons.sedar_demo_suite.hooks import DEMO_MANAGER_GROUP_XMLIDS
+
 
 @tagged("post_install", "-at_install")
 class TestSedarDemoIntegrity(TransactionCase):
     def test_administrator_can_open_every_demo_workspace(self):
         admin = self.env.ref("base.user_admin")
-        manager_group_xmlids = (
-            "sedar_ais_demo.group_sedar_ais_manager",
-            "sedar_crew_compliance.group_crew_compliance_manager",
-            "sedar_executive_dashboard.group_sedar_executive",
-            "sedar_hsse.group_sedar_hsse_manager",
-            "sedar_manpower_planning.group_hr_manager",
-            "sedar_marine_dispatch.group_dispatch_manager",
-            "sedar_marine_finance.group_accounting_manager",
-            "sedar_marine_inventory.group_marine_inventory_manager",
-            "sedar_marine_maintenance.group_marine_maintenance_manager",
-            "sedar_marine_operations.group_commercial_manager",
-            "sedar_marine_operations.group_operations_manager",
-            "sedar_marketing.group_marketing_manager",
-            "sedar_purchase_request.group_sedar_purchase_request_manager",
-            "sedar_recruitment_crewing.group_crewing_manager",
-        )
 
-        for xmlid in manager_group_xmlids:
+        for xmlid in DEMO_MANAGER_GROUP_XMLIDS:
             self.assertTrue(admin.has_group(xmlid), xmlid)
 
         ais_payload = self.env["sedar.ais.position"].with_user(admin).get_dashboard_data()
@@ -36,6 +22,46 @@ class TestSedarDemoIntegrity(TransactionCase):
 
         order = self.env.ref("sedar_service_order_demo.order_draft").with_user(admin)
         order.write({"special_instructions": "Administrator demo-access QA."})
+
+    def test_internal_demo_personas_receive_demo_access_override(self):
+        personas = self.env["res.users"].search([
+            ("active", "=", True),
+            ("share", "=", False),
+            ("login", "=like", "%@sedar.demo"),
+        ])
+        self.assertTrue(personas)
+
+        for persona in personas:
+            for xmlid in DEMO_MANAGER_GROUP_XMLIDS:
+                self.assertTrue(
+                    persona.has_group(xmlid),
+                    f"{persona.login} is missing {xmlid}",
+                )
+
+        procurement = self.env.ref("sedar_purchase_request.user_procurement_manager")
+        ais_payload = self.env["sedar.ais.position"].with_user(
+            procurement
+        ).get_dashboard_data()
+        self.assertTrue(ais_payload["fleet"])
+        self.env["sedar.inventory.issue"].with_user(procurement).search(
+            [], limit=1
+        ).read(["name"])
+        self.env["sedar.marine.service.order"].with_user(procurement).search(
+            [], limit=1
+        ).read(["name"])
+
+    def test_portal_demo_personas_remain_restricted(self):
+        portal_users = (
+            self.env.ref("sedar_service_order_demo.user_client_portal"),
+            self.env.ref("sedar_recruitment_demo.user_applicant_portal"),
+        )
+        for portal_user in portal_users:
+            self.assertTrue(portal_user.share)
+            for xmlid in DEMO_MANAGER_GROUP_XMLIDS:
+                self.assertFalse(
+                    portal_user.has_group(xmlid),
+                    f"{portal_user.login} unexpectedly received {xmlid}",
+                )
 
     def test_two_tug_timeline_and_billable_quantity_are_consistent(self):
         order = self.env.ref("sedar_service_order_demo.order_two_tug")
