@@ -10,79 +10,91 @@
                 </div>
                 <div class="o_sedar_ais_header_actions">
                     <span class="o_sedar_ais_demo_badge"><i class="fa fa-flask"/> SIMULATION — NOT LIVE GPS</span>
-                    <button class="btn btn-light" t-on-click="togglePlayback">
-                        <i t-att-class="state.playing ? 'fa fa-pause' : 'fa fa-play'"/>
+                    <button type="button" class="btn btn-light" t-on-click="togglePlayback" t-att-aria-pressed="state.playing ? 'true' : 'false'" aria-label="Pause or play simulated marker movement">
+                        <i t-att-class="state.playing ? 'fa fa-pause' : 'fa fa-play'" aria-hidden="true"/>
                         <t t-esc="state.playing ? ' Pause movement' : ' Play movement'"/>
                     </button>
-                    <button t-if="state.canAdvance" class="btn btn-primary" t-att-disabled="state.advancing" t-on-click="advanceSimulation">
-                        <i class="fa fa-forward"/> <t t-esc="state.advancing ? 'Advancing…' : 'Advance feed'"/>
+                    <button t-if="state.canAdvance" type="button" class="btn btn-primary" t-att-disabled="state.advancing" t-on-click="advanceSimulation">
+                        <i class="fa fa-forward" aria-hidden="true"/> <t t-esc="state.advancing ? 'Advancing…' : 'Advance feed'"/>
                     </button>
-                    <button class="btn btn-outline-light" t-on-click="loadDashboard"><i class="fa fa-refresh"/> Refresh</button>
+                    <button type="button" class="btn btn-outline-light" t-att-disabled="state.loading" t-on-click="loadDashboard"><i class="fa fa-refresh" aria-hidden="true"/> Refresh</button>
                 </div>
             </header>
 
-            <section class="o_sedar_ais_summary">
-                <button class="o_sedar_ais_metric" t-att-class="state.filter === 'all' ? 'is-active' : ''" t-on-click="() => this.setFilter('all')"><span>Fleet tracked</span><strong t-esc="summary.total"/><small>Simulated transponders</small></button>
-                <button class="o_sedar_ais_metric" t-att-class="state.filter === 'underway' ? 'is-active' : ''" t-on-click="() => this.setFilter('underway')"><span>Underway</span><strong t-esc="summary.moving"/><small>Moving on the map</small></button>
-                <button class="o_sedar_ais_metric" t-att-class="state.filter === 'standby' ? 'is-active' : ''" t-on-click="() => this.setFilter('standby')"><span>Standby / berthed</span><strong t-esc="summary.standby"/><small>Available or alongside</small></button>
-                <button class="o_sedar_ais_metric o_sedar_ais_metric--warning" t-att-class="state.filter === 'attention' ? 'is-active' : ''" t-on-click="() => this.setFilter('attention')"><span>Attention</span><strong t-esc="summary.attention"/><small>Dry dock, hold, or offline</small></button>
+            <section class="o_sedar_ais_summary" aria-label="Fleet filters">
+                <button type="button" class="o_sedar_ais_metric" t-att-class="state.filter === 'all' ? 'is-active' : ''" t-att-aria-pressed="state.filter === 'all' ? 'true' : 'false'" t-on-click="() => this.setFilter('all')"><span>Fleet tracked</span><strong t-esc="summary.total"/><small>Simulated transponders</small></button>
+                <button type="button" class="o_sedar_ais_metric" t-att-class="state.filter === 'underway' ? 'is-active' : ''" t-att-aria-pressed="state.filter === 'underway' ? 'true' : 'false'" t-on-click="() => this.setFilter('underway')"><span>Underway</span><strong t-esc="summary.moving"/><small>Moving on the map</small></button>
+                <button type="button" class="o_sedar_ais_metric" t-att-class="state.filter === 'standby' ? 'is-active' : ''" t-att-aria-pressed="state.filter === 'standby' ? 'true' : 'false'" t-on-click="() => this.setFilter('standby')"><span>Standby / berthed</span><strong t-esc="summary.standby"/><small>Available or alongside</small></button>
+                <button type="button" class="o_sedar_ais_metric o_sedar_ais_metric--warning" t-att-class="state.filter === 'attention' ? 'is-active' : ''" t-att-aria-pressed="state.filter === 'attention' ? 'true' : 'false'" t-on-click="() => this.setFilter('attention')"><span>Attention</span><strong t-esc="summary.attention"/><small>Dry dock, hold, or offline</small></button>
             </section>
 
-            <div t-if="state.loading" class="o_sedar_ais_loading"><i class="fa fa-circle-o-notch fa-spin"/> Loading simulated fleet feed…</div>
+            <div t-if="state.loading" class="o_sedar_ais_loading" role="status" aria-live="polite"><i class="fa fa-circle-o-notch fa-spin" aria-hidden="true"/> Loading simulated fleet feed…</div>
+            <div t-elif="state.loadError" class="o_sedar_ais_load_error" role="alert">
+                <i class="fa fa-exclamation-circle" aria-hidden="true"/>
+                <strong>Simulated fleet feed unavailable</strong>
+                <span>Check the connection, then try again.</span>
+                <button type="button" class="btn btn-primary btn-sm" t-on-click="loadDashboard">Retry</button>
+            </div>
             <main t-else="" class="o_sedar_ais_workspace">
-                <aside class="o_sedar_ais_fleet_panel">
+                <aside class="o_sedar_ais_fleet_panel" aria-label="Simulated fleet">
                     <div class="o_sedar_ais_panel_heading">
                         <div><strong>Fleet</strong><small><t t-esc="visibleFleet.length"/> tugboats displayed</small></div>
-                        <select class="form-select form-select-sm" t-on-change="onTugSelect">
+                        <label class="visually-hidden" for="o_sedar_ais_tug_select">Selected tugboat</label>
+                        <select id="o_sedar_ais_tug_select" class="form-select form-select-sm" t-on-change="onTugSelect">
                             <option value="">Select tugboat</option>
                             <t t-foreach="state.fleet" t-as="tug" t-key="tug.id"><option t-att-value="tug.id" t-att-selected="tug.id === state.selectedId"><t t-esc="tug.name"/></option></t>
                         </select>
                     </div>
                     <div class="o_sedar_ais_fleet_list">
-                        <article t-foreach="visibleFleet" t-as="tug" t-key="tug.id" t-att-class="tug.id === state.selectedId ? 'o_sedar_ais_tug_card is-selected' : 'o_sedar_ais_tug_card'" t-on-click="() => this.selectTug(tug.id)">
-                            <div class="o_sedar_ais_tug_card_top">
-                                <div class="o_sedar_ais_vessel_icon"><i class="fa fa-ship"/></div>
-                                <div class="o_sedar_ais_tug_identity"><strong t-esc="tug.name"/><small><t t-esc="tug.call_sign"/> · <t t-esc="tug.registration"/></small></div>
+                        <button type="button" t-foreach="visibleFleet" t-as="tug" t-key="tug.id" t-att-class="tug.id === state.selectedId ? 'o_sedar_ais_tug_card is-selected' : 'o_sedar_ais_tug_card'" t-att-aria-pressed="tug.id === state.selectedId ? 'true' : 'false'" t-on-click="() => this.selectTug(tug.id)">
+                            <span class="o_sedar_ais_tug_card_top">
+                                <span class="o_sedar_ais_vessel_icon"><i class="fa fa-ship" aria-hidden="true"/></span>
+                                <span class="o_sedar_ais_tug_identity"><strong t-esc="tug.name"/><small><t t-esc="tug.call_sign"/> · <t t-esc="tug.registration"/></small></span>
                                 <span t-att-class="statusClass(tug.status)" t-esc="tug.status_label"/>
-                            </div>
-                            <div class="o_sedar_ais_tug_location"><i class="fa fa-map-marker"/><span t-esc="tug.location"/></div>
-                            <div class="o_sedar_ais_tug_stats"><span><b t-esc="tug.speed.toFixed(1)"/> kn<small>Speed</small></span><span><b><t t-esc="Math.round(tug.course)"/>°</b><small>Course</small></span><span><b t-esc="tug.crew.length"/><small>Crew</small></span></div>
-                            <div t-if="tug.drydock" class="o_sedar_ais_alert"><i class="fa fa-wrench"/><span><strong>Dry dock:</strong> <t t-esc="tug.drydock.yard"/></span></div>
-                            <div t-elif="tug.maintenance_blockers" class="o_sedar_ais_alert"><i class="fa fa-exclamation-triangle"/><span><t t-esc="tug.maintenance_blockers"/> readiness-blocking work order(s)</span></div>
-                        </article>
+                            </span>
+                            <span class="o_sedar_ais_tug_location"><i class="fa fa-map-marker" aria-hidden="true"/><span t-esc="tug.location"/></span>
+                            <span class="o_sedar_ais_tug_stats"><span><b t-esc="tug.speed.toFixed(1)"/> kn<small>Speed</small></span><span><b><t t-esc="Math.round(tug.course)"/>°</b><small>Course</small></span><span><b t-esc="tug.crew.length"/><small>Crew</small></span></span>
+                            <span t-if="tug.drydock" class="o_sedar_ais_alert"><i class="fa fa-wrench" aria-hidden="true"/><span><strong>Dry dock:</strong> <t t-esc="tug.drydock.yard"/></span></span>
+                            <span t-elif="tug.maintenance_blockers" class="o_sedar_ais_alert"><i class="fa fa-exclamation-triangle" aria-hidden="true"/><span><t t-esc="tug.maintenance_blockers"/> readiness-blocking work order(s)</span></span>
+                        </button>
                         <div t-if="!visibleFleet.length" class="o_sedar_ais_empty">No tugboats match this filter.</div>
                     </div>
                 </aside>
 
                 <section class="o_sedar_ais_map_shell">
                     <div class="o_sedar_ais_map_toolbar">
-                        <div><i class="fa fa-map"/> Operations chart <span>Batangas Bay · simulated coverage</span></div>
-                        <div class="o_sedar_ais_legend"><span><i class="is-moving"/> Underway</span><span><i class="is-standby"/> Standby</span><span><i class="is-alert"/> Attention</span></div>
+                        <div><i class="fa fa-map" aria-hidden="true"/> Operations chart <span>Batangas Bay · simulated coverage</span></div>
+                        <div class="o_sedar_ais_legend" aria-label="Map legend"><span><i class="is-moving"/> Underway</span><span><i class="is-standby"/> Standby</span><span><i class="is-alert"/> Attention</span></div>
                     </div>
-                    <div class="o_sedar_ais_map">
-                        <div class="o_sedar_ais_grid"/>
-                        <svg class="o_sedar_ais_coast" viewBox="0 0 1000 620" preserveAspectRatio="none" aria-hidden="true">
-                            <path class="o_sedar_ais_land" d="M0,0 H1000 V108 C904,118 858,153 782,152 C712,150 676,118 605,136 C533,154 520,206 453,224 C372,246 320,206 250,233 C159,268 116,352 0,362 Z"/>
-                            <path class="o_sedar_ais_land o_sedar_ais_land--south" d="M0,574 C128,541 188,563 274,526 C350,493 374,443 460,443 C535,444 572,479 658,458 C761,432 828,372 1000,402 V620 H0 Z"/>
-                            <path class="o_sedar_ais_shore" d="M0,362 C116,352 159,268 250,233 C320,206 372,246 453,224 C520,206 533,154 605,136 C676,118 712,150 782,152 C858,153 904,118 1000,108"/>
-                            <path class="o_sedar_ais_route" d="M160,350 C305,308 402,349 517,305 S741,238 896,299"/>
-                            <path class="o_sedar_ais_route o_sedar_ais_route--secondary" d="M240,490 C368,410 459,392 590,354 S762,310 828,194"/>
-                        </svg>
-                        <div class="o_sedar_ais_map_label o_sedar_ais_map_label--city"><b>BATANGAS CITY</b><span>Port district</span></div>
-                        <div class="o_sedar_ais_map_label o_sedar_ais_map_label--bay">BATANGAS BAY</div>
-                        <div class="o_sedar_ais_map_label o_sedar_ais_map_label--base"><i class="fa fa-anchor"/> SEDAR BASE</div>
-                        <div class="o_sedar_ais_map_label o_sedar_ais_map_label--yard"><i class="fa fa-wrench"/> REPAIR YARD</div>
-                        <div class="o_sedar_ais_compass"><i class="fa fa-location-arrow"/><b>N</b></div>
-                        <div class="o_sedar_ais_scale"><span/> 2 nautical miles</div>
+                    <div class="o_sedar_ais_map_body" t-att-class="selectedTug ? 'has-detail' : ''">
+                        <div class="o_sedar_ais_map" aria-label="Offline-safe simulated Batangas Bay operations chart">
+                            <div class="o_sedar_ais_grid"/>
+                            <svg class="o_sedar_ais_coast" viewBox="0 0 1000 620" preserveAspectRatio="none" aria-hidden="true">
+                                <path class="o_sedar_ais_land" d="M0,0 H1000 V108 C904,118 858,153 782,152 C712,150 676,118 605,136 C533,154 520,206 453,224 C372,246 320,206 250,233 C159,268 116,352 0,362 Z"/>
+                                <path class="o_sedar_ais_land o_sedar_ais_land--south" d="M0,574 C128,541 188,563 274,526 C350,493 374,443 460,443 C535,444 572,479 658,458 C761,432 828,372 1000,402 V620 H0 Z"/>
+                                <path class="o_sedar_ais_shore" d="M0,362 C116,352 159,268 250,233 C320,206 372,246 453,224 C520,206 533,154 605,136 C676,118 712,150 782,152 C858,153 904,118 1000,108"/>
+                                <path class="o_sedar_ais_route" d="M160,350 C305,308 402,349 517,305 S741,238 896,299"/>
+                                <path class="o_sedar_ais_route o_sedar_ais_route--secondary" d="M240,490 C368,410 459,392 590,354 S762,310 828,194"/>
+                            </svg>
+                            <div class="o_sedar_ais_map_label o_sedar_ais_map_label--city"><b>BATANGAS CITY</b><span>Port district</span></div>
+                            <div class="o_sedar_ais_map_label o_sedar_ais_map_label--bay">BATANGAS BAY</div>
+                            <div class="o_sedar_ais_map_label o_sedar_ais_map_label--base"><i class="fa fa-anchor"/> SEDAR BASE</div>
+                            <div class="o_sedar_ais_map_label o_sedar_ais_map_label--yard"><i class="fa fa-wrench"/> REPAIR YARD</div>
+                            <div class="o_sedar_ais_compass"><i class="fa fa-location-arrow"/><b>N</b></div>
+                            <div class="o_sedar_ais_scale"><span/> 2 nautical miles</div>
 
-                        <button t-foreach="state.fleet" t-as="tug" t-key="tug.id" t-att-class="markerClass(tug)" t-att-style="markerStyle(tug)" t-on-click="() => this.selectTug(tug.id)" t-att-title="tug.name + ' — ' + tug.location">
-                            <span class="o_sedar_ais_marker_pulse"/>
-                            <span class="o_sedar_ais_marker_ship"><i t-att-class="tug.status === 'dry_dock' ? 'fa fa-wrench' : 'fa fa-ship'"/></span>
-                            <span class="o_sedar_ais_marker_label"><b t-esc="tug.name"/><small><t t-esc="tug.speed.toFixed(1)"/> kn</small></span>
-                        </button>
+                            <button type="button" t-foreach="state.fleet" t-as="tug" t-key="tug.id" t-att-class="markerClass(tug)" t-att-style="markerStyle(tug)" t-on-click="() => this.selectTug(tug.id)" t-att-aria-pressed="tug.id === state.selectedId ? 'true' : 'false'" t-att-aria-label="tug.name + ', ' + tug.status_label + ', ' + tug.location">
+                                <span class="o_sedar_ais_marker_pulse"/>
+                                <span class="o_sedar_ais_marker_ship"><i t-att-class="tug.status === 'dry_dock' ? 'fa fa-wrench' : 'fa fa-ship'"/></span>
+                                <span class="o_sedar_ais_marker_label"><b t-esc="tug.name"/><small><t t-esc="tug.speed.toFixed(1)"/> kn</small></span>
+                            </button>
+                        </div>
 
-                        <section t-if="selectedTug" class="o_sedar_ais_detail">
-                            <button class="o_sedar_ais_detail_open" t-on-click="() => this.openTugboat(selectedTug.id)" title="Open tugboat record"><i class="fa fa-external-link"/></button>
+                        <aside t-if="selectedTug" class="o_sedar_ais_detail" aria-label="Selected tugboat details">
+                            <div class="o_sedar_ais_detail_actions">
+                                <button type="button" class="o_sedar_ais_icon_button" t-on-click="() => this.openTugboat(selectedTug.id)" aria-label="Open tugboat record"><i class="fa fa-external-link" aria-hidden="true"/></button>
+                                <button type="button" class="o_sedar_ais_icon_button" t-on-click="closeTugDetail" aria-label="Close tugboat details"><i class="fa fa-times" aria-hidden="true"/></button>
+                            </div>
                             <div class="o_sedar_ais_detail_title"><div class="o_sedar_ais_vessel_icon"><i class="fa fa-ship"/></div><div><h2 t-esc="selectedTug.name"/><p><t t-esc="selectedTug.tug_class"/> · <t t-esc="selectedTug.bollard_pull"/> T bollard pull</p></div><span t-att-class="statusClass(selectedTug.status)" t-esc="selectedTug.status_label"/></div>
                             <div class="o_sedar_ais_detail_grid">
                                 <div><span>Current location</span><strong t-esc="selectedTug.location"/><small><t t-esc="formatCoordinate(selectedTug.latitude, 'N', 'S')"/> · <t t-esc="formatCoordinate(selectedTug.longitude, 'E', 'W')"/></small></div>
@@ -90,14 +102,92 @@
                                 <div><span>AIS report</span><strong><t t-esc="selectedTug.signal"/> signal</strong><small t-esc="selectedTug.last_reported"/></div>
                             </div>
                             <details class="o_sedar_ais_crew" open="open">
-                                <summary><span><i class="fa fa-users"/> Crew aboard / assigned</span><small><t t-esc="selectedTug.crew.length"/> people · <t t-esc="selectedTug.crew_source"/></small></summary>
+                                <summary><span><i class="fa fa-users" aria-hidden="true"/> Crew aboard / assigned</span><small><t t-esc="selectedTug.crew.length"/> people · <t t-esc="selectedTug.crew_source"/></small></summary>
                                 <div class="o_sedar_ais_crew_grid">
                                     <div t-foreach="selectedTug.crew" t-as="member" t-key="member.id" class="o_sedar_ais_crew_member"><span class="o_sedar_ais_avatar" t-esc="member.name.charAt(0)"/><div><strong t-esc="member.name"/><small><t t-esc="member.rank"/> · <t t-esc="member.availability"/></small></div></div>
-                                    <div t-if="!selectedTug.crew.length" class="o_sedar_ais_empty">No active or home crew roster is linked.</div>
+                                    <div t-if="!selectedTug.crew.length" class="o_sedar_ais_empty o_sedar_ais_empty--compact">No active or home crew roster is linked.</div>
                                 </div>
                             </details>
                             <div t-if="selectedTug.drydock" class="o_sedar_ais_drydock_detail"><i class="fa fa-wrench"/><div><strong>Dry-dock plan active</strong><span><t t-esc="selectedTug.drydock.name"/> at <t t-esc="selectedTug.drydock.yard"/></span><small>Planned completion: <t t-esc="selectedTug.drydock.planned_end"/></small></div></div>
-                        </section>
+
+                            <section class="o_sedar_ais_equipment" aria-labelledby="o_sedar_ais_equipment_heading">
+                                <div class="o_sedar_ais_section_heading">
+                                    <div><h3 id="o_sedar_ais_equipment_heading">Equipment</h3><p>Installed machinery and cumulative Running Hours</p></div>
+                                    <span><t t-esc="selectedTug.equipment.length"/> installed</span>
+                                </div>
+                                <div class="o_sedar_ais_equipment_list">
+                                    <button type="button" t-foreach="selectedTug.equipment" t-as="equipment" t-key="equipment.id" t-att-class="equipment.id === state.selectedEquipmentId ? 'o_sedar_ais_equipment_card is-selected' : 'o_sedar_ais_equipment_card'" t-att-aria-pressed="equipment.id === state.selectedEquipmentId ? 'true' : 'false'" t-on-click="() => this.selectEquipment(equipment.id)">
+                                        <span class="o_sedar_ais_equipment_top"><span><strong t-esc="equipment.name"/><small><t t-esc="equipment.system_label"/> · <t t-esc="equipment.criticality_label"/></small></span><span t-att-class="equipmentStateClass(equipment.maintenance_state)" t-esc="equipment.maintenance_state_label"/></span>
+                                        <span class="o_sedar_ais_equipment_facts">
+                                            <span><small>Running Hours</small><b t-esc="formatHours(equipment.running_hours)"/></span>
+                                            <span><small>Next service due</small><b t-esc="equipment.next_service_due ? formatHours(equipment.next_service_due) : 'Not scheduled'"/></span>
+                                            <span><small>Active procurement</small><b><t t-esc="equipment.active_procurement_count"/> request<t t-if="equipment.active_procurement_count !== 1">s</t></b></span>
+                                        </span>
+                                    </button>
+                                    <div t-if="!selectedTug.equipment.length" class="o_sedar_ais_empty o_sedar_ais_empty--compact">No installed Equipment is linked to this tugboat.</div>
+                                </div>
+                            </section>
+
+                            <section t-if="state.selectedEquipmentId" class="o_sedar_ais_procurement" aria-labelledby="o_sedar_ais_procurement_heading">
+                                <div class="o_sedar_ais_procurement_header">
+                                    <button type="button" class="o_sedar_ais_back" t-on-click="closeEquipmentDetail"><i class="fa fa-arrow-left" aria-hidden="true"/> Back to Equipment</button>
+                                    <div><h3 id="o_sedar_ais_procurement_heading">Procurement · <t t-esc="selectedEquipment ? selectedEquipment.name : 'Equipment'"/></h3><p>Equipment-linked Purchase Requests only</p></div>
+                                </div>
+                                <div t-if="state.equipmentDetailStatus === 'loading'" class="o_sedar_ais_detail_state" role="status" aria-live="polite"><i class="fa fa-circle-o-notch fa-spin" aria-hidden="true"/> Loading procurement detail…</div>
+                                <div t-elif="state.equipmentDetailStatus === 'error'" class="o_sedar_ais_detail_state o_sedar_ais_detail_state--error" role="alert"><i class="fa fa-exclamation-circle" aria-hidden="true"/><span t-esc="state.equipmentDetailError"/><button type="button" class="btn btn-outline-danger btn-sm" t-on-click="retryEquipmentDetail">Retry</button></div>
+                                <div t-elif="state.equipmentDetailStatus === 'ready'" aria-live="polite">
+                                    <div t-if="isProcurementLimited" class="o_sedar_ais_limited" role="status"><i class="fa fa-lock" aria-hidden="true"/><div><strong>Limited procurement view</strong><span>Commercial terms, Bidders, Line Awards, suppliers, and order values require Procurement and Inventory Officer access.</span></div></div>
+
+                                    <section class="o_sedar_ais_procurement_group">
+                                        <div class="o_sedar_ais_procurement_group_title"><h4>Active Procurement</h4><span><t t-esc="activeProcurement.length"/> line<t t-if="activeProcurement.length !== 1">s</t></span></div>
+                                        <article t-foreach="activeProcurement" t-as="line" t-key="line.line_id" class="o_sedar_ais_procurement_row">
+                                            <div class="o_sedar_ais_procurement_row_top"><div><strong t-esc="line.request_name"/><span t-esc="line.product_name"/></div><span class="o_sedar_ais_progress" t-esc="line.progress_label"/></div>
+                                            <div class="o_sedar_ais_procurement_counts"><span><b t-esc="line.bid_count"/> Bidders</span><span><b t-esc="line.order_count"/> Purchase Orders</span></div>
+                                            <div t-if="line.commercial" class="o_sedar_ais_commercial">
+                                                <div t-if="line.commercial.bids.length">
+                                                    <h5>Bidders and commercial summary</h5>
+                                                    <div t-foreach="line.commercial.bids" t-as="bid" t-key="bid_index" class="o_sedar_ais_bid">
+                                                        <div class="o_sedar_ais_commercial_item"><span><strong t-esc="bid.bidder_name"/><small><t t-esc="bid.bid_name"/> · <t t-esc="bid.state_label"/></small><button t-if="bid.attachment" type="button" class="o_sedar_ais_attachment" t-on-click="() => this.openAttachment(bid.attachment.action)"><i class="fa fa-paperclip" aria-hidden="true"/> <t t-esc="bid.attachment.name"/></button></span><b><t t-esc="bid.currency"/> <t t-esc="bid.subtotal"/></b></div>
+                                                        <dl class="o_sedar_ais_bid_facts">
+                                                            <div><dt>Quantity</dt><dd><t t-esc="bid.quantity"/> <t t-esc="bid.uom"/></dd></div>
+                                                            <div><dt>Unit price</dt><dd><t t-esc="bid.currency"/> <t t-esc="bid.unit_price"/></dd></div>
+                                                            <div><dt>Bid total</dt><dd><t t-esc="bid.currency"/> <t t-esc="bid.total_amount"/></dd></div>
+                                                            <div t-if="bid.line_promised_delivery_date || bid.promised_delivery_date"><dt>Promised delivery</dt><dd t-esc="bid.line_promised_delivery_date || bid.promised_delivery_date"/></div>
+                                                            <div t-if="bid.validity_date"><dt>Valid through</dt><dd t-esc="bid.validity_date"/></div>
+                                                            <div t-if="bid.received_date"><dt>Received</dt><dd t-esc="bid.received_date"/></div>
+                                                        </dl>
+                                                        <dl t-if="bid.line_delivery_terms || bid.delivery_terms || bid.line_availability_notes || bid.availability_notes || bid.payment_terms || bid.warranty_notes || bid.line_notes || bid.commercial_notes" class="o_sedar_ais_bid_terms">
+                                                            <div t-if="bid.line_delivery_terms || bid.delivery_terms"><dt>Delivery</dt><dd t-esc="bid.line_delivery_terms || bid.delivery_terms"/></div>
+                                                            <div t-if="bid.line_availability_notes || bid.availability_notes"><dt>Availability</dt><dd t-esc="bid.line_availability_notes || bid.availability_notes"/></div>
+                                                            <div t-if="bid.payment_terms"><dt>Payment</dt><dd t-esc="bid.payment_terms"/></div>
+                                                            <div t-if="bid.warranty_notes"><dt>Warranty</dt><dd t-esc="bid.warranty_notes"/></div>
+                                                            <div t-if="bid.line_notes"><dt>Line notes</dt><dd t-esc="bid.line_notes"/></div>
+                                                            <div t-if="bid.commercial_notes"><dt>Commercial notes</dt><dd t-esc="bid.commercial_notes"/></div>
+                                                        </dl>
+                                                    </div>
+                                                </div>
+                                                <div t-if="line.commercial.award" class="o_sedar_ais_award"><h5>Line Award</h5><div><span><strong t-esc="line.commercial.award.bidder_name"/><small><t t-esc="line.commercial.award.state_label"/> · <t t-esc="line.commercial.award.reason"/></small></span><b><t t-esc="line.commercial.award.currency"/> <t t-esc="line.commercial.award.unit_price"/> × <t t-esc="line.commercial.award.quantity"/></b></div></div>
+                                            </div>
+                                        </article>
+                                        <div t-if="!activeProcurement.length" class="o_sedar_ais_empty o_sedar_ais_empty--compact">No active procurement is linked to this Equipment.</div>
+                                    </section>
+
+                                    <section class="o_sedar_ais_procurement_group o_sedar_ais_procurement_group--history">
+                                        <div class="o_sedar_ais_procurement_group_title"><h4>Procurement History</h4><span><t t-esc="procurementHistory.length"/> line<t t-if="procurementHistory.length !== 1">s</t></span></div>
+                                        <article t-foreach="procurementHistory" t-as="line" t-key="line.line_id" class="o_sedar_ais_procurement_row">
+                                            <div class="o_sedar_ais_procurement_row_top"><div><strong t-esc="line.request_name"/><span t-esc="line.product_name"/></div><span class="o_sedar_ais_progress" t-esc="line.outcome_label"/></div>
+                                            <div class="o_sedar_ais_procurement_counts"><span><b t-esc="line.bid_count"/> Bidders</span><span><b t-esc="line.order_count"/> Purchase Orders</span></div>
+                                            <div t-if="line.commercial" class="o_sedar_ais_commercial">
+                                                <div t-if="line.commercial.award" class="o_sedar_ais_award"><h5>Winning Bidder</h5><div><span><strong t-esc="line.commercial.award.bidder_name"/><small><t t-esc="line.commercial.award.state_label"/> · <t t-esc="line.commercial.award.reason"/></small></span><b><t t-esc="line.commercial.award.currency"/> <t t-esc="line.commercial.award.unit_price"/> × <t t-esc="line.commercial.award.quantity"/></b></div></div>
+                                                <div t-if="line.commercial.orders.length"><h5>Resulting Purchase Orders</h5><div t-foreach="line.commercial.orders" t-as="order" t-key="order.id" class="o_sedar_ais_commercial_item"><span><strong t-esc="order.name"/><small><t t-esc="order.supplier_name"/> · <t t-esc="order.state_label"/></small></span><b><t t-esc="order.currency"/> <t t-esc="order.amount_total"/></b></div></div>
+                                            </div>
+                                        </article>
+                                        <div t-if="!procurementHistory.length" class="o_sedar_ais_empty o_sedar_ais_empty--compact">No procurement history is linked to this Equipment.</div>
+                                    </section>
+                                </div>
+                            </section>
+                            <p class="o_sedar_ais_escape_hint">Press Escape to go back or close details.</p>
+                        </aside>
                     </div>
                     <footer class="o_sedar_ais_map_footer"><span><i class="fa fa-info-circle"/> Positions are fictional and move only inside this demonstration.</span><span>Feed generated: <t t-esc="state.generatedAt"/></span></footer>
                 </section>

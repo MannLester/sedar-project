@@ -2,13 +2,12 @@
     --ais-navy: #08263b;
     --ais-blue: #0b6f9c;
     --ais-cyan: #26c6da;
-    --ais-green: #32c787;
-    --ais-amber: #f4b942;
-    --ais-red: #ef6a6a;
-    height: 100%;
-    min-height: 0;
-    overflow-y: auto;
-    scrollbar-gutter: stable;
+    --ais-green: #218c62;
+    --ais-amber: #b36b00;
+    --ais-red: #b84444;
+    min-height: 100%;
+    height: auto;
+    overflow: visible;
     padding: 22px;
     color: #173042;
     background: #edf3f6;
@@ -28,7 +27,7 @@
     box-shadow: 0 16px 38px rgba(7, 40, 60, .18);
 }
 
-.o_sedar_ais_header h1 { margin: 2px 0 3px; font-size: 28px; font-weight: 750; letter-spacing: -.4px; }
+.o_sedar_ais_header h1 { margin: 2px 0 3px; font-size: clamp(22px, 2vw, 28px); font-weight: 750; letter-spacing: -.4px; }
 .o_sedar_ais_header p { margin: 0; color: #c8e5ef; }
 .o_sedar_ais_eyebrow { color: #80d7e7; font-size: 12px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; }
 .o_sedar_ais_live_dot { display: inline-block; width: 8px; height: 8px; margin-right: 7px; border-radius: 50%; background: #42e3a4; box-shadow: 0 0 0 5px rgba(66, 227, 164, .12); }
@@ -36,93 +35,246 @@
 .o_sedar_ais_header_actions .btn { border-radius: 9px; font-weight: 650; }
 .o_sedar_ais_demo_badge { padding: 8px 11px; color: #ffe4a0; border: 1px solid rgba(255, 220, 128, .45); border-radius: 9px; background: rgba(91, 59, 0, .22); font-size: 11px; font-weight: 800; letter-spacing: .65px; }
 
-.o_sedar_ais_summary { display: grid; grid-template-columns: repeat(4, minmax(150px, 1fr)); gap: 12px; margin-bottom: 14px; }
-.o_sedar_ais_metric { position: relative; padding: 14px 17px; text-align: left; border: 1px solid #d8e3e8; border-radius: 14px; background: white; box-shadow: 0 6px 18px rgba(12, 49, 70, .06); transition: .2s ease; }
-.o_sedar_ais_metric:hover, .o_sedar_ais_metric.is-active { border-color: #36a8ca; transform: translateY(-1px); box-shadow: 0 9px 24px rgba(12, 85, 118, .12); }
-.o_sedar_ais_metric span { display: block; color: #607785; font-size: 11px; font-weight: 750; letter-spacing: .6px; text-transform: uppercase; }
+.o_sedar_ais_summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+.o_sedar_ais_metric { position: relative; min-width: 0; padding: 14px 17px; text-align: left; border: 1px solid #d8e3e8; border-radius: 14px; background: white; box-shadow: 0 6px 18px rgba(12, 49, 70, .06); transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease; }
+.o_sedar_ais_metric:hover, .o_sedar_ais_metric.is-active { border-color: #167b9b; transform: translateY(-1px); box-shadow: 0 9px 24px rgba(12, 85, 118, .12); }
+.o_sedar_ais_metric span { display: block; color: #526b79; font-size: 11px; font-weight: 750; letter-spacing: .6px; text-transform: uppercase; }
 .o_sedar_ais_metric strong { display: block; margin: 2px 0 -1px; color: var(--ais-navy); font-size: 26px; line-height: 1.1; }
-.o_sedar_ais_metric small { color: #8295a0; }
-.o_sedar_ais_metric--warning strong { color: #b56d00; }
+.o_sedar_ais_metric small { color: #687f8c; }
+.o_sedar_ais_metric--warning strong { color: #955900; }
 
-.o_sedar_ais_workspace { display: grid; grid-template-columns: 330px minmax(600px, 1fr); height: 690px; min-height: 690px; overflow: hidden; border: 1px solid #d4e0e5; border-radius: 18px; background: white; box-shadow: 0 14px 35px rgba(11, 42, 58, .1); }
+.o_sedar_ais_workspace { display: grid; grid-template-columns: minmax(280px, 320px) minmax(0, 1fr); min-height: 690px; height: auto; overflow: visible; border: 1px solid #d4e0e5; border-radius: 18px; background: white; box-shadow: 0 14px 35px rgba(11, 42, 58, .1); }
 .o_sedar_ais_fleet_panel { display: flex; flex-direction: column; min-width: 0; min-height: 0; border-right: 1px solid #d9e4e8; background: #f7fafb; }
 .o_sedar_ais_panel_heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px; border-bottom: 1px solid #dfe8ec; background: white; }
 .o_sedar_ais_panel_heading strong, .o_sedar_ais_panel_heading small { display: block; }
 .o_sedar_ais_panel_heading strong { color: var(--ais-navy); font-size: 16px; }
-.o_sedar_ais_panel_heading small { color: #7d919c; }
-.o_sedar_ais_panel_heading select { width: 155px; }
-.o_sedar_ais_fleet_list { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 10px; }
-.o_sedar_ais_tug_card { margin-bottom: 9px; padding: 13px; cursor: pointer; border: 1px solid #dde6ea; border-radius: 13px; background: white; transition: .18s ease; }
-.o_sedar_ais_tug_card:hover, .o_sedar_ais_tug_card.is-selected { border-color: #32a6c7; box-shadow: 0 7px 18px rgba(18, 108, 142, .12); }
+.o_sedar_ais_panel_heading small { color: #657c89; }
+.o_sedar_ais_panel_heading select { width: min(155px, 55%); }
+.o_sedar_ais_fleet_list { max-height: 760px; overflow-y: auto; overscroll-behavior: contain; padding: 10px; }
+.o_sedar_ais_tug_card { display: block; width: 100%; margin-bottom: 9px; padding: 13px; color: inherit; text-align: left; border: 1px solid #d4e0e5; border-radius: 13px; background: white; transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease; }
+.o_sedar_ais_tug_card:hover, .o_sedar_ais_tug_card.is-selected { border-color: #167b9b; box-shadow: 0 7px 18px rgba(18, 108, 142, .12); }
 .o_sedar_ais_tug_card.is-selected { background: #f1fbfe; }
 .o_sedar_ais_tug_card_top { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; align-items: center; gap: 9px; }
-.o_sedar_ais_vessel_icon { display: grid; place-items: center; width: 38px; height: 38px; color: white; border-radius: 11px; background: linear-gradient(140deg, #0877a1, #22abc2); }
+.o_sedar_ais_vessel_icon { display: grid; place-items: center; width: 38px; height: 38px; color: white; border-radius: 11px; background: linear-gradient(140deg, #0877a1, #158ca1); }
 .o_sedar_ais_tug_identity { min-width: 0; }
 .o_sedar_ais_tug_identity strong, .o_sedar_ais_tug_identity small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .o_sedar_ais_tug_identity strong { color: #102e41; font-size: 14px; }
-.o_sedar_ais_tug_identity small { color: #81919a; font-size: 10px; }
+.o_sedar_ais_tug_identity small { color: #657985; font-size: 10px; }
 .o_sedar_ais_tug_location { display: flex; align-items: center; gap: 7px; margin: 11px 0 9px; color: #496575; font-size: 12px; }
-.o_sedar_ais_tug_location i { color: #168bad; }
+.o_sedar_ais_tug_location i { color: #087c9e; }
 .o_sedar_ais_tug_stats { display: grid; grid-template-columns: repeat(3, 1fr); padding-top: 9px; border-top: 1px solid #edf1f3; }
-.o_sedar_ais_tug_stats span { text-align: center; border-right: 1px solid #edf1f3; }
-.o_sedar_ais_tug_stats span:last-child { border: 0; }
+.o_sedar_ais_tug_stats > span { text-align: center; border-right: 1px solid #edf1f3; }
+.o_sedar_ais_tug_stats > span:last-child { border: 0; }
 .o_sedar_ais_tug_stats b, .o_sedar_ais_tug_stats small { display: block; }
 .o_sedar_ais_tug_stats b { color: #15384d; }
-.o_sedar_ais_tug_stats small { color: #8a9ba4; font-size: 9px; text-transform: uppercase; }
-.o_sedar_ais_alert { display: flex; gap: 8px; align-items: center; margin-top: 10px; padding: 8px 9px; color: #8a5a00; border-radius: 8px; background: #fff4d6; font-size: 11px; }
+.o_sedar_ais_tug_stats small { color: #657985; font-size: 9px; text-transform: uppercase; }
+.o_sedar_ais_alert { display: flex; gap: 8px; align-items: center; margin-top: 10px; padding: 8px 9px; color: #744b00; border-radius: 8px; background: #fff1c9; font-size: 11px; }
 
 .o_sedar_ais_status { display: inline-flex; align-items: center; white-space: nowrap; padding: 4px 7px; border-radius: 20px; font-size: 9px; font-weight: 800; text-transform: uppercase; }
-.o_sedar_ais_status--underway, .o_sedar_ais_status--assisting { color: #08724c; background: #dcf8ed; }
-.o_sedar_ais_status--standby, .o_sedar_ais_status--berthed { color: #156785; background: #dff4fb; }
-.o_sedar_ais_status--dry_dock, .o_sedar_ais_status--maintenance { color: #975d00; background: #fff0c8; }
-.o_sedar_ais_status--offline { color: #a63838; background: #ffe1e1; }
+.o_sedar_ais_status--underway, .o_sedar_ais_status--assisting { color: #075e40; background: #d4f3e7; }
+.o_sedar_ais_status--standby, .o_sedar_ais_status--berthed { color: #105a74; background: #d9eff7; }
+.o_sedar_ais_status--dry_dock, .o_sedar_ais_status--maintenance { color: #764900; background: #ffeab0; }
+.o_sedar_ais_status--offline { color: #8a2929; background: #ffd8d8; }
 
-.o_sedar_ais_map_shell { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
-.o_sedar_ais_map_toolbar { display: flex; align-items: center; justify-content: space-between; min-height: 54px; padding: 10px 17px; color: #173b50; border-bottom: 1px solid #d9e4e8; background: white; font-weight: 700; }
-.o_sedar_ais_map_toolbar > div > span { margin-left: 7px; color: #8295a0; font-size: 11px; font-weight: 500; }
-.o_sedar_ais_legend { display: flex; gap: 13px; color: #6d818c; font-size: 10px; font-weight: 600; }
+.o_sedar_ais_map_shell { min-width: 0; }
+.o_sedar_ais_map_toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 54px; padding: 10px 17px; color: #173b50; border-bottom: 1px solid #d9e4e8; background: white; font-weight: 700; }
+.o_sedar_ais_map_toolbar > div > span { margin-left: 7px; color: #687f8c; font-size: 11px; font-weight: 500; }
+.o_sedar_ais_legend { display: flex; gap: 13px; color: #59717e; font-size: 10px; font-weight: 600; }
 .o_sedar_ais_legend span { margin: 0 !important; }
 .o_sedar_ais_legend i { display: inline-block; width: 8px; height: 8px; margin-right: 4px; border-radius: 50%; }
-.o_sedar_ais_legend .is-moving { background: var(--ais-green); }.o_sedar_ais_legend .is-standby { background: var(--ais-cyan); }.o_sedar_ais_legend .is-alert { background: var(--ais-amber); }
-.o_sedar_ais_map { position: relative; flex: 1; min-height: 590px; overflow: hidden; background: radial-gradient(circle at 45% 45%, #bdeaf1 0, #86d1df 36%, #4ba8c1 70%, #297a9b 100%); }
+.o_sedar_ais_legend .is-moving { background: var(--ais-green); }
+.o_sedar_ais_legend .is-standby { background: #0d91aa; }
+.o_sedar_ais_legend .is-alert { background: var(--ais-amber); }
+.o_sedar_ais_map_body { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; overflow: visible; }
+.o_sedar_ais_map_body.has-detail { grid-template-columns: minmax(420px, 1fr) minmax(360px, 440px); }
+.o_sedar_ais_map { position: relative; min-width: 0; min-height: 660px; overflow: hidden; background: radial-gradient(circle at 45% 45%, #bdeaf1 0, #86d1df 36%, #4ba8c1 70%, #297a9b 100%); }
 .o_sedar_ais_grid { position: absolute; inset: 0; opacity: .22; background-image: linear-gradient(rgba(255,255,255,.55) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.55) 1px, transparent 1px); background-size: 72px 72px; }
 .o_sedar_ais_coast { position: absolute; inset: 0; width: 100%; height: 100%; filter: drop-shadow(0 3px 4px rgba(7, 51, 62, .18)); }
-.o_sedar_ais_land { fill: #c7d7b7; stroke: #769d83; stroke-width: 3; }.o_sedar_ais_land--south { fill: #b9cfaa; }
+.o_sedar_ais_land { fill: #c7d7b7; stroke: #769d83; stroke-width: 3; }
+.o_sedar_ais_land--south { fill: #b9cfaa; }
 .o_sedar_ais_shore { fill: none; stroke: #f2e6bf; stroke-width: 8; opacity: .9; }
-.o_sedar_ais_route { fill: none; stroke: rgba(255,255,255,.72); stroke-width: 3; stroke-dasharray: 9 9; }.o_sedar_ais_route--secondary { opacity: .55; }
-.o_sedar_ais_map_label { position: absolute; z-index: 2; color: rgba(12, 55, 70, .78); font-size: 10px; font-weight: 800; letter-spacing: .7px; text-shadow: 0 1px rgba(255,255,255,.5); }
-.o_sedar_ais_map_label span { display: block; font-size: 8px; font-weight: 500; }.o_sedar_ais_map_label--city { top: 11%; right: 17%; }.o_sedar_ais_map_label--bay { top: 46%; left: 42%; color: rgba(255,255,255,.58); font-size: 16px; letter-spacing: 4px; }.o_sedar_ais_map_label--base { top: 31%; right: 12%; padding: 5px 8px; border-radius: 6px; background: rgba(255,255,255,.72); }.o_sedar_ais_map_label--yard { top: 24%; right: 4%; color: #895700; }
-.o_sedar_ais_compass { position: absolute; z-index: 2; top: 20px; left: 20px; display: grid; place-items: center; width: 46px; height: 46px; color: #10425c; border: 1px solid rgba(255,255,255,.7); border-radius: 50%; background: rgba(255,255,255,.7); }.o_sedar_ais_compass i { transform: rotate(-45deg); }.o_sedar_ais_compass b { position: absolute; top: -16px; font-size: 9px; }
-.o_sedar_ais_scale { position: absolute; z-index: 2; bottom: 16px; left: 18px; color: rgba(255,255,255,.9); font-size: 9px; }.o_sedar_ais_scale span { display: block; width: 78px; margin-bottom: 3px; border-top: 2px solid white; }
+.o_sedar_ais_route { fill: none; stroke: rgba(255,255,255,.72); stroke-width: 3; stroke-dasharray: 9 9; }
+.o_sedar_ais_route--secondary { opacity: .55; }
+.o_sedar_ais_map_label { position: absolute; z-index: 2; color: rgba(12, 55, 70, .82); font-size: 10px; font-weight: 800; letter-spacing: .7px; text-shadow: 0 1px rgba(255,255,255,.5); }
+.o_sedar_ais_map_label span { display: block; font-size: 8px; font-weight: 500; }
+.o_sedar_ais_map_label--city { top: 11%; right: 17%; }
+.o_sedar_ais_map_label--bay { top: 46%; left: 35%; color: rgba(255,255,255,.72); font-size: 14px; letter-spacing: 3px; }
+.o_sedar_ais_map_label--base { top: 31%; right: 12%; padding: 5px 8px; border-radius: 6px; background: rgba(255,255,255,.8); }
+.o_sedar_ais_map_label--yard { top: 24%; right: 4%; color: #704700; }
+.o_sedar_ais_compass { position: absolute; z-index: 2; top: 20px; left: 20px; display: grid; place-items: center; width: 46px; height: 46px; color: #10425c; border: 1px solid rgba(255,255,255,.7); border-radius: 50%; background: rgba(255,255,255,.8); }
+.o_sedar_ais_compass i { transform: rotate(-45deg); }
+.o_sedar_ais_compass b { position: absolute; top: -16px; font-size: 9px; }
+.o_sedar_ais_scale { position: absolute; z-index: 2; bottom: 16px; left: 18px; color: white; font-size: 9px; }
+.o_sedar_ais_scale span { display: block; width: 78px; margin-bottom: 3px; border-top: 2px solid white; }
 
-.o_sedar_ais_marker { position: absolute; z-index: 6; width: 0; height: 0; padding: 0; border: 0; background: none; transition: left .8s linear, top .8s linear; }
-.o_sedar_ais_marker_ship { position: absolute; left: -17px; top: -17px; display: grid; place-items: center; width: 34px; height: 34px; color: white; border: 3px solid white; border-radius: 50%; background: #1598b4; box-shadow: 0 5px 13px rgba(4, 44, 65, .35); transform: rotate(var(--course)); }
-.o_sedar_ais_marker--underway .o_sedar_ais_marker_ship, .o_sedar_ais_marker--assisting .o_sedar_ais_marker_ship { background: #1ab279; }.o_sedar_ais_marker--dry_dock .o_sedar_ais_marker_ship, .o_sedar_ais_marker--maintenance .o_sedar_ais_marker_ship { background: #e59a22; }.o_sedar_ais_marker--offline .o_sedar_ais_marker_ship { background: #d95757; }
-.o_sedar_ais_marker_pulse { position: absolute; left: -20px; top: -20px; width: 40px; height: 40px; border: 2px solid rgba(46, 223, 164, .8); border-radius: 50%; animation: ais-pulse 2.2s infinite; }.o_sedar_ais_marker--dry_dock .o_sedar_ais_marker_pulse, .o_sedar_ais_marker--maintenance .o_sedar_ais_marker_pulse { border-color: rgba(245, 181, 66, .8); animation: none; }
-.o_sedar_ais_marker_label { position: absolute; left: 19px; top: -18px; min-width: 95px; padding: 5px 7px; text-align: left; color: #17384a; border-radius: 7px; background: rgba(255,255,255,.92); box-shadow: 0 3px 8px rgba(4,44,65,.18); pointer-events: none; }.o_sedar_ais_marker_label b, .o_sedar_ais_marker_label small { display: block; white-space: nowrap; }.o_sedar_ais_marker_label b { font-size: 10px; }.o_sedar_ais_marker_label small { color: #5e7683; font-size: 8px; }
-.o_sedar_ais_marker.is-selected { z-index: 8; }.o_sedar_ais_marker.is-selected .o_sedar_ais_marker_ship { outline: 4px solid rgba(255,255,255,.45); transform: rotate(var(--course)) scale(1.18); }.o_sedar_ais_marker.is-selected .o_sedar_ais_marker_label { background: #082f46; color: white; }.o_sedar_ais_marker.is-selected .o_sedar_ais_marker_label small { color: #aedbe8; }
+.o_sedar_ais_marker { position: absolute; z-index: 6; width: 44px; height: 44px; margin: -22px; padding: 0; color: inherit; border: 0; background: transparent; transition: left .8s linear, top .8s linear; }
+.o_sedar_ais_marker_ship { position: absolute; left: 5px; top: 5px; display: grid; place-items: center; width: 34px; height: 34px; color: white; border: 3px solid white; border-radius: 50%; background: #0e819c; box-shadow: 0 5px 13px rgba(4, 44, 65, .35); transform: rotate(var(--course)); }
+.o_sedar_ais_marker--underway .o_sedar_ais_marker_ship, .o_sedar_ais_marker--assisting .o_sedar_ais_marker_ship { background: #16845d; }
+.o_sedar_ais_marker--dry_dock .o_sedar_ais_marker_ship, .o_sedar_ais_marker--maintenance .o_sedar_ais_marker_ship { background: #aa6700; }
+.o_sedar_ais_marker--offline .o_sedar_ais_marker_ship { background: #b84444; }
+.o_sedar_ais_marker_pulse { position: absolute; left: 2px; top: 2px; width: 40px; height: 40px; border: 2px solid rgba(22, 132, 93, .9); border-radius: 50%; animation: ais-pulse 2.2s infinite; }
+.o_sedar_ais_marker--dry_dock .o_sedar_ais_marker_pulse, .o_sedar_ais_marker--maintenance .o_sedar_ais_marker_pulse { border-color: rgba(170, 103, 0, .9); animation: none; }
+.o_sedar_ais_marker_label { position: absolute; left: 41px; top: 4px; min-width: 88px; padding: 5px 7px; text-align: left; color: #17384a; border-radius: 7px; background: rgba(255,255,255,.96); box-shadow: 0 3px 8px rgba(4,44,65,.18); pointer-events: none; }
+.o_sedar_ais_marker_label b, .o_sedar_ais_marker_label small { display: block; white-space: nowrap; }
+.o_sedar_ais_marker_label b { font-size: 10px; }
+.o_sedar_ais_marker_label small { color: #506975; font-size: 8px; }
+.o_sedar_ais_marker.is-selected { z-index: 8; }
+.o_sedar_ais_marker.is-selected .o_sedar_ais_marker_ship { outline: 4px solid rgba(255,255,255,.65); transform: rotate(var(--course)) scale(1.12); }
+.o_sedar_ais_marker.is-selected .o_sedar_ais_marker_label { background: #082f46; color: white; }
+.o_sedar_ais_marker.is-selected .o_sedar_ais_marker_label small { color: #c3e3ec; }
 @keyframes ais-pulse { 0% { transform: scale(.75); opacity: 1; } 80%, 100% { transform: scale(1.65); opacity: 0; } }
 
-.o_sedar_ais_detail { position: absolute; z-index: 10; right: 18px; bottom: 18px; width: min(520px, calc(100% - 36px)); max-height: 52%; overflow: auto; padding: 15px; border: 1px solid rgba(255,255,255,.8); border-radius: 15px; background: rgba(250,253,254,.95); box-shadow: 0 16px 38px rgba(4,44,65,.28); backdrop-filter: blur(10px); }
-.o_sedar_ais_detail_open { position: absolute; top: 12px; right: 12px; color: #527180; border: 0; background: transparent; }
-.o_sedar_ais_detail_title { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding-right: 23px; }.o_sedar_ais_detail-title h2 { margin: 0; }.o_sedar_ais_detail_title h2 { margin: 0; color: #0d2e42; font-size: 18px; }.o_sedar_ais_detail_title p { margin: 1px 0 0; color: #708691; font-size: 10px; }
-.o_sedar_ais_detail_grid { display: grid; grid-template-columns: 1.25fr 1fr 1fr; gap: 8px; margin: 12px 0; }.o_sedar_ais_detail_grid > div { padding: 9px; border-radius: 9px; background: #eef5f7; }.o_sedar_ais_detail_grid span, .o_sedar_ais_detail_grid strong, .o_sedar_ais_detail_grid small { display: block; }.o_sedar_ais_detail_grid span { color: #7e919a; font-size: 8px; font-weight: 750; text-transform: uppercase; }.o_sedar_ais_detail_grid strong { overflow: hidden; color: #17384a; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }.o_sedar_ais_detail_grid small { color: #6f858f; font-size: 8px; }
-.o_sedar_ais_crew { border-top: 1px solid #dce7eb; }.o_sedar_ais_crew summary { display: flex; justify-content: space-between; padding: 10px 2px 7px; cursor: pointer; color: #17384a; font-size: 11px; font-weight: 700; }.o_sedar_ais_crew summary small { color: #81949e; font-weight: 500; }.o_sedar_ais_crew_grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }.o_sedar_ais_crew_member { display: flex; align-items: center; gap: 7px; padding: 6px; border-radius: 8px; background: #f1f6f8; }.o_sedar_ais_avatar { display: grid; place-items: center; width: 26px; height: 26px; flex: 0 0 auto; color: white; border-radius: 50%; background: #168dad; font-size: 10px; font-weight: 800; }.o_sedar_ais_crew_member strong, .o_sedar_ais_crew_member small { display: block; }.o_sedar_ais_crew_member strong { color: #244253; font-size: 10px; }.o_sedar_ais_crew_member small { color: #7d919b; font-size: 8px; }
-.o_sedar_ais_drydock_detail { display: flex; gap: 10px; align-items: center; margin-top: 10px; padding: 9px; color: #774e05; border-radius: 9px; background: #fff0ca; }.o_sedar_ais_drydock_detail i { font-size: 20px; }.o_sedar_ais_drydock_detail strong, .o_sedar_ais_drydock_detail span, .o_sedar_ais_drydock_detail small { display: block; }.o_sedar_ais_drydock_detail span, .o_sedar_ais_drydock_detail small { font-size: 9px; }
-.o_sedar_ais_map_footer { display: flex; justify-content: space-between; gap: 10px; padding: 8px 15px; color: #758b96; border-top: 1px solid #d9e4e8; background: white; font-size: 9px; }
-.o_sedar_ais_loading, .o_sedar_ais_empty { padding: 34px; color: #78909c; text-align: center; }
+.o_sedar_ais_detail { position: relative; min-width: 0; height: 660px; overflow: auto; overscroll-behavior: contain; padding: 18px; border-left: 1px solid #d7e3e8; background: #fbfdfe; box-shadow: -10px 0 28px rgba(4,44,65,.08); }
+.o_sedar_ais_detail_actions { display: flex; justify-content: flex-end; gap: 4px; min-height: 32px; }
+.o_sedar_ais_icon_button { display: grid; place-items: center; width: 32px; height: 32px; color: #466371; border: 0; border-radius: 7px; background: transparent; }
+.o_sedar_ais_icon_button:hover { color: #073c57; background: #e6f0f4; }
+.o_sedar_ais_detail_title { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+.o_sedar_ais_detail_title h2 { margin: 0; color: #0d2e42; font-size: 18px; }
+.o_sedar_ais_detail_title p { margin: 1px 0 0; color: #607783; font-size: 10px; }
+.o_sedar_ais_detail_grid { display: grid; grid-template-columns: 1fr; gap: 8px; margin: 12px 0; }
+.o_sedar_ais_detail_grid > div { min-width: 0; padding: 9px; border-radius: 9px; background: #eef5f7; }
+.o_sedar_ais_detail_grid span, .o_sedar_ais_detail_grid strong, .o_sedar_ais_detail_grid small { display: block; }
+.o_sedar_ais_detail_grid span { color: #627985; font-size: 8px; font-weight: 750; text-transform: uppercase; }
+.o_sedar_ais_detail_grid strong { overflow: hidden; color: #17384a; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.o_sedar_ais_detail_grid small { color: #5f7783; font-size: 8px; }
+.o_sedar_ais_crew { border-top: 1px solid #dce7eb; }
+.o_sedar_ais_crew summary { display: flex; justify-content: space-between; gap: 8px; padding: 10px 2px 7px; cursor: pointer; color: #17384a; font-size: 11px; font-weight: 700; }
+.o_sedar_ais_crew summary small { color: #637b87; font-weight: 500; text-align: right; }
+.o_sedar_ais_crew_grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.o_sedar_ais_crew_member { display: flex; align-items: center; gap: 7px; min-width: 0; padding: 6px; border-radius: 8px; background: #f1f6f8; }
+.o_sedar_ais_avatar { display: grid; place-items: center; width: 26px; height: 26px; flex: 0 0 auto; color: white; border-radius: 50%; background: #087c9e; font-size: 10px; font-weight: 800; }
+.o_sedar_ais_crew_member strong, .o_sedar_ais_crew_member small { display: block; overflow-wrap: anywhere; }
+.o_sedar_ais_crew_member strong { color: #244253; font-size: 10px; }
+.o_sedar_ais_crew_member small { color: #627985; font-size: 8px; }
+.o_sedar_ais_drydock_detail { display: flex; gap: 10px; align-items: center; margin-top: 10px; padding: 9px; color: #684200; border-radius: 9px; background: #ffeab5; }
+.o_sedar_ais_drydock_detail i { font-size: 20px; }
+.o_sedar_ais_drydock_detail strong, .o_sedar_ais_drydock_detail span, .o_sedar_ais_drydock_detail small { display: block; }
+.o_sedar_ais_drydock_detail span, .o_sedar_ais_drydock_detail small { font-size: 9px; }
+
+.o_sedar_ais_equipment { margin-top: 16px; padding-top: 14px; border-top: 2px solid #d6e4e9; }
+.o_sedar_ais_section_heading, .o_sedar_ais_procurement_group_title { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.o_sedar_ais_section_heading h3, .o_sedar_ais_procurement_header h3, .o_sedar_ais_procurement_group_title h4 { margin: 0; color: #0d2e42; }
+.o_sedar_ais_section_heading h3, .o_sedar_ais_procurement_header h3 { font-size: 15px; }
+.o_sedar_ais_section_heading p, .o_sedar_ais_procurement_header p { margin: 2px 0 0; color: #607783; font-size: 9px; }
+.o_sedar_ais_section_heading > span, .o_sedar_ais_procurement_group_title > span { flex: 0 0 auto; padding: 3px 7px; color: #496473; border-radius: 20px; background: #e9f1f4; font-size: 9px; font-weight: 700; }
+.o_sedar_ais_equipment_list { display: grid; gap: 8px; margin-top: 9px; }
+.o_sedar_ais_equipment_card { display: block; width: 100%; min-width: 0; padding: 11px; color: inherit; text-align: left; border: 1px solid #d7e3e8; border-radius: 10px; background: white; }
+.o_sedar_ais_equipment_card:hover, .o_sedar_ais_equipment_card.is-selected { border-color: #167b9b; box-shadow: 0 5px 13px rgba(18,108,142,.1); }
+.o_sedar_ais_equipment_card.is-selected { background: #effafe; }
+.o_sedar_ais_equipment_top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.o_sedar_ais_equipment_top > span:first-child { min-width: 0; }
+.o_sedar_ais_equipment_top strong, .o_sedar_ais_equipment_top small { display: block; overflow-wrap: anywhere; }
+.o_sedar_ais_equipment_top strong { color: #17384a; font-size: 11px; }
+.o_sedar_ais_equipment_top small { color: #5e7682; font-size: 9px; }
+.o_sedar_ais_equipment_state { flex: 0 0 auto; padding: 3px 6px; color: #425b68; border-radius: 20px; background: #e8eef1; font-size: 8px; font-weight: 800; text-transform: uppercase; }
+.o_sedar_ais_equipment_state--not_due, .o_sedar_ais_equipment_state--operational, .o_sedar_ais_equipment_state--available { color: #075e40; background: #d4f3e7; }
+.o_sedar_ais_equipment_state--due, .o_sedar_ais_equipment_state--unconfigured, .o_sedar_ais_equipment_state--maintenance, .o_sedar_ais_equipment_state--under_maintenance { color: #764900; background: #ffeab0; }
+.o_sedar_ais_equipment_state--overdue, .o_sedar_ais_equipment_state--blocked, .o_sedar_ais_equipment_state--out_of_service { color: #8a2929; background: #ffd8d8; }
+.o_sedar_ais_equipment_facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 9px; }
+.o_sedar_ais_equipment_facts > span { min-width: 0; padding-top: 7px; border-top: 1px solid #e6edef; }
+.o_sedar_ais_equipment_facts small, .o_sedar_ais_equipment_facts b { display: block; overflow-wrap: anywhere; }
+.o_sedar_ais_equipment_facts small { color: #667d89; font-size: 7px; font-weight: 700; text-transform: uppercase; }
+.o_sedar_ais_equipment_facts b { color: #183b4f; font-size: 9px; }
+
+.o_sedar_ais_procurement { margin-top: 16px; padding-top: 14px; border-top: 2px solid #9fc6d4; }
+.o_sedar_ais_procurement_header { display: grid; gap: 8px; }
+.o_sedar_ais_back { justify-self: start; padding: 4px 0; color: #086888; border: 0; background: transparent; font-size: 10px; font-weight: 700; }
+.o_sedar_ais_back i { margin-right: 4px; }
+.o_sedar_ais_detail_state { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 110px; margin-top: 10px; padding: 18px; color: #536d7a; border: 1px dashed #c7d8de; border-radius: 10px; background: #f6f9fa; text-align: center; }
+.o_sedar_ais_detail_state--error { flex-wrap: wrap; color: #862f2f; border-color: #e7b9b9; background: #fff3f3; }
+.o_sedar_ais_limited { display: flex; gap: 10px; margin-top: 10px; padding: 10px; color: #5f4a1c; border: 1px solid #e7d49c; border-radius: 9px; background: #fff9e8; }
+.o_sedar_ais_limited i { margin-top: 2px; }
+.o_sedar_ais_limited strong, .o_sedar_ais_limited span { display: block; }
+.o_sedar_ais_limited strong { font-size: 10px; }
+.o_sedar_ais_limited span { font-size: 9px; line-height: 1.35; }
+.o_sedar_ais_procurement_group { margin-top: 14px; }
+.o_sedar_ais_procurement_group--history { padding-top: 14px; border-top: 1px solid #d4e1e6; }
+.o_sedar_ais_procurement_group_title h4 { font-size: 13px; }
+.o_sedar_ais_procurement_row { margin-top: 8px; padding: 10px; border: 1px solid #dae5e9; border-radius: 10px; background: white; }
+.o_sedar_ais_procurement_row_top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.o_sedar_ais_procurement_row_top > div { min-width: 0; }
+.o_sedar_ais_procurement_row_top strong, .o_sedar_ais_procurement_row_top div > span { display: block; overflow-wrap: anywhere; }
+.o_sedar_ais_procurement_row_top strong { color: #17384a; font-size: 10px; }
+.o_sedar_ais_procurement_row_top div > span { color: #5d7480; font-size: 9px; }
+.o_sedar_ais_progress { flex: 0 0 auto; padding: 3px 6px; color: #0f5d76; border-radius: 20px; background: #dff1f7; font-size: 8px; font-weight: 800; }
+.o_sedar_ais_procurement_counts { display: flex; gap: 12px; margin-top: 7px; color: #526b78; font-size: 8px; }
+.o_sedar_ais_commercial { margin-top: 9px; padding-top: 8px; border-top: 1px solid #e4ecef; }
+.o_sedar_ais_commercial h5 { margin: 5px 0; color: #526a77; font-size: 8px; font-weight: 800; letter-spacing: .3px; text-transform: uppercase; }
+.o_sedar_ais_bid { overflow: hidden; border: 1px solid #e0e9ed; border-radius: 8px; background: #f7fafb; }
+.o_sedar_ais_bid + .o_sedar_ais_bid { margin-top: 6px; }
+.o_sedar_ais_commercial_item, .o_sedar_ais_award > div { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; padding: 6px; border-radius: 7px; background: #f2f6f8; }
+.o_sedar_ais_commercial_item + .o_sedar_ais_commercial_item { margin-top: 4px; }
+.o_sedar_ais_commercial_item span, .o_sedar_ais_commercial_item strong, .o_sedar_ais_commercial_item small, .o_sedar_ais_award span, .o_sedar_ais_award strong, .o_sedar_ais_award small { display: block; min-width: 0; overflow-wrap: anywhere; }
+.o_sedar_ais_commercial_item strong, .o_sedar_ais_award strong { color: #213f50; font-size: 9px; }
+.o_sedar_ais_commercial_item small, .o_sedar_ais_award small { color: #627985; font-size: 8px; }
+.o_sedar_ais_commercial_item b, .o_sedar_ais_award b { flex: 0 0 auto; color: #17384a; font-size: 9px; }
+.o_sedar_ais_award > div { background: #eaf6f1; }
+.o_sedar_ais_attachment { display: block; max-width: 100%; margin-top: 3px; padding: 2px 0; overflow: hidden; color: #086888; border: 0; background: transparent; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+.o_sedar_ais_bid_facts, .o_sedar_ais_bid_terms { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; margin: 0; padding: 7px; }
+.o_sedar_ais_bid_facts div, .o_sedar_ais_bid_terms div { min-width: 0; }
+.o_sedar_ais_bid_facts dt, .o_sedar_ais_bid_terms dt { color: #677e89; font-size: 7px; font-weight: 700; text-transform: uppercase; }
+.o_sedar_ais_bid_facts dd, .o_sedar_ais_bid_terms dd { margin: 0; color: #213f50; font-size: 8px; overflow-wrap: anywhere; }
+.o_sedar_ais_bid_terms { grid-template-columns: 1fr; padding-top: 0; }
+.o_sedar_ais_escape_hint { margin: 16px 0 0; color: #6a7f8a; font-size: 8px; text-align: center; }
+
+.o_sedar_ais_map_footer { display: flex; justify-content: space-between; gap: 10px; padding: 8px 15px; color: #5c7480; border-top: 1px solid #d9e4e8; background: white; font-size: 9px; }
+.o_sedar_ais_loading, .o_sedar_ais_empty { padding: 34px; color: #5c7480; text-align: center; }
+.o_sedar_ais_empty--compact { padding: 18px 8px; font-size: 10px; }
+.o_sedar_ais_load_error { display: grid; justify-items: center; gap: 7px; min-height: 260px; align-content: center; padding: 30px; color: #762d2d; border: 1px solid #e8c2c2; border-radius: 16px; background: white; text-align: center; }
+.o_sedar_ais_load_error i { font-size: 28px; }
+.o_sedar_ais_load_error span { color: #6b7e88; }
+
+.o_sedar_ais_dashboard button:focus-visible, .o_sedar_ais_dashboard select:focus-visible, .o_sedar_ais_dashboard summary:focus-visible { outline: 3px solid #f5b72d; outline-offset: 2px; }
+
+@media (max-width: 1250px) {
+    .o_sedar_ais_map_body.has-detail { grid-template-columns: minmax(0, 1fr); }
+    .o_sedar_ais_detail { height: auto; max-height: none; overflow: visible; border-top: 1px solid #d7e3e8; border-left: 0; box-shadow: 0 -10px 28px rgba(4,44,65,.06); }
+    .o_sedar_ais_detail_grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
 
 @media (max-width: 1100px) {
     .o_sedar_ais_header { align-items: flex-start; flex-direction: column; }
-    .o_sedar_ais_workspace { grid-template-columns: 275px minmax(500px, 1fr); }
-    .o_sedar_ais_summary { grid-template-columns: repeat(2, 1fr); }
+    .o_sedar_ais_header_actions { justify-content: flex-start; }
+    .o_sedar_ais_workspace { grid-template-columns: minmax(250px, 285px) minmax(0, 1fr); }
+    .o_sedar_ais_summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 780px) {
     .o_sedar_ais_dashboard { padding: 10px; }
-    .o_sedar_ais_workspace { display: block; }
-    .o_sedar_ais_fleet-panel, .o_sedar_ais_fleet_panel { max-height: 330px; border-right: 0; border-bottom: 1px solid #d9e4e8; }
-    .o_sedar_ais_map { min-height: 650px; }
-    .o_sedar_ais_detail { max-height: 58%; }
+    .o_sedar_ais_header { padding: 17px; border-radius: 14px; }
+    .o_sedar_ais_header_actions { width: 100%; }
+    .o_sedar_ais_demo_badge { width: 100%; text-align: center; }
+    .o_sedar_ais_workspace { display: block; border-radius: 14px; }
+    .o_sedar_ais_fleet_panel { max-height: 370px; border-right: 0; border-bottom: 1px solid #d9e4e8; }
+    .o_sedar_ais_fleet_list { max-height: 300px; }
+    .o_sedar_ais_map { min-height: 540px; }
+    .o_sedar_ais_detail { padding: 14px; }
     .o_sedar_ais_detail_grid { grid-template-columns: 1fr; }
+    .o_sedar_ais_crew_grid { grid-template-columns: 1fr; }
+    .o_sedar_ais_map_toolbar, .o_sedar_ais_map_footer { align-items: flex-start; flex-direction: column; }
+}
+
+@media (max-width: 480px) {
+    .o_sedar_ais_dashboard { padding: 6px; }
+    .o_sedar_ais_header { margin-bottom: 10px; padding: 14px; }
+    .o_sedar_ais_header_actions .btn { flex: 1 1 auto; }
+    .o_sedar_ais_summary { gap: 7px; margin-bottom: 9px; }
+    .o_sedar_ais_metric { padding: 10px; }
+    .o_sedar_ais_metric strong { font-size: 22px; }
+    .o_sedar_ais_metric small { font-size: 9px; }
+    .o_sedar_ais_panel_heading { align-items: stretch; flex-direction: column; }
+    .o_sedar_ais_panel_heading select { width: 100%; }
+    .o_sedar_ais_map { min-height: 480px; }
+    .o_sedar_ais_legend { flex-wrap: wrap; }
+    .o_sedar_ais_marker_label { display: none; }
+    .o_sedar_ais_equipment_facts { grid-template-columns: 1fr; }
+    .o_sedar_ais_equipment_facts > span { display: flex; justify-content: space-between; gap: 8px; }
+    .o_sedar_ais_equipment_top, .o_sedar_ais_detail_title { align-items: flex-start; }
+    .o_sedar_ais_status, .o_sedar_ais_equipment_state { white-space: normal; text-align: center; }
+    .o_sedar_ais_procurement_row_top, .o_sedar_ais_commercial_item, .o_sedar_ais_award > div { flex-direction: column; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .o_sedar_ais_dashboard *, .o_sedar_ais_dashboard *::before, .o_sedar_ais_dashboard *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    .o_sedar_ais_marker_pulse { display: none; }
 }
