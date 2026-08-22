@@ -266,8 +266,8 @@ def _ensure_inventory_usage_demo(env, stock_location, products):
             "source_location_id": stock_location.id,
             "requested_qty": 4,
             "reserved_qty": 0,
-            "issued_qty": 0,
-            "consumed_qty": 0,
+            "legacy_issued_qty": 0,
+            "legacy_consumed_qty": 0,
         })
 
     completed_operation = env.ref("sedar_marine_dispatch_demo.operation_completed", raise_if_not_found=False)
@@ -280,14 +280,12 @@ def _ensure_inventory_usage_demo(env, stock_location, products):
             "source_location_id": stock_location.id,
             "tug_location_id": tug.stock_location_id.id,
             "opening_qty": 12000,
-            "issued_qty": 850,
-            "consumed_qty": 620,
-            "state": "consumed",
+            "quantity_to_issue": 0,
+            "quantity_to_consume": 0,
+            "legacy_issued_qty": 850,
+            "legacy_consumed_qty": 620,
             "note": "Demo completed-operation fuel consumption.",
         })
-        if not fuel_log.stock_move_ids:
-            fuel_log.state = "draft"
-            fuel_log.action_record_consumption()
         for move in fuel_log.stock_move_ids.filtered(
             lambda item: item.state not in {"done", "cancel"}
         ):

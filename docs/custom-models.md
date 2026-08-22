@@ -50,7 +50,7 @@ fixture seeding.
 | `sedar.crew.rotation` | New | Plans crew rotation periods, watch, tugboat, relief crew, and handover | `sedar_crew_scheduling/models/crew_rotation.py` |
 | `sedar.tugboat` | Extended | Owns each fleet asset by company and exposes technical equipment, maintenance blockers, dry-dock plans, readiness reason, tugboat stock location, and HSSE exceptions | `sedar_marine_operations/models/marine_crew.py`; `sedar_marine_maintenance/models/tugboat.py`; `sedar_marine_inventory/models/tugboat.py`; `sedar_hsse/models/hsse.py` |
 | `sedar.ais.position` | New | Stores the current fictional AIS/GPS report consumed by the offline fleet-monitoring demonstration | `sedar_ais_demo/models/ais_position.py` |
-| `maintenance.equipment` | Extended | Links standard Odoo equipment to SEDAR tugboats and marine equipment hierarchy/criticality | `sedar_marine_maintenance/models/maintenance_equipment.py` |
+| `maintenance.equipment` | Extended | Links standard Odoo equipment to tugboats, running-hour history, and persistent Replacement Equipment inventory provenance | `sedar_marine_maintenance/models/maintenance_equipment.py`; `sedar_marine_inventory/models/inventory_lifecycle.py` |
 | `sedar.equipment.running.hour.reading` | New | Preserves dated, attributable Equipment hour-meter observations and manager-controlled corrections | `sedar_marine_maintenance/models/maintenance_equipment.py` |
 | `maintenance.request` | Extended | Adds SEDAR work-order type, tug availability impact, release evidence, dry-dock linkage, and spare-part status/lines | `sedar_marine_maintenance/models/maintenance_request.py`; `sedar_marine_inventory/models/maintenance_parts.py` |
 | `sedar.drydock.plan` | New | Represents dry-dock planning, milestones, availability impact, and controlled release | `sedar_marine_maintenance/models/drydock.py` |
@@ -59,7 +59,11 @@ fixture seeding.
 | `sedar.inventory.template.line` | New | Defines product quantities required by an inventory template | `sedar_marine_inventory/models/inventory_models.py` |
 | `sedar.inventory.requirement` | New | Stores generated or manual stock requirements that drive the inventory component of readiness | `sedar_marine_inventory/models/service_order.py` |
 | `product.product` | Extended | Provides the SEDAR Inventory Check item identity, warehouse availability, reorder status, and tug compatibility | `sedar_marine_inventory/models/inventory_item.py` |
-| `sedar.inventory.issue` | New | Preserves the immutable audit record and Odoo stock movement for one-step issuance to a tugboat | `sedar_marine_inventory/models/inventory_item.py` |
+| `res.company` | Extended | Owns the exact Procurement and Inventory Officer and configured Storage, consumption, and disposal locations | `sedar_marine_inventory/models/res_company.py` |
+| `stock.location` | Extended | Tags authoritative SEDAR Storage, tugboat, consumption, and disposal locations | `sedar_marine_inventory/models/stock_location.py` |
+| `sedar.inventory.issue` | New | Preserves the immutable audit record and completed Storage-to-tugboat movement for an Inventory Issue | `sedar_marine_inventory/models/inventory_item.py` |
+| `sedar.inventory.lifecycle` | New | Tracks issued goods as Currently In Use until explicit return, consumption, or disposal | `sedar_marine_inventory/models/inventory_lifecycle.py` |
+| `sedar.inventory.lifecycle.event` | New | Stores append-only technical and stock-disposition events for a lifecycle | `sedar_marine_inventory/models/inventory_lifecycle.py` |
 | `sedar.maintenance.part.line` | New | Tracks requested, reserved, issued, and consumed spare parts for maintenance work orders | `sedar_marine_inventory/models/maintenance_parts.py` |
 | `sedar.operation.fuel.log` | New | Tracks operation fuel/lubricant issue, consumption, and remaining balance by tugboat | `sedar_marine_inventory/models/operation_fuel.py` |
 | `sedar.marine.operation` | Extended | Exposes operation fuel/lubricant logs and consumption summary | `sedar_marine_inventory/models/operation_fuel.py` |
@@ -558,6 +562,9 @@ Key behavior:
 | `sedar_service_cycle_key` | Computed, stored character | Stable baseline-and-threshold identity used for alert deduplication. |
 | `sedar_alerted_service_cycle_key` | Read-only character | Persists the service cycle already notified, including after the activity is completed. |
 | `sedar_due_alert_assignment_state` | Computed selection | Shows whether a due alert is assigned or needs an explicit technician/fallback user. |
+| `sedar_inventory_product_id` | Read-only company-checked many-to-one to `product.product` | Immutable originating Replacement Equipment Item Type created only by controlled installation. |
+| `sedar_inventory_lot_id` | Read-only company-checked many-to-one to `stock.lot` | Immutable originating serial; product and serial identify at most one persistent Equipment record. |
+| `sedar_inventory_current_lifecycle_id` | Read-only company-checked many-to-one to `sedar.inventory.lifecycle` | Open lifecycle currently installing this Equipment; cleared on technical removal without deleting Equipment or Running Hour history. |
 
 Key behavior:
 
@@ -592,13 +599,13 @@ Maintenance Users may create readings but cannot edit or delete them. Only Maint
 
 | Field | Type | How it is used |
 | --- | --- | --- |
-| `sedar_tugboat_id` | Many-to-one to `sedar.tugboat` | Affected tugboat. Defaults from linked marine equipment when available. |
+| `sedar_tugboat_id` | Company-checked many-to-one to `sedar.tugboat` | Affected tugboat. Defaults from linked marine equipment when available. |
 | `sedar_work_order_type` | Selection | Planned maintenance, defect/corrective, or dry-dock work. |
 | `sedar_priority` | Selection | Low, medium, high, or critical marine priority. |
 | `sedar_defect_source` | Character | Source of a corrective defect report. Required for defect work orders. |
 | `sedar_availability_impact` | Selection | No impact, monitor only, or blocks tug readiness. |
 | `sedar_blocks_tug_readiness` | Computed, stored boolean | True when availability impact is blocking and the work order is not closed. |
-| `sedar_drydock_plan_id` | Many-to-one to `sedar.drydock.plan` | Optional dry-dock plan that owns or groups the work order. |
+| `sedar_drydock_plan_id` | Company-checked many-to-one to `sedar.drydock.plan` | Optional dry-dock plan that owns or groups the work order. |
 | `sedar_spare_part_note` | Text | Legacy placeholder retained for historical Slice 10 records; Slice 11 uses structured spare-part lines. |
 | `sedar_part_line_ids` | One-to-many to `sedar.maintenance.part.line` | Spare parts requested, reserved, issued, and consumed for the work order. |
 | `sedar_parts_status` | Computed, stored selection | Summarizes whether the work order has no parts, shortage, reserved, issued, or consumed parts. |
@@ -632,7 +639,8 @@ One record represents a planned dry-dock event for one tugboat. It provides plan
 | Field | Type | How it is used |
 | --- | --- | --- |
 | `name` | Required character | Dry-dock plan title. |
-| `tugboat_id` | Required many-to-one to `sedar.tugboat` | Tugboat affected by the dry dock. |
+| `company_id` | Stored related many-to-one to `res.company` | Company inherited from the tugboat for global allowed-company isolation. |
+| `tugboat_id` | Required company-checked many-to-one to `sedar.tugboat` | Tugboat affected by the dry dock. |
 | `planned_start` | Required datetime | Planned start. |
 | `planned_end` | Required datetime | Planned completion; must be later than start. |
 | `yard_name` | Required character | Shipyard or repair facility for the plan. |
@@ -656,7 +664,8 @@ Key behavior:
 
 | Field | Type | How it is used |
 | --- | --- | --- |
-| `plan_id` | Required many-to-one to `sedar.drydock.plan` | Parent dry-dock plan. |
+| `plan_id` | Required company-checked many-to-one to `sedar.drydock.plan` | Parent dry-dock plan. |
+| `company_id` | Stored related many-to-one to `res.company` | Company inherited from the dry-dock plan for global allowed-company isolation. |
 | `sequence` | Integer | Milestone ordering. |
 | `name` | Required character | Milestone description. |
 | `planned_date` | Required datetime | Planned milestone date. |
@@ -683,13 +692,14 @@ One storable Odoo product represents an Item Type. Inventory Check exposes only 
 | --- | --- | --- |
 | `sedar_inventory_item` | Boolean, indexed | Includes the product in the Inventory Check workspace. |
 | `sedar_manufacturer_part_number` | Character, indexed | Searchable manufacturer-assigned reference kept separate from `default_code`, which is labeled SEDAR Item Code in this workspace. |
+| `sedar_item_type` | Required indexed selection | Classifies the Item Type as fuel/lubricant, spare/consumable, or Replacement Equipment; it is immutable after the first stock transaction. Replacement Equipment must be serial-tracked. |
 | `sedar_compatibility_scope` | Required selection | Marks an Item Type as fleet-wide or restricted to selected tugboats. |
 | `sedar_compatible_tugboat_ids` | Many-to-many to `sedar.tugboat` | Explicit list required for restricted compatibility. |
 | `sedar_reorder_point` | Float | Manually maintained low-stock threshold; cannot be negative. |
-| `sedar_stock_location_id` | Computed many-to-one to `stock.location` | Current company's primary warehouse stock location. |
-| `sedar_on_hand_qty` | Computed float | Physical quantity at the exact warehouse stock location. |
-| `sedar_reserved_qty` | Computed float | Quantity reserved at that exact location. |
-| `sedar_available_to_issue` | Computed float | On Hand minus Reserved at that exact warehouse location. |
+| `sedar_stock_location_id` | Computed many-to-one to `stock.location` | Company's configured default Storage location; displayed separately from aggregate company Storage totals. |
+| `sedar_on_hand_qty` | Computed float | Physical quantity summed only across the company's explicitly tagged Storage locations. |
+| `sedar_reserved_qty` | Computed float | Quantity reserved across those tagged Storage locations. |
+| `sedar_available_to_issue` | Computed float | On Hand minus Reserved across those tagged Storage locations. The issue modal shows availability for the selected exact Storage location. |
 | `sedar_stock_status` | Computed selection | In Stock, Low Stock, or Out of Stock from Available to Issue and Reorder Point. |
 | `sedar_compatibility_display` | Computed character | Fleet-wide or a readable list of compatible tugboats. |
 | `sedar_code_locked` | Computed boolean | Makes the SEDAR Item Code immutable after the first non-cancelled stock movement. |
@@ -698,39 +708,101 @@ Key behavior:
 
 - The SEDAR Item Code (`default_code` in the Odoo product foundation) is required and unique among SEDAR Inventory Items.
 - Restricted Item Types require at least one explicitly compatible tugboat.
-- Inventory Check excludes quantities stored in child and tug locations from Available to Issue.
+- Storage includes only explicitly tagged Storage locations and excludes child, tug, consumption, and disposal locations.
 - Procurement and Inventory Officers may create and maintain Item Types but cannot directly edit stock balances or change an Item Code after stock movement begins.
 
 ### `sedar.inventory.issue`
 
-One record is an immutable issue of an Item Type from warehouse stock to a named tugboat. The initial workflow treats issuance as immediate consumption and does not maintain an onboard balance.
+One record is the immutable audit fact for a controlled Inventory Issue. New issues move stock from an exact tagged Storage location to the selected tugboat's tagged location and create one open lifecycle. Pre-lifecycle issues remain unchanged and are explicitly identified as legacy one-step consumption history.
 
 | Field | Type | How it is used |
 | --- | --- | --- |
 | `name` | Required read-only character | Sequence-generated reference using `SII/<year>/#####`. |
-| `product_id` | Required read-only many-to-one to `product.product` | Issued Item Type. |
+| `company_id` | Required immutable indexed many-to-one to `res.company` | Company derived from the selected Storage location and used for allowed-company isolation. |
+| `product_id` | Required read-only company-checked many-to-one to `product.product` | Issued Item Type. |
 | `manufacturer_part_number` | Read-only related character | Manufacturer reference visible in the audit record. |
-| `tugboat_id` | Required read-only many-to-one to `sedar.tugboat` | Tugboat receiving the issued item. |
-| `source_location_id` | Required read-only many-to-one to `stock.location` | Exact warehouse location reduced by the issue. |
+| `tugboat_id` | Required read-only company-checked many-to-one to `sedar.tugboat` | Tugboat receiving the issued item. |
+| `source_location_id` | Required read-only company-checked many-to-one to `stock.location` | Exact tagged Storage location reduced by the issue. |
+| `tug_location_id` | Required read-only company-checked many-to-one to `stock.location` | Selected tugboat's tagged internal stock destination. |
 | `quantity` | Required read-only float | Quantity issued; must be positive and no greater than Available to Issue. |
 | `product_uom_id` | Read-only related many-to-one to `uom.uom` | Product unit of measure. |
 | `purpose` | Required read-only text | Operational reason for the issue. |
 | `issued_by_id` | Required read-only many-to-one to `res.users` | Procurement and Inventory Officer who confirmed the issue. |
 | `issued_at` | Required read-only datetime | Confirmation time. |
-| `stock_move_id` | Required read-only many-to-one to `stock.move` | Completed Odoo movement from warehouse to the controlled consumption location. |
+| `stock_move_id` | Required read-only company-checked many-to-one to `stock.move` | Completed Odoo movement from Storage to tugboat stock. |
+| `lot_id` | Read-only company-checked many-to-one to `stock.lot` | Selected lot or required Replacement Equipment serial. |
+| `lifecycle_id` | Read-only company-checked many-to-one to `sedar.inventory.lifecycle` | Open/closed trace created for a new issue; absent on legacy one-step history. |
+| `legacy_consumed` | Read-only boolean | Marks historical one-step issues whose done moves remain unchanged and do not invent onboard balances. |
 
 Key behavior:
 
-- Issue to Tug hard-blocks incompatible tugboats and insufficient Available to Issue.
-- Completion creates a standard done Odoo stock movement and then the immutable SEDAR audit record.
+- The exact configured Procurement and Inventory Officer is enforced server-side; membership in the Officer group alone is insufficient.
+- Issue to Tug hard-blocks incompatible tugboats, foreign or untagged locations, missing tug destinations, wrong serials, and insufficient reserved-aware availability.
+- Completion atomically creates a standard done Storage-to-tug movement, immutable issue, and lifecycle. A failed movement rolls the domain facts back.
 - Completed issues cannot be edited or deleted.
-- Return to Warehouse and issuance-correction rules are deliberately deferred and marked inline for the next inventory iteration.
+
+### `sedar.inventory.lifecycle`
+
+One immutable lifecycle is the Currently In Use umbrella for a new Inventory Issue. Its stock quantity is derived from the issue move and append-only closing events, while `usage_state` supplies technical context.
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `name`, `issue_id` | Stored related name and required company-checked issue link | Preserve the immutable Inventory Issue identity; one issue has at most one lifecycle. |
+| `company_id` | Required immutable indexed many-to-one | Company boundary for rules, stock, tugboat, Equipment, and exact Officer authority. |
+| `product_id`, `item_type`, `product_uom_id` | Immutable product, related classification, and UoM | Identify the Item Type and rounding used by every quantity check. |
+| `tugboat_id`, `source_location_id`, `tug_location_id` | Required immutable company-checked links | Preserve the tugboat and exact movement endpoints. |
+| `issue_move_id`, `initial_qty` | Required immutable done move and quantity | Authoritative opening movement and issued quantity; endpoints, product, company, quantity, and lot must match. |
+| `open_qty`, `state` | Computed stored float and selection | Initial quantity less done return/consume/dispose events, rounded by product UoM; state is open or closed. |
+| `usage_state` | Controlled read-only selection | Onboard, assigned, installed, removed, or closed technical context. |
+| `lot_id`, `equipment_id` | Read-only company-checked links | Lot/serial and optional related Equipment. Open Replacement Equipment serials are unique. |
+| `issued_by_id`, `issued_at` | Required immutable audit user/time | Actor and time from the Inventory Issue. |
+| `installed_at`, `removed_at` | Computed stored datetimes | Latest install and technical-removal events. |
+| `reconciliation_state` | Computed stored selection | Reconciled when all linked movement evidence is complete; otherwise Needs Review. |
+| `event_ids` | Read-only one-to-many | Append-only technical and disposition history. |
+| `disposition_activity_id` | Read-only many-to-one to `mail.activity` | Deduplicated Officer task scheduled after technical removal and closed on final disposition. |
+| `serial_open_key` | Computed stored character | Enforces one open lifecycle for a Replacement Equipment product/serial pair. |
+| `is_procurement_inventory_officer` | Non-stored computed boolean | User-dependent UI helper; server actions independently enforce exact Officer authority. |
+
+Maintenance Managers control assignment, Replacement Equipment installation, and technical removal. The exact Officer controls partial return, consumption, and disposal. Every stock-closing action row-locks and reloads the lifecycle, rechecks rounded open quantity and unreserved physical stock, creates a standard done move to the configured destination, and appends its event in one transaction. Installed Replacement Equipment must be removed before disposition and cannot be partially closed.
+
+### `sedar.inventory.lifecycle.event`
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `lifecycle_id`, `company_id` | Required company-checked lifecycle and stored related company | Own and isolate the event. |
+| `event_type` | Required read-only selection | Assign, install, technical removal, return, consume, or dispose. |
+| `quantity`, `product_uom_id` | Read-only float and related UoM | Zero for technical events; positive for stock-closing events. |
+| `stock_move_id` | Read-only company-checked many-to-one | Required done move for a closing event and forbidden for technical events. |
+| `actor_id`, `event_at`, `reason` | Required actor/time and read-only reason | Attribution; disposition events require a reason. |
+
+Lifecycle and event create/write/delete ACLs are read-only. Controlled actions elevate only their internal append after validating the real user, so caller-supplied RPC context cannot forge history.
+
+### Inventory lifecycle wizards
+
+`sedar.inventory.issue.wizard` exposes `company_id`, required `product_id`, related manufacturer part number and Item Type, a selectable same-company tagged `source_location_id`, computed exact-location `available_to_issue`, required company-checked `tugboat_id`, related read-only `tug_location_id`, `quantity`, related UoM, required `purpose`, and optional company-checked `lot_id`. Replacement Equipment makes the matching serial mandatory; the controlled issue action remains authoritative.
+
+`sedar.inventory.disposition.wizard` is a transient modal with `lifecycle_id` (required company-checked many-to-one), related `company_id`, `product_id`, `tugboat_id`, `open_qty`, and `product_uom_id`, a read-only required `action` selection, and editable required `quantity` and `reason`. It invokes the selected return, consume, or dispose action; the lifecycle revalidates all authority and stock facts.
+
+`sedar.inventory.technical.wizard` is a transient modal with `lifecycle_id` (required company-checked many-to-one), related `company_id`, `product_id`, and `tugboat_id`, a read-only required `action` selection, and optional company-checked `equipment_id`. Maintenance Managers use it to assign a spare/consumable to existing Equipment or to install/remove Replacement Equipment; server actions revalidate authority and lifecycle state.
+
+### `res.company` and `stock.location` Inventory ownership
+
+| Model and field | Type | How it is used |
+| --- | --- | --- |
+| `res.company.sedar_procurement_inventory_officer_id` | Many-to-one to `res.users` | Exact active internal company user who controls Procurement and stock disposition; owned by Inventory and exposed in Purchase settings. |
+| `res.company.sedar_default_storage_location_id` | Many-to-one to `stock.location` | Default tagged Storage proposed for issue; multiple tagged Storage locations may still be selected. |
+| `res.company.sedar_consumption_location_id` | Many-to-one to `stock.location` | Configured tagged inventory-loss destination for consumption. |
+| `res.company.sedar_disposal_location_id` | Many-to-one to `stock.location` | Configured tagged inventory-loss destination for disposal. |
+| `stock.location.sedar_location_role` | Indexed selection | Explicitly tags Storage, Tugboat Stock, Consumption, or Disposal. Storage/tug roles require internal locations; consumption/disposal require inventory-loss locations. |
+| `stock.location.sedar_tugboat_id` | Indexed company-checked many-to-one to `sedar.tugboat` | Required and unique for a Tugboat Stock location; forbidden on every other role. |
+
+`res.config.settings.sedar_default_storage_location_id`, `sedar_consumption_location_id`, and `sedar_disposal_location_id` are editable related many-to-one fields exposing the three company locations in standard Inventory settings. Upgrade migration tags only evidence-backed locations, configures a company default only when unambiguous, classifies old issues as legacy consumed, and never rewrites their moves or creates lifecycle balances from opening quants.
 
 ### `sedar.tugboat` inventory extension
 
 | Field | Type | How it is used |
 | --- | --- | --- |
-| `stock_location_id` | Many-to-one to `stock.location` | Internal stock location representing onboard fuel, lubricant, and vessel stores assigned to the tugboat. |
+| `stock_location_id` | Company-checked many-to-one to `stock.location` | Unique tagged Tugboat Stock location linked back to this same tugboat; represents onboard and installed goods. |
 
 ### `sedar.inventory.template`
 
@@ -801,23 +873,27 @@ One record represents one spare-part product required by a maintenance work orde
 | Field | Type | How it is used |
 | --- | --- | --- |
 | `maintenance_request_id` | Required many-to-one to `maintenance.request` | Parent work order. |
-| `product_id` | Required many-to-one to `product.product` | Spare-part product. |
+| `company_id` | Stored related indexed many-to-one to `res.company` | Company inherited from the work order for access and relationship checks. |
+| `product_id` | Required company-checked many-to-one to `product.product` | Shared or same-company spare-part Item Type. |
 | `product_uom_id` | Related, stored many-to-one to `uom.uom` | Product unit of measure. |
-| `source_location_id` | Required many-to-one to `stock.location` | Internal stock location used for the issue. |
+| `source_location_id` | Required company-checked many-to-one to `stock.location` | Same-company tagged Storage used for the issue. |
 | `requested_qty` | Required float | Required part quantity; must be greater than zero. |
 | `available_qty` | Computed, stored float | Current available stock at the source location. |
 | `reserved_qty` | Float | Quantity reserved for the work order in the demo control. |
-| `issued_qty` | Float | Quantity issued from stock for the work order. |
-| `consumed_qty` | Float | Quantity consumed by the work order. |
+| `legacy_issued_qty`, `legacy_consumed_qty` | Read-only floats | Upgrade-preserved counters for unlinked pre-lifecycle history. |
+| `issued_qty` | Computed stored float | Legacy evidence plus initial quantities from linked lifecycles. |
+| `consumed_qty` | Computed stored float | Legacy evidence plus done consume events from linked lifecycles. |
+| `stock_move_ids` | Company-checked many-to-many to `stock.move` | Legacy and lifecycle issue/consumption movements for audit compatibility. |
+| `lifecycle_ids` | Read-only company-checked many-to-many to `sedar.inventory.lifecycle` | New Storage-to-tug issues and their explicit disposition history. |
 | `shortage_qty` | Computed, stored float | Quantity still short. |
 | `state` | Computed, stored selection | Shortage, reserved, issued, or consumed. |
 | `note` | Text | Optional maintenance inventory note. |
 
 Key behavior:
 
-- Reserve, issue, and consume actions are restricted to Marine Inventory Managers.
-- Issuing parts decreases standard Odoo stock quantity at the source location.
-- Consumed quantity cannot exceed issued quantity, and issued quantity cannot exceed reserved quantity.
+- Reserve, issue, and consume actions enforce the work-order company's exact Procurement and Inventory Officer.
+- Issuing routes the remaining requested quantity through the generic Storage-to-tug lifecycle entrypoint; repeat issue is rejected when the request is fully issued.
+- Consumption closes only open linked lifecycle quantities through explicit tug-to-consumption moves; repeat consumption is rejected. Unlinked legacy records retain their original counters and moves.
 
 ### `sedar.marine.operation` inventory extension
 
@@ -840,19 +916,22 @@ One record tracks fuel or lubricant issue and consumption for one tugboat in one
 | `source_location_id` | Required company-checked many-to-one to `stock.location` | Internal source stock location; company-owned locations must match the operation company. |
 | `tug_location_id` | Required company-checked many-to-one to `stock.location` | Tugboat onboard stock location; company-owned locations must match the operation company. |
 | `opening_qty` | Float | Starting onboard quantity for the operation. |
-| `issued_qty` | Float | Quantity issued from source stock to the tugboat. |
-| `consumed_qty` | Float | Quantity consumed during the operation. |
+| `quantity_to_issue`, `quantity_to_consume` | Editable floats | User inputs for the next controlled issue or consumption action; reset after success. |
+| `legacy_issued_qty`, `legacy_consumed_qty` | Read-only floats | Upgrade-preserved pre-lifecycle counters. |
+| `issued_qty` | Computed stored float | Legacy evidence plus quantities from linked lifecycle issues. |
+| `consumed_qty` | Computed stored float | Legacy evidence plus linked done consumption events. |
 | `stock_move_ids` | Company-checked many-to-many to `stock.move` | Auditable issue and consumption moves; every linked move must belong to the Marine Operation company. |
+| `lifecycle_ids` | Read-only company-checked many-to-many to `sedar.inventory.lifecycle` | New lifecycle issues and explicit closing history for this fuel log. |
 | `remaining_qty` | Computed, stored float | Opening plus issued minus consumed quantity. |
 | `state` | Selection | Draft, issued, or consumption recorded. |
 | `note` | Text | Optional operational fuel note. |
 
 Key behavior:
 
-- Issue and consumption actions are restricted to Procurement and Inventory Officers.
+- Issue and consumption actions enforce the Marine Operation company's exact Procurement and Inventory Officer.
 - Issuing decreases source stock and increases tugboat stock using a standard move owned by the Marine Operation company, even when another company is active for the user.
-- Recording consumption decreases tugboat stock into that company's consumption location and updates the operation fuel summary.
-- Consumption cannot exceed opening plus issued quantity.
+- Recording consumption allocates the requested quantity oldest-first across open linked lifecycles, creates explicit tug-to-consumption moves, and updates the operation summary.
+- Consumption cannot exceed open linked lifecycle quantity; repeated consumption after closure is rejected. Legacy opening/counter values remain history and are not converted into invented lifecycles.
 
 Access rules:
 
@@ -867,11 +946,7 @@ Access rules:
 
 ### `res.company` and Purchase settings
 
-| Field | Type | How it is used |
-| --- | --- | --- |
-| `sedar_procurement_inventory_officer_id` | Many-to-one to `res.users` | Configures the active internal user responsible for Purchase Request review in this company. The user must be allowed in the company. Submission schedules the deduplicated `Purchase Request Review` activity for this Officer. |
-
-`res.config.settings.sedar_procurement_inventory_officer_id` is an editable related field that exposes the company setting in standard Purchase settings. The Purchase Request demo/configuration hook assigns the existing `procurement@sedar.demo` Demo Persona as the Officer without changing the upgrade-stable user XMLID.
+Inventory owns `res.company.sedar_procurement_inventory_officer_id` and validates that the configured employee is an active internal user allowed in the company with the Officer group. Procurement extends `res.company.write()` only to reconcile pending Purchase Request review activities when that setting changes. `res.config.settings.sedar_procurement_inventory_officer_id` remains an editable related field in standard Purchase settings, and the Purchase Request demo/configuration hook assigns the existing `procurement@sedar.demo` Demo Persona without changing the upgrade-stable user XMLID.
 
 ### `sedar.purchase.request`
 

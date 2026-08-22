@@ -46,10 +46,10 @@ class MaintenanceEquipment(models.Model):
             "sedar_inventory_lot_id",
             "sedar_inventory_current_lifecycle_id",
         }
-        if (
-            any(protected.intersection(vals) for vals in vals_list)
-            and not self.env.context.get("sedar_inventory_equipment_write")
-        ):
+        controlled = self.env.su and self.env.context.get(
+            "sedar_inventory_equipment_write"
+        )
+        if any(protected.intersection(vals) for vals in vals_list) and not controlled:
             raise AccessError(
                 _("Equipment inventory provenance is created only by controlled installation.")
             )
@@ -57,15 +57,16 @@ class MaintenanceEquipment(models.Model):
 
     def write(self, vals):
         provenance = {"sedar_inventory_product_id", "sedar_inventory_lot_id"}
-        if provenance.intersection(vals) and not self.env.context.get(
+        controlled = self.env.su and self.env.context.get(
             "sedar_inventory_equipment_write"
-        ):
+        )
+        if provenance.intersection(vals) and not controlled:
             for equipment in self:
                 if any(equipment[field_name] for field_name in provenance):
                     raise AccessError(_("Equipment inventory provenance is immutable."))
         if (
             "sedar_inventory_current_lifecycle_id" in vals
-            and not self.env.context.get("sedar_inventory_equipment_write")
+            and not controlled
         ):
             raise AccessError(_("Equipment installation provenance is controlled by Inventory."))
         return super().write(vals)
@@ -80,13 +81,17 @@ class SedarInventoryLifecycle(models.Model):
 
     name = fields.Char(related="issue_id.name", store=True, readonly=True)
     issue_id = fields.Many2one(
-        "sedar.inventory.issue", required=True, readonly=True, copy=False, ondelete="restrict"
+        "sedar.inventory.issue", required=True, readonly=True, copy=False,
+        ondelete="restrict", check_company=True,
     )
     company_id = fields.Many2one(
         "res.company", required=True, readonly=True, index=True, copy=False
     )
     product_id = fields.Many2one(
         "product.product", required=True, readonly=True, ondelete="restrict", check_company=True
+    )
+    item_type = fields.Selection(
+        related="product_id.sedar_item_type", string="Item Type", store=True, readonly=True
     )
     product_uom_id = fields.Many2one("uom.uom", required=True, readonly=True, ondelete="restrict")
     tugboat_id = fields.Many2one(
@@ -147,6 +152,9 @@ class SedarInventoryLifecycle(models.Model):
     serial_open_key = fields.Char(
         compute="_compute_serial_open_key", store=True, readonly=True, copy=False
     )
+    is_procurement_inventory_officer = fields.Boolean(
+        compute="_compute_action_authority"
+    )
 
     _issue_unique = models.Constraint(
         "UNIQUE(issue_id)", "An Inventory Issue may have only one lifecycle."
@@ -155,6 +163,13 @@ class SedarInventoryLifecycle(models.Model):
         "UNIQUE(serial_open_key)",
         "A serialized Item Type may have only one open inventory lifecycle.",
     )
+
+    def _compute_action_authority(self):
+        for lifecycle in self:
+            lifecycle.is_procurement_inventory_officer = (
+                lifecycle.company_id.sedar_procurement_inventory_officer_id
+                == self.env.user
+            )
 
     @api.depends("product_id", "lot_id", "state")
     def _compute_serial_open_key(self):
@@ -271,12 +286,16 @@ class SedarInventoryLifecycle(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        if not self.env.context.get("sedar_inventory_lifecycle_create"):
+        if not (
+            self.env.su and self.env.context.get("sedar_inventory_lifecycle_create")
+        ):
             raise AccessError(_("Inventory lifecycles are created only by the controlled issue action."))
         return super().create(vals_list)
 
     def write(self, vals):
-        if not self.env.context.get("sedar_inventory_lifecycle_write"):
+        if not (
+            self.env.su and self.env.context.get("sedar_inventory_lifecycle_write")
+        ):
             raise AccessError(_("Inventory lifecycle facts cannot be edited directly."))
         allowed = {
             "usage_state",
@@ -334,7 +353,7 @@ class SedarInventoryLifecycle(models.Model):
                 raise UserError(_("Only open onboard or removed inventory can be assigned."))
             lifecycle._validate_assignment_equipment(equipment)
             lifecycle._create_event("assign")
-            lifecycle.with_context(sedar_inventory_lifecycle_write=True).write({
+            lifecycle.sudo().with_context(sedar_inventory_lifecycle_write=True).write({
                 "usage_state": "assigned",
                 "equipment_id": equipment.id if equipment else False,
             })
@@ -362,7 +381,7 @@ class SedarInventoryLifecycle(models.Model):
             lifecycle._validate_install_state()
             equipment = lifecycle._find_or_create_equipment()
             lifecycle._create_event("install")
-            lifecycle.with_context(sedar_inventory_lifecycle_write=True).write({
+            lifecycle.sudo().with_context(sedar_inventory_lifecycle_write=True).write({
                 "usage_state": "installed",
                 "equipment_id": equipment.id,
             })
@@ -387,7 +406,7 @@ class SedarInventoryLifecycle(models.Model):
             "sedar_inventory_current_lifecycle_id": self.id,
         }
         if equipment:
-            equipment.with_context(sedar_inventory_equipment_write=True).write(values)
+            equipment.sudo().with_context(sedar_inventory_equipment_write=True).write(values)
             return equipment
         values.update({
             "name": "%s / %s" % (self.product_id.display_name, self.lot_id.name),
@@ -396,7 +415,7 @@ class SedarInventoryLifecycle(models.Model):
             "sedar_inventory_product_id": self.product_id.id,
             "sedar_inventory_lot_id": self.lot_id.id,
         })
-        return self.env["maintenance.equipment"].with_context(
+        return self.env["maintenance.equipment"].sudo().with_context(
             sedar_inventory_equipment_write=True
         ).create(values)
 
@@ -407,8 +426,8 @@ class SedarInventoryLifecycle(models.Model):
             if lifecycle.state != "open" or lifecycle.usage_state != "installed":
                 raise UserError(_("Only installed open inventory can be technically removed."))
             lifecycle._create_event("remove")
-            lifecycle.with_context(sedar_inventory_lifecycle_write=True).write({"usage_state": "removed"})
-            lifecycle.equipment_id.with_context(
+            lifecycle.sudo().with_context(sedar_inventory_lifecycle_write=True).write({"usage_state": "removed"})
+            lifecycle.equipment_id.sudo().with_context(
                 sedar_inventory_equipment_write=True
             ).write({
                 "sedar_tugboat_id": False,
@@ -422,7 +441,7 @@ class SedarInventoryLifecycle(models.Model):
         officer = self.company_id.sedar_procurement_inventory_officer_id
         if not officer or self.disposition_activity_id:
             return
-        activity = self.activity_schedule(
+        activity = self.sudo().activity_schedule(
             "mail.mail_activity_data_todo",
             user_id=officer.id,
             summary=_("Decide disposition for removed inventory"),
@@ -432,7 +451,7 @@ class SedarInventoryLifecycle(models.Model):
                 tug=self.tugboat_id.display_name,
             ),
         )
-        self.with_context(sedar_inventory_lifecycle_write=True).write({
+        self.sudo().with_context(sedar_inventory_lifecycle_write=True).write({
             "disposition_activity_id": activity.id
         })
 
@@ -463,8 +482,8 @@ class SedarInventoryLifecycle(models.Model):
             lifecycle._create_event(event_type, quantity, reason.strip(), move)
             lifecycle.invalidate_recordset(["open_qty", "state", "reconciliation_state"])
             if lifecycle.state == "closed":
-                lifecycle.with_context(sedar_inventory_lifecycle_write=True).write({"usage_state": "closed"})
-                lifecycle.with_context(
+                lifecycle.sudo().with_context(sedar_inventory_lifecycle_write=True).write({"usage_state": "closed"})
+                lifecycle.sudo().with_context(
                     sedar_inventory_lifecycle_write=True
                 )._compute_serial_open_key()
                 lifecycle.flush_recordset(["state", "serial_open_key"])
@@ -475,8 +494,8 @@ class SedarInventoryLifecycle(models.Model):
         self.ensure_one()
         activity = self.disposition_activity_id.exists()
         if activity:
-            activity.action_done()
-        self.with_context(sedar_inventory_lifecycle_write=True).write({
+            activity.sudo().action_done()
+        self.sudo().with_context(sedar_inventory_lifecycle_write=True).write({
             "disposition_activity_id": False
         })
 
@@ -651,7 +670,7 @@ class SedarInventoryLifecycleEvent(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        if not self.env.context.get("sedar_inventory_event_create"):
+        if not (self.env.su and self.env.context.get("sedar_inventory_event_create")):
             raise AccessError(_("Lifecycle events are created only by controlled inventory actions."))
         return super().create(vals_list)
 

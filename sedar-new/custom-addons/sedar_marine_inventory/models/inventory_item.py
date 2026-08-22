@@ -254,7 +254,8 @@ class SedarInventoryIssue(models.Model):
         ondelete="restrict", check_company=True,
     )
     lifecycle_id = fields.Many2one(
-        "sedar.inventory.lifecycle", readonly=True, copy=False, ondelete="restrict"
+        "sedar.inventory.lifecycle", readonly=True, copy=False,
+        ondelete="restrict", check_company=True,
     )
     legacy_consumed = fields.Boolean(
         string="Legacy One-step Consumption", readonly=True, copy=False, default=False
@@ -262,12 +263,16 @@ class SedarInventoryIssue(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        if not self.env.context.get("sedar_inventory_issue_create"):
+        if not (self.env.su and self.env.context.get("sedar_inventory_issue_create")):
             raise AccessError("Use Issue to Tug to create an inventory issue.")
         return super().create(vals_list)
 
     def write(self, vals):
-        if self.env.context.get("sedar_inventory_issue_link_lifecycle") and set(vals) == {"lifecycle_id"}:
+        if (
+            self.env.su
+            and self.env.context.get("sedar_inventory_issue_link_lifecycle")
+            and set(vals) == {"lifecycle_id"}
+        ):
             return super().write(vals)
         raise AccessError("Completed inventory issues are immutable.")
 
@@ -298,7 +303,9 @@ class SedarInventoryIssue(models.Model):
         available = self.env["sedar.inventory.lifecycle"]._available_quantity(
             product, source_location, lot
         )
-        if quantity > available:
+        if float_compare(
+            quantity, available, precision_rounding=product.uom_id.rounding
+        ) > 0:
             raise UserError("Only %.2f %s is available to issue." % (
                 available, product.uom_id.display_name
             ))
@@ -319,7 +326,7 @@ class SedarInventoryIssue(models.Model):
             "sedar_stock_status",
             "sedar_code_locked",
         ])
-        issue = self.with_context(sedar_inventory_issue_create=True).create({
+        issue = self.sudo().with_context(sedar_inventory_issue_create=True).create({
             "name": name,
             "company_id": company.id,
             "product_id": product.id,
@@ -390,6 +397,14 @@ class SedarInventoryIssue(models.Model):
 class SedarInventoryIssueWizard(models.TransientModel):
     _name = "sedar.inventory.issue.wizard"
     _description = "Issue SEDAR Inventory to Tug"
+    _check_company_auto = True
+
+    company_id = fields.Many2one(
+        "res.company",
+        required=True,
+        readonly=True,
+        default=lambda self: self.env.company,
+    )
 
     product_id = fields.Many2one(
         "product.product",
@@ -401,17 +416,33 @@ class SedarInventoryIssueWizard(models.TransientModel):
         string="Manufacturer Part Number",
         readonly=True,
     )
+    item_type = fields.Selection(
+        related="product_id.sedar_item_type", string="Item Type", readonly=True
+    )
     source_location_id = fields.Many2one(
-        related="product_id.sedar_stock_location_id",
-        string="Warehouse Location",
-        readonly=True,
+        "stock.location",
+        string="Storage Location",
+        required=True,
+        check_company=True,
+        domain="[('company_id', '=', company_id), ('sedar_location_role', '=', 'storage'), ('usage', '=', 'internal')]",
+        default=lambda self: self.env.company.sedar_default_storage_location_id,
     )
     available_to_issue = fields.Float(
-        related="product_id.sedar_available_to_issue",
+        compute="_compute_available_to_issue",
         string="Available to Issue",
         readonly=True,
     )
-    tugboat_id = fields.Many2one("sedar.tugboat", required=True)
+    tugboat_id = fields.Many2one(
+        "sedar.tugboat",
+        required=True,
+        check_company=True,
+        domain="[('company_id', '=', company_id)]",
+    )
+    tug_location_id = fields.Many2one(
+        related="tugboat_id.stock_location_id",
+        string="Tugboat Stock Location",
+        readonly=True,
+    )
     quantity = fields.Float(required=True, default=1.0)
     product_uom_id = fields.Many2one(related="product_id.uom_id", readonly=True)
     purpose = fields.Text(required=True)
@@ -419,7 +450,21 @@ class SedarInventoryIssueWizard(models.TransientModel):
         "stock.lot",
         string="Serial / Lot",
         domain="[('product_id', '=', product_id)]",
+        check_company=True,
     )
+
+    @api.depends("product_id", "source_location_id", "lot_id")
+    def _compute_available_to_issue(self):
+        Lifecycle = self.env["sedar.inventory.lifecycle"]
+        for wizard in self:
+            wizard.available_to_issue = Lifecycle._available_quantity(
+                wizard.product_id, wizard.source_location_id, wizard.lot_id
+            ) if wizard.product_id and wizard.source_location_id else 0.0
+
+    @api.onchange("product_id")
+    def _onchange_product_id(self):
+        if self.lot_id and self.lot_id.product_id != self.product_id:
+            self.lot_id = False
 
     def action_issue(self):
         self.ensure_one()

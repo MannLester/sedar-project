@@ -65,3 +65,17 @@ class ResCompany(models.Model):
                     raise ValidationError(_(
                         "Every configured SEDAR inventory location must belong to the company and have its matching role."
                     ))
+
+
+class ResConfigSettings(models.TransientModel):
+    _inherit = "res.config.settings"
+
+    sedar_default_storage_location_id = fields.Many2one(
+        related="company_id.sedar_default_storage_location_id", readonly=False
+    )
+    sedar_consumption_location_id = fields.Many2one(
+        related="company_id.sedar_consumption_location_id", readonly=False
+    )
+    sedar_disposal_location_id = fields.Many2one(
+        related="company_id.sedar_disposal_location_id", readonly=False
+    )

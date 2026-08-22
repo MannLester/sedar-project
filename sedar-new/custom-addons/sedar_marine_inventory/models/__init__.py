@@ -3,6 +3,7 @@ from . import res_company
 from . import stock_location
 from . import inventory_item
 from . import inventory_lifecycle
+from . import inventory_wizards
 from . import service_order
 from . import maintenance_parts
 from . import operation_fuel
