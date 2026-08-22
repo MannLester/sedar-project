@@ -6,8 +6,16 @@ class SedarTugboat(models.Model):
     _name = "sedar.tugboat"
     _description = "SEDAR Tugboat"
     _order = "name"
+    _check_company_auto = True
 
     name = fields.Char(required=True)
+    company_id = fields.Many2one(
+        "res.company",
+        required=True,
+        default=lambda self: self.env.company,
+        index=True,
+        copy=False,
+    )
     registration_number = fields.Char(required=True, index=True)
     call_sign = fields.Char()
     mmsi = fields.Char(string="MMSI")
@@ -27,6 +35,13 @@ class SedarTugboat(models.Model):
     _registration_unique = models.Constraint(
         "UNIQUE(registration_number)", "Tugboat registration number must be unique."
     )
+
+    def write(self, vals):
+        if "company_id" in vals and any(
+            tugboat.company_id.id != vals["company_id"] for tugboat in self
+        ):
+            raise ValidationError("A Tugboat's company cannot be changed after creation.")
+        return super().write(vals)
 
 
 class SedarCrewRank(models.Model):
@@ -147,7 +162,9 @@ class SedarTugAssignment(models.Model):
     )
     company_id = fields.Many2one(related="order_id.company_id", store=True, index=True)
     order_state = fields.Selection(related="order_id.state", string="Service Order Status")
-    tugboat_id = fields.Many2one("sedar.tugboat", required=True, ondelete="restrict")
+    tugboat_id = fields.Many2one(
+        "sedar.tugboat", required=True, ondelete="restrict", check_company=True,
+    )
     planned_start = fields.Datetime(related="order_id.requested_start", store=True)
     planned_end = fields.Datetime(related="order_id.requested_completion", store=True)
     state = fields.Selection([
