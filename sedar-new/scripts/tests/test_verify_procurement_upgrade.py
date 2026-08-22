@@ -1,9 +1,11 @@
 import importlib.util
+import os
 import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 
 SCRIPT = Path(__file__).resolve().parents[1] / "verify_procurement_upgrade.py"
@@ -35,6 +37,38 @@ class TestProcurementUpgradeVerifier(unittest.TestCase):
             compose.write_text("services: {}\n")
             with self.assertRaises(verifier.VerificationError):
                 verifier.compose_modules(compose)
+
+    def test_compose_commands_ignore_ambient_selector_variables(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            run = verifier.VerificationRun(
+                source_root=root,
+                base_ref=verifier.DEFAULT_BASE,
+                keep_success=True,
+                run_root=root / "run",
+                workspace=root / "workspace",
+                project="sedar_release_test",
+            )
+            expected_file = str(run.compose_root / "docker-compose.yml")
+            with patch.dict(
+                os.environ,
+                {
+                    "COMPOSE_FILE": "/tmp/hostile-compose.yml",
+                    "COMPOSE_PROJECT_NAME": "shared-production",
+                    "COMPOSE_PROFILES": "hostile",
+                },
+            ):
+                command = verifier.compose_command(run, "config", "--quiet")
+                environment = verifier.compose_environment()
+
+            self.assertEqual(command[2:8], [
+                "--file", expected_file,
+                "--project-directory", str(run.compose_root),
+                "--project-name", run.project,
+            ])
+            self.assertFalse(any(
+                key.startswith("COMPOSE_") for key in environment
+            ))
 
     def test_legacy_comparison_accepts_new_records_and_fields(self):
         before = [{"key": "purchase.order:4", "values": {"state": "purchase", "line_ids": [8]}}]

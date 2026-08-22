@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import secrets
 import shutil
@@ -142,7 +143,14 @@ def candidate_tree_digest(
     return digest.hexdigest()
 
 
-def run_logged(run: VerificationRun, name: str, command: list[str], cwd: Path, stdin: str | None = None) -> str:
+def run_logged(
+    run: VerificationRun,
+    name: str,
+    command: list[str],
+    cwd: Path,
+    stdin: str | None = None,
+    env: dict[str, str] | None = None,
+) -> str:
     started = datetime.now(timezone.utc).isoformat()
     result = subprocess.run(
         command,
@@ -151,6 +159,7 @@ def run_logged(run: VerificationRun, name: str, command: list[str], cwd: Path, s
         check=False,
         capture_output=True,
         text=True,
+        env=env,
     )
     output = result.stdout + result.stderr
     log_path = run.logs / f"{len(run.commands) + 1:02d}-{name}.log"
@@ -207,7 +216,22 @@ def archive_base(run: VerificationRun) -> None:
 
 
 def compose_command(run: VerificationRun, *arguments: str) -> list[str]:
-    return ["docker", "compose", "--project-name", run.project, *arguments]
+    compose_file = run.compose_root / "docker-compose.yml"
+    return [
+        "docker", "compose",
+        "--file", str(compose_file),
+        "--project-directory", str(run.compose_root),
+        "--project-name", run.project,
+        *arguments,
+    ]
+
+
+def compose_environment() -> dict[str, str]:
+    """Keep Docker connectivity while rejecting ambient Compose selectors."""
+    return {
+        key: value for key, value in os.environ.items()
+        if not key.startswith("COMPOSE_")
+    }
 
 
 def install_modules(
@@ -223,7 +247,9 @@ def install_modules(
         "-i", ",".join(modules), "-u", ",".join(modules),
         "--without-demo=true", "--stop-after-init", "--no-http",
     )
-    run_logged(run, name, command, run.compose_root)
+    run_logged(
+        run, name, command, run.compose_root, env=compose_environment()
+    )
 
 
 def snapshot_script(xmlids_only: bool) -> str:
@@ -315,7 +341,10 @@ def take_snapshot(
         run, "run", "--rm", "-T", "odoo", "odoo", "shell",
         "-c", "/etc/odoo/odoo.conf", "-d", database or run.database, "--no-http",
     )
-    output = run_logged(run, name, command, run.compose_root, snapshot_script(xmlids_only))
+    output = run_logged(
+        run, name, command, run.compose_root, snapshot_script(xmlids_only),
+        env=compose_environment(),
+    )
     marker_lines = [line for line in output.splitlines() if line.startswith(SNAPSHOT_MARKER)]
     if len(marker_lines) != 1:
         raise VerificationError(f"{name} did not return exactly one snapshot marker.")
@@ -575,13 +604,24 @@ def verify(run: VerificationRun) -> dict:
     run.odoo_image = image_metadata(run)
     archive_base(run)
     base_modules = compose_modules(run.compose_root / "docker-compose.yml")
-    run_logged(run, "compose-config-base", compose_command(run, "config", "--quiet"), run.compose_root)
-    run_logged(run, "start-isolated-db", compose_command(run, "up", "-d", "--wait", "db"), run.compose_root)
+    run_logged(
+        run, "compose-config-base", compose_command(run, "config", "--quiet"),
+        run.compose_root, env=compose_environment(),
+    )
+    run_logged(
+        run, "start-isolated-db",
+        compose_command(run, "up", "-d", "--wait", "db"),
+        run.compose_root, env=compose_environment(),
+    )
     install_modules(run, "install-legacy-base", base_modules)
     legacy_before = take_snapshot(run, "snapshot-legacy-before", xmlids_only=False)
     sync_candidate(run)
     candidate_modules = compose_modules(run.compose_root / "docker-compose.yml")
-    run_logged(run, "compose-config-candidate", compose_command(run, "config", "--quiet"), run.compose_root)
+    run_logged(
+        run, "compose-config-candidate",
+        compose_command(run, "config", "--quiet"), run.compose_root,
+        env=compose_environment(),
+    )
     install_modules(run, "install-candidate-fresh", candidate_modules, run.fresh_database)
     fresh_first = take_snapshot(
         run, "snapshot-pm-fresh-first", True, run.fresh_database
@@ -644,6 +684,7 @@ def cleanup(run: VerificationRun) -> None:
         check=False,
         capture_output=True,
         text=True,
+        env=compose_environment(),
     )
     if result.returncode:
         raise VerificationError("Could not stop the isolated Compose project; evidence retained.")
