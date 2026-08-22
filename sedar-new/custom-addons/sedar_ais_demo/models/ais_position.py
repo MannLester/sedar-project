@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from odoo import Command, api, fields, models
 from odoo.exceptions import AccessError, ValidationError
 
@@ -116,24 +118,19 @@ class SedarAisPosition(models.Model):
         return max(3, min(x, 97)), max(4, min(y, 96))
 
     @api.model
-    def _crew_payload(self, tugboat):
-        assignment = self.env["sedar.tug.assignment"].search(
-            [
-                ("tugboat_id", "=", tugboat.id),
-                ("state", "!=", "cancelled"),
-                ("order_id.state", "in", ["ready", "dispatched", "in_progress"]),
-            ],
-            order="planned_start desc, id desc",
-            limit=1,
-        )
-        crew = assignment.requirement_ids.mapped("crew_assignment_ids").filtered(
-            lambda item: item.state != "rejected"
-        ).mapped("crew_profile_id")
-        crew_source = "Current operation"
-        if not crew:
-            crew = tugboat.home_crew_ids.filtered("active")
-            crew_source = "Home crew roster"
-        return assignment, crew_source, [
+    def _check_dashboard_access(self):
+        if not self.env.su and not self.env.user.has_group(
+            "sedar_ais_demo.group_sedar_ais_user"
+        ):
+            raise AccessError("You do not have access to simulated AIS fleet monitoring.")
+
+    @api.model
+    def _selection_label(self, record, field_name, value):
+        return dict(record._fields[field_name].selection).get(value, value or "")
+
+    @api.model
+    def _crew_values(self, crew):
+        return [
             {
                 "id": profile.id,
                 "name": profile.employee_id.name,
@@ -144,28 +141,130 @@ class SedarAisPosition(models.Model):
         ]
 
     @api.model
+    def _dashboard_crew(self, tugs, assignments):
+        assignment_by_tug = {}
+        for assignment in assignments:
+            assignment_by_tug.setdefault(assignment.tugboat_id.id, assignment)
+        crew_model = self.env["sedar.crew.profile"].sudo()
+        current_crew = defaultdict(lambda: crew_model)
+        crew_assignments = self.env["sedar.crew.assignment"].sudo().search([
+            ("tug_assignment_id", "in", assignments.ids), ("state", "!=", "rejected"),
+        ])
+        for crew_assignment in crew_assignments:
+            current_crew[crew_assignment.tug_assignment_id.id] |= crew_assignment.crew_profile_id
+        home_crew = defaultdict(lambda: crew_model)
+        for profile in crew_model.search([
+            ("home_tugboat_id", "in", tugs.ids), ("active", "=", True),
+        ]):
+            home_crew[profile.home_tugboat_id.id] |= profile
+        result = {}
+        for tug in tugs:
+            assignment = assignment_by_tug.get(tug.id)
+            crew = current_crew[assignment.id] if assignment else False
+            result[tug.id] = (
+                assignment,
+                "Current operation" if crew else "Home crew roster",
+                self._crew_values(crew or home_crew[tug.id]),
+            )
+        return result
+
+    @api.model
+    def _equipment_summaries(self, tugs):
+        equipment_by_tug = defaultdict(list)
+        equipment = self.env["maintenance.equipment"].sudo().search([
+            ("company_id", "=", self.env.company.id),
+            ("sedar_tugboat_id", "in", tugs.ids),
+            ("active", "=", True),
+        ], order="sedar_tugboat_id, name, id")
+        active_request_ids = defaultdict(set)
+        requests = self.env["sedar.purchase.request"].sudo().search([
+            ("company_id", "=", self.env.company.id),
+            ("equipment_id", "in", equipment.ids),
+            ("state", "not in", ["rejected", "cancelled"]),
+        ])
+        for request in requests:
+            if self._request_has_active_procurement(request):
+                active_request_ids[request.equipment_id.id].add(request.id)
+        for item in equipment:
+            current = item.sedar_current_running_hour_reading_id
+            equipment_by_tug[item.sedar_tugboat_id.id].append({
+                "id": item.id,
+                "name": item.name,
+                "system": item.sedar_system,
+                "system_label": self._selection_label(item, "sedar_system", item.sedar_system),
+                "criticality": item.sedar_criticality,
+                "criticality_label": self._selection_label(
+                    item, "sedar_criticality", item.sedar_criticality
+                ),
+                "maintenance_state": item.sedar_service_due_state,
+                "maintenance_state_label": self._selection_label(
+                    item, "sedar_service_due_state", item.sedar_service_due_state
+                ),
+                "running_hours": item.sedar_current_running_hours,
+                "reading_at": fields.Datetime.to_string(current.reading_at) if current else False,
+                "next_service_due": item.sedar_next_service_hours or False,
+                "active_procurement_count": len(active_request_ids[item.id]),
+            })
+        return equipment_by_tug
+
+    @api.model
+    def _request_has_active_procurement(self, request):
+        return any(self._line_is_active(line) for line in request.line_ids)
+
+    @api.model
+    def _line_orders(self, line):
+        return line.award_history_ids.mapped("purchase_order_line_id.order_id")
+
+    @api.model
+    def _line_is_active(self, line):
+        if line.line_state != "active" or line.request_id.state in {"rejected", "cancelled"}:
+            return False
+        terminal_states = {"purchase", "done", "cancel"}
+        return not any(order.state in terminal_states for order in self._line_orders(line))
+
+    @api.model
     def get_dashboard_data(self):
-        if not self.env.user.has_group("sedar_ais_demo.group_sedar_ais_user") and not self.env.su:
-            raise AccessError("You do not have access to simulated AIS fleet monitoring.")
+        self._check_dashboard_access()
         can_advance = self.env.su or self.env.user.has_group("sedar_ais_demo.group_sedar_ais_manager")
-        dashboard = self.sudo()
-        tugs = dashboard.env["sedar.tugboat"].search([("active", "=", True)], order="name")
-        positions = {item.tugboat_id.id: item for item in dashboard.search([("tugboat_id", "in", tugs.ids)])}
+        company_id = self.env.company.id
+        tugs = self.env["sedar.tugboat"].sudo().search([
+            ("active", "=", True), ("company_id", "=", company_id),
+        ], order="name")
+        positions = {
+            item.tugboat_id.id: item for item in self.sudo().search([
+                ("tugboat_id", "in", tugs.ids),
+            ])
+        }
+        drydocks = self.env["sedar.drydock.plan"].sudo().search([
+            ("company_id", "=", company_id), ("tugboat_id", "in", tugs.ids),
+            ("state", "in", ["planned", "in_progress"]),
+        ], order="planned_start desc, id desc")
+        drydock_by_tug = {}
+        for drydock in drydocks:
+            drydock_by_tug.setdefault(drydock.tugboat_id.id, drydock)
+        blocker_count = defaultdict(int)
+        blockers = self.env["maintenance.request"].sudo().search([
+            ("company_id", "=", company_id), ("sedar_tugboat_id", "in", tugs.ids),
+            ("sedar_blocks_tug_readiness", "=", True),
+        ])
+        for blocker in blockers:
+            blocker_count[blocker.sedar_tugboat_id.id] += 1
+        assignments = self.env["sedar.tug.assignment"].sudo().search([
+            ("company_id", "=", company_id), ("tugboat_id", "in", tugs.ids),
+            ("state", "!=", "cancelled"),
+            ("order_id.state", "in", ["ready", "dispatched", "in_progress"]),
+        ], order="planned_start desc, id desc")
+        crew_by_tug = self._dashboard_crew(tugs, assignments)
+        equipment_by_tug = self._equipment_summaries(tugs)
         payload = []
         now = fields.Datetime.now()
         for tug in tugs:
             position = positions.get(tug.id)
             if not position:
                 continue
-            drydock = dashboard.env["sedar.drydock.plan"].search(
-                [("tugboat_id", "=", tug.id), ("state", "in", ["planned", "in_progress"])],
-                order="planned_start desc", limit=1,
-            )
-            blockers = dashboard.env["maintenance.request"].search_count([
-                ("sedar_tugboat_id", "=", tug.id),
-                ("sedar_blocks_tug_readiness", "=", True),
-            ])
-            assignment, crew_source, crew = dashboard._crew_payload(tug)
+            drydock = drydock_by_tug.get(tug.id)
+            blockers = blocker_count[tug.id]
+            assignment, crew_source, crew = crew_by_tug[tug.id]
             operation = assignment.order_id.operation_ids[:1] if assignment else False
             x, y = self._map_coordinates(position.latitude, position.longitude)
             px, py = self._map_coordinates(
@@ -213,6 +312,7 @@ class SedarAisPosition(models.Model):
                     "planned_end": fields.Datetime.to_string(drydock.planned_end),
                 } if drydock else False,
                 "maintenance_blockers": blockers,
+                "equipment": equipment_by_tug[tug.id],
             })
         return {
             "simulation": True,
@@ -221,6 +321,186 @@ class SedarAisPosition(models.Model):
             "can_advance": can_advance,
             "bounds": MAP_BOUNDS,
             "fleet": payload,
+        }
+
+    @api.model
+    def _commercial_access(self):
+        if self.env.su:
+            return True
+        return bool(
+            self.env.company.sedar_procurement_inventory_officer_id == self.env.user
+            and self.env.user.active
+            and not self.env.user.share
+            and self.env.company in self.env.user.company_ids
+            and self.env.user.has_group(
+                "sedar_marine_inventory.group_marine_inventory_manager"
+            )
+        )
+
+    @api.model
+    def _equipment_for_detail(self, equipment_id):
+        self._check_dashboard_access()
+        if not isinstance(equipment_id, int) or isinstance(equipment_id, bool):
+            raise AccessError("The selected Equipment is not available on this fleet display.")
+        equipment = self.env["maintenance.equipment"].sudo().search([
+            ("id", "=", equipment_id),
+            ("active", "=", True),
+            ("company_id", "=", self.env.company.id),
+            ("sedar_tugboat_id.active", "=", True),
+            ("sedar_tugboat_id.company_id", "=", self.env.company.id),
+            ("sedar_tugboat_id.ais_position_ids", "!=", False),
+        ], limit=1)
+        if not equipment:
+            raise AccessError("The selected Equipment is not available on this fleet display.")
+        return equipment
+
+    @api.model
+    def _common_procurement_row(self, line):
+        request = line.request_id
+        orders = self._line_orders(line)
+        return {
+            "line_id": line.id,
+            "request_id": request.id,
+            "request_name": request.name,
+            "product_id": line.product_id.id,
+            "product_name": line.product_id.display_name,
+            "progress": request.procurement_progress,
+            "progress_label": self._selection_label(
+                request, "procurement_progress", request.procurement_progress
+            ),
+            "bid_count": len(line.bid_line_ids),
+            "order_count": len(orders),
+        }
+
+    @api.model
+    def _safe_bid_attachments(self, bids):
+        if not bids:
+            return {}
+        attachments = self.env["ir.attachment"].search([
+            ("res_model", "=", bids._name), ("res_id", "in", bids.ids),
+            ("res_field", "=", "quotation_file"),
+        ], order="id")
+        attachments.check_access("read")
+        result = {}
+        for attachment in attachments:
+            result.setdefault(attachment.res_id, attachment)
+        return result
+
+    @api.model
+    def _attachment_values(self, bid, attachment):
+        if not attachment:
+            return False
+        return {
+            "id": attachment.id,
+            "name": bid.quotation_filename or attachment.name,
+            "mimetype": attachment.mimetype,
+            "action": {
+                "type": "ir.actions.act_url",
+                "url": f"/web/content/{attachment.id}?download=true",
+                "target": "self",
+            },
+        }
+
+    @api.model
+    def _commercial_bid_values(self, bid_line, attachments_by_bid):
+        bid = bid_line.bid_id
+        values = {
+            "bid_name": bid.name,
+            "bidder_name": bid.bidder_id.display_name,
+            "state": bid.state,
+            "state_label": self._selection_label(bid, "state", bid.state),
+            "quantity": bid_line.quantity,
+            "uom": bid_line.product_uom_id.name,
+            "unit_price": bid_line.unit_price,
+            "subtotal": bid_line.subtotal,
+            "total_amount": bid.total_amount,
+            "currency": bid.currency_id.name,
+            "received_date": fields.Date.to_string(bid.received_date),
+            "validity_date": fields.Date.to_string(bid.validity_date),
+            "promised_delivery_date": fields.Date.to_string(bid.promised_delivery_date),
+            "delivery_terms": bid.delivery_terms or False,
+            "availability_notes": bid.availability_notes or False,
+            "payment_terms": bid.payment_terms or False,
+            "warranty_notes": bid.warranty_notes or False,
+            "commercial_notes": bid.commercial_notes or False,
+            "line_promised_delivery_date": fields.Date.to_string(
+                bid_line.promised_delivery_date
+            ),
+            "line_delivery_terms": bid_line.delivery_terms or False,
+            "line_availability_notes": bid_line.availability_note or False,
+            "line_notes": bid_line.notes or False,
+        }
+        attachment = self._attachment_values(
+            bid, attachments_by_bid.get(bid.id)
+        )
+        if attachment:
+            values["attachment"] = attachment
+        return values
+
+    @api.model
+    def _commercial_procurement(self, line, attachments_by_bid):
+        bids = [
+            self._commercial_bid_values(bid_line, attachments_by_bid)
+            for bid_line in line.bid_line_ids
+        ]
+        award = line.current_award_id
+        award_values = False
+        if award:
+            award_values = {
+                "bidder_name": award.bidder_id.display_name,
+                "state": award.state,
+                "state_label": self._selection_label(award, "state", award.state),
+                "quantity": award.quantity,
+                "unit_price": award.unit_price,
+                "currency": award.currency_id.name,
+                "reason": award.award_reason,
+            }
+        orders = [{
+            "id": order.id,
+            "name": order.name,
+            "state": order.state,
+            "state_label": self._selection_label(order, "state", order.state),
+            "supplier_name": order.partner_id.display_name,
+            "amount_total": order.amount_total,
+            "currency": order.currency_id.name,
+        } for order in self._line_orders(line)]
+        return {"bids": bids, "award": award_values, "orders": orders}
+
+    @api.model
+    def get_equipment_procurement_detail(self, equipment_id):
+        equipment = self._equipment_for_detail(equipment_id)
+        commercial_access = self._commercial_access()
+        requests = self.env["sedar.purchase.request"].sudo().search([
+            ("company_id", "=", self.env.company.id),
+            ("equipment_id", "=", equipment.id),
+        ], order="required_date desc, id desc")
+        lines = requests.mapped("line_ids")
+        attachments_by_bid = {}
+        if commercial_access:
+            attachments_by_bid = self._safe_bid_attachments(
+                lines.mapped("bid_line_ids.bid_id")
+            )
+        active, history = [], []
+        for line in lines:
+            values = self._common_procurement_row(line)
+            is_active = self._line_is_active(line)
+            if not is_active:
+                outcome = "cancelled" if (
+                    line.line_state == "cancelled"
+                    or line.request_id.state in {"rejected", "cancelled"}
+                    or any(order.state == "cancel" for order in self._line_orders(line))
+                ) else "ordered"
+                values.update({"outcome": outcome, "outcome_label": outcome.title()})
+            if commercial_access:
+                values["commercial"] = self._commercial_procurement(
+                    line, attachments_by_bid
+                )
+            (active if is_active else history).append(values)
+        return {
+            "equipment_id": equipment.id,
+            "access": "full" if commercial_access else "limited",
+            "active_procurement": active,
+            "procurement_history": history,
         }
 
     @api.model
