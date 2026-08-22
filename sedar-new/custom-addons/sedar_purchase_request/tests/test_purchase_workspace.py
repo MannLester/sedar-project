@@ -79,6 +79,15 @@ class TestProcurementWorkspace(TransactionCase):
         self.assertTrue(order_list_arch.xpath("./field[@name='sedar_purchase_request_id']"))
 
     def test_workspace_views_prioritize_required_desktop_and_mobile_controls(self):
+        def default_columns(view_xmlid):
+            view = etree.fromstring(self.env.ref(view_xmlid).arch_db)
+            return [
+                field.get("name")
+                for field in view.xpath("./field")
+                if field.get("optional") != "hide"
+                and field.get("column_invisible") not in ("1", "True")
+            ]
+
         request_list = etree.fromstring(self.env.ref(
             "sedar_purchase_request.view_sedar_purchase_request_list"
         ).arch_db)
@@ -128,6 +137,28 @@ class TestProcurementWorkspace(TransactionCase):
                 "optional"
             ),
             "hide",
+        )
+        self.assertEqual(
+            default_columns(
+                "sedar_purchase_request.view_sedar_purchase_bid_list"
+            )[:2],
+            ["request_id", "state"],
+        )
+        self.assertEqual(
+            default_columns(
+                "sedar_purchase_request.view_sedar_generated_purchase_order_list"
+            )[:2],
+            ["sedar_purchase_request_id", "state"],
+        )
+        self.assertEqual(
+            default_columns("sedar_marine_inventory.view_inventory_check_list")[:2],
+            ["default_code", "sedar_stock_status"],
+        )
+        self.assertEqual(
+            default_columns(
+                "sedar_marine_inventory.view_inventory_lifecycle_list"
+            )[:2],
+            ["tugboat_id", "usage_state"],
         )
 
     def test_bidder_list_defines_non_overlapping_operational_filters(self):

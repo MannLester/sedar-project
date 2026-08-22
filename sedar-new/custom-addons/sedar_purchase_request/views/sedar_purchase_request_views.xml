@@ -473,6 +473,7 @@
             <list string="Bidder List" decoration-muted="state == 'withdrawn'">
                 <field name="name" optional="hide"/>
                 <field name="request_id"/>
+                <field name="state"/>
                 <field name="bidder_id"/>
                 <field name="received_date" optional="hide"/>
                 <field name="validity_date" optional="hide"/>
@@ -484,7 +485,6 @@
                 <field name="award_count" string="Awards" optional="hide"/>
                 <field name="awarded_amount" sum="Awarded Value" optional="show"/>
                 <field name="currency_id" column_invisible="True"/>
-                <field name="state"/>
             </list>
         </field>
     </record>
@@ -637,13 +637,13 @@
         <field name="arch" type="xml">
             <list string="Purchase Orders" create="0" sample="0">
                 <field name="sedar_purchase_request_id" string="Source Request"/>
+                <field name="state"/>
                 <field name="name" string="Reference"/>
                 <field name="partner_id" string="Vendor"/>
                 <field name="date_order"/>
                 <field name="user_id" string="Buyer" optional="show"/>
                 <field name="amount_total" sum="Total"/>
                 <field name="currency_id" column_invisible="True"/>
-                <field name="state"/>
             </list>
         </field>
     </record>
