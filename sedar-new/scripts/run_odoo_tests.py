@@ -9,12 +9,17 @@ import secrets
 import signal
 import subprocess
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 
 
 DATABASE_RE = re.compile(r"^sedar_test_[a-z0-9_]{12,40}$")
 OWNERSHIP_MARKER_RE = re.compile(r"^sedar_runner_[0-9a-f]{32}$")
 CONTAINER_OWNER_LABEL = "sedar.test-owner"
+# A high, effectively non-binding PostgreSQL connection limit doubles as an atomic
+# ownership marker because it is stored by the same CREATE DATABASE statement.
+DATABASE_MARKER_MIN = 1_000_000_000
+DATABASE_MARKER_SPAN = 1_000_000_000
 MODULE_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 TAG_RE = re.compile(
     r"^(?P<sign>[+-]?)(?P<tag>\*|[A-Za-z0-9_]*)"
@@ -33,6 +38,16 @@ class SignalInterrupt(Exception):
         self.signum = signum
 
 
+@dataclass(frozen=True)
+class RunResources:
+    root: Path
+    database: str
+    container: str
+    container_marker: str
+    database_marker: int
+    http_port: int
+
+
 def _raise_signal(signum, _frame):
     raise SignalInterrupt(signum)
 
@@ -45,6 +60,19 @@ def generate_database_name() -> str:
     name = f"sedar_test_{secrets.token_hex(10)}"
     validate_database_name(name)
     return name
+
+
+def generate_run_resources(root: Path) -> RunResources:
+    database = generate_database_name()
+    token = database.removeprefix("sedar_test_")
+    return RunResources(
+        root=root,
+        database=database,
+        container=f"sedar-odoo-test-{token}",
+        container_marker=f"sedar_runner_{secrets.token_hex(16)}",
+        database_marker=DATABASE_MARKER_MIN + secrets.randbelow(DATABASE_MARKER_SPAN),
+        http_port=20000 + secrets.randbelow(20000),
+    )
 
 
 def validate_database_name(name: str) -> None:
@@ -134,9 +162,9 @@ def database_exists(root: Path, database: str) -> tuple[int, bool]:
     return status, bool(output)
 
 
-def database_has_marker(root: Path, database: str, marker: str) -> tuple[int, bool]:
+def database_has_marker(root: Path, database: str, marker: int) -> tuple[int, bool]:
     validate_database_name(database)
-    if not OWNERSHIP_MARKER_RE.fullmatch(marker):
+    if not DATABASE_MARKER_MIN <= marker < DATABASE_MARKER_MIN + DATABASE_MARKER_SPAN:
         raise RunnerError("Refusing unsafe database ownership marker.")
     status, output = command_output([
         "docker", "compose", "exec", "-T", "db", "psql", "--username", "odoo",
@@ -144,77 +172,72 @@ def database_has_marker(root: Path, database: str, marker: str) -> tuple[int, bo
         "--command", (
             "SELECT 1 FROM pg_database WHERE "
             f"datname = '{database}' AND "
-            f"shobj_description(oid, 'pg_database') = '{marker}';"
+            f"datconnlimit = {marker};"
         ),
     ], root)
     return status, bool(output)
 
 
-def _cleanup_container(
-    root: Path, container: str, ownership_marker: str
-) -> list[str]:
+def _cleanup_container(resources: RunResources) -> list[str]:
     errors = []
-    inspect_status, containers = _container_names(root, container)
+    inspect_status, containers = _container_names(resources.root, resources.container)
     if inspect_status:
-        errors.append(f"Could not inspect test container {container!r}.")
-    elif container in containers:
-        marker_status, container_marker = _container_marker(root, container)
+        errors.append(f"Could not inspect test container {resources.container!r}.")
+    elif resources.container in containers:
+        marker_status, container_marker = _container_marker(
+            resources.root, resources.container
+        )
         if marker_status:
-            errors.append(f"Could not inspect ownership of test container {container!r}.")
-        elif container_marker != ownership_marker:
-            errors.append(f"Retained unowned test container {container!r}.")
-        elif command_result(["docker", "rm", "--force", container], root):
-            errors.append(f"Could not remove owned test container {container!r}.")
+            errors.append(
+                f"Could not inspect ownership of test container {resources.container!r}."
+            )
+        elif container_marker != resources.container_marker:
+            errors.append(f"Retained unowned test container {resources.container!r}.")
+        elif command_result(
+            ["docker", "rm", "--force", resources.container], resources.root
+        ):
+            errors.append(f"Could not remove owned test container {resources.container!r}.")
         else:
-            verify_status, remaining = _container_names(root, container)
-            if verify_status or container in remaining:
-                errors.append(f"Test container still exists: {container}.")
+            verify_status, remaining = _container_names(
+                resources.root, resources.container
+            )
+            if verify_status or resources.container in remaining:
+                errors.append(f"Test container still exists: {resources.container}.")
     return errors
 
 
-def _cleanup_database(
-    root: Path,
-    database: str,
-    ownership_marker: str,
-    creation_attempted: bool,
-) -> list[str]:
+def _cleanup_database(resources: RunResources) -> list[str]:
     errors = []
-    marker_status, owns_database = database_has_marker(root, database, ownership_marker)
+    marker_status, owns_database = database_has_marker(
+        resources.root, resources.database, resources.database_marker
+    )
     if marker_status:
-        errors.append(f"Could not inspect ownership of test database {database!r}.")
+        errors.append(
+            f"Could not inspect ownership of test database {resources.database!r}."
+        )
     elif owns_database:
         if command_result([
             "docker", "compose", "exec", "-T", "db", "dropdb", "--username", "odoo",
-            "--if-exists", "--force", database,
-        ], root):
-            errors.append(f"Could not drop test database {database!r}.")
-        verify_status, remaining = database_exists(root, database)
+            "--if-exists", "--force", resources.database,
+        ], resources.root):
+            errors.append(f"Could not drop test database {resources.database!r}.")
+        verify_status, remaining = database_exists(
+            resources.root, resources.database
+        )
         if verify_status:
-            errors.append(f"Could not verify removal of test database {database!r}.")
+            errors.append(
+                f"Could not verify removal of test database {resources.database!r}."
+            )
         elif remaining:
-            errors.append(f"Test database still exists: {database}.")
-    elif creation_attempted:
-        verify_status, remaining = database_exists(root, database)
-        if verify_status:
-            errors.append(f"Could not inspect unowned test database {database!r}.")
-        elif remaining:
-            errors.append(f"Retained unowned test database {database!r}.")
+            errors.append(f"Test database still exists: {resources.database}.")
     return errors
 
 
-def cleanup(
-    root: Path,
-    database: str,
-    container: str,
-    ownership_marker: str,
-    database_creation_attempted: bool,
-) -> list[str]:
-    validate_database_name(database)
-    if not OWNERSHIP_MARKER_RE.fullmatch(ownership_marker):
-        raise RunnerError("Refusing unsafe database ownership marker.")
-    return _cleanup_container(root, container, ownership_marker) + _cleanup_database(
-        root, database, ownership_marker, database_creation_attempted
-    )
+def cleanup(resources: RunResources) -> list[str]:
+    validate_database_name(resources.database)
+    if not OWNERSHIP_MARKER_RE.fullmatch(resources.container_marker):
+        raise RunnerError("Refusing unsafe container ownership marker.")
+    return _cleanup_container(resources) + _cleanup_database(resources)
 
 
 def run(root: Path, modules: list[str], tags: str | None = None) -> int:
@@ -224,13 +247,8 @@ def run(root: Path, modules: list[str], tags: str | None = None) -> int:
     test_tags = validate_test_tags(
         tags or ",".join(f"/{module}" for module in selected), set(selected)
     )
-    database = generate_database_name()
-    token = database.removeprefix("sedar_test_")
-    container = f"sedar-odoo-test-{token}"
-    ownership_marker = f"sedar_runner_{secrets.token_hex(16)}"
-    http_port = 20000 + secrets.randbelow(20000)
+    resources = generate_run_resources(root)
     install_modules = selected if modules else ["sedar_demo_suite"]
-    database_creation_attempted = False
     primary_status = None
     primary_exception = False
     try:
@@ -242,29 +260,32 @@ def run(root: Path, modules: list[str], tags: str | None = None) -> int:
             if status:
                 primary_status = status
                 return status
-        status, exists = database_exists(root, database)
+        status, exists = database_exists(root, resources.database)
         if status:
             primary_status = status
             return status
         if exists:
-            raise RunnerError(f"Generated test database name already exists: {database!r}.")
-        database_creation_attempted = True
+            raise RunnerError(
+                f"Generated test database name already exists: {resources.database!r}."
+            )
         status = command_result([
             "docker", "compose", "exec", "-T", "db", "psql", "--username", "odoo",
             "--dbname", "postgres", "--set", "ON_ERROR_STOP=1",
-            "--command", f"CREATE DATABASE {database} OWNER odoo;",
-            "--command", f"COMMENT ON DATABASE {database} IS '{ownership_marker}';",
+            "--command", (
+                f"CREATE DATABASE {resources.database} OWNER odoo "
+                f"CONNECTION LIMIT {resources.database_marker};"
+            ),
         ], root)
         if status:
             primary_status = status
             return status
         status = command_result([
-            "docker", "compose", "run", "--rm", "-T", "--name", container,
-            "--label", f"{CONTAINER_OWNER_LABEL}={ownership_marker}", "odoo", "odoo",
-            "-c", "/etc/odoo/odoo.conf", "--database", database,
-            "--db-filter", f"^{database}$", "--init", ",".join(install_modules),
+            "docker", "compose", "run", "--rm", "-T", "--name", resources.container,
+            "--label", f"{CONTAINER_OWNER_LABEL}={resources.container_marker}", "odoo", "odoo",
+            "-c", "/etc/odoo/odoo.conf", "--database", resources.database,
+            "--db-filter", f"^{resources.database}$", "--init", ",".join(install_modules),
             "--test-tags", test_tags, "--stop-after-init", "--without-demo=true",
-            "--http-interface", "127.0.0.1", "--http-port", str(http_port),
+            "--http-interface", "127.0.0.1", "--http-port", str(resources.http_port),
             "--data-dir", "/tmp/sedar-odoo-test-data", "--max-cron-threads", "0",
         ], root)
         primary_status = status
@@ -273,9 +294,7 @@ def run(root: Path, modules: list[str], tags: str | None = None) -> int:
         primary_exception = True
         raise
     finally:
-        cleanup_errors = cleanup(
-            root, database, container, ownership_marker, database_creation_attempted
-        )
+        cleanup_errors = cleanup(resources)
         if cleanup_errors:
             message = "Isolated test cleanup failed: " + " ".join(cleanup_errors)
             if primary_exception or primary_status not in (None, 0):

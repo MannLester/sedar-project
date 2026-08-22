@@ -253,8 +253,10 @@ python3 scripts/run_odoo_tests.py --module sedar_marine_finance \
 The runner resolves this workspace from its own path, validates module and tag input, starts only
 the Compose database dependency, installs modules into a fresh `sedar_test_*` database, uses an
 isolated data directory and HTTP port, and removes its exact test container and database on success,
-failure, or interruption when its private ownership marker is present. Cleanup will never delete an
-unmarked database, even if it has a generated test name. It never accepts a shared database name. A full run installs
+failure, or interruption. The database ownership marker is set atomically by the same PostgreSQL
+statement that creates the database, while the container carries a matching private label. Cleanup
+will never delete a resource without its run-specific marker. The runner never accepts a shared
+database name. A full run installs
 `sedar_demo_suite`; targeted runs install only the selected modules and their dependencies.
 
 Odoo executes matching tests in two phases during module loading: default `at_install` tests after

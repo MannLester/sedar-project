@@ -1,5 +1,6 @@
 import importlib.util
 import io
+import sys
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -8,12 +9,21 @@ from unittest.mock import patch
 SCRIPT = Path(__file__).resolve().parents[1] / "run_odoo_tests.py"
 SPEC = importlib.util.spec_from_file_location("run_odoo_tests", SCRIPT)
 runner = importlib.util.module_from_spec(SPEC)
+sys.modules[SPEC.name] = runner
 SPEC.loader.exec_module(runner)
 
 
 class TestRunnerSafety(unittest.TestCase):
     def setUp(self):
         self.root = Path(__file__).resolve().parents[2]
+        self.resources = runner.RunResources(
+            root=self.root,
+            database="sedar_test_123456789abc",
+            container="sedar-odoo-test-123456789abc",
+            container_marker="sedar_runner_123456789abcdef0123456789abcdef0",
+            database_marker=1_234_567_890,
+            http_port=23456,
+        )
         database_exists = patch.object(runner, "database_exists", return_value=(0, False))
         database_exists.start()
         self.addCleanup(database_exists.stop)
@@ -23,6 +33,16 @@ class TestRunnerSafety(unittest.TestCase):
         self.assertTrue(database.startswith("sedar_test_"))
         self.assertLessEqual(len(database), 63)
         self.assertEqual(database, database.lower())
+
+    def test_generated_resources_have_safe_atomic_ownership_markers(self):
+        resources = runner.generate_run_resources(self.root)
+
+        self.assertRegex(resources.container_marker, runner.OWNERSHIP_MARKER_RE)
+        self.assertGreaterEqual(resources.database_marker, runner.DATABASE_MARKER_MIN)
+        self.assertLess(
+            resources.database_marker,
+            runner.DATABASE_MARKER_MIN + runner.DATABASE_MARKER_SPAN,
+        )
 
     def test_shared_or_user_supplied_database_names_are_rejected(self):
         for database in ("sedar_demo", "postgres", "sedar_test_shared", "SEDAR_TEST_bad"):
@@ -62,16 +82,27 @@ class TestRunnerSafety(unittest.TestCase):
     def test_success_creates_runs_and_cleans_owned_database(self, command_result, cleanup):
         self.assertEqual(runner.run(self.root, ["sedar_marine_finance"]), 0)
         cleanup.assert_called_once()
-        self.assertRegex(cleanup.call_args.args[3], runner.OWNERSHIP_MARKER_RE)
+        resources = cleanup.call_args.args[0]
+        self.assertRegex(resources.container_marker, runner.OWNERSHIP_MARKER_RE)
+        create_command = command_result.call_args_list[-2].args[0]
+        create_sql = create_command[create_command.index("--command") + 1]
+        self.assertIn(f"CONNECTION LIMIT {resources.database_marker}", create_sql)
+        self.assertNotIn("COMMENT ON DATABASE", create_sql)
         test_command = command_result.call_args_list[-1].args[0]
         self.assertEqual(test_command[:4], ["docker", "compose", "run", "--rm"])
         self.assertIn("--stop-after-init", test_command)
         self.assertNotIn("--no-http", test_command)
         label = test_command[test_command.index("--label") + 1]
-        self.assertEqual(label, f"{runner.CONTAINER_OWNER_LABEL}={cleanup.call_args.args[3]}")
-        database = cleanup.call_args.args[1]
-        self.assertEqual(test_command[test_command.index("--database") + 1], database)
-        self.assertEqual(test_command[test_command.index("--db-filter") + 1], f"^{database}$")
+        self.assertEqual(
+            label, f"{runner.CONTAINER_OWNER_LABEL}={resources.container_marker}"
+        )
+        self.assertEqual(
+            test_command[test_command.index("--database") + 1], resources.database
+        )
+        self.assertEqual(
+            test_command[test_command.index("--db-filter") + 1],
+            f"^{resources.database}$",
+        )
         self.assertEqual(test_command[test_command.index("--http-interface") + 1], "127.0.0.1")
         self.assertEqual(test_command[test_command.index("--data-dir") + 1], "/tmp/sedar-odoo-test-data")
 
@@ -79,14 +110,14 @@ class TestRunnerSafety(unittest.TestCase):
     @patch.object(runner, "command_result", side_effect=[0, 0, 7])
     def test_failed_creation_checks_the_database_ownership_marker(self, command_result, cleanup):
         self.assertEqual(runner.run(self.root, ["sedar_marine_finance"]), 7)
-        self.assertRegex(cleanup.call_args.args[3], runner.OWNERSHIP_MARKER_RE)
+        self.assertIsInstance(cleanup.call_args.args[0], runner.RunResources)
 
     @patch.object(runner, "cleanup", return_value=[])
     @patch.object(runner, "command_result", side_effect=[0, 0, KeyboardInterrupt])
     def test_interrupted_creation_checks_the_database_ownership_marker(self, command_result, cleanup):
         with self.assertRaises(KeyboardInterrupt):
             runner.run(self.root, ["sedar_marine_finance"])
-        self.assertRegex(cleanup.call_args.args[3], runner.OWNERSHIP_MARKER_RE)
+        self.assertIsInstance(cleanup.call_args.args[0], runner.RunResources)
 
     @patch.object(runner, "cleanup", return_value=[])
     @patch.object(runner, "command_result", side_effect=[0, 0])
@@ -94,20 +125,20 @@ class TestRunnerSafety(unittest.TestCase):
         with patch.object(runner, "database_exists", return_value=(0, True)):
             with self.assertRaises(runner.RunnerError):
                 runner.run(self.root, ["sedar_marine_finance"])
-        self.assertRegex(cleanup.call_args.args[3], runner.OWNERSHIP_MARKER_RE)
+        self.assertIsInstance(cleanup.call_args.args[0], runner.RunResources)
 
     @patch.object(runner, "cleanup", return_value=[])
     @patch.object(runner, "command_result", side_effect=[0, 0, 0, 9])
     def test_test_failure_preserves_status_and_cleans(self, command_result, cleanup):
         self.assertEqual(runner.run(self.root, ["sedar_marine_finance"]), 9)
-        self.assertRegex(cleanup.call_args.args[3], runner.OWNERSHIP_MARKER_RE)
+        self.assertIsInstance(cleanup.call_args.args[0], runner.RunResources)
 
     @patch.object(runner, "cleanup", return_value=[])
     @patch.object(runner, "command_result", side_effect=[0, 0, 0, KeyboardInterrupt])
     def test_interruption_still_cleans(self, command_result, cleanup):
         with self.assertRaises(KeyboardInterrupt):
             runner.run(self.root, ["sedar_marine_finance"])
-        self.assertRegex(cleanup.call_args.args[3], runner.OWNERSHIP_MARKER_RE)
+        self.assertIsInstance(cleanup.call_args.args[0], runner.RunResources)
 
     @patch.object(runner, "cleanup", return_value=["Test database still exists: sedar_test_example."])
     @patch.object(runner, "command_result", side_effect=[0, 0, 0, KeyboardInterrupt])
@@ -134,16 +165,12 @@ class TestRunnerSafety(unittest.TestCase):
     @patch.object(runner, "database_has_marker", return_value=(0, True))
     @patch.object(runner, "command_output", return_value=(0, ""))
     @patch.object(runner, "command_result", return_value=0)
-    def test_cleanup_verifies_database_absence(
+    def test_cleanup_removes_atomically_marked_database(
         self, command_result, command_output, database_has_marker, database_exists
     ):
-        errors = runner.cleanup(
-            self.root, "sedar_test_123456789abc", "sedar-odoo-test-123456789abc",
-            "sedar_runner_123456789abcdef0123456789abcdef0",
-            True,
-        )
+        errors = runner.cleanup(self.resources)
         self.assertEqual(errors, [])
-        database_exists.assert_called_once_with(self.root, "sedar_test_123456789abc")
+        database_exists.assert_called_once_with(self.root, self.resources.database)
 
     @patch.object(runner, "database_exists", return_value=(0, True))
     @patch.object(runner, "database_has_marker", return_value=(0, True))
@@ -152,13 +179,8 @@ class TestRunnerSafety(unittest.TestCase):
     def test_cleanup_reports_database_that_still_exists(
         self, command_result, command_output, database_has_marker, database_exists
     ):
-        database = "sedar_test_123456789abc"
-        errors = runner.cleanup(
-            self.root, database, "sedar-odoo-test-123456789abc",
-            "sedar_runner_123456789abcdef0123456789abcdef0",
-            True,
-        )
-        self.assertTrue(any(database in error for error in errors))
+        errors = runner.cleanup(self.resources)
+        self.assertTrue(any(self.resources.database in error for error in errors))
 
     @patch.object(runner, "database_has_marker", return_value=(0, False))
     @patch.object(runner, "command_output", return_value=(0, ""))
@@ -166,11 +188,7 @@ class TestRunnerSafety(unittest.TestCase):
     def test_cleanup_never_drops_database_without_its_marker(
         self, command_result, command_output, database_has_marker
     ):
-        errors = runner.cleanup(
-            self.root, "sedar_test_123456789abc", "sedar-odoo-test-123456789abc",
-            "sedar_runner_123456789abcdef0123456789abcdef0",
-            True,
-        )
+        errors = runner.cleanup(self.resources)
         self.assertEqual(errors, [])
         command_result.assert_not_called()
 
@@ -185,28 +203,9 @@ class TestRunnerSafety(unittest.TestCase):
         self, command_result, container_names, container_marker,
         database_has_marker, database_exists
     ):
-        errors = runner.cleanup(
-            self.root, "sedar_test_123456789abc", "sedar-odoo-test-123456789abc",
-            "sedar_runner_123456789abcdef0123456789abcdef0",
-            True,
-        )
+        errors = runner.cleanup(self.resources)
         self.assertEqual(errors, [])
         self.assertEqual(command_result.call_args_list[0].args[0][:3], ["docker", "rm", "--force"])
-
-    @patch.object(runner, "database_exists", return_value=(0, True))
-    @patch.object(runner, "database_has_marker", return_value=(0, False))
-    @patch.object(runner, "_container_names", return_value=(0, set()))
-    @patch.object(runner, "command_result")
-    def test_cleanup_reports_unmarked_database_left_by_interrupted_creation(
-        self, command_result, container_names, database_has_marker, database_exists
-    ):
-        database = "sedar_test_123456789abc"
-        errors = runner.cleanup(
-            self.root, database, "sedar-odoo-test-123456789abc",
-            "sedar_runner_123456789abcdef0123456789abcdef0", True,
-        )
-        self.assertTrue(any("Retained unowned test database" in error for error in errors))
-        command_result.assert_not_called()
 
     @patch.object(runner, "database_exists", return_value=(0, False))
     @patch.object(runner, "database_has_marker", return_value=(0, False))
@@ -217,10 +216,7 @@ class TestRunnerSafety(unittest.TestCase):
         self, command_result, container_names, container_marker,
         database_has_marker, database_exists
     ):
-        errors = runner.cleanup(
-            self.root, "sedar_test_123456789abc", "sedar-odoo-test-123456789abc",
-            "sedar_runner_123456789abcdef0123456789abcdef0", True,
-        )
+        errors = runner.cleanup(self.resources)
         self.assertTrue(any("Retained unowned test container" in error for error in errors))
         command_result.assert_not_called()
 
