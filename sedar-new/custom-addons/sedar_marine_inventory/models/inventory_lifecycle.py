@@ -136,7 +136,12 @@ class SedarInventoryLifecycle(models.Model):
     issued_by_id = fields.Many2one("res.users", required=True, readonly=True, ondelete="restrict")
     issued_at = fields.Datetime(required=True, readonly=True)
     installed_at = fields.Datetime(compute="_compute_technical_dates", store=True, readonly=True)
-    removed_at = fields.Datetime(compute="_compute_technical_dates", store=True, readonly=True)
+    removed_at = fields.Datetime(
+        string="Uninstalled At",
+        compute="_compute_technical_dates",
+        store=True,
+        readonly=True,
+    )
     reconciliation_state = fields.Selection(
         [("reconciled", "Reconciled"), ("warning", "Needs Review")],
         compute="_compute_reconciliation_state",
