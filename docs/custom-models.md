@@ -27,10 +27,12 @@ partial Bids with five Bid lines and protected quotation attachments, three Line
 supplier-grouped standard Purchase Orders and receipts. It reconciles two Running Hour Readings and
 one due Maintenance activity, then creates one controlled Product A Inventory Issue, done internal
 stock move, and open Currently In Use lifecycle. Stable XMLIDs identify every fixture and downstream
-record. Reconciliation verifies semantic ownership before linking an existing record, creates
-missing facts, and does not reset operational quants, rewrite completed legacy Purchase Orders,
-receipts, supplier bills, Inventory Issues, or done stock moves. Re-running it preserves PM record
-identity and content.
+record. On first installation, reconciliation creates a fixture when its stable XMLID has never
+been bound. On later runs, it verifies semantic ownership before using the existing record and
+stops if the XMLID target was deleted or changed instead of reconstructing operational history. It
+does not reset operational quants or rewrite completed legacy Purchase Orders, receipts, supplier
+bills, Inventory Issues, or done stock moves. Re-running it preserves PM record identity and
+content.
 
 For the local demonstration only, reconciliation grants Odoo's built-in
 Administrator and every active, internal `@sedar.demo` persona the highest SEDAR manager role
