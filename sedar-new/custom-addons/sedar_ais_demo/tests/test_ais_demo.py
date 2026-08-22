@@ -195,6 +195,9 @@ class TestSedarAisDemo(TransactionCase):
         model = self.env["sedar.ais.position"].with_user(self.ais_user)
         with self.assertRaises(AccessError):
             model.get_equipment_procurement_detail(2147483647)
+        self.empty_equipment.active = False
+        with self.assertRaises(AccessError):
+            model.get_equipment_procurement_detail(self.empty_equipment.id)
         other_company = self.env["res.company"].create({"name": "Issue 8 Other Company"})
         other_tug = self.env["sedar.tugboat"].with_company(other_company).create({
             "name": "Issue 8 Other Tug",

@@ -343,6 +343,7 @@ class SedarAisPosition(models.Model):
             raise AccessError("The selected Equipment is not available on this fleet display.")
         equipment = self.env["maintenance.equipment"].sudo().search([
             ("id", "=", equipment_id),
+            ("active", "=", True),
             ("company_id", "=", self.env.company.id),
             ("sedar_tugboat_id.active", "=", True),
             ("sedar_tugboat_id.company_id", "=", self.env.company.id),
