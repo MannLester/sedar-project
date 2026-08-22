@@ -238,19 +238,6 @@ class SedarMarineOperation(models.Model):
 class SedarTugAssignmentDispatchLock(models.Model):
     _inherit = "sedar.tug.assignment"
 
-    def _check_operation_snapshot_reparenting(self, vals):
-        if "order_id" not in vals:
-            return
-        reparented = self.filtered(
-            lambda assignment: assignment.order_id.id != vals["order_id"]
-        )
-        if reparented and self.env["sedar.marine.operation.tug"].search_count([
-            ("tug_assignment_id", "in", reparented.ids),
-        ]):
-            raise ValidationError(
-                "A tug assignment captured by a Marine Operation cannot move to another Service Order."
-            )
-
     @api.model_create_multi
     def create(self, vals_list):
         assignments = super().create(vals_list)
@@ -258,7 +245,6 @@ class SedarTugAssignmentDispatchLock(models.Model):
         return assignments
 
     def write(self, vals):
-        self._check_operation_snapshot_reparenting(vals)
         planning_fields = {"order_id", "tugboat_id", "state"}
         locked = self.filtered(lambda assignment: assignment.order_id.state in {
             "ready", "dispatched", "in_progress", "completed", "billing_ready"
@@ -341,6 +327,18 @@ class SedarMarineOperationTug(models.Model):
                 raise ValidationError(
                     "The tug assignment must belong to the Marine Operation's Service Order."
                 )
+
+    def write(self, vals):
+        immutable_links = {"operation_id", "tug_assignment_id"}.intersection(vals)
+        if any(
+            getattr(tug, field_name).id != vals[field_name]
+            for tug in self
+            for field_name in immutable_links
+        ):
+            raise ValidationError(
+                "An Operation Tug snapshot cannot move to another operation or Tug Assignment."
+            )
+        return super().write(vals)
 
     def action_mark_on_scene(self):
         for tug in self:

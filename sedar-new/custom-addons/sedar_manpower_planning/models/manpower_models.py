@@ -178,6 +178,15 @@ class SedarCrewShortageAction(models.Model):
     outcome = fields.Text()
     attachment_ids = fields.Many2many("ir.attachment", string="Evidence")
 
+    def write(self, vals):
+        if "shortage_id" in vals and any(
+            action.shortage_id.id != vals["shortage_id"] for action in self
+        ):
+            raise ValidationError(
+                "A shortage resolution action cannot move to another Crew Shortage."
+            )
+        return super().write(vals)
+
     def action_start(self):
         self.write({"state": "in_progress"})
 
@@ -239,6 +248,18 @@ class SedarManpowerRequest(models.Model):
             if request.name == "New":
                 request.name = self.env["ir.sequence"].next_by_code("sedar.manpower.request") or "New"
         return requests
+
+    def write(self, vals):
+        if "company_id" in vals:
+            changed_with_lines = self.filtered(
+                lambda request: request.company_id.id != vals["company_id"]
+                and request.line_ids
+            )
+            if changed_with_lines:
+                raise ValidationError(
+                    "A Manpower Request company cannot change after position lines exist."
+                )
+        return super().write(vals)
 
     def _ensure_group(self, xmlid):
         if not self.env.user.has_group(xmlid):
@@ -382,6 +403,15 @@ class SedarManpowerRequestLine(models.Model):
                 raise ValidationError("Requested quantity must be at least one.")
             if line.approved_quantity < 0 or line.approved_quantity > line.quantity:
                 raise ValidationError("Approved quantity must be between zero and requested quantity.")
+
+    def write(self, vals):
+        if "request_id" in vals and any(
+            line.request_id.id != vals["request_id"] for line in self
+        ):
+            raise ValidationError(
+                "A Manpower Request line cannot move to another Manpower Request."
+            )
+        return super().write(vals)
 
     @api.constrains("request_id", "shortage_ids")
     def _check_shortage_companies(self):

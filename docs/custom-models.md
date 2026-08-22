@@ -201,7 +201,7 @@ Key behavior:
 The dispatch record inherits the Service Order company as described above. Its lifecycle contract also changed materially:
 
 - Its Service Order link is immutable after creation so the company, tug, crew, log, and delay snapshot cannot be reparented inconsistently.
-- A Tug Assignment captured in an Operation Tug snapshot cannot be moved to another Service Order; this preserves the exact-order and company relationship from both sides of the link.
+- Tug Assignments, Manning Requirements, Crew Assignments, and Crew Shortages cannot be reparented after creation, and Operation Tug snapshot links are immutable. Corrections replace planning records instead of mutating the ownership chain beneath dispatch or manpower evidence.
 - The system creates exactly one operation for a Ready Service Order with state `awaiting_start`.
 - The earliest participating Tug Master's `actual_start` moves the operation and order to `in_progress` and becomes the operation's `actual_start`.
 - When every active Tug Completion is submitted, the latest tug `actual_end` becomes the operation's `actual_end`; the operation and order become `completed` automatically.
@@ -739,6 +739,8 @@ One record defines the stock products normally required for one Service Order se
 | `line_ids` | One-to-many to `sedar.inventory.template.line` | Products and quantities generated for matching Service Orders. |
 | `active` | Boolean | Allows old demo templates to be retired without deleting history. |
 
+Changing the source location revalidates every existing line against the new location company before ownership can change. Company-owned products cannot be stranded under a template from another company.
+
 ### `sedar.inventory.template.line`
 
 | Field | Type | How it is used |
@@ -776,6 +778,7 @@ Key behavior:
 - `_sync_inventory_readiness()` writes the legacy `inventory_ready` flag from requirement-line availability only when requirement lines exist.
 - `action_confirm_inventory_ready()` is blocked for orders with requirement lines because readiness is stock-derived.
 - Service Order readiness shows `waiting_inventory` with a shortage summary when any requirement line is short.
+- Once a Purchase Request line cites an Inventory Requirement, that requirement's Service Order, product, and source location are immutable so procurement evidence cannot drift from its operational source.
 
 ### `maintenance.request` inventory extension
 
@@ -910,6 +913,7 @@ Key behavior:
 - Internal request state and computed procurement progress are separate so procurement work cannot make the internal need appear unreviewed.
 - Once Bid capture begins, the request company, currency, and line baseline are immutable. A request with Bid history cannot return to correction through rejection; received offers are withdrawn instead so commercial history is not erased.
 - Service Order and inventory-requirement sources must belong to the Purchase Request company. Procurement consumes the ownership supplied by Marine Operations and Inventory rather than deriving a second company fact.
+- The Purchase Request company is immutable after request lines, Bids, or Purchase Orders exist, including for elevated maintenance code. This keeps every stored related company and standard Purchase Order link consistent.
 
 ### `sedar.purchase.request.line`
 
@@ -1110,6 +1114,8 @@ Access rules:
 ## `sedar.manpower.request` and `sedar.job.vacancy` fulfillment behavior
 
 `sedar.manpower.request.line.company_id` is a stored, indexed relation to the parent Manpower Request company. The parent request, its lines, and crew-shortage resolution actions use global allowed-company record rules. `shortage_ids`, `job_id`, and `sedar.crew.shortage.manpower_request_line_id` are company-checked; the job is compatible when it is shared or belongs to the request company. The shortage's `crew_assignment_id` and computed `operation_id` are also company-checked and explicitly validated against the owning Service Order. The shortage action's `assigned_employee_id` must belong to the shortage company. The shortage-to-manpower workflow explicitly creates the request in the Service Order shortage company rather than whichever company is currently active for the user.
+
+Once a Manpower Request has position lines, its company cannot change. Position lines and shortage-resolution actions also cannot be moved to another parent. These rules prevent existing shortage evidence, HR jobs, action history, and vacancy handoff records from silently inheriting a different owner.
 
 Their fulfillment workflow contract also changed materially under ADR-0003:
 

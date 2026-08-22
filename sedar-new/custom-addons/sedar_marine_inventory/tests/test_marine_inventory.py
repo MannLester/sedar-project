@@ -252,6 +252,36 @@ class TestMarineInventory(TransactionCase):
                 "source_location_id": shared_location.id,
             })
 
+    def test_inventory_template_source_change_revalidates_existing_products(self):
+        company_product = self.env["product.product"].create({
+            "name": "Company-owned Template Product",
+            "type": "consu",
+            "is_storable": True,
+            "company_id": self.company.id,
+        })
+        template = self.env["sedar.inventory.template"].create({
+            "name": "Company-owned Product Template",
+            "service_type_id": self.service.id,
+            "source_location_id": self.stock_location.id,
+            "line_ids": [Command.create({
+                "product_id": company_product.id,
+                "required_qty": 1,
+            })],
+        })
+        other_company = self.env["res.company"].create({
+            "name": "Template Reparenting Other Company",
+        })
+        other_warehouse = self.env["stock.warehouse"].create({
+            "name": "Template Reparenting Other Warehouse",
+            "code": "TRWH",
+            "company_id": other_company.id,
+        })
+
+        with self.assertRaisesRegex(ValidationError, "conflicts"):
+            template.write({"source_location_id": other_warehouse.lot_stock_id.id})
+
+        self.assertEqual(template.company_id, self.company)
+
     def test_fuel_log_inherits_operation_company(self):
         fuel_log = self.env.ref("sedar_marine_inventory.fuel_completed_operation")
 

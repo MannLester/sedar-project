@@ -85,6 +85,26 @@ class PurchaseOrder(models.Model):
         return super().write(vals)
 
 
+class SedarInventoryRequirementProcurementLock(models.Model):
+    _inherit = "sedar.inventory.requirement"
+
+    def write(self, vals):
+        protected = {"order_id", "product_id", "source_location_id"}.intersection(vals)
+        changed = self.filtered(
+            lambda requirement: any(
+                getattr(requirement, field_name).id != vals[field_name]
+                for field_name in protected
+            )
+        )
+        if changed and self.env["sedar.purchase.request.line"].sudo().search_count([
+            ("inventory_requirement_id", "in", changed.ids),
+        ]):
+            raise ValidationError(_(
+                "An Inventory Requirement linked to a Purchase Request cannot change its Service Order, product, or source location."
+            ))
+        return super().write(vals)
+
+
 class SedarPurchaseRequest(models.Model):
     _name = "sedar.purchase.request"
     _description = "SEDAR Purchase Request"
@@ -454,11 +474,27 @@ class SedarPurchaseRequest(models.Model):
         return requests
 
     def write(self, vals):
+        self._check_company_integrity(vals)
         self._check_workflow_write_access(vals)
         self._check_fact_write_access(vals)
         self._check_ownership_write_access(vals)
         self._check_rejection_reason_write_access(vals)
         return super().write(self._prepare_source_write_values(vals))
+
+    def _check_company_integrity(self, vals):
+        if "company_id" not in vals:
+            return
+        changed = self.filtered(lambda request: request.company_id.id != vals["company_id"])
+        locked = changed.filtered(
+            lambda request: request.line_ids
+            or request.sudo().bid_ids
+            or request.sudo().purchase_order_ids
+            or request.purchase_order_id
+        )
+        if locked:
+            raise ValidationError(_(
+                "A Purchase Request company cannot change after request lines or procurement records exist."
+            ))
 
     def _check_workflow_write_access(self, vals):
         if WORKFLOW_FIELDS.intersection(vals) and not self.env.su:

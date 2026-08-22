@@ -40,7 +40,7 @@ class TestAutomatedMarineLifecycle(TransactionCase):
         requirement = cls.env["sedar.manning.requirement"].create({
             "tug_assignment_id": cls.assignment.id, "rank_id": rank.id, "required_count": 1,
         })
-        cls.env["sedar.crew.assignment"].create({
+        cls.crew_assignment = cls.env["sedar.crew.assignment"].create({
             "requirement_id": requirement.id, "crew_profile_id": profile.id,
         })
 
@@ -115,6 +115,42 @@ class TestAutomatedMarineLifecycle(TransactionCase):
             self.assignment.write({"order_id": other_order.id})
 
         self.assertEqual(self.assignment.order_id, self.order)
+
+    def test_snapshot_sources_cannot_be_reparented(self):
+        operation = self.env["sedar.marine.operation"].create({"order_id": self.order.id})
+        operation_tug = self.env["sedar.marine.operation.tug"].create({
+            "operation_id": operation.id,
+            "tug_assignment_id": self.assignment.id,
+            "tugboat_id": self.assignment.tugboat_id.id,
+        })
+        self.env["sedar.marine.operation.crew"].create({
+            "operation_tug_id": operation_tug.id,
+            "crew_assignment_id": self.crew_assignment.id,
+            "crew_profile_id": self.crew_assignment.crew_profile_id.id,
+            "employee_name": self.crew_assignment.employee_id.name,
+        })
+        other_order = self.order.copy({
+            "assisted_vessel_name": "MV Snapshot Source Reparenting Is Forbidden",
+            "state": "planning",
+        })
+        other_assignment = self.assignment.copy({"order_id": other_order.id})
+        other_requirement = self.crew_assignment.requirement_id.copy({
+            "tug_assignment_id": other_assignment.id,
+        })
+
+        with self.assertRaisesRegex(ValidationError, "crew assignment cannot move"):
+            self.crew_assignment.write({"requirement_id": other_requirement.id})
+        with self.assertRaisesRegex(ValidationError, "manning requirement cannot move"):
+            self.crew_assignment.requirement_id.write({
+                "tug_assignment_id": other_assignment.id,
+            })
+        with self.assertRaisesRegex(ValidationError, "snapshot cannot move"):
+            operation_tug.write({"tug_assignment_id": other_assignment.id})
+        other_operation = self.env["sedar.marine.operation"].create({
+            "order_id": other_order.id,
+        })
+        with self.assertRaisesRegex(ValidationError, "snapshot cannot move"):
+            operation_tug.write({"operation_id": other_operation.id})
 
     def test_operation_cannot_move_to_another_service_order(self):
         self.order.action_confirm_inventory_ready()

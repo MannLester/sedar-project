@@ -124,6 +124,61 @@ class TestManpowerCompanyOwnership(TransactionCase):
         self.assertEqual(request.line_ids.company_id, self.company_b)
         self.assertEqual(request.line_ids.shortage_ids, self.shortage_b)
 
+    def test_manpower_request_company_is_locked_after_lines_exist(self):
+        action = self.shortage_b.with_company(self.company_a).action_create_manpower_request()
+        request = self.env["sedar.manpower.request"].browse(action["res_id"])
+        department_a = self.env["hr.department"].create({
+            "name": "Locked Manpower Company Department A",
+            "company_id": self.company_a.id,
+        })
+
+        with self.assertRaisesRegex(ValidationError, "company cannot change"):
+            request.write({
+                "company_id": self.company_a.id,
+                "department_id": department_a.id,
+            })
+
+        self.assertEqual(request.company_id, self.company_b)
+        self.assertEqual(request.line_ids.shortage_ids, self.shortage_b)
+
+    def test_shortage_and_manpower_ownership_chain_cannot_be_reparented(self):
+        action = self.shortage_b.with_company(self.company_a).action_create_manpower_request()
+        request_b = self.env["sedar.manpower.request"].browse(action["res_id"])
+        line_b = request_b.line_ids
+        shortage_action_b = self.env["sedar.crew.shortage.action"].create({
+            "shortage_id": self.shortage_b.id,
+            "action_type": "manpower",
+        })
+        partner_a = self.env["res.partner"].create({
+            "name": "Immutable Ownership Client A",
+            "company_id": self.company_a.id,
+        })
+        shortage_a = self._create_shortage(self.company_a, partner_a)
+        department_a = self.env["hr.department"].create({
+            "name": "Immutable Ownership Department A",
+            "company_id": self.company_a.id,
+        })
+        request_a = self.env["sedar.manpower.request"].create({
+            "company_id": self.company_a.id,
+            "department_id": department_a.id,
+            "business_justification": "Replacement parent for rejection checks.",
+        })
+
+        with self.assertRaisesRegex(ValidationError, "Tug Assignment cannot move"):
+            self.shortage_b.requirement_id.tug_assignment_id.write({
+                "order_id": shortage_a.order_id.id,
+            })
+        with self.assertRaisesRegex(ValidationError, "crew shortage cannot move"):
+            self.shortage_b.write({"requirement_id": shortage_a.requirement_id.id})
+        with self.assertRaisesRegex(ValidationError, "action cannot move"):
+            shortage_action_b.write({"shortage_id": shortage_a.id})
+        with self.assertRaisesRegex(ValidationError, "line cannot move"):
+            line_b.write({"request_id": request_a.id})
+
+        self.assertEqual(self.shortage_b.company_id, self.company_b)
+        self.assertEqual(line_b.request_id, request_b)
+        self.assertEqual(shortage_action_b.shortage_id, self.shortage_b)
+
     def test_manpower_line_rejects_foreign_company_shortage(self):
         department_a = self.env["hr.department"].create({
             "name": "Marine Operations A",

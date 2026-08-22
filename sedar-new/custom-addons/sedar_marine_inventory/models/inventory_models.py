@@ -34,6 +34,23 @@ class SedarInventoryTemplate(models.Model):
                 "An Inventory Template source location must belong to a company."
             )
 
+    def write(self, vals):
+        if "source_location_id" in vals:
+            location = self.env["stock.location"].browse(vals["source_location_id"])
+            if not location.company_id:
+                raise ValidationError(
+                    "An Inventory Template source location must belong to a company."
+                )
+            mismatched = self.mapped("line_ids.product_id").filtered(
+                lambda product: product.company_id
+                and product.company_id != location.company_id
+            )
+            if mismatched:
+                raise ValidationError(
+                    "The new source location company conflicts with existing template products."
+                )
+        return super().write(vals)
+
 
 class SedarInventoryTemplateLine(models.Model):
     _name = "sedar.inventory.template.line"

@@ -274,6 +274,12 @@ class SedarTugAssignment(models.Model):
         return True
 
     def write(self, vals):
+        if "order_id" in vals and any(
+            assignment.order_id.id != vals["order_id"] for assignment in self
+        ):
+            raise ValidationError(
+                "A Tug Assignment cannot move to another Service Order."
+            )
         protected = {
             "actual_start", "actual_end", "completion_note", "completion_evidence",
             "completion_evidence_filename", "completion_state", "completion_declared_by_id",
@@ -357,6 +363,16 @@ class SedarManningRequirement(models.Model):
             else:
                 requirement.status = "filled"
 
+    def write(self, vals):
+        if "tug_assignment_id" in vals and any(
+            requirement.tug_assignment_id.id != vals["tug_assignment_id"]
+            for requirement in self
+        ):
+            raise ValidationError(
+                "A manning requirement cannot move to another Tug Assignment."
+            )
+        return super().write(vals)
+
 
 class SedarCrewAssignment(models.Model):
     _name = "sedar.crew.assignment"
@@ -422,6 +438,16 @@ class SedarCrewAssignment(models.Model):
             assignment.is_eligible = not reasons
             assignment.eligibility_reason = "; ".join(reasons) or "Eligible"
 
+    def write(self, vals):
+        if "requirement_id" in vals and any(
+            assignment.requirement_id.id != vals["requirement_id"]
+            for assignment in self
+        ):
+            raise ValidationError(
+                "A crew assignment cannot move to another Manning Requirement."
+            )
+        return super().write(vals)
+
 
 class SedarCrewShortage(models.Model):
     _name = "sedar.crew.shortage"
@@ -448,3 +474,13 @@ class SedarCrewShortage(models.Model):
         ("open", "Open"), ("resolved", "Resolved"), ("cancelled", "Cancelled")
     ], required=True, default="open")
     notes = fields.Text()
+
+    def write(self, vals):
+        if "requirement_id" in vals and any(
+            shortage.requirement_id.id != vals["requirement_id"]
+            for shortage in self
+        ):
+            raise ValidationError(
+                "A crew shortage cannot move to another Manning Requirement."
+            )
+        return super().write(vals)
