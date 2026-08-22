@@ -177,6 +177,7 @@
 .o_sedar_ais_equipment_facts b { color: #183b4f; font-size: 9px; }
 
 .o_sedar_ais_procurement { margin-top: 16px; padding-top: 14px; border-top: 2px solid #9fc6d4; }
+.o_sedar_ais_detail.is-procurement .o_sedar_ais_procurement { margin-top: 0; padding-top: 0; border-top: 0; }
 .o_sedar_ais_procurement_header { display: grid; gap: 8px; }
 .o_sedar_ais_back { justify-self: start; padding: 4px 0; color: #086888; border: 0; background: transparent; font-size: 10px; font-weight: 700; }
 .o_sedar_ais_back i { margin-right: 4px; }

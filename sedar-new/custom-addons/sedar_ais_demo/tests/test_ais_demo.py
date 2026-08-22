@@ -125,6 +125,42 @@ class TestSedarAisDemo(TransactionCase):
             "group_ids": [Command.set([group.id for group in groups])],
         })
 
+    def _create_extra_bids(self, count):
+        for index in range(count):
+            bidder = self.env["res.partner"].create({
+                "name": f"Issue 8 Scaling Supplier {index}",
+                "supplier_rank": 1,
+                "company_id": self.env.company.id,
+            })
+            bid = self.env["sedar.purchase.bid"].sudo().create({
+                "name": f"ISSUE8-SCALE-BID-{index}",
+                "request_id": self.request.id,
+                "bidder_id": bidder.id,
+                "state": "received",
+                "capture_source": "manual",
+                "received_by_id": self.officer.id,
+                "received_at": fields.Datetime.now(),
+                "quotation_file": base64.b64encode(
+                    f"Issue 8 scale attachment {index}".encode()
+                ),
+                "quotation_filename": f"issue8-scale-{index}.pdf",
+            })
+            self.env["sedar.purchase.bid.line"].sudo().create({
+                "bid_id": bid.id,
+                "request_line_id": self.line.id,
+                "quantity": 2,
+                "unit_price": 100 + index,
+            })
+
+    def _detail_query_count(self):
+        self.env.flush_all()
+        self.env.invalidate_all()
+        before = self.env.cr.sql_log_count
+        self.env["sedar.ais.position"].with_user(
+            self.officer
+        ).get_equipment_procurement_detail(self.equipment.id)
+        return self.env.cr.sql_log_count - before
+
     def test_dashboard_payload_exposes_simulation_and_crew(self):
         payload = self.env["sedar.ais.position"].get_dashboard_data()
         self.assertTrue(payload["simulation"])
@@ -252,6 +288,22 @@ class TestSedarAisDemo(TransactionCase):
         row = detail["procurement_history"][0]
         self.assertEqual(row["outcome"], "cancelled")
         self.assertEqual(row["commercial"]["orders"][0]["state"], "cancel")
+
+    def test_draft_purchase_order_remains_active_and_is_projected(self):
+        self.request.with_user(self.officer).action_create_purchase_orders()
+        detail = self.env["sedar.ais.position"].with_user(
+            self.officer
+        ).get_equipment_procurement_detail(self.equipment.id)
+        self.assertEqual(detail["procurement_history"], [])
+        row = detail["active_procurement"][0]
+        self.assertEqual(row["order_count"], 1)
+        self.assertEqual(row["commercial"]["orders"][0]["state"], "draft")
+
+    def test_detail_query_count_does_not_scale_per_bid(self):
+        baseline = self._detail_query_count()
+        self._create_extra_bids(6)
+        expanded = self._detail_query_count()
+        self.assertLessEqual(expanded, baseline + 3)
 
     def test_simulation_advance_moves_an_underway_tug(self):
         self.env.company.sedar_ensure_ais_demo()

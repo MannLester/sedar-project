@@ -28,6 +28,7 @@ export class SedarAisDashboard extends Component {
             canAdvance: false,
         });
         this.animationTimer = null;
+        this.focusTimer = null;
         this.requestGeneration = 0;
         this.onKeydown = (event) => this.handleKeydown(event);
         onWillStart(() => this.loadDashboard());
@@ -37,6 +38,7 @@ export class SedarAisDashboard extends Component {
         });
         onWillUnmount(() => {
             this.stopAnimation();
+            clearTimeout(this.focusTimer);
             this.invalidateEquipmentRequest();
             document.removeEventListener("keydown", this.onKeydown);
         });
@@ -157,8 +159,12 @@ export class SedarAisDashboard extends Component {
     }
 
     closeTugDetail() {
+        const tugId = this.state.selectedId;
         this.invalidateEquipmentRequest();
         this.state.selectedId = false;
+        this.focusAfterRender(
+            `.o_sedar_ais_tug_card[data-tug-id="${tugId}"], .o_sedar_ais_marker[data-tug-id="${tugId}"]`
+        );
     }
 
     onTugSelect(event) {
@@ -184,6 +190,7 @@ export class SedarAisDashboard extends Component {
         const generation = this.invalidateEquipmentRequest();
         this.state.selectedEquipmentId = equipmentId;
         this.state.equipmentDetailStatus = "loading";
+        this.focusAfterRender(".o_sedar_ais_back");
         try {
             const detail = await this.orm.call(
                 "sedar.ais.position",
@@ -205,7 +212,19 @@ export class SedarAisDashboard extends Component {
     }
 
     closeEquipmentDetail() {
+        const equipmentId = this.state.selectedEquipmentId;
         this.invalidateEquipmentRequest();
+        this.focusAfterRender(
+            `.o_sedar_ais_equipment_card[data-equipment-id="${equipmentId}"]`
+        );
+    }
+
+    focusAfterRender(selector) {
+        clearTimeout(this.focusTimer);
+        this.focusTimer = setTimeout(() => {
+            document.querySelector(`.o_sedar_ais_dashboard ${selector}`)?.focus();
+            this.focusTimer = null;
+        });
     }
 
     retryEquipmentDetail() {
@@ -292,6 +311,10 @@ export class SedarAisDashboard extends Component {
         return value === false || value === null || value === undefined
             ? "No reading"
             : `${Number(value).toLocaleString(undefined, { maximumFractionDigits: 1 })} h`;
+    }
+
+    formatCurrentHours(equipment) {
+        return equipment.reading_at ? this.formatHours(equipment.running_hours) : "No reading";
     }
 
     openAttachment(action) {

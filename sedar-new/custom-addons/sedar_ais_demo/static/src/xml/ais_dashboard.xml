@@ -46,7 +46,7 @@
                         </select>
                     </div>
                     <div class="o_sedar_ais_fleet_list">
-                        <button type="button" t-foreach="visibleFleet" t-as="tug" t-key="tug.id" t-att-class="tug.id === state.selectedId ? 'o_sedar_ais_tug_card is-selected' : 'o_sedar_ais_tug_card'" t-att-aria-pressed="tug.id === state.selectedId ? 'true' : 'false'" t-on-click="() => this.selectTug(tug.id)">
+                        <button type="button" t-foreach="visibleFleet" t-as="tug" t-key="tug.id" t-att-data-tug-id="tug.id" t-att-class="tug.id === state.selectedId ? 'o_sedar_ais_tug_card is-selected' : 'o_sedar_ais_tug_card'" t-att-aria-pressed="tug.id === state.selectedId ? 'true' : 'false'" t-on-click="() => this.selectTug(tug.id)">
                             <span class="o_sedar_ais_tug_card_top">
                                 <span class="o_sedar_ais_vessel_icon"><i class="fa fa-ship" aria-hidden="true"/></span>
                                 <span class="o_sedar_ais_tug_identity"><strong t-esc="tug.name"/><small><t t-esc="tug.call_sign"/> · <t t-esc="tug.registration"/></small></span>
@@ -83,18 +83,19 @@
                             <div class="o_sedar_ais_compass"><i class="fa fa-location-arrow"/><b>N</b></div>
                             <div class="o_sedar_ais_scale"><span/> 2 nautical miles</div>
 
-                            <button type="button" t-foreach="state.fleet" t-as="tug" t-key="tug.id" t-att-class="markerClass(tug)" t-att-style="markerStyle(tug)" t-on-click="() => this.selectTug(tug.id)" t-att-aria-pressed="tug.id === state.selectedId ? 'true' : 'false'" t-att-aria-label="tug.name + ', ' + tug.status_label + ', ' + tug.location">
+                            <button type="button" t-foreach="state.fleet" t-as="tug" t-key="tug.id" t-att-data-tug-id="tug.id" t-att-class="markerClass(tug)" t-att-style="markerStyle(tug)" t-on-click="() => this.selectTug(tug.id)" t-att-aria-pressed="tug.id === state.selectedId ? 'true' : 'false'" t-att-aria-label="tug.name + ', ' + tug.status_label + ', ' + tug.location">
                                 <span class="o_sedar_ais_marker_pulse"/>
                                 <span class="o_sedar_ais_marker_ship"><i t-att-class="tug.status === 'dry_dock' ? 'fa fa-wrench' : 'fa fa-ship'"/></span>
                                 <span class="o_sedar_ais_marker_label"><b t-esc="tug.name"/><small><t t-esc="tug.speed.toFixed(1)"/> kn</small></span>
                             </button>
                         </div>
 
-                        <aside t-if="selectedTug" class="o_sedar_ais_detail" aria-label="Selected tugboat details">
+                        <aside t-if="selectedTug" class="o_sedar_ais_detail" t-att-class="state.selectedEquipmentId ? 'is-procurement' : ''" t-att-aria-label="state.selectedEquipmentId ? 'Selected Equipment procurement details' : 'Selected tugboat details'">
                             <div class="o_sedar_ais_detail_actions">
                                 <button type="button" class="o_sedar_ais_icon_button" t-on-click="() => this.openTugboat(selectedTug.id)" aria-label="Open tugboat record"><i class="fa fa-external-link" aria-hidden="true"/></button>
                                 <button type="button" class="o_sedar_ais_icon_button" t-on-click="closeTugDetail" aria-label="Close tugboat details"><i class="fa fa-times" aria-hidden="true"/></button>
                             </div>
+                            <t t-if="!state.selectedEquipmentId">
                             <div class="o_sedar_ais_detail_title"><div class="o_sedar_ais_vessel_icon"><i class="fa fa-ship"/></div><div><h2 t-esc="selectedTug.name"/><p><t t-esc="selectedTug.tug_class"/> · <t t-esc="selectedTug.bollard_pull"/> T bollard pull</p></div><span t-att-class="statusClass(selectedTug.status)" t-esc="selectedTug.status_label"/></div>
                             <div class="o_sedar_ais_detail_grid">
                                 <div><span>Current location</span><strong t-esc="selectedTug.location"/><small><t t-esc="formatCoordinate(selectedTug.latitude, 'N', 'S')"/> · <t t-esc="formatCoordinate(selectedTug.longitude, 'E', 'W')"/></small></div>
@@ -116,10 +117,10 @@
                                     <span><t t-esc="selectedTug.equipment.length"/> installed</span>
                                 </div>
                                 <div class="o_sedar_ais_equipment_list">
-                                    <button type="button" t-foreach="selectedTug.equipment" t-as="equipment" t-key="equipment.id" t-att-class="equipment.id === state.selectedEquipmentId ? 'o_sedar_ais_equipment_card is-selected' : 'o_sedar_ais_equipment_card'" t-att-aria-pressed="equipment.id === state.selectedEquipmentId ? 'true' : 'false'" t-on-click="() => this.selectEquipment(equipment.id)">
+                                    <button type="button" t-foreach="selectedTug.equipment" t-as="equipment" t-key="equipment.id" t-att-data-equipment-id="equipment.id" t-att-class="equipment.id === state.selectedEquipmentId ? 'o_sedar_ais_equipment_card is-selected' : 'o_sedar_ais_equipment_card'" t-att-aria-pressed="equipment.id === state.selectedEquipmentId ? 'true' : 'false'" t-on-click="() => this.selectEquipment(equipment.id)">
                                         <span class="o_sedar_ais_equipment_top"><span><strong t-esc="equipment.name"/><small><t t-esc="equipment.system_label"/> · <t t-esc="equipment.criticality_label"/></small></span><span t-att-class="equipmentStateClass(equipment.maintenance_state)" t-esc="equipment.maintenance_state_label"/></span>
                                         <span class="o_sedar_ais_equipment_facts">
-                                            <span><small>Running Hours</small><b t-esc="formatHours(equipment.running_hours)"/></span>
+                                            <span><small>Running Hours</small><b t-esc="formatCurrentHours(equipment)"/></span>
                                             <span><small>Next service due</small><b t-esc="equipment.next_service_due ? formatHours(equipment.next_service_due) : 'Not scheduled'"/></span>
                                             <span><small>Active procurement</small><b><t t-esc="equipment.active_procurement_count"/> request<t t-if="equipment.active_procurement_count !== 1">s</t></b></span>
                                         </span>
@@ -127,6 +128,7 @@
                                     <div t-if="!selectedTug.equipment.length" class="o_sedar_ais_empty o_sedar_ais_empty--compact">No installed Equipment is linked to this tugboat.</div>
                                 </div>
                             </section>
+                            </t>
 
                             <section t-if="state.selectedEquipmentId" class="o_sedar_ais_procurement" aria-labelledby="o_sedar_ais_procurement_heading">
                                 <div class="o_sedar_ais_procurement_header">
@@ -167,6 +169,7 @@
                                                     </div>
                                                 </div>
                                                 <div t-if="line.commercial.award" class="o_sedar_ais_award"><h5>Line Award</h5><div><span><strong t-esc="line.commercial.award.bidder_name"/><small><t t-esc="line.commercial.award.state_label"/> · <t t-esc="line.commercial.award.reason"/></small></span><b><t t-esc="line.commercial.award.currency"/> <t t-esc="line.commercial.award.unit_price"/> × <t t-esc="line.commercial.award.quantity"/></b></div></div>
+                                                <div t-if="line.commercial.orders.length"><h5>In-progress Purchase Orders</h5><div t-foreach="line.commercial.orders" t-as="order" t-key="order.id" class="o_sedar_ais_commercial_item"><span><strong t-esc="order.name"/><small><t t-esc="order.supplier_name"/> · <t t-esc="order.state_label"/></small></span><b><t t-esc="order.currency"/> <t t-esc="order.amount_total"/></b></div></div>
                                             </div>
                                         </article>
                                         <div t-if="!activeProcurement.length" class="o_sedar_ais_empty o_sedar_ais_empty--compact">No active procurement is linked to this Equipment.</div>
@@ -186,7 +189,7 @@
                                     </section>
                                 </div>
                             </section>
-                            <p class="o_sedar_ais_escape_hint">Press Escape to go back or close details.</p>
+                            <p class="o_sedar_ais_escape_hint"><t t-esc="state.selectedEquipmentId ? 'Press Escape to return to Equipment.' : 'Press Escape to close details.'"/></p>
                         </aside>
                     </div>
                     <footer class="o_sedar_ais_map_footer"><span><i class="fa fa-info-circle"/> Positions are fictional and move only inside this demonstration.</span><span>Feed generated: <t t-esc="state.generatedAt"/></span></footer>
