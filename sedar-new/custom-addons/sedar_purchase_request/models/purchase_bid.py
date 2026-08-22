@@ -119,6 +119,24 @@ class SedarPurchaseBid(models.Model):
         "sedar.purchase.line.award", "bid_id", readonly=True,
         groups="sedar_marine_inventory.group_marine_inventory_manager",
     )
+    quoted_line_count = fields.Integer(
+        compute="_compute_workspace_summary", compute_sudo=True, store=True,
+    )
+    active_request_line_count = fields.Integer(
+        compute="_compute_workspace_summary", compute_sudo=True, store=True,
+    )
+    coverage_state = fields.Selection(
+        [("none", "No Coverage"), ("partial", "Partial Coverage"),
+         ("full", "Full Coverage")],
+        compute="_compute_workspace_summary", compute_sudo=True, store=True,
+    )
+    award_count = fields.Integer(
+        compute="_compute_workspace_summary", compute_sudo=True, store=True,
+    )
+    awarded_amount = fields.Monetary(
+        compute="_compute_workspace_summary", compute_sudo=True, store=True,
+        currency_field="currency_id",
+    )
 
     _request_bidder_unique = models.Constraint(
         "UNIQUE(request_id, bidder_id)",
@@ -134,6 +152,41 @@ class SedarPurchaseBid(models.Model):
         for bid in self:
             amount = sum(bid.line_ids.mapped("subtotal"))
             bid.total_amount = bid.currency_id.round(amount) if bid.currency_id else amount
+
+    @api.depends(
+        "line_ids.request_line_id.line_state",
+        "request_id.line_ids.line_state",
+        "award_ids.state",
+        "award_ids.quantity",
+        "award_ids.unit_price",
+        "currency_id",
+    )
+    def _compute_workspace_summary(self):
+        for bid in self:
+            active_request_lines = bid.sudo().request_id.line_ids.filtered(
+                lambda line: line.line_state == "active"
+            )
+            quoted_lines = bid.sudo().line_ids.filtered(
+                lambda line: line.request_line_id in active_request_lines
+            )
+            active_awards = bid.sudo().award_ids.filtered(
+                lambda award: award.state in {"awarded", "ordered"}
+            )
+            bid.active_request_line_count = len(active_request_lines)
+            bid.quoted_line_count = len(quoted_lines)
+            if not quoted_lines:
+                bid.coverage_state = "none"
+            elif len(quoted_lines) < len(active_request_lines):
+                bid.coverage_state = "partial"
+            else:
+                bid.coverage_state = "full"
+            bid.award_count = len(active_awards)
+            amount = sum(
+                award.quantity * award.unit_price for award in active_awards
+            )
+            bid.awarded_amount = (
+                bid.currency_id.round(amount) if bid.currency_id else amount
+            )
 
     def _check_bid_officer(self):
         for bid in self:

@@ -464,6 +464,47 @@ class TestSedarPurchaseAward(TransactionCase):
             with self.env.cr.savepoint():
                 request.with_user(self.other_officer).action_create_purchase_orders()
 
+    def test_request_and_bid_workspace_summaries_follow_current_awards(self):
+        request = self._make_request(products=self.products[:2])
+        lines = request.line_ids.sorted("sequence")
+        first_bid = self._make_bid(request, self.suppliers[0], lines[:1], [40.0])
+        second_bid = self._make_bid(request, self.suppliers[1], lines[1:], [25.0])
+
+        first_award = self._award(lines[:1], first_bid.line_ids)
+        second_award = self._award(lines[1:], second_bid.line_ids)
+        officer_request = request.with_user(self.officer)
+        officer_request.invalidate_recordset([
+            "winning_bidder_ids", "awarded_total", "procurement_progress",
+        ])
+        first_bid.invalidate_recordset(["award_count", "awarded_amount"])
+
+        self.assertEqual(
+            set(officer_request.winning_bidder_ids.ids),
+            {self.suppliers[0].id, self.suppliers[1].id},
+        )
+        expected = sum(
+            award.quantity * award.unit_price for award in first_award | second_award
+        )
+        self.assertEqual(
+            officer_request.awarded_total,
+            officer_request.currency_id.round(expected),
+        )
+        self.assertEqual(officer_request.procurement_progress, "fully_awarded")
+        self.assertEqual(first_bid.award_count, 1)
+        self.assertEqual(
+            first_bid.awarded_amount,
+            first_bid.currency_id.round(first_award.quantity * first_award.unit_price),
+        )
+
+        first_award.with_user(self.officer)._reset_with_reason("Recompare offers.")
+        officer_request.invalidate_recordset([
+            "winning_bidder_ids", "awarded_total", "procurement_progress",
+        ])
+        first_bid.invalidate_recordset(["award_count", "awarded_amount"])
+        self.assertEqual(officer_request.winning_bidder_ids, self.suppliers[1])
+        self.assertEqual(first_bid.award_count, 0)
+        self.assertEqual(first_bid.awarded_amount, 0)
+
     def test_legacy_incomplete_handoff_requires_audited_recovery(self):
         request = self._make_request(products=self.products[:1])
         request.sudo().write({"state": "po_created"})
