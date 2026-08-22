@@ -143,7 +143,7 @@ Historical one-step issues are preserved as completed legacy consumption. The up
 9. The system groups won lines by supplier and creates one standard Purchase Order per winner.
 10. Standard Odoo receipts replenish Storage.
 11. A controlled Inventory Issue moves goods from Storage to the named tugboat.
-12. Installed or assigned goods appear under Currently In Use until an explicit removal or consumption.
+12. Installed or assigned goods remain under Currently In Use until an explicit removal or consumption records the next controlled stock movement.
 
 ## User interface
 
