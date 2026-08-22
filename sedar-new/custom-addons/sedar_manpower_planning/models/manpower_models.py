@@ -21,8 +21,12 @@ class SedarCrewShortage(models.Model):
     _inherit = "sedar.crew.shortage"
 
     detected_at = fields.Datetime(default=fields.Datetime.now, required=True)
-    crew_assignment_id = fields.Many2one("sedar.crew.assignment", ondelete="set null")
-    operation_id = fields.Many2one("sedar.marine.operation", compute="_compute_operation", store=True)
+    crew_assignment_id = fields.Many2one(
+        "sedar.crew.assignment", ondelete="set null", check_company=True
+    )
+    operation_id = fields.Many2one(
+        "sedar.marine.operation", compute="_compute_operation", store=True, check_company=True
+    )
     review_state = fields.Selection([
         ("unreviewed", "Unreviewed"), ("reviewing", "Under Review"),
         ("action_required", "Action Required"), ("escalated", "Escalated"),
@@ -40,12 +44,32 @@ class SedarCrewShortage(models.Model):
     resolution_notes = fields.Text()
     resolved_at = fields.Datetime()
     action_ids = fields.One2many("sedar.crew.shortage.action", "shortage_id")
-    manpower_request_line_id = fields.Many2one("sedar.manpower.request.line", ondelete="set null")
+    manpower_request_line_id = fields.Many2one(
+        "sedar.manpower.request.line", ondelete="set null", check_company=True
+    )
 
     @api.depends("order_id.operation_ids")
     def _compute_operation(self):
         for shortage in self:
             shortage.operation_id = shortage.order_id.operation_ids[:1]
+
+    @api.constrains(
+        "company_id", "crew_assignment_id", "operation_id", "manpower_request_line_id"
+    )
+    def _check_company_links(self):
+        for shortage in self:
+            linked_records = (
+                shortage.crew_assignment_id,
+                shortage.operation_id,
+                shortage.manpower_request_line_id,
+            )
+            if any(
+                linked.company_id and linked.company_id != shortage.company_id
+                for linked in linked_records
+            ):
+                raise ValidationError(
+                    "Crew shortage links must belong to the Service Order company."
+                )
 
     def action_start_review(self):
         self.write({"review_state": "reviewing", "reviewer_id": self.env.user.id})
@@ -134,7 +158,16 @@ class SedarCrewShortageAction(models.Model):
         ("certificate", "Certification"), ("medical", "Medical"),
         ("training", "Training"), ("manpower", "Manpower Request"),
     ], required=True)
-    assigned_employee_id = fields.Many2one("hr.employee")
+    assigned_employee_id = fields.Many2one("hr.employee", check_company=True)
+
+    @api.constrains("company_id", "assigned_employee_id")
+    def _check_assigned_employee_company(self):
+        for action in self:
+            employee = action.assigned_employee_id
+            if employee.company_id and employee.company_id != action.company_id:
+                raise ValidationError(
+                    "The assigned employee must belong to the shortage action company."
+                )
     responsible_user_id = fields.Many2one("res.users", default=lambda self: self.env.user, required=True)
     planned_date = fields.Date()
     completed_date = fields.Date()
@@ -326,7 +359,7 @@ class SedarManpowerRequestLine(models.Model):
         related="request_id.company_id", store=True, index=True, readonly=True
     )
     crew_rank_id = fields.Many2one("sedar.crew.rank", required=True, ondelete="restrict")
-    job_id = fields.Many2one("hr.job", ondelete="restrict")
+    job_id = fields.Many2one("hr.job", ondelete="restrict", check_company=True)
     request_type = fields.Selection([
         ("permanent", "Permanent"), ("fixed_term", "Fixed-Term"),
         ("temporary", "Temporary Reliever"),
@@ -359,6 +392,14 @@ class SedarManpowerRequestLine(models.Model):
             if foreign_shortages:
                 raise ValidationError(
                     "Operational crew shortages must belong to the Manpower Request company."
+                )
+
+    @api.constrains("company_id", "job_id")
+    def _check_job_company(self):
+        for line in self:
+            if line.job_id.company_id and line.job_id.company_id != line.company_id:
+                raise ValidationError(
+                    "The requested HR job must belong to the Manpower Request company."
                 )
 
 

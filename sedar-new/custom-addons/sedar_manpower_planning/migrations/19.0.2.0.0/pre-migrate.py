@@ -12,6 +12,77 @@ def _column_exists(cr, table, column):
     return bool(cr.fetchone())
 
 
+def _reject_legacy_link_conflicts(cr):
+    checks = [
+        (
+            "Crew Shortage crew assignments conflict with their Service Order company",
+            """
+            SELECT shortage.id
+              FROM sedar_crew_shortage shortage
+              JOIN sedar_crew_assignment assignment
+                ON assignment.id = shortage.crew_assignment_id
+             WHERE assignment.company_id IS DISTINCT FROM shortage.company_id
+             ORDER BY shortage.id
+            """,
+        ),
+        (
+            "Crew Shortage Marine Operations conflict with their Service Order company",
+            """
+            SELECT shortage.id
+              FROM sedar_crew_shortage shortage
+              JOIN sedar_marine_operation operation
+                ON operation.id = shortage.operation_id
+             WHERE operation.company_id IS DISTINCT FROM shortage.company_id
+             ORDER BY shortage.id
+            """,
+        ),
+        (
+            "Crew Shortage manpower lines conflict with their Service Order company",
+            """
+            SELECT shortage.id
+              FROM sedar_crew_shortage shortage
+              JOIN sedar_manpower_request_line line
+                ON line.id = shortage.manpower_request_line_id
+             WHERE line.company_id IS DISTINCT FROM shortage.company_id
+             ORDER BY shortage.id
+            """,
+        ),
+        (
+            "Crew Shortage actions have employees from another company",
+            """
+            SELECT action.id
+              FROM sedar_crew_shortage_action action
+              JOIN sedar_crew_shortage shortage
+                ON shortage.id = action.shortage_id
+              JOIN hr_employee employee
+                ON employee.id = action.assigned_employee_id
+             WHERE employee.company_id IS NOT NULL
+               AND employee.company_id != shortage.company_id
+             ORDER BY action.id
+            """,
+        ),
+        (
+            "Manpower Request lines have HR jobs from another company",
+            """
+            SELECT line.id
+              FROM sedar_manpower_request_line line
+              JOIN sedar_manpower_request request
+                ON request.id = line.request_id
+              JOIN hr_job job
+                ON job.id = line.job_id
+             WHERE job.company_id IS NOT NULL
+               AND job.company_id != request.company_id
+             ORDER BY line.id
+            """,
+        ),
+    ]
+    for label, query in checks:
+        cr.execute(query)
+        record_ids = [row[0] for row in cr.fetchall()]
+        if record_ids:
+            raise RuntimeError(f"{label}; record IDs: {record_ids}.")
+
+
 def _reject_department_conflicts(cr):
     cr.execute(
         """
@@ -66,6 +137,7 @@ def _reject_shortage_conflicts(cr):
 
 
 def migrate(cr, version):
-    """Refuse legacy links that violate the company-owned shortage handoff."""
+    """Refuse legacy manpower links that violate company ownership."""
     _reject_department_conflicts(cr)
+    _reject_legacy_link_conflicts(cr)
     _reject_shortage_conflicts(cr)

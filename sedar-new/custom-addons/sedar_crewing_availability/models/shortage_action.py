@@ -1,5 +1,5 @@
-from odoo import fields, models
-from odoo.exceptions import UserError
+from odoo import api, fields, models
+from odoo.exceptions import UserError, ValidationError
 
 
 class SedarCrewShortageAction(models.Model):
@@ -10,11 +10,22 @@ class SedarCrewShortageAction(models.Model):
         ondelete={"temporary_reliever": "cascade"},
     )
     relief_crew_profile_id = fields.Many2one("sedar.crew.profile", string="Relief Crew")
-    relief_assignment_id = fields.Many2one("sedar.crew.assignment", readonly=True, copy=False)
+    relief_assignment_id = fields.Many2one(
+        "sedar.crew.assignment", readonly=True, copy=False, check_company=True
+    )
     unavailability_id = fields.Many2one("sedar.crew.unavailability", readonly=True, copy=False)
     unavailability_start = fields.Datetime()
     unavailability_end = fields.Datetime()
     unavailability_reason = fields.Char()
+
+    @api.constrains("company_id", "relief_assignment_id")
+    def _check_relief_assignment_company(self):
+        for action in self:
+            assignment = action.relief_assignment_id
+            if assignment.company_id and assignment.company_id != action.company_id:
+                raise ValidationError(
+                    "The relief assignment must belong to the shortage action company."
+                )
 
     def action_complete(self):
         temporary = self.filtered(lambda action: action.action_type == "temporary_reliever")

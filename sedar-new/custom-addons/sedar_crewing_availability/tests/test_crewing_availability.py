@@ -1,6 +1,9 @@
 from datetime import datetime
+import importlib.util
+from pathlib import Path
 
 from odoo import fields
+from odoo.exceptions import UserError
 from odoo.tests import TransactionCase, tagged
 
 
@@ -120,3 +123,71 @@ class TestCrewingAvailability(TransactionCase):
         self.assertEqual(shortage.status, "resolved")
         self.assertEqual(shortage.review_state, "resolved")
 
+    def _make_other_company_assignment(self):
+        other_company = self.env["res.company"].create({
+            "name": "Other Crewing Availability Company",
+        })
+        order = self.env["sedar.marine.service.order"].with_company(other_company).create({
+            "company_id": other_company.id,
+            "client_id": self.partner.id,
+            "assisted_vessel_name": "MV Other Availability",
+            "service_type_id": self.service.id,
+            "scope_of_work": "Cross-company relief assignment test.",
+            "port_id": self.port.id,
+            "requested_start": datetime(2026, 9, 2, 8, 0, 0),
+        })
+        tug_assignment = self.env["sedar.tug.assignment"].create({
+            "order_id": order.id,
+            "tugboat_id": self.tug.id,
+        })
+        requirement = self.env["sedar.manning.requirement"].create({
+            "tug_assignment_id": tug_assignment.id,
+            "rank_id": self.rank.id,
+        })
+        return self.env["sedar.crew.assignment"].create({
+            "requirement_id": requirement.id,
+            "crew_profile_id": self.relief_profile.id,
+        })
+
+    def test_relief_assignment_rejects_another_company(self):
+        _order, requirement = self._make_requirement()
+        shortage = self.env["sedar.crew.shortage"].create({
+            "requirement_id": requirement.id,
+            "reason": "leave",
+        })
+        action = self.env["sedar.crew.shortage.action"].create({
+            "shortage_id": shortage.id,
+            "action_type": "temporary_reliever",
+        })
+        foreign_assignment = self._make_other_company_assignment()
+
+        with self.assertRaises(UserError):
+            action.write({"relief_assignment_id": foreign_assignment.id})
+
+    def test_upgrade_rejects_cross_company_relief_assignment(self):
+        _order, requirement = self._make_requirement()
+        shortage = self.env["sedar.crew.shortage"].create({
+            "requirement_id": requirement.id,
+            "reason": "leave",
+        })
+        action = self.env["sedar.crew.shortage.action"].create({
+            "shortage_id": shortage.id,
+            "action_type": "temporary_reliever",
+        })
+        foreign_assignment = self._make_other_company_assignment()
+        self.env.cr.execute(
+            "UPDATE sedar_crew_shortage_action SET relief_assignment_id = %s WHERE id = %s",
+            (foreign_assignment.id, action.id),
+        )
+        migration_path = (
+            Path(__file__).parents[1]
+            / "migrations/19.0.2.0.0/pre-migrate.py"
+        )
+        spec = importlib.util.spec_from_file_location(
+            "sedar_crewing_availability_pre_migrate", migration_path
+        )
+        migration = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(migration)
+
+        with self.assertRaisesRegex(RuntimeError, f"action IDs: \\[{action.id}\\]"):
+            migration.migrate(self.env.cr, "19.0.1.0.0")

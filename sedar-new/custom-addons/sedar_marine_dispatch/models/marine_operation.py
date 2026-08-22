@@ -2,6 +2,12 @@ from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
 
+def _validate_operation_tug_links(records):
+    for record in records.filtered("operation_tug_id"):
+        if record.operation_tug_id.operation_id != record.operation_id:
+            raise ValidationError("The operation tug must belong to the selected Marine Operation.")
+
+
 OPERATION_STATES = [
     ("awaiting_start", "Awaiting Start"),
     ("in_progress", "In Progress"),
@@ -400,9 +406,7 @@ class SedarMarineOperationLog(models.Model):
 
     @api.constrains("operation_id", "operation_tug_id")
     def _check_operation_tug(self):
-        for log in self.filtered("operation_tug_id"):
-            if log.operation_tug_id.operation_id != log.operation_id:
-                raise ValidationError("The operation tug must belong to the selected Marine Operation.")
+        _validate_operation_tug_links(self)
 
 
 class SedarMarineOperationDelay(models.Model):
@@ -452,6 +456,4 @@ class SedarMarineOperationDelay(models.Model):
 
     @api.constrains("operation_id", "operation_tug_id")
     def _check_operation_tug(self):
-        for delay in self.filtered("operation_tug_id"):
-            if delay.operation_tug_id.operation_id != delay.operation_id:
-                raise ValidationError("The operation tug must belong to the selected Marine Operation.")
+        _validate_operation_tug_links(self)

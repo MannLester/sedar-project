@@ -258,6 +258,62 @@ class TestMarineInventory(TransactionCase):
         self.assertEqual(fuel_log.company_id, fuel_log.operation_id.company_id)
         self.assertTrue(fuel_log._fields["stock_move_ids"].check_company)
 
+    def test_service_order_migration_infers_company_from_fuel_locations(self):
+        migration_path = (
+            Path(get_module_path("sedar_marine_operations"))
+            / "migrations/19.0.2.0.0/pre-migrate.py"
+        )
+        spec = importlib.util.spec_from_file_location(
+            "sedar_service_order_fuel_company_migration", migration_path
+        )
+        migration = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(migration)
+        other_company = self.env["res.company"].create({"name": "Fuel Evidence Company"})
+        other_warehouse = self.env["stock.warehouse"].create({
+            "name": "Fuel Evidence Warehouse",
+            "code": "FEWH",
+            "company_id": other_company.id,
+        })
+        tug_location = self.env["stock.location"].create({
+            "name": "Fuel Evidence Tug Tank",
+            "usage": "internal",
+            "location_id": other_warehouse.view_location_id.id,
+            "company_id": other_company.id,
+        })
+        order = self.env["sedar.marine.service.order"].with_company(
+            other_company
+        ).create({
+            "company_id": other_company.id,
+            "client_id": self.partner.id,
+            "assisted_vessel_name": "MV Fuel Evidence",
+            "service_type_id": self.service.id,
+            "scope_of_work": "Fuel-location migration evidence test.",
+            "port_id": self.port.id,
+            "requested_start": datetime(2026, 9, 8, 9, 0, 0),
+        })
+        operation = self.env["sedar.marine.operation"].with_company(
+            other_company
+        ).create({"order_id": order.id})
+        self.env["sedar.operation.fuel.log"].with_company(other_company).create({
+            "operation_id": operation.id,
+            "tugboat_id": self.tug.id,
+            "product_id": self.product.id,
+            "source_location_id": other_warehouse.lot_stock_id.id,
+            "tug_location_id": tug_location.id,
+        })
+        self.env.cr.execute(
+            "ALTER TABLE sedar_marine_service_order ALTER COLUMN company_id DROP NOT NULL"
+        )
+        self.env.cr.execute(
+            "UPDATE sedar_marine_service_order SET company_id = NULL WHERE id = %s",
+            (order.id,),
+        )
+
+        migration.migrate(self.env.cr, "19.0.1.0.0")
+
+        order.invalidate_recordset(["company_id"])
+        self.assertEqual(order.company_id, other_company)
+
     def test_fuel_moves_use_operation_company_when_another_company_is_active(self):
         other_company = self.env["res.company"].create({"name": "Other Fuel Company"})
         other_warehouse = self.env["stock.warehouse"].create({

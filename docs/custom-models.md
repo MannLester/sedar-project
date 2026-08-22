@@ -447,9 +447,10 @@ The existing shortage action remains the action log for operational shortage res
 | Field | Type | How it is used |
 | --- | --- | --- |
 | `company_id` | Stored indexed related many-to-one to `res.company` | Company inherited from the operational crew shortage and enforced by a global allowed-company record rule. |
+| `assigned_employee_id` | Company-checked many-to-one to `hr.employee` | Employee responsible for the resolution action; the employee must belong to the shortage company. |
 | `action_type` | Selection extension | Adds `temporary_reliever` alongside existing replacement, reschedule, certificate, medical, training, and manpower actions. |
 | `relief_crew_profile_id` | Many-to-one to `sedar.crew.profile` | Candidate relief crew for a temporary reliever action. |
-| `relief_assignment_id` | Read-only many-to-one to `sedar.crew.assignment` | Concrete Service Order crew assignment created after the relief candidate passes eligibility checks. |
+| `relief_assignment_id` | Read-only company-checked many-to-one to `sedar.crew.assignment` | Concrete Service Order crew assignment created after the relief candidate passes eligibility checks; it must belong to the shortage company. |
 | `unavailability_id` | Read-only many-to-one to `sedar.crew.unavailability` | Medical or training blocker created from the action. |
 | `unavailability_start` | Datetime | Start date/time used for medical or training unavailability created from the action. |
 | `unavailability_end` | Datetime | Optional end date/time for the medical or training blocker. |
@@ -1107,7 +1108,7 @@ Access rules:
 
 ## `sedar.manpower.request` and `sedar.job.vacancy` fulfillment behavior
 
-`sedar.manpower.request.line.company_id` is a stored, indexed relation to the parent Manpower Request company. The parent request, its lines, and crew-shortage resolution actions use global allowed-company record rules. `shortage_ids` is company-checked, and the shortage-to-manpower workflow explicitly creates the request in the Service Order shortage company rather than whichever company is currently active for the user.
+`sedar.manpower.request.line.company_id` is a stored, indexed relation to the parent Manpower Request company. The parent request, its lines, and crew-shortage resolution actions use global allowed-company record rules. `shortage_ids`, `job_id`, and `sedar.crew.shortage.manpower_request_line_id` are company-checked; the job is compatible when it is shared or belongs to the request company. The shortage's `crew_assignment_id` and computed `operation_id` are also company-checked and explicitly validated against the owning Service Order. The shortage action's `assigned_employee_id` must belong to the shortage company. The shortage-to-manpower workflow explicitly creates the request in the Service Order shortage company rather than whichever company is currently active for the user.
 
 Their fulfillment workflow contract also changed materially under ADR-0003:
 

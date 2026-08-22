@@ -71,6 +71,26 @@ def _candidate_queries(cr):
              WHERE location.company_id IS NOT NULL
             """
         )
+    if (
+        _table_exists(cr, "sedar_operation_fuel_log")
+        and _table_exists(cr, "sedar_marine_operation")
+        and _table_exists(cr, "stock_location")
+        and _column_exists(cr, "sedar_operation_fuel_log", "operation_id")
+        and _column_exists(cr, "sedar_operation_fuel_log", "source_location_id")
+        and _column_exists(cr, "sedar_operation_fuel_log", "tug_location_id")
+    ):
+        for location_column in ("source_location_id", "tug_location_id"):
+            queries.append(
+                f"""
+                SELECT operation.order_id, location.company_id
+                  FROM sedar_operation_fuel_log fuel_log
+                  JOIN sedar_marine_operation operation
+                    ON operation.id = fuel_log.operation_id
+                  JOIN stock_location location
+                    ON location.id = fuel_log.{location_column}
+                 WHERE location.company_id IS NOT NULL
+                """
+            )
     return queries
 
 
