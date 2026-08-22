@@ -3,6 +3,8 @@ import importlib.util
 from datetime import datetime
 from pathlib import Path
 
+from lxml import etree
+
 from odoo import Command
 from odoo.exceptions import AccessError
 from odoo.modules.module import get_module_path
@@ -19,6 +21,9 @@ class TestProcurementWorkspace(TransactionCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.officer_group = cls.env.ref(OFFICER_GROUP)
+        cls.maintenance_manager_group = cls.env.ref(
+            "sedar_marine_maintenance.group_marine_maintenance_manager"
+        )
         cls.request_group = cls.env.ref(
             "sedar_purchase_request.group_sedar_purchase_request_user"
         )
@@ -56,13 +61,74 @@ class TestProcurementWorkspace(TransactionCase):
         self.assertIn(self.officer_group, comparison.group_ids)
         self.assertEqual(
             safe_eval(orders.domain),
-            [
-                ("sedar_purchase_request_id", "!=", False),
-                ("sedar_bid_id", "!=", False),
-            ],
+            [("sedar_purchase_request_id", "!=", False)],
         )
         self.assertNotIn(("state", "!=", "draft"), safe_eval(orders.domain))
         self.assertIn(self.officer_group, orders.group_ids)
+
+        generated_order_list = self.env.ref(
+            "sedar_purchase_request.view_sedar_generated_purchase_order_list"
+        )
+        self.assertIn(
+            generated_order_list,
+            orders.view_ids.mapped("view_id"),
+        )
+        order_list_arch = etree.fromstring(generated_order_list.arch_db)
+        self.assertEqual(order_list_arch.get("sample"), "0")
+        self.assertEqual(order_list_arch.get("create"), "0")
+        self.assertTrue(order_list_arch.xpath("./field[@name='sedar_purchase_request_id']"))
+
+    def test_workspace_views_prioritize_required_desktop_and_mobile_controls(self):
+        request_list = etree.fromstring(self.env.ref(
+            "sedar_purchase_request.view_sedar_purchase_request_list"
+        ).arch_db)
+        fields = request_list.xpath("./field")
+        field_names = [field.get("name") for field in fields]
+        self.assertLess(field_names.index("state"), field_names.index("required_date"))
+        self.assertLess(
+            field_names.index("procurement_progress"),
+            field_names.index("required_date"),
+        )
+        self.assertEqual(
+            request_list.xpath("./field[@name='equipment_id']")[0].get("optional"),
+            "hide",
+        )
+
+        request_form = etree.fromstring(self.env.ref(
+            "sedar_purchase_request.view_sedar_purchase_request_form"
+        ).arch_db)
+        mobile_actions = request_form.xpath(
+            ".//div[contains(concat(' ', normalize-space(@class), ' '), "
+            "' o_sedar_mobile_procurement_actions ')]"
+        )
+        self.assertEqual(len(mobile_actions), 1)
+        self.assertIn("d-md-none", mobile_actions[0].get("class").split())
+        self.assertEqual(
+            {button.get("name") for button in mobile_actions[0].xpath("./button")},
+            {
+                "action_open_bids",
+                "action_open_bid_comparison",
+                "action_open_purchase_orders",
+            },
+        )
+
+        comparison = etree.fromstring(self.env.ref(
+            "sedar_purchase_request.view_sedar_purchase_bid_line_comparison_list"
+        ).arch_db)
+        self.assertEqual(
+            comparison.xpath("./field[@name='bidder_id']")[0].get("width"),
+            "240px",
+        )
+        self.assertEqual(
+            comparison.xpath("./field[@name='quantity']")[0].get("optional"),
+            "hide",
+        )
+        self.assertEqual(
+            comparison.xpath("./field[@name='promised_delivery_date']")[0].get(
+                "optional"
+            ),
+            "hide",
+        )
 
     def test_bidder_list_defines_non_overlapping_operational_filters(self):
         arch = self.env.ref(
@@ -100,6 +166,11 @@ class TestProcurementWorkspace(TransactionCase):
             self.env.ref("sedar_marine_inventory.action_inventory_currently_in_use"),
         )
         self.assertIn(self.officer_group, inventory.group_ids)
+        self.assertIn(self.maintenance_manager_group, inventory.group_ids)
+        self.assertIn(self.officer_group, storage.group_ids)
+        self.assertNotIn(self.maintenance_manager_group, storage.group_ids)
+        self.assertIn(self.officer_group, in_use.group_ids)
+        self.assertIn(self.maintenance_manager_group, in_use.group_ids)
         self._assert_legacy_inventory_menus_inactive()
 
     def test_upgrade_migration_deactivates_reactivated_legacy_menus(self):

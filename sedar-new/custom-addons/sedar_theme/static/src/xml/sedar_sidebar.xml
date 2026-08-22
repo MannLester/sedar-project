@@ -19,7 +19,7 @@
                         <div class="o_sedar_nav_priority">
                             <a class="o_sedar_nav_priority_link" href="/web#action=sedar_marine_operations.action_service_order_dashboard"><i class="fa fa-th-large"/><span><strong>Service Order Dashboard</strong><small>Job readiness and execution</small></span></a>
                         </div>
-                        <details class="o_sedar_nav_group" open="open">
+                        <details class="o_sedar_nav_group">
                             <summary class="o_sedar_nav_parent"><span><i class="fa fa-bullhorn"/>Marketing</span><i class="fa fa-angle-down o_sedar_nav_chevron"/></summary>
                             <div class="o_sedar_nav_children">
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_marketing.action_sedar_marketing_dashboard"><span>Overview</span></a>
@@ -33,7 +33,7 @@
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_marketing.action_sedar_marketing_activity"><span>Activity Log</span></a>
                             </div>
                         </details>
-                        <details class="o_sedar_nav_group" open="open">
+                        <details class="o_sedar_nav_group">
                             <summary class="o_sedar_nav_parent"><span><i class="fa fa-ship"/>Marine Operations</span><i class="fa fa-angle-down o_sedar_nav_chevron"/></summary>
                             <div class="o_sedar_nav_children">
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_marine_operations.action_service_order_dashboard"><span>Service Orders</span></a>
@@ -43,7 +43,7 @@
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_marine_operations.action_client_vessels"><span>Client Vessels</span></a>
                             </div>
                         </details>
-                        <details t-if="sedarProcurementNavigation" class="o_sedar_nav_group" open="open">
+                        <details t-if="sedarProcurementNavigation" class="o_sedar_nav_group o_sedar_nav_group_procurement" open="open">
                             <summary class="o_sedar_nav_parent"><span><i class="fa fa-shopping-cart"/>Procurement</span><i class="fa fa-angle-down o_sedar_nav_chevron"/></summary>
                             <div class="o_sedar_nav_children">
                                 <t t-foreach="sedarProcurementNavigation.childrenTree" t-as="procurementMenu" t-key="procurementMenu.id">
@@ -64,7 +64,7 @@
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_marine_operations.action_tug_assignments"><span>Crew Assignments</span></a>
                             </div>
                         </details>
-                        <details class="o_sedar_nav_group" open="open">
+                        <details class="o_sedar_nav_group">
                             <summary class="o_sedar_nav_parent"><span><i class="fa fa-money"/>Finance</span><i class="fa fa-angle-down o_sedar_nav_chevron"/></summary>
                             <div class="o_sedar_nav_children">
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_marine_finance.action_billing_reviews"><span>Billing Reviews</span></a>
