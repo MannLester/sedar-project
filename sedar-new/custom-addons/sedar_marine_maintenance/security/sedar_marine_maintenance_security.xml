@@ -25,4 +25,11 @@
         <field name="domain_force">[('sedar_tugboat_id', '!=', False)]</field>
         <field name="groups" eval="[Command.link(ref('group_marine_maintenance_user'))]"/>
     </record>
+
+    <record id="rule_running_hour_reading_company" model="ir.rule">
+        <field name="name">Running hour readings follow allowed companies</field>
+        <field name="model_id" ref="model_sedar_equipment_running_hour_reading"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[Command.link(ref('group_marine_maintenance_user'))]"/>
+    </record>
 </odoo>

@@ -1,19 +1,38 @@
 from datetime import datetime
 
-from odoo import Command
-
-
 MODULE = "sedar_marine_maintenance"
 
 
-def _record(env, model, xmlid, values):
+def _record(env, model, xmlid, values, update=True):
     data = env["ir.model.data"].search([
         ("module", "=", MODULE), ("name", "=", xmlid)
     ], limit=1)
     if data:
         record = env[model].browse(data.res_id).exists()
         if record:
-            record.write(values)
+            if update:
+                record.write(values)
+            return record
+        data.unlink()
+    record = env[model].create(values)
+    env["ir.model.data"].create({
+        "module": MODULE,
+        "name": xmlid,
+        "model": model,
+        "res_id": record.id,
+        "noupdate": True,
+    })
+    return record
+
+
+def _immutable_record(env, model, xmlid, values):
+    """Create an audit fixture once; never rewrite its historical facts on rerun."""
+    data = env["ir.model.data"].search([
+        ("module", "=", MODULE), ("name", "=", xmlid)
+    ], limit=1)
+    if data:
+        record = env[model].browse(data.res_id).exists()
+        if record:
             return record
         data.unlink()
     record = env[model].create(values)
@@ -29,6 +48,9 @@ def _record(env, model, xmlid, values):
 
 def post_init_hook(env):
     company = env.company
+    admin = env.ref("base.user_admin")
+    if company.sedar_maintenance_fallback_user_id != admin:
+        company.sedar_maintenance_fallback_user_id = admin
     tugs = {
         "atlas": env.ref("sedar_service_order_demo.tug_atlas", raise_if_not_found=False),
         "bantay": env.ref("sedar_service_order_demo.tug_bantay", raise_if_not_found=False),
@@ -57,12 +79,57 @@ def post_init_hook(env):
             "name": name,
             "category_id": category.id,
             "maintenance_team_id": team.id,
+            "technician_user_id": admin.id,
             "sedar_tugboat_id": tugs[tug_key].id,
             "sedar_system": system,
             "sedar_criticality": criticality,
             "sedar_installation_date": "2024-01-15",
             "sedar_running_interval_hours": 500,
         })
+
+    baseline_reading = _immutable_record(
+        env,
+        "sedar.equipment.running.hour.reading",
+        "atlas_main_engine_reading_service_1000",
+        {
+            "equipment_id": equipment["atlas_main_engine"].id,
+            "reading_at": datetime(2026, 1, 15, 10, 0, 0),
+            "running_hours": 1000,
+            "notes": "Verified demo reading captured during the completed 1,000-hour service.",
+        },
+    )
+    _immutable_record(
+        env,
+        "sedar.equipment.running.hour.reading",
+        "atlas_main_engine_reading_current_1510",
+        {
+            "equipment_id": equipment["atlas_main_engine"].id,
+            "reading_at": datetime(2026, 8, 21, 8, 0, 0),
+            "running_hours": 1510,
+            "notes": "Latest demo bridge log observation.",
+        },
+    )
+
+    done_stage = env["maintenance.stage"].search([("done", "=", True)], limit=1)
+    baseline_work_order = _record(env, "maintenance.request", "work_order_atlas_service_baseline", {
+        "name": "Demo Completed PMS - STS Atlas Main Engine 1,000-hour service",
+        "maintenance_type": "preventive",
+        "equipment_id": equipment["atlas_main_engine"].id,
+        "maintenance_team_id": team.id,
+        "schedule_date": datetime(2026, 1, 15, 8, 0, 0),
+        "close_date": datetime(2026, 1, 15, 12, 0, 0),
+        "stage_id": done_stage.id if done_stage else False,
+        "duration": 4,
+        "priority": "1",
+        "sedar_tugboat_id": tugs["atlas"].id,
+        "sedar_work_order_type": "planned",
+        "sedar_availability_impact": "none",
+        "sedar_priority": "medium",
+        "sedar_service_reading_id": baseline_reading.id,
+        "sedar_closure_note": "Planned service completed and meter reading independently verified.",
+    }, update=False)
+    if not baseline_work_order.sedar_service_baseline_verified_at:
+        baseline_work_order.action_sedar_verify_service_baseline()
 
     _record(env, "maintenance.request", "work_order_atlas_planned", {
         "name": "Demo PMS - STS Atlas Main Engine 500-hour service",

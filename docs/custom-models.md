@@ -51,6 +51,7 @@ fixture seeding.
 | `sedar.tugboat` | Extended | Exposes technical equipment, maintenance blockers, dry-dock plans, readiness reason, tugboat stock location, and HSSE exceptions | `sedar_marine_maintenance/models/tugboat.py`; `sedar_marine_inventory/models/tugboat.py`; `sedar_hsse/models/hsse.py` |
 | `sedar.ais.position` | New | Stores the current fictional AIS/GPS report consumed by the offline fleet-monitoring demonstration | `sedar_ais_demo/models/ais_position.py` |
 | `maintenance.equipment` | Extended | Links standard Odoo equipment to SEDAR tugboats and marine equipment hierarchy/criticality | `sedar_marine_maintenance/models/maintenance_equipment.py` |
+| `sedar.equipment.running.hour.reading` | New | Preserves dated, attributable Equipment hour-meter observations and manager-controlled corrections | `sedar_marine_maintenance/models/maintenance_equipment.py` |
 | `maintenance.request` | Extended | Adds SEDAR work-order type, tug availability impact, release evidence, dry-dock linkage, and spare-part status/lines | `sedar_marine_maintenance/models/maintenance_request.py`; `sedar_marine_inventory/models/maintenance_parts.py` |
 | `sedar.drydock.plan` | New | Represents dry-dock planning, milestones, availability impact, and controlled release | `sedar_marine_maintenance/models/drydock.py` |
 | `sedar.drydock.milestone` | New | Tracks planned and actual dry-dock milestones | `sedar_marine_maintenance/models/drydock.py` |
@@ -509,9 +510,49 @@ Key behavior:
 | `sedar_system` | Selection | Demonstration system grouping: propulsion, electrical, navigation, hull, deck machinery, safety, auxiliary, or other. |
 | `sedar_criticality` | Selection | Critical, major, or minor equipment criticality for maintenance prioritization. |
 | `sedar_installation_date` | Date | Installation date when known. |
-| `sedar_running_interval_hours` | Float | Representative planned-maintenance interval in running hours. Real intervals require SEDAR confirmation. |
-| `sedar_last_service_date` | Date | Last verified service date for PMS visibility. |
-| `sedar_last_service_hours` | Float | Last service running-hour reading. |
+| `sedar_running_interval_hours` | Float | Running-hour interval measured from the last verified planned-service reading. |
+| `sedar_running_hour_reading_ids` | One-to-many to `sedar.equipment.running.hour.reading` | Immutable audit history of cumulative Equipment meter observations. |
+| `sedar_current_running_hour_reading_id` | Computed, stored many-to-one | Latest valid observation and source of current Running Hours. |
+| `sedar_current_running_hours` | Computed, stored float | Cumulative hours from the latest valid Running Hour Reading. |
+| `sedar_verified_service_reading_id` | Read-only many-to-one | Manager-verified valid reading that established the current planned-service cycle. |
+| `sedar_verified_service_work_order_id` | Read-only many-to-one | Completed planned work order that established the current service baseline. |
+| `sedar_last_service_date` | Read-only date | Date derived from the verified service reading; legacy values do not establish a verified baseline. |
+| `sedar_last_service_hours` | Read-only float | Hours derived from the verified service reading; legacy values do not establish a verified baseline. |
+| `sedar_next_service_hours` | Computed, stored float | Verified baseline hours plus planned interval. |
+| `sedar_remaining_service_hours` | Computed, stored float | Signed hours to the threshold: positive before due and negative when overdue. |
+| `sedar_service_due_state` | Computed, stored selection | Unconfigured, not due, due at the exact threshold, or overdue. |
+| `sedar_service_cycle_key` | Computed, stored character | Stable baseline-and-threshold identity used for alert deduplication. |
+| `sedar_alerted_service_cycle_key` | Read-only character | Persists the service cycle already notified, including after the activity is completed. |
+| `sedar_due_alert_assignment_state` | Computed selection | Shows whether a due alert is assigned or needs an explicit technician/fallback user. |
+
+Key behavior:
+
+- Current Running Hours come only from the latest valid historical reading; Actual Service Time never changes the meter.
+- A verified baseline requires a completed planned-maintenance work order and a valid reading for the same Equipment.
+- Exact threshold creates one Odoo activity for the active Equipment technician or the explicitly configured company fallback. No arbitrary team member is selected.
+- The Equipment row is locked while reconciling an alert, and the persisted service-cycle key prevents duplicate activities after completion or concurrent recomputation.
+- Running-hour due status does not create a Purchase Request or change tugboat availability.
+
+### `sedar.equipment.running.hour.reading`
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `name` | Computed, stored character | Human-readable Equipment, hours, timestamp, and superseded status used wherever a reading is referenced. |
+| `equipment_id` | Required many-to-one to `maintenance.equipment` | Equipment whose cumulative meter was observed. |
+| `company_id` | Stored related many-to-one | Company used for multi-company record rules. |
+| `running_hours` | Required float | Non-negative cumulative hour-meter value. |
+| `reading_at` | Required datetime | Observation time; duplicate and future timestamps are rejected. |
+| `recorded_by_id` | Read-only many-to-one to `res.users` | Actual creating user, enforced server-side. |
+| `notes` | Text | Optional observation context. |
+| `evidence_attachment_ids` | Many-to-many to `ir.attachment` | Optional meter photo or other evidence. |
+| `state` | Read-only selection | Valid or superseded. |
+| `supersedes_reading_id` | Read-only many-to-one to the same model | Original valid reading replaced by this manager correction. |
+| `superseded_by_reading_ids` | Read-only one-to-many | Direct correction created for this reading; at most one is allowed. |
+| `correction_reason` | Read-only text | Mandatory explanation on a correction. |
+| `superseded_by_id` | Read-only many-to-one to `res.users` | Manager who superseded the original reading. |
+| `superseded_at` | Read-only datetime | Correction audit timestamp. |
+
+Maintenance Users may create readings but cannot edit or delete them. Only Maintenance Managers may create a correction. Chronology validation checks both neighboring valid readings; a meter replacement requires a new Equipment identity.
 
 ### `maintenance.request` marine extension
 
@@ -528,6 +569,10 @@ Key behavior:
 | `sedar_part_line_ids` | One-to-many to `sedar.maintenance.part.line` | Spare parts requested, reserved, issued, and consumed for the work order. |
 | `sedar_parts_status` | Computed, stored selection | Summarizes whether the work order has no parts, shortage, reserved, issued, or consumed parts. |
 | `sedar_running_hours_at_service` | Float | Running-hour reading at service verification. |
+| `sedar_service_reading_id` | Many-to-one to `sedar.equipment.running.hour.reading` | Valid reading selected for a completed planned-maintenance baseline. |
+| `sedar_service_baseline_verified_by_id` | Read-only many-to-one to `res.users` | Maintenance Manager who verified the baseline. |
+| `sedar_service_baseline_verified_at` | Read-only datetime | Baseline verification audit time. |
+| `sedar_stage_done` | Related boolean | Exposes the standard Maintenance stage's done state for completion gating and UI visibility. |
 | `sedar_closure_note` | Text | Required verification note before releasing a blocking work order. |
 | `sedar_released_by_id` | Read-only many-to-one to `res.users` | Marine Maintenance Manager who released the tug from the work-order hold. |
 | `sedar_released_at` | Read-only datetime | Release timestamp. |
@@ -538,6 +583,13 @@ Key behavior:
 - Defect work orders require a defect source.
 - `action_sedar_mark_blocking()` is restricted to Marine Maintenance Managers and places the affected tugboat on maintenance hold.
 - `action_sedar_release_tug()` is restricted to Marine Maintenance Managers, requires a closure note, closes the work order if needed, records release audit fields, and restores the tug only when no other technical blocker remains.
+- `action_sedar_verify_service_baseline()` is restricted to Marine Maintenance Managers and accepts only completed planned work, a valid same-Equipment reading, and no regression behind a newer verified service.
+
+### `res.company` Maintenance extension
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `sedar_maintenance_fallback_user_id` | Many-to-one to `res.users` | Explicit active internal company user who receives due-Equipment activities when no active technician is assigned. Exposed through Maintenance settings. |
 
 ### `sedar.drydock.plan`
 
