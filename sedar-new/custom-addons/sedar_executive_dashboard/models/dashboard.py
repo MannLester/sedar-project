@@ -153,7 +153,7 @@ class SedarExecutiveDashboard(models.Model):
     def _open(self, model, domain):
         return {"type": "ir.actions.act_window", "name": "Dashboard Source Records", "res_model": model, "view_mode": "list,form", "domain": domain, "target": "current"}
 
-    def action_open_invoices(self): return self._open("account.move", [("state", "=", "posted"), ("move_type", "in", ["out_invoice", "out_refund"])])
+    def action_open_invoices(self): return self._open("account.move", [("company_id", "=", self.company_id.id), ("state", "=", "posted"), ("move_type", "in", ["out_invoice", "out_refund"])])
     def action_open_service_orders(self): return self._open("sedar.marine.service.order", [("company_id", "=", self.company_id.id)])
     def action_open_tugs(self): return self._open("sedar.tugboat", [])
     def action_open_crew(self): return self._open("sedar.crew.profile", [])

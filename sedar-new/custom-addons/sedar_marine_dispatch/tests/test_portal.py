@@ -74,3 +74,19 @@ class TestDispatchPortalCompanyIsolation(TransactionCase):
                 controller._operation_domain(self.order_a)
             )
             self.assertEqual(visible, self.operation_a)
+            self.assertEqual(
+                controller._client_log_domain(self.operation_a),
+                [
+                    ("operation_id", "=", self.operation_a.id),
+                    ("company_id", "in", self.company_a.ids),
+                    ("client_visible", "=", True),
+                ],
+            )
+            self.assertEqual(
+                controller._client_delay_domain(self.operation_a),
+                [
+                    ("operation_id", "=", self.operation_a.id),
+                    ("company_id", "in", self.company_a.ids),
+                    ("client_visible", "=", True),
+                ],
+            )

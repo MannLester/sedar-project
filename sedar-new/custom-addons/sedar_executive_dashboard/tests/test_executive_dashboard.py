@@ -51,4 +51,12 @@ class TestSedarExecutiveDashboard(TransactionCase):
             other_dashboard.action_open_service_orders()["domain"],
             [("company_id", "=", other_company.id)],
         )
+        self.assertEqual(
+            other_dashboard.action_open_invoices()["domain"],
+            [
+                ("company_id", "=", other_company.id),
+                ("state", "=", "posted"),
+                ("move_type", "in", ["out_invoice", "out_refund"]),
+            ],
+        )
         self.assertEqual(order.company_id, other_company)
