@@ -84,7 +84,7 @@ def validate_test_tags(tags: str, selected_modules: set[str]) -> str:
     if (
         not specs
         or any(not spec or not match for spec, match in zip(specs, matches))
-        or any(match.group("sign") == "+" and not match.group("tag") for match in matches)
+        or any(match.group("sign") in {"+", "-"} and not match.group("tag") for match in matches)
         or any(not any(match.groupdict().values()) for match in matches)
     ):
         raise RunnerError("Test tags do not match Odoo's supported tag/module/class/method syntax.")

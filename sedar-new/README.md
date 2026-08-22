@@ -227,7 +227,7 @@ Check every Python function in the active Odoo 19 addons against the repository'
 branch, and statement limits:
 
 ```sh
-.venv/bin/ruff check custom-addons
+.venv/bin/ruff check custom-addons scripts
 ```
 
 Run the isolated-runner safety tests after changing the runner itself:

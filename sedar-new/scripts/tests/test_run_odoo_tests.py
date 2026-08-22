@@ -39,6 +39,7 @@ class TestRunnerSafety(unittest.TestCase):
             "foo+bar/sedar_marine_finance",
             "/sedar_marine_finance:Bad-Class",
             "+",
+            "-",
         ):
             with self.subTest(invalid=invalid), self.assertRaises(runner.RunnerError):
                 runner.validate_test_tags(invalid, {"sedar_marine_finance"})
