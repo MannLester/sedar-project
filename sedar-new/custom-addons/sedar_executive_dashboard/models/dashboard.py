@@ -57,6 +57,65 @@ class SedarExecutiveDashboard(models.Model):
     document_expiry_count = fields.Integer(compute="_compute_kpis")
     governance_exception_count = fields.Integer(compute="_compute_kpis")
 
+    def _assign_people_and_support_kpis(self, today, warning):
+        profiles = self.env["sedar.crew.profile"].sudo().search([])
+        requests = self.env["maintenance.request"].sudo().search([
+            ("sedar_tugboat_id", "!=", False), ("done", "=", False)
+        ])
+        purchases = self.env["sedar.purchase.request"].sudo().search([
+            ("state", "in", ["submitted", "approved"])
+        ])
+        self.crew_count = len(profiles)
+        self.available_crew_count = len(profiles.filtered(
+            lambda profile: profile.availability_status in ("available", "assigned")
+        ))
+        self.vacancy_count = self.env["sedar.job.vacancy"].sudo().search_count([
+            ("state", "!=", "filled")
+        ])
+        self.applicant_count = self.env["hr.applicant"].sudo().search_count([])
+        self.open_shortage_count = self.env["sedar.crew.shortage"].sudo().search_count([
+            ("status", "=", "open")
+        ])
+        self.credential_expiry_count = self.env["sedar.crew.certificate"].sudo().search_count([
+            ("expiry_date", "<=", warning)
+        ])
+        self.maintenance_open_count = len(requests)
+        self.maintenance_blocker_count = len(
+            requests.filtered("sedar_blocks_tug_readiness")
+        )
+        self.drydock_active_count = self.env["sedar.drydock.plan"].sudo().search_count([
+            ("state", "in", ["planned", "in_progress"])
+        ])
+        self.inventory_shortage_count = self.env["sedar.inventory.requirement"].sudo().search_count([
+            ("readiness_state", "=", "shortage")
+        ])
+        fuel = self.env["sedar.operation.fuel.log"].sudo().search([
+            ("state", "=", "consumed")
+        ])
+        self.fuel_consumed_qty = sum(fuel.mapped("consumed_qty"))
+        self.purchase_open_count = len(purchases)
+        self.purchase_overdue_count = len(purchases.filtered(
+            lambda purchase: purchase.required_date and purchase.required_date.date() < today
+        ))
+        self.hsse_incident_count = self.env["sedar.hsse.incident"].sudo().search_count([
+            ("state", "in", ["open", "investigating"])
+        ])
+        self.hsse_high_risk_count = self.env["sedar.hsse.risk.assessment"].sudo().search_count([
+            ("residual_risk_level", "in", ["high", "critical"])
+        ])
+        self.hsse_permit_exception_count = self.env["sedar.hsse.permit"].sudo().search_count([
+            ("operational_exception", "=", True)
+        ])
+        self.hsse_overdue_action_count = self.env["sedar.hsse.corrective.action"].sudo().search_count([
+            ("is_overdue", "=", True)
+        ])
+        self.document_expiry_count = self.env["sedar.document"].sudo().search_count([
+            ("valid_until", "<=", warning), ("state", "=", "active")
+        ])
+        self.governance_exception_count = self.env["sedar.corporate.record"].sudo().search_count([
+            ("compliance_status", "in", ["expired", "renewal_due"])
+        ])
+
     @api.depends_context("uid", "allowed_company_ids")
     def _compute_kpis(self):
         today = fields.Date.context_today(self)
@@ -72,21 +131,6 @@ class SedarExecutiveDashboard(models.Model):
             actual_hours = sum((line.actual_end - line.actual_start).total_seconds() / 3600 for line in assignments)
             planned_hours = sum(max((line.planned_end - line.planned_start).total_seconds() / 3600, 0) for line in assignments if line.planned_start and line.planned_end)
             tugs = env["sedar.tugboat"].sudo().search([])
-            profiles = env["sedar.crew.profile"].sudo().search([])
-            certificates = env["sedar.crew.certificate"].sudo().search([("expiry_date", "<=", warning)])
-            requests = env["maintenance.request"].sudo().search([("sedar_tugboat_id", "!=", False), ("done", "=", False)])
-            drydocks = env["sedar.drydock.plan"].sudo().search([("state", "in", ["planned", "in_progress"])])
-            inventory = env["sedar.inventory.requirement"].sudo().search([("readiness_state", "=", "shortage")])
-            fuel = env["sedar.operation.fuel.log"].sudo().search([("state", "=", "consumed")])
-            purchases = env["sedar.purchase.request"].sudo().search([("state", "in", ["submitted", "approved"])])
-            incidents = env["sedar.hsse.incident"].sudo().search([("state", "in", ["open", "investigating"])])
-            risks = env["sedar.hsse.risk.assessment"].sudo().search([("residual_risk_level", "in", ["high", "critical"])])
-            permits = env["sedar.hsse.permit"].sudo().search([("operational_exception", "=", True)])
-            actions = env["sedar.hsse.corrective.action"].sudo().search([("is_overdue", "=", True)])
-            documents = env["sedar.document"].sudo().search([("valid_until", "<=", warning), ("state", "=", "active")])
-            corporate = env["sedar.corporate.record"].sudo().search([("compliance_status", "in", ["expired", "renewal_due"])])
-            vacancies = env["sedar.job.vacancy"].sudo().search([("state", "!=", "filled")])
-            shortages = env["sedar.crew.shortage"].sudo().search([("status", "=", "open")])
             dashboard.revenue_total = sum(sales.mapped("amount_total"))
             dashboard.invoiced_total = dashboard.revenue_total
             dashboard.unpaid_total = sum(sales.mapped("amount_residual"))
@@ -100,25 +144,7 @@ class SedarExecutiveDashboard(models.Model):
             dashboard.available_tug_count = len(tugs.filtered(lambda tug: tug.availability_status == "available"))
             dashboard.tug_blocker_count = len(tugs.filtered(lambda tug: tug.availability_status not in ("available", "assigned")))
             dashboard.utilization_percent = actual_hours / planned_hours * 100 if planned_hours else 0
-            dashboard.crew_count = len(profiles)
-            dashboard.available_crew_count = len(profiles.filtered(lambda profile: profile.availability_status in ("available", "assigned")))
-            dashboard.vacancy_count = len(vacancies)
-            dashboard.applicant_count = env["hr.applicant"].sudo().search_count([])
-            dashboard.open_shortage_count = len(shortages)
-            dashboard.credential_expiry_count = len(certificates)
-            dashboard.maintenance_open_count = len(requests)
-            dashboard.maintenance_blocker_count = len(requests.filtered("sedar_blocks_tug_readiness"))
-            dashboard.drydock_active_count = len(drydocks)
-            dashboard.inventory_shortage_count = len(inventory)
-            dashboard.fuel_consumed_qty = sum(fuel.mapped("consumed_qty"))
-            dashboard.purchase_open_count = len(purchases)
-            dashboard.purchase_overdue_count = len(purchases.filtered(lambda request: request.required_date and request.required_date.date() < today))
-            dashboard.hsse_incident_count = len(incidents)
-            dashboard.hsse_high_risk_count = len(risks)
-            dashboard.hsse_permit_exception_count = len(permits)
-            dashboard.hsse_overdue_action_count = len(actions)
-            dashboard.document_expiry_count = len(documents)
-            dashboard.governance_exception_count = len(corporate)
+            dashboard._assign_people_and_support_kpis(today, warning)
 
     def _open(self, model, domain):
         return {"type": "ir.actions.act_window", "name": "Dashboard Source Records", "res_model": model, "view_mode": "list,form", "domain": domain, "target": "current"}
@@ -133,4 +159,3 @@ class SedarExecutiveDashboard(models.Model):
     def action_open_hsse(self): return self._open("sedar.hsse.incident", [("state", "in", ["open", "investigating"])])
     def action_open_documents(self): return self._open("sedar.document", [("state", "=", "active")])
     def action_open_governance(self): return self._open("sedar.corporate.record", [])
-

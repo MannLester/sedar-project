@@ -57,27 +57,51 @@ class SedarMarineCustomerPortal(CustomerPortal):
             self._new_order_values(),
         )
 
+    def _get_record(self, model_name, value, domain=None):
+        try:
+            record_id = int(value or 0)
+        except (TypeError, ValueError):
+            return request.env[model_name]
+        model = request.env[model_name].sudo()
+        record = model.browse(record_id).exists()
+        if record and domain and not model.search_count([("id", "=", record.id), *domain]):
+            return request.env[model_name]
+        return record
+
+    def _parse_requested_start(self, value, port):
+        if not port:
+            return False
+        try:
+            local_start = datetime.fromisoformat(value)
+            timezone = pytz.timezone(port.timezone or request.env.user.tz or "Asia/Manila")
+            return timezone.localize(local_start).astimezone(pytz.UTC).replace(tzinfo=None)
+        except (TypeError, ValueError, pytz.UnknownTimeZoneError):
+            return False
+
+    def _parse_resources(self, post, errors):
+        try:
+            number_of_tugs = int(post.get("number_of_tugs") or 1)
+            duration = float(post.get("estimated_duration_hours") or 1)
+            if number_of_tugs < 1 or duration <= 0:
+                raise ValueError
+            return number_of_tugs, duration
+        except ValueError:
+            errors.append("Number of tugs and estimated duration must be greater than zero.")
+            return 1, 1.0
+
+    def _uploaded_file_values(self, uploaded):
+        if uploaded and getattr(uploaded, "filename", False):
+            return base64.b64encode(uploaded.read()), uploaded.filename
+        return False, False
+
     @route(["/my/sedar/orders/create"], type="http", auth="user", website=True, methods=["POST"])
     def portal_order_create(self, **post):
         errors = []
         partner = self._commercial_partner()
-
-        def get_record(model_name, value, domain=None):
-            try:
-                record_id = int(value or 0)
-            except (TypeError, ValueError):
-                return request.env[model_name]
-            record = request.env[model_name].sudo().browse(record_id).exists()
-            if record and domain and not request.env[model_name].sudo().search_count([
-                ("id", "=", record.id), *domain
-            ]):
-                return request.env[model_name]
-            return record
-
-        service_type = get_record("sedar.marine.service.type", post.get("service_type_id"), [("active", "=", True)])
-        port = get_record("sedar.marine.port", post.get("port_id"), [("active", "=", True)])
-        tug_class = get_record("sedar.tug.class", post.get("tug_class_id"), [("active", "=", True)])
-        vessel = get_record("sedar.client.vessel", post.get("assisted_vessel_id"), [("owner_id", "=", partner.id)])
+        service_type = self._get_record("sedar.marine.service.type", post.get("service_type_id"), [("active", "=", True)])
+        port = self._get_record("sedar.marine.port", post.get("port_id"), [("active", "=", True)])
+        tug_class = self._get_record("sedar.tug.class", post.get("tug_class_id"), [("active", "=", True)])
+        vessel = self._get_record("sedar.client.vessel", post.get("assisted_vessel_id"), [("owner_id", "=", partner.id)])
 
         if not service_type:
             errors.append("Select a valid service type.")
@@ -88,22 +112,10 @@ class SedarMarineCustomerPortal(CustomerPortal):
             errors.append("Select an assisted vessel or enter a new vessel name.")
         if not (post.get("scope_of_work") or "").strip():
             errors.append("Enter the scope of work.")
-        try:
-            local_start = datetime.fromisoformat(post.get("requested_start"))
-            timezone = pytz.timezone(port.timezone or request.env.user.tz or "Asia/Manila")
-            requested_start = timezone.localize(local_start).astimezone(pytz.UTC).replace(tzinfo=None)
-        except (TypeError, ValueError, pytz.UnknownTimeZoneError):
-            requested_start = False
+        requested_start = self._parse_requested_start(post.get("requested_start"), port)
         if not requested_start:
             errors.append("Enter a valid requested start date and time.")
-        try:
-            number_of_tugs = int(post.get("number_of_tugs") or 1)
-            duration = float(post.get("estimated_duration_hours") or 1)
-            if number_of_tugs < 1 or duration <= 0:
-                raise ValueError
-        except ValueError:
-            errors.append("Number of tugs and estimated duration must be greater than zero.")
-            number_of_tugs, duration = 1, 1.0
+        number_of_tugs, duration = self._parse_resources(post, errors)
 
         if errors:
             return request.render(
@@ -118,14 +130,9 @@ class SedarMarineCustomerPortal(CustomerPortal):
                 "imo_number": (post.get("new_vessel_imo") or "").strip(),
             })
 
-        origin = get_record("sedar.marine.berth", post.get("origin_berth_id"), [("port_id", "=", port.id)])
-        destination = get_record("sedar.marine.berth", post.get("destination_berth_id"), [("port_id", "=", port.id)])
-        uploaded = post.get("supporting_document")
-        file_data = False
-        filename = False
-        if uploaded and getattr(uploaded, "filename", False):
-            file_data = base64.b64encode(uploaded.read())
-            filename = uploaded.filename
+        origin = self._get_record("sedar.marine.berth", post.get("origin_berth_id"), [("port_id", "=", port.id)])
+        destination = self._get_record("sedar.marine.berth", post.get("destination_berth_id"), [("port_id", "=", port.id)])
+        file_data, filename = self._uploaded_file_values(post.get("supporting_document"))
 
         order = request.env["sedar.marine.service.order"].sudo().create({
             "client_id": partner.id,

@@ -71,27 +71,28 @@ class SedarJobVacancy(models.Model):
 
     def _validate_publication(self):
         for vacancy in self:
-            missing = []
             if vacancy.state != "open":
                 raise UserError("Only open vacancies can be published.")
             if vacancy.publication_state != "approved":
                 raise UserError("Approve the vacancy for publication first.")
-            if not vacancy.website_title:
-                missing.append("Website Title")
-            if not vacancy.website_summary:
-                missing.append("Website Summary")
-            if not vacancy.website_location_id:
-                missing.append("Website Location")
-            if not vacancy.responsibilities:
-                missing.append("Responsibilities")
-            if not vacancy.requirements:
-                missing.append("Requirements")
             if vacancy.remaining_openings < 1:
                 raise UserError("A vacancy must have at least one remaining opening.")
             if vacancy.application_deadline and vacancy.application_deadline < fields.Date.context_today(vacancy):
                 raise UserError("The application deadline must not be in the past.")
+            missing = vacancy._missing_publication_fields()
             if missing:
                 raise ValidationError("Complete these fields before publishing: %s." % ", ".join(missing))
+
+    def _missing_publication_fields(self):
+        self.ensure_one()
+        required_fields = (
+            ("website_title", "Website Title"),
+            ("website_summary", "Website Summary"),
+            ("website_location_id", "Website Location"),
+            ("responsibilities", "Responsibilities"),
+            ("requirements", "Requirements"),
+        )
+        return [label for field_name, label in required_fields if not self[field_name]]
 
     def action_publish(self):
         self._ensure_hr_manager()

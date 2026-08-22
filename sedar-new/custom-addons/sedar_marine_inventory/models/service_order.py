@@ -53,50 +53,43 @@ class SedarMarineServiceOrder(models.Model):
     )
     def _compute_readiness(self):
         for order in self:
-            assignments = order.tug_assignment_ids.filtered(lambda assignment: assignment.state != "cancelled")
+            assignments = order.tug_assignment_ids.filtered(
+                lambda assignment: assignment.state != "cancelled"
+            )
             order.tug_assignment_count = len(assignments)
-            if not assignments:
-                if order.state in {"draft", "submitted", "review", "needs_info", "pricing", "quoted"}:
-                    order.readiness_status = "not_planned"
-                    order.readiness_reason = "Order has not reached operations planning."
-                else:
-                    order.readiness_status = "waiting_tug"
-                    order.readiness_reason = "No tugboat has been assigned."
-                continue
-            if len(assignments) < order.number_of_tugs:
-                order.readiness_status = "waiting_tug"
-                order.readiness_reason = "%s of %s requested tugboats are assigned." % (
-                    len(assignments), order.number_of_tugs,
-                )
-                continue
-            unavailable = assignments.filtered(lambda assignment: not assignment.tug_available)
-            if unavailable:
-                order.readiness_status = "blocked_tug"
-                order.readiness_reason = "Unavailable tugboat: %s" % ", ".join(unavailable.mapped("tugboat_id.name"))
-                continue
-            requirements = assignments.mapped("requirement_ids")
-            if not requirements:
-                order.readiness_status = "waiting_crew"
-                order.readiness_reason = "Manning requirements have not been generated."
-                continue
-            compliance = requirements.filtered(lambda requirement: requirement.compliance_issue_count)
-            shortages = requirements.filtered(lambda requirement: requirement.gap_count)
-            if compliance:
-                order.readiness_status = "blocked_crew"
-                order.readiness_reason = "Crew certificate, medical, leave, rank, or schedule issue."
-            elif shortages:
-                ranks = ", ".join(shortages.mapped("rank_id.name"))
-                order.readiness_status = "blocked_crew"
-                order.readiness_reason = "Unfilled manning requirement: %s" % ranks
-            elif order.inventory_requirement_ids and not order.inventory_auto_ready:
-                order.readiness_status = "waiting_inventory"
-                order.readiness_reason = order.inventory_shortage_summary or "Required inventory is short."
-            elif not order.inventory_requirement_ids and not order.inventory_ready:
-                order.readiness_status = "waiting_inventory"
-                order.readiness_reason = "Inventory requirements have not been generated."
-            else:
-                order.readiness_status = "ready"
-                order.readiness_reason = "Tugboat, minimum compliant crew, and inventory are ready."
+            order.readiness_status, order.readiness_reason = order._readiness_result(assignments)
+
+    def _readiness_result(self, assignments):
+        self.ensure_one()
+        if not assignments:
+            early_states = {"draft", "submitted", "review", "needs_info", "pricing", "quoted"}
+            if self.state in early_states:
+                return "not_planned", "Order has not reached operations planning."
+            return "waiting_tug", "No tugboat has been assigned."
+        if len(assignments) < self.number_of_tugs:
+            return "waiting_tug", "%s of %s requested tugboats are assigned." % (
+                len(assignments), self.number_of_tugs,
+            )
+        unavailable = assignments.filtered(lambda assignment: not assignment.tug_available)
+        if unavailable:
+            return "blocked_tug", "Unavailable tugboat: %s" % ", ".join(
+                unavailable.mapped("tugboat_id.name")
+            )
+        requirements = assignments.mapped("requirement_ids")
+        if not requirements:
+            return "waiting_crew", "Manning requirements have not been generated."
+        if requirements.filtered(lambda requirement: requirement.compliance_issue_count):
+            return "blocked_crew", "Crew certificate, medical, leave, rank, or schedule issue."
+        shortages = requirements.filtered(lambda requirement: requirement.gap_count)
+        if shortages:
+            return "blocked_crew", "Unfilled manning requirement: %s" % ", ".join(
+                shortages.mapped("rank_id.name")
+            )
+        if self.inventory_requirement_ids and not self.inventory_auto_ready:
+            return "waiting_inventory", self.inventory_shortage_summary or "Required inventory is short."
+        if not self.inventory_requirement_ids and not self.inventory_ready:
+            return "waiting_inventory", "Inventory requirements have not been generated."
+        return "ready", "Tugboat, minimum compliant crew, and inventory are ready."
 
     def _find_inventory_template(self):
         self.ensure_one()
