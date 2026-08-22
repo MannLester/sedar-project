@@ -564,7 +564,7 @@ Key behavior:
 | `sedar_due_alert_assignment_state` | Computed selection | Shows whether a due alert is assigned or needs an explicit technician/fallback user. |
 | `sedar_inventory_product_id` | Read-only company-checked many-to-one to `product.product` | Immutable originating Replacement Equipment Item Type created only by controlled installation. |
 | `sedar_inventory_lot_id` | Read-only company-checked many-to-one to `stock.lot` | Immutable originating serial; product and serial identify at most one persistent Equipment record. |
-| `sedar_inventory_current_lifecycle_id` | Read-only company-checked many-to-one to `sedar.inventory.lifecycle` | Open lifecycle currently installing this Equipment; cleared on technical removal without deleting Equipment or Running Hour history. |
+| `sedar_inventory_current_lifecycle_id` | Read-only company-checked many-to-one to `sedar.inventory.lifecycle` | Open lifecycle currently installing this Equipment; cleared on technical uninstall without deleting Equipment or Running Hour history. |
 
 Key behavior:
 
@@ -753,24 +753,24 @@ One immutable lifecycle is the Currently In Use umbrella for a new Inventory Iss
 | `tugboat_id`, `source_location_id`, `tug_location_id` | Required immutable company-checked links | Preserve the tugboat and exact movement endpoints. |
 | `issue_move_id`, `initial_qty` | Required immutable done move and quantity | Authoritative opening movement and issued quantity; endpoints, product, company, quantity, and lot must match. |
 | `open_qty`, `state` | Computed stored float and selection | Initial quantity less done return/consume/dispose events, rounded by product UoM; state is open or closed. |
-| `usage_state` | Controlled read-only selection | Onboard, assigned, installed, removed, or closed technical context. |
+| `usage_state` | Controlled read-only selection | Onboard, assigned, installed, uninstalled (`removed` technical key), or closed technical context. |
 | `lot_id`, `equipment_id` | Read-only company-checked links | Lot/serial and optional related Equipment. Open Replacement Equipment serials are unique. |
 | `issued_by_id`, `issued_at` | Required immutable audit user/time | Actor and time from the Inventory Issue. |
 | `installed_at`, `removed_at` | Computed stored datetimes | Latest install and technical-removal events. |
-| `reconciliation_state` | Computed stored selection | Reconciled when all linked movement evidence is complete; otherwise Needs Review. |
+| `reconciliation_state` | Computed stored selection | Reconciled only when all linked moves are done and aggregate event-derived open quantity equals exact physical stock for the company/tug location/Item Type/lot bucket at UoM precision; otherwise Needs Review. All open lifecycles sharing a non-serialized bucket receive the same result. |
 | `event_ids` | Read-only one-to-many | Append-only technical and disposition history. |
-| `disposition_activity_id` | Read-only many-to-one to `mail.activity` | Deduplicated Officer task scheduled after technical removal and closed on final disposition. |
+| `disposition_activity_id` | Read-only many-to-one to `mail.activity` | Deduplicated Officer task scheduled after technical uninstall and closed on final disposition. |
 | `serial_open_key` | Computed stored character | Enforces one open lifecycle for a Replacement Equipment product/serial pair. |
 | `is_procurement_inventory_officer` | Non-stored computed boolean | User-dependent UI helper; server actions independently enforce exact Officer authority. |
 
-Maintenance Managers control assignment, Replacement Equipment installation, and technical removal. The exact Officer controls partial return, consumption, and disposal. Every stock-closing action row-locks and reloads the lifecycle, rechecks rounded open quantity and unreserved physical stock, creates a standard done move to the configured destination, and appends its event in one transaction. Installed Replacement Equipment must be removed before disposition and cannot be partially closed.
+Maintenance Managers control assignment, Replacement Equipment installation, and technical uninstall. Uninstall clears the Equipment installation context but deliberately leaves the lifecycle open and its physical stock at the tug location; it creates no stock move because no stock-location boundary has changed, and it preserves Equipment identity and Running Hour history. The exact Officer later controls the distinct physical disposition step: partial return, consumption, or disposal. Every stock-closing action row-locks and reloads the lifecycle, rechecks rounded open quantity and unreserved physical stock, creates a standard done move to the configured destination, and appends its event in one transaction. Installed Replacement Equipment must be uninstalled before disposition and cannot be partially closed. Done stock moves crossing a tug location recompute reconciliation for the affected aggregate bucket so unlinked physical movements surface as Needs Review.
 
 ### `sedar.inventory.lifecycle.event`
 
 | Field | Type | How it is used |
 | --- | --- | --- |
 | `lifecycle_id`, `company_id` | Required company-checked lifecycle and stored related company | Own and isolate the event. |
-| `event_type` | Required read-only selection | Assign, install, technical removal, return, consume, or dispose. |
+| `event_type` | Required read-only selection | Assign, install, technical uninstall (`remove` technical key), return, consume, or dispose. |
 | `quantity`, `product_uom_id` | Read-only float and related UoM | Zero for technical events; positive for stock-closing events. |
 | `stock_move_id` | Read-only company-checked many-to-one | Required done move for a closing event and forbidden for technical events. |
 | `actor_id`, `event_at`, `reason` | Required actor/time and read-only reason | Attribution; disposition events require a reason. |

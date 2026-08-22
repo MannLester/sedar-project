@@ -1,4 +1,4 @@
-from odoo import Command
+from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import TransactionCase, tagged
 
@@ -231,7 +231,37 @@ class TestInventoryLifecycle(TransactionCase):
         self.assertEqual(equipment.sedar_inventory_product_id, replacement)
         self.assertEqual(equipment.sedar_inventory_lot_id, serial)
         self.assertEqual(equipment.sedar_inventory_current_lifecycle_id, lifecycle)
+        reading = self.env["sedar.equipment.running.hour.reading"].with_user(
+            self.maintenance_manager
+        ).create({
+            "equipment_id": equipment.id,
+            "running_hours": 125,
+            "reading_at": fields.Datetime.now(),
+        })
+        move_count = self.env["stock.move"].search_count([
+            ("product_id", "=", replacement.id)
+        ])
+        physical_before = lifecycle._available_quantity(
+            replacement, self.tug_location, serial
+        )
         lifecycle.action_remove()
+
+        remove_event = lifecycle.event_ids.filtered(
+            lambda event: event.event_type == "remove"
+        )
+        self.assertFalse(remove_event.stock_move_id)
+        self.assertEqual(
+            self.env["stock.move"].search_count([
+                ("product_id", "=", replacement.id)
+            ]),
+            move_count,
+        )
+        self.assertEqual(
+            lifecycle._available_quantity(replacement, self.tug_location, serial),
+            physical_before,
+        )
+        self.assertIn(reading, equipment.sedar_running_hour_reading_ids)
+        self.assertEqual(equipment.sedar_current_running_hours, 125)
         self.assertFalse(equipment.sedar_tugboat_id)
         self.assertFalse(equipment.sedar_inventory_current_lifecycle_id)
         lifecycle.action_install()

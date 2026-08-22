@@ -120,7 +120,7 @@ class SedarInventoryLifecycle(models.Model):
             ("onboard", "Onboard"),
             ("assigned", "Assigned"),
             ("installed", "Installed"),
-            ("removed", "Removed"),
+            ("removed", "Uninstalled"),
             ("closed", "Closed"),
         ],
         required=True,
@@ -139,7 +139,7 @@ class SedarInventoryLifecycle(models.Model):
     removed_at = fields.Datetime(compute="_compute_technical_dates", store=True, readonly=True)
     reconciliation_state = fields.Selection(
         [("reconciled", "Reconciled"), ("warning", "Needs Review")],
-        compute="_compute_quantity_status",
+        compute="_compute_reconciliation_state",
         store=True,
         readonly=True,
     )
@@ -199,10 +199,102 @@ class SedarInventoryLifecycle(models.Model):
                 open_qty = 0.0
             lifecycle.open_qty = open_qty
             lifecycle.state = "closed" if open_qty == 0.0 else "open"
-            moves = lifecycle.issue_move_id | lifecycle.event_ids.mapped("stock_move_id")
+
+    @api.depends(
+        "company_id",
+        "product_id",
+        "product_uom_id.rounding",
+        "tug_location_id",
+        "lot_id",
+        "initial_qty",
+        "issue_move_id.state",
+        "event_ids.event_type",
+        "event_ids.quantity",
+        "event_ids.stock_move_id.state",
+    )
+    def _compute_reconciliation_state(self):
+        bucket_results = {}
+        for lifecycle in self:
+            key = lifecycle._reconciliation_bucket_key()
+            if key not in bucket_results:
+                bucket_results[key] = lifecycle._is_reconciliation_bucket_balanced()
             lifecycle.reconciliation_state = (
-                "reconciled" if moves and all(move.state == "done" for move in moves) else "warning"
+                "reconciled" if bucket_results[key] else "warning"
             )
+
+    def _reconciliation_bucket_key(self):
+        self.ensure_one()
+        return (
+            self.company_id.id,
+            self.product_id.id,
+            self.tug_location_id.id,
+            self.lot_id.id,
+        )
+
+    def _reconciliation_bucket(self):
+        self.ensure_one()
+        return self.sudo().search(
+            [
+                ("company_id", "=", self.company_id.id),
+                ("product_id", "=", self.product_id.id),
+                ("tug_location_id", "=", self.tug_location_id.id),
+                ("lot_id", "=", self.lot_id.id or False),
+            ]
+        )
+
+    def _event_derived_open_qty(self):
+        self.ensure_one()
+        closed_qty = sum(
+            event.quantity
+            for event in self.event_ids
+            if event.event_type in CLOSING_EVENT_TYPES
+            and event.stock_move_id.state == "done"
+        )
+        open_qty = max(self.initial_qty - closed_qty, 0.0)
+        return (
+            0.0
+            if float_is_zero(
+                open_qty, precision_rounding=self.product_uom_id.rounding
+            )
+            else open_qty
+        )
+
+    def _is_reconciliation_bucket_balanced(self):
+        self.ensure_one()
+        bucket = self._reconciliation_bucket()
+        moves = bucket.issue_move_id | bucket.event_ids.mapped("stock_move_id")
+        if not moves or any(move.state != "done" for move in moves):
+            return False
+        expected_qty = sum(
+            lifecycle._event_derived_open_qty() for lifecycle in bucket
+        )
+        quant_domain = [
+            ("product_id", "=", self.product_id.id),
+            ("location_id", "=", self.tug_location_id.id),
+            ("lot_id", "=", self.lot_id.id or False),
+        ]
+        physical_qty = sum(
+            self.env["stock.quant"].sudo().search(quant_domain).mapped("quantity")
+        )
+        return (
+            float_compare(
+                expected_qty,
+                physical_qty,
+                precision_rounding=self.product_uom_id.rounding,
+            )
+            == 0
+        )
+
+    def _recompute_reconciliation_bucket(self):
+        buckets = self.env["sedar.inventory.lifecycle"]
+        for lifecycle in self:
+            buckets |= lifecycle._reconciliation_bucket()
+        if buckets:
+            controlled = buckets.sudo().with_context(
+                sedar_inventory_lifecycle_write=True
+            )
+            controlled._compute_reconciliation_state()
+            controlled.flush_recordset(["reconciliation_state"])
 
     @api.depends("event_ids.event_type", "event_ids.event_at")
     def _compute_technical_dates(self):
@@ -291,7 +383,9 @@ class SedarInventoryLifecycle(models.Model):
             self.env.su and self.env.context.get("sedar_inventory_lifecycle_create")
         ):
             raise AccessError(_("Inventory lifecycles are created only by the controlled issue action."))
-        return super().create(vals_list)
+        lifecycles = super().create(vals_list)
+        lifecycles._recompute_reconciliation_bucket()
+        return lifecycles
 
     def write(self, vals):
         if not (
@@ -302,6 +396,7 @@ class SedarInventoryLifecycle(models.Model):
             "usage_state",
             "equipment_id",
             "disposition_activity_id",
+            "reconciliation_state",
             "serial_open_key",
         }
         if set(vals) - allowed:
@@ -351,7 +446,7 @@ class SedarInventoryLifecycle(models.Model):
             lifecycle._check_maintenance_manager()
             lifecycle._lock_and_reload()
             if lifecycle.state != "open" or lifecycle.usage_state not in {"onboard", "removed"}:
-                raise UserError(_("Only open onboard or removed inventory can be assigned."))
+                raise UserError(_("Only open onboard or uninstalled inventory can be assigned."))
             lifecycle._validate_assignment_equipment(equipment)
             lifecycle._create_event("assign")
             lifecycle.sudo().with_context(sedar_inventory_lifecycle_write=True).write({
@@ -425,7 +520,7 @@ class SedarInventoryLifecycle(models.Model):
             lifecycle._check_maintenance_manager()
             lifecycle._lock_and_reload()
             if lifecycle.state != "open" or lifecycle.usage_state != "installed":
-                raise UserError(_("Only installed open inventory can be technically removed."))
+                raise UserError(_("Only installed open inventory can be uninstalled."))
             lifecycle._create_event("remove")
             lifecycle.sudo().with_context(sedar_inventory_lifecycle_write=True).write({"usage_state": "removed"})
             lifecycle.equipment_id.sudo().with_context(
@@ -445,9 +540,9 @@ class SedarInventoryLifecycle(models.Model):
         activity = self.sudo().activity_schedule(
             "mail.mail_activity_data_todo",
             user_id=officer.id,
-            summary=_("Decide disposition for removed inventory"),
+            summary=_("Decide disposition for uninstalled inventory"),
             note=_(
-                "%(item)s was removed from %(tug)s and remains onboard pending return, consumption, or disposal.",
+                "%(item)s was uninstalled from Equipment on %(tug)s and remains at the tug stock location pending return, consumption, or disposal.",
                 item=self.product_id.display_name,
                 tug=self.tugboat_id.display_name,
             ),
@@ -482,6 +577,7 @@ class SedarInventoryLifecycle(models.Model):
                 lifecycle.lot_id,
             )
             lifecycle._create_event(event_type, quantity, reason.strip(), move)
+            lifecycle._recompute_reconciliation_bucket()
             lifecycle.invalidate_recordset(["open_qty", "state", "reconciliation_state"])
             if lifecycle.state == "closed":
                 lifecycle.sudo().with_context(sedar_inventory_lifecycle_write=True).write({"usage_state": "closed"})
@@ -522,7 +618,7 @@ class SedarInventoryLifecycle(models.Model):
         if not reason or not reason.strip():
             raise UserError(_("A disposition reason is required."))
         if self.usage_state == "installed":
-            raise UserError(_("Installed Equipment must be technically removed before disposition."))
+            raise UserError(_("Installed Equipment must be uninstalled before disposition."))
         if self.product_id.sedar_item_type == "replacement_equipment" and float_compare(
             quantity, self.open_qty, precision_rounding=rounding
         ) != 0:
@@ -601,6 +697,30 @@ class SedarInventoryLifecycle(models.Model):
         return move
 
 
+class StockMove(models.Model):
+    _inherit = "stock.move"
+
+    def _action_done(self, cancel_backorder=False):
+        moves = super()._action_done(cancel_backorder=cancel_backorder)
+        lifecycles = self.env["sedar.inventory.lifecycle"]
+        for move in moves.filtered(lambda candidate: candidate.state == "done"):
+            tug_locations = (
+                move.location_id | move.location_dest_id
+            ).filtered(lambda location: location.sedar_location_role == "tug")
+            if not tug_locations:
+                continue
+            lots = move.move_line_ids.lot_id
+            domain = [
+                ("company_id", "=", move.company_id.id),
+                ("product_id", "=", move.product_id.id),
+                ("tug_location_id", "in", tug_locations.ids),
+                ("lot_id", "in", lots.ids) if lots else ("lot_id", "=", False),
+            ]
+            lifecycles |= self.env["sedar.inventory.lifecycle"].sudo().search(domain)
+        lifecycles._recompute_reconciliation_bucket()
+        return moves
+
+
 class SedarInventoryLifecycleEvent(models.Model):
     _name = "sedar.inventory.lifecycle.event"
     _description = "SEDAR Inventory Lifecycle Event"
@@ -617,7 +737,7 @@ class SedarInventoryLifecycleEvent(models.Model):
         [
             ("assign", "Assigned"),
             ("install", "Installed"),
-            ("remove", "Technically Removed"),
+            ("remove", "Uninstalled"),
             ("return", "Returned to Storage"),
             ("consume", "Consumed"),
             ("dispose", "Disposed"),

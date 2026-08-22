@@ -41,7 +41,7 @@
     </record>
 
     <record id="action_inventory_remove_wizard" model="ir.actions.act_window">
-        <field name="name">Remove Equipment</field>
+        <field name="name">Uninstall Equipment</field>
         <field name="res_model">sedar.inventory.technical.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
@@ -420,7 +420,7 @@
                 <filter name="onboard" string="Onboard" domain="[('usage_state', '=', 'onboard')]"/>
                 <filter name="assigned" string="Assigned" domain="[('usage_state', '=', 'assigned')]"/>
                 <filter name="installed" string="Installed" domain="[('usage_state', '=', 'installed')]"/>
-                <filter name="removed" string="Removed" domain="[('usage_state', '=', 'removed')]"/>
+                <filter name="removed" string="Uninstalled" domain="[('usage_state', '=', 'removed')]"/>
                 <separator/>
                 <filter name="group_tugboat" string="Group by Tugboat" context="{'group_by': 'tugboat_id'}"/>
                 <filter name="group_item" string="Group by Item Type" context="{'group_by': 'product_id'}"/>
@@ -456,7 +456,7 @@
                 <header>
                     <button name="%(action_inventory_assign_wizard)d" type="action" string="Assign" class="btn-secondary" groups="sedar_marine_maintenance.group_marine_maintenance_manager" invisible="state != 'open' or usage_state not in ['onboard', 'removed']"/>
                     <button name="%(action_inventory_install_wizard)d" type="action" string="Install" class="btn-primary" groups="sedar_marine_maintenance.group_marine_maintenance_manager" invisible="state != 'open' or item_type != 'replacement_equipment' or usage_state not in ['onboard', 'assigned', 'removed']"/>
-                    <button name="%(action_inventory_remove_wizard)d" type="action" string="Remove" class="btn-secondary" groups="sedar_marine_maintenance.group_marine_maintenance_manager" invisible="state != 'open' or usage_state != 'installed'"/>
+                    <button name="%(action_inventory_remove_wizard)d" type="action" string="Uninstall" class="btn-secondary" groups="sedar_marine_maintenance.group_marine_maintenance_manager" invisible="state != 'open' or usage_state != 'installed'"/>
                     <button name="%(action_inventory_return_wizard)d" type="action" string="Return" groups="sedar_marine_inventory.group_marine_inventory_manager" invisible="state != 'open' or usage_state == 'installed' or not is_procurement_inventory_officer"/>
                     <button name="%(action_inventory_consume_wizard)d" type="action" string="Consume" groups="sedar_marine_inventory.group_marine_inventory_manager" invisible="state != 'open' or usage_state == 'installed' or not is_procurement_inventory_officer"/>
                     <button name="%(action_inventory_dispose_wizard)d" type="action" string="Dispose" groups="sedar_marine_inventory.group_marine_inventory_manager" invisible="state != 'open' or usage_state == 'installed' or not is_procurement_inventory_officer"/>

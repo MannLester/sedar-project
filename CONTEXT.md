@@ -129,8 +129,16 @@ Physical Inventory Items held at a warehouse stock location and available for re
 _Avoid_: Currently In Use, company-wide stock
 
 **Currently In Use**:
-Physical goods assigned to or installed on a named tugboat and not yet removed or consumed. The record identifies the tugboat, related Equipment when applicable, quantity, and issue or installation date.
+Physical goods held at a named tugboat's stock location and not yet returned, consumed, or disposed. It includes technically removed Equipment awaiting physical disposition and identifies the tugboat, related Equipment when applicable, quantity, and issue or installation date.
 _Avoid_: Storage, consumed inventory, equipment procurement request
+
+**Technical Removal**:
+The audited uninstall of Replacement Equipment from its operating context while the physical unit remains held at the tugboat's stock location pending disposition. It preserves Equipment identity and Running Hour history and does not itself change stock quantity or location.
+_Avoid_: Return to Storage, consumption, disposal, stock removal
+
+**Inventory Disposition**:
+The controlled physical return, consumption, or disposal that moves goods out of a tugboat's stock location and reduces their open Inventory Lifecycle quantity.
+_Avoid_: Technical Removal, direct quantity adjustment
 
 **Reorder Point**:
 The manually maintained Available-to-Issue threshold at or below which an Item Type is Low Stock. Automatic purchasing is outside the initial Inventory Check demo.
@@ -141,7 +149,7 @@ The rule that an Item Type is either fleet-wide or restricted to one or more exp
 _Avoid_: Tug ownership
 
 **Inventory Issue**:
-An immutable, audited release of an Item Type from Storage to a named tugboat for a stated purpose. The goods remain traceable as Currently In Use until a later removal or consumption is recorded.
+An immutable, audited release of an Item Type from Storage to a named tugboat for a stated purpose. The goods remain traceable as Currently In Use until a later Inventory Disposition is recorded.
 _Avoid_: Stock adjustment, immediate consumption
 
 **Bidder**:

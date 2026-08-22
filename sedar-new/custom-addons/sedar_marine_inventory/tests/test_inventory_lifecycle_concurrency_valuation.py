@@ -179,6 +179,26 @@ class TestInventoryLifecycleQuantityValuation(TransactionCase):
             )
         )
 
+    def test_reconciliation_uses_shared_tug_balance_and_flags_unlinked_move(self):
+        first = self._issue(self.precise_product, 2).lifecycle_id
+        second = self._issue(self.precise_product, 3).lifecycle_id
+
+        self.assertEqual(first.reconciliation_state, "reconciled")
+        self.assertEqual(second.reconciliation_state, "reconciled")
+
+        first._create_done_stock_move(
+            first.product_id,
+            1,
+            first.tug_location_id,
+            first.company_id.sedar_consumption_location_id,
+            "Unlinked out-of-band tug movement",
+            first.company_id,
+        )
+        (first | second).invalidate_recordset(["reconciliation_state"])
+
+        self.assertEqual(first.reconciliation_state, "warning")
+        self.assertEqual(second.reconciliation_state, "warning")
+
     def test_standard_valuation_boundary_is_owned_by_odoo_stock(self):
         returned = self._issue(self.valuation_product, 1).lifecycle_id.with_user(
             self.officer

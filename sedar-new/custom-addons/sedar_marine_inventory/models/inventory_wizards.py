@@ -82,7 +82,7 @@ class SedarInventoryTechnicalWizard(models.TransientModel):
         [
             ("assign", "Assign"),
             ("install", "Install"),
-            ("remove", "Remove"),
+            ("remove", "Uninstall"),
         ],
         required=True,
         readonly=True,

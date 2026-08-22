@@ -1,4 +1,5 @@
 from odoo import Command
+from odoo.exceptions import UserError
 
 
 MODULE = "sedar_marine_inventory"
@@ -39,11 +40,43 @@ def _seed_available_once(env, product, location, quantity):
         env["stock.quant"]._update_available_quantity(product, location, quantity)
 
 
-def _ensure_warehouse(env):
+def _resolve_storage_location(env):
     company = env.company
-    warehouse = env["stock.warehouse"].search([("company_id", "=", company.id)], limit=1)
+    configured = company.sedar_default_storage_location_id
+    if configured:
+        return configured
+
+    tagged = env["stock.location"].search([
+        ("company_id", "=", company.id),
+        ("usage", "=", "internal"),
+        ("sedar_location_role", "=", "storage"),
+    ])
+    if len(tagged) == 1:
+        return tagged
+    if len(tagged) > 1:
+        raise UserError(env._(
+            "SEDAR inventory bootstrap found multiple tagged Storage locations "
+            "for %(company)s (location IDs: %(location_ids)s). Configure the "
+            "company's Default SEDAR Storage Location before retrying.",
+            company=company.display_name,
+            location_ids=", ".join(map(str, tagged.ids)),
+        ))
+
+    warehouses = env["stock.warehouse"].search([
+        ("company_id", "=", company.id),
+    ])
+    if len(warehouses) > 1:
+        raise UserError(env._(
+            "SEDAR inventory bootstrap found multiple warehouses for %(company)s "
+            "(warehouse IDs: %(warehouse_ids)s) and no explicit Storage location. "
+            "Configure the company's Default SEDAR Storage Location before retrying.",
+            company=company.display_name,
+            warehouse_ids=", ".join(map(str, warehouses.ids)),
+        ))
+
+    warehouse = warehouses
     if not warehouse:
-        warehouse = env["stock.warehouse"].create({
+        warehouse = _record(env, "stock.warehouse", "warehouse_demo", {
             "name": "SEDAR Demo Warehouse",
             "code": "SDR",
             "company_id": company.id,
@@ -51,10 +84,16 @@ def _ensure_warehouse(env):
         })
     storage = warehouse.lot_stock_id
     storage.write({"sedar_location_role": "storage"})
+    return storage
+
+
+def _ensure_warehouse(env):
+    company = env.company
+    storage = _resolve_storage_location(env)
     return storage, _record(env, "stock.location", "location_tugboats", {
         "name": "SEDAR Tugboats",
         "usage": "internal",
-        "location_id": warehouse.lot_stock_id.id,
+        "location_id": storage.id,
         "company_id": company.id,
     })
 

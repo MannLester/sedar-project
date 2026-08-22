@@ -4,7 +4,7 @@ An Inventory Issue will move physical goods from warehouse Storage to a named tu
 
 ## Status
 
-Accepted
+Superseded in part by ADR-0010, which distinguishes technical Equipment removal from physical Inventory Disposition.
 
 ## Consequences
 
