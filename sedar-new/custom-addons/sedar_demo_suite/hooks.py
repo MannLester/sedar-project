@@ -19,7 +19,6 @@ DEMO_MANAGER_GROUP_XMLIDS = (
     "sedar_marine_operations.group_commercial_manager",
     "sedar_marine_operations.group_operations_manager",
     "sedar_marketing.group_marketing_manager",
-    "sedar_purchase_request.group_sedar_purchase_request_manager",
     "sedar_recruitment_crewing.group_crewing_manager",
 )
 
@@ -159,12 +158,15 @@ def _ensure_procurement_demo(env):
     request = request.with_user(manager)
     if request.state == "submitted":
         request.action_approve()
-    if not request.purchase_order_id:
-        request.action_create_rfq()
-    order = request.purchase_order_id
-    if not order:
+    orders = (request.purchase_order_ids | request.purchase_order_id).with_user(manager)
+    if not orders:
         return
-    order = order.with_user(manager)
+    accounting_user = env.ref("sedar_service_order_demo.user_accounting_manager", raise_if_not_found=False)
+    for order in orders:
+        _complete_existing_procurement_order(env, order, accounting_user)
+
+
+def _complete_existing_procurement_order(env, order, accounting_user):
     if order.state in {"draft", "sent"}:
         order.button_confirm()
     for picking in order.picking_ids.filtered(lambda item: item.state not in {"done", "cancel"}):
@@ -177,7 +179,6 @@ def _ensure_procurement_demo(env):
             env[result["res_model"]].with_context(**result.get("context", {})).create({}).process()
     if order.invoice_status == "to invoice" and not order.invoice_ids:
         order.action_create_invoice()
-    accounting_user = env.ref("sedar_service_order_demo.user_accounting_manager", raise_if_not_found=False)
     for bill in order.invoice_ids.filtered(lambda item: item.state == "draft"):
         bill.invoice_date = "2026-08-18"
         (bill.with_user(accounting_user) if accounting_user else bill).action_post()
@@ -401,16 +402,14 @@ def _ensure_maintenance_breadth(env):
 
 def _ensure_purchase_request_breadth(env):
     manager = env.ref("sedar_purchase_request.user_procurement_manager", raise_if_not_found=False)
-    vendor = env.ref("sedar_purchase_request.vendor_marine_supplies", raise_if_not_found=False) or _first(env, "res.partner", [("supplier_rank", ">", 0)])
     products = env["product.product"].search([("sedar_inventory_item", "=", True)], order="id")
     location = _first(env, "stock.warehouse", [("company_id", "=", env.company.id)]).lot_stock_id
-    if not manager or not vendor or not products or not location:
+    if not manager or not products or not location:
         return
     states = ["draft", "submitted", "approved", "submitted", "draft", "approved", "submitted", "draft"]
     for index, state in enumerate(states, start=1):
         request = _record(env, "sedar.purchase.request", f"enriched_purchase_request_{index:02d}", {
             "requester_id": manager.id,
-            "vendor_id": vendor.id,
             "source_type": ["inventory", "maintenance", "operations", "manual"][index % 4],
             "required_date": datetime(2026, 8, 20 + index, 9, 0, 0),
             "priority": ["normal", "urgent", "emergency"][index % 3],
@@ -427,7 +426,7 @@ def _ensure_purchase_request_breadth(env):
                 "need_reason": "Demo replenishment requirement.",
             }, update=False)
         if request.state == "draft" and state in {"submitted", "approved"}:
-            request.action_submit()
+            request.with_user(manager).action_submit()
         if request.state == "submitted" and state == "approved":
             request.with_user(manager).action_approve()
 

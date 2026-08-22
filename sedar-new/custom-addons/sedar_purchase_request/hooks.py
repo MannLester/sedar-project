@@ -30,15 +30,6 @@ def _record(env, model, xmlid, values, update=True):
 
 def post_init_hook(env):
     company = env.company
-    supplier = _record(env, "res.partner", "vendor_marine_supplies", {
-        "name": "Demo Marine Supplies Corporation",
-        "is_company": True,
-        "supplier_rank": 1,
-        "email": "procurement@marine-supplies.example.com",
-        "phone": "+63 2 8800 2100",
-        "country_id": env.ref("base.ph").id,
-    })
-
     manager = _record(env, "res.users", "user_procurement_manager", {
         "name": "Demo Procurement and Inventory Officer",
         "login": "procurement@sedar.demo",
@@ -47,15 +38,17 @@ def post_init_hook(env):
         "company_ids": [Command.set([company.id])],
         "group_ids": [Command.set([
             env.ref("base.group_user").id,
-            env.ref("sedar_purchase_request.group_sedar_purchase_request_manager").id,
+            env.ref("sedar_marine_inventory.group_marine_inventory_manager").id,
         ])],
     }, update=False)
     manager.write({
         "name": "Demo Procurement and Inventory Officer",
-        "group_ids": [Command.link(
-            env.ref("sedar_marine_inventory.group_marine_inventory_manager").id
-        )],
+        "group_ids": [Command.link(env.ref(
+            "sedar_marine_inventory.group_marine_inventory_manager"
+        ).id)],
     })
+    if company.sedar_procurement_inventory_officer_id != manager:
+        company.sedar_procurement_inventory_officer_id = manager
 
     part_line = env.ref("sedar_marine_inventory.line_demo_filter_shortage", raise_if_not_found=False)
     product = part_line.product_id if part_line else env.ref(
@@ -69,7 +62,6 @@ def post_init_hook(env):
 
     request = _record(env, "sedar.purchase.request", "request_demo_spare_parts", {
         "requester_id": manager.id,
-        "vendor_id": supplier.id,
         "source_type": "maintenance",
         "maintenance_request_id": part_line.maintenance_request_id.id if part_line else False,
         "required_date": datetime(2026, 8, 18, 8, 0, 0),
@@ -90,4 +82,4 @@ def post_init_hook(env):
         }, update=False)
 
     if request.state == "draft":
-        request.action_submit()
+        request.with_user(manager).action_submit()

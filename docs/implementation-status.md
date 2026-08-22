@@ -62,7 +62,7 @@ The shared Docker setup installs these SEDAR addons and their Odoo dependencies:
 | Document Control | Implemented for demonstration | Generic controlled forms, six recruitment forms, and representative corporate, vessel, insurance, ISO, resolution, legal, and audit records are linked to governance metadata. |
 | Technical Maintenance | Partial | Slice 10 adds marine equipment, planned/corrective work orders, dry-dock plans, equipment history fields, and tug availability holds; Slice 11 adds work-order spare-part lines. |
 | HSSE | Partial | Slice 13 adds incidents, near misses, inspections, findings, risk assessments, permits, corrective actions, safety meetings, training records, and visible operational HSSE exceptions. |
-| Procurement | Partial | Slice 12 adds Purchase Requests, manager approval, source traceability from maintenance/inventory needs, and standard Odoo RFQ/PO handoff. Receipt and supplier-bill walkthroughs remain standard Odoo follow-up demonstrations. |
+| Procurement | Partial | Purchase Requests now represent vendorless internal physical-goods needs, notify the configured Procurement and Inventory Officer, preserve Equipment/source traceability, and support multiple linked Purchase Orders. Bid capture, Line Awards, new Purchase Order creation, receipts, and supplier-bill walkthroughs remain later work. |
 | Inventory | Partial | Slice 11 adds standard stock-backed marine products, service-order inventory requirements, tugboat locations, work-order spare parts, and operation fuel/lubricant logs. Barcode, reorder policy, and procurement replenishment remain incomplete. |
 | Marketing and CRM | Implemented for demonstration | Client, contact, vessel, tariff, Service Order, CRM opportunity, follow-up activity, and resulting Service Order linkage are visible; campaigns remain deferred. |
 | Executive Management | Implemented for demonstration | Source-backed executive dashboard exposes Finance, Service Orders, fleet, crewing, maintenance, inventory, procurement, HSSE, document expiry, and governance exceptions. Profitability remains separated into revenue and known posted costs. |
@@ -196,11 +196,11 @@ Approved source forms currently represented include:
 
 | Requirement | Status | Current evidence | Remaining demonstration work |
 | --- | --- | --- | --- |
-| Purchase Requests | Implemented | `sedar.purchase.request` captures requester, source, department, vendor, required date, priority, justification, lines, and estimated total. | Add richer category, amount threshold, and department budget controls after discovery. |
-| Purchase Orders | Partial | Approved Purchase Requests create one linked standard Odoo RFQ/Purchase Order with copied products, quantities, estimated prices, vendor, and origin. | Demonstrate RFQ confirmation, receipt, and supplier-bill flow using standard Odoo. |
-| Supplier management | Partial | A demo supplier is seeded and standard Odoo supplier partners are used for RFQ creation. | Add supplier terms, documents, qualification, and performance if included in the pitch. |
-| Approval workflow | Implemented | Server-side manager controls approve, reject, and create RFQs; normal users can submit requests but cannot approve them. | Add amount- or product-category-based approval tiers after SEDAR confirms authority rules. |
-| Finance and receipt linkage | Partial | The request hands off to standard Odoo Purchase; Accounting remains the ledger owner under ADR-0001. | Complete a request-to-RFQ-to-receipt-to-supplier-bill demonstration without custom accounting records. |
+| Purchase Requests | Implemented | `sedar.purchase.request` captures a vendorless physical-goods need, requester, Equipment/source, department, required date, priority, justification, lines, and estimated total. | Add richer category, amount threshold, and department budget controls after discovery. |
+| Purchase Orders | Partial | Requests preserve legacy single-order history and expose a canonical multi-order relationship for the supplier-grouped handoff defined by ADR-0007. Direct RFQ creation is disabled until Bids and Line Awards exist. | Implement Bid comparison, Line Awards, and idempotent creation of one standard Purchase Order per winning supplier. |
+| Supplier management | Planned | Standard Odoo supplier partners remain authoritative, but the SEDAR Bidder List and quotation capture are not implemented yet. | Implement Bid headers/lines, commercial terms, protected quotation attachments, qualification, and later performance measures. |
+| Approval workflow | Implemented | Submission creates one deduplicated activity for the configured Procurement and Inventory Officer; only that exact Officer can approve or reject server-side. | Add the separate Bid and Line Award states without introducing another procurement business role. |
+| Finance and receipt linkage | Partial | Existing linked orders remain accessible and standard Odoo Purchase/Inventory/Accounting retain downstream ownership under ADR-0001. | Complete the awarded-request-to-Purchase-Order-to-receipt-to-supplier-bill demonstration without custom accounting records. |
 
 ### 5.7 Inventory
 
@@ -390,11 +390,13 @@ full barcode walkthrough remain later slices.
 
 ### Slice 12: Purchase Request and Standard Purchase Handoff
 
-Implemented for demonstration. `sedar_purchase_request` captures department purchase requests,
-maintenance spare-part shortages, Service Order inventory shortage sources, preferred vendors,
-manager approval, rejection, estimated totals, and one-time creation of a standard Odoo RFQ/Purchase
-Order. Standard Odoo Purchase, Inventory, and Accounting remain responsible for RFQ confirmation,
-receipts, supplier bills, payments, and ledger records.
+Partially implemented for demonstration. `sedar_purchase_request` captures vendorless internal
+physical-goods needs, maintenance spare-part shortages, Service Order inventory shortage sources,
+affected Equipment, Officer review activities, approval/rejection audit, estimated totals, and a
+multi-order-compatible link to standard Odoo Purchase Orders. Existing single-order history is
+preserved during upgrade. Bid capture, per-line awards, and creation of supplier-grouped Purchase
+Orders remain the next procurement slices. Standard Odoo Purchase, Inventory, and Accounting remain
+responsible for order confirmation, receipts, supplier bills, payments, and ledger records.
 
 ### Slice 13: HSSE and Operational Compliance
 

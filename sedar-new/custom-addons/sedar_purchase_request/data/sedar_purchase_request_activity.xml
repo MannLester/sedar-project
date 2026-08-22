@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mail_activity_type_purchase_request_review" model="mail.activity.type">
+        <field name="name">Purchase Request Review</field>
+        <field name="summary">Review submitted Purchase Request</field>
+        <field name="icon">fa-clipboard</field>
+        <field name="delay_count">0</field>
+        <field name="delay_unit">days</field>
+        <field name="category">default</field>
+        <field name="res_model">sedar.purchase.request</field>
+    </record>
+</odoo>
