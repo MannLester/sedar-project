@@ -135,6 +135,14 @@ class SedarPurchaseRequest(models.Model):
     purchase_order_count = fields.Integer(
         compute="_compute_procurement_progress", compute_sudo=True, store=True
     )
+    bid_ids = fields.One2many(
+        "sedar.purchase.bid", "request_id", string="Bids", readonly=True,
+        groups=OFFICER_GROUP,
+    )
+    bid_count = fields.Integer(
+        compute="_compute_procurement_progress", compute_sudo=True, store=True,
+        groups=OFFICER_GROUP,
+    )
     procurement_progress = fields.Selection(
         [("not_started", "Not Started"), ("awaiting_approval", "Awaiting Approval"),
          ("ready_for_bids", "Ready for Bids"), ("bidding", "Bidding"),
@@ -174,11 +182,16 @@ class SedarPurchaseRequest(models.Model):
         for request in self:
             request.estimated_total = sum(request.line_ids.mapped("estimated_subtotal"))
 
-    @api.depends("state", "purchase_order_ids.state", "purchase_order_id", "purchase_order_id.state")
+    @api.depends(
+        "state", "bid_ids.state", "purchase_order_ids.state",
+        "purchase_order_id", "purchase_order_id.state",
+    )
     def _compute_procurement_progress(self):
         for request in self:
             privileged = request.sudo()
+            bids = privileged.bid_ids
             orders = privileged.purchase_order_ids | privileged.purchase_order_id
+            request.bid_count = len(bids)
             request.purchase_order_count = len(orders)
             if request.state == "cancelled":
                 progress = "cancelled"
@@ -186,6 +199,8 @@ class SedarPurchaseRequest(models.Model):
                 progress = "ordered"
             elif orders:
                 progress = "ordering"
+            elif bids.filtered(lambda bid: bid.state != "withdrawn"):
+                progress = "bidding"
             elif request.state in {"approved", "po_created"}:
                 progress = "ready_for_bids"
             elif request.state == "submitted":
@@ -343,6 +358,10 @@ class SedarPurchaseRequest(models.Model):
 
     def action_reject(self):
         self._check_procurement_inventory_officer()
+        if self.filtered(lambda request: request.sudo().bid_ids):
+            raise UserError(_(
+                "A Purchase Request with Bid history cannot return to correction. Withdraw the applicable Bid instead."
+            ))
         for request in self:
             if request.state not in {"submitted", "approved"}:
                 raise UserError(_("Only submitted or approved requests can be rejected."))
@@ -390,6 +409,18 @@ class SedarPurchaseRequest(models.Model):
             raise UserError(_("No Purchase Orders are linked yet."))
         return self._action_open_purchase_orders(orders)
 
+    def action_open_bids(self):
+        self.ensure_one()
+        self._check_procurement_inventory_officer()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Bids"),
+            "res_model": "sedar.purchase.bid",
+            "view_mode": "list,form",
+            "domain": [("request_id", "=", self.id)],
+            "context": {"default_request_id": self.id},
+        }
+
     def action_open_purchase_order(self):
         return self.action_open_purchase_orders()
 
@@ -433,6 +464,11 @@ class SedarPurchaseRequest(models.Model):
             raise AccessError(_("Purchase Request workflow, audit, and order-link fields are changed only by controlled actions."))
 
     def _check_fact_write_access(self, vals):
+        if {"company_id", "currency_id", "line_ids"}.intersection(vals) and not self.env.su:
+            if self.filtered(lambda request: request.sudo().bid_ids):
+                raise AccessError(_(
+                    "Purchase Request company, currency, and line baseline are locked after Bid capture begins."
+                ))
         if FACT_FIELDS.intersection(vals) and not self.env.su and self.filtered(
                 lambda request: request.state not in {"draft", "rejected"}):
             raise AccessError(_("Submitted Purchase Request facts are locked. Reject the request before correcting it."))
@@ -474,6 +510,7 @@ class SedarPurchaseRequest(models.Model):
 class SedarPurchaseRequestLine(models.Model):
     _name = "sedar.purchase.request.line"
     _description = "SEDAR Purchase Request Line"
+    _rec_name = "product_id"
     _order = "request_id, sequence, product_id"
     _check_company_auto = True
 
@@ -492,6 +529,10 @@ class SedarPurchaseRequestLine(models.Model):
     maintenance_part_line_id = fields.Many2one("sedar.maintenance.part.line", ondelete="set null")
     inventory_requirement_id = fields.Many2one("sedar.inventory.requirement", ondelete="set null")
     need_reason = fields.Text()
+    bid_line_ids = fields.One2many(
+        "sedar.purchase.bid.line", "request_line_id", string="Bid Lines",
+        readonly=True, groups=OFFICER_GROUP,
+    )
 
     @api.depends("quantity", "estimated_unit_price")
     def _compute_estimated_subtotal(self):
@@ -580,13 +621,15 @@ class SedarPurchaseRequestLine(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         request_ids = {vals.get("request_id") for vals in vals_list if vals.get("request_id")}
-        locked = self.env["sedar.purchase.request"].browse(request_ids).filtered(
+        requests = self.env["sedar.purchase.request"].browse(request_ids)
+        locked = requests.filtered(
             lambda request: request.state not in {"draft", "rejected"}
+            or request.sudo().bid_ids
         )
         if locked and not self.env.su:
-            raise AccessError(_("Purchase Request lines are locked after submission."))
+            raise AccessError(_("Purchase Request lines are locked after submission or Bid capture."))
         if not self.env.su:
-            self.env["sedar.purchase.request"].browse(request_ids)._check_requester_or_officer()
+            requests._check_requester_or_officer()
         return super().create(vals_list)
 
     def write(self, vals):
@@ -594,15 +637,19 @@ class SedarPurchaseRequestLine(models.Model):
             requests = self.mapped("request_id")
             if vals.get("request_id"):
                 requests |= self.env["sedar.purchase.request"].browse(vals["request_id"])
-            if requests.filtered(lambda request: request.state not in {"draft", "rejected"}):
-                raise AccessError(_("Purchase Request lines are locked after submission."))
+            if requests.filtered(
+                    lambda request: request.state not in {"draft", "rejected"}
+                    or request.sudo().bid_ids):
+                raise AccessError(_("Purchase Request lines are locked after submission or Bid capture."))
             requests._check_requester_or_officer()
         return super().write(vals)
 
     def unlink(self):
         if not self.env.su:
             requests = self.mapped("request_id")
-            if requests.filtered(lambda request: request.state not in {"draft", "rejected"}):
-                raise AccessError(_("Purchase Request lines are locked after submission."))
+            if requests.filtered(
+                    lambda request: request.state not in {"draft", "rejected"}
+                    or request.sudo().bid_ids):
+                raise AccessError(_("Purchase Request lines are locked after submission or Bid capture."))
             requests._check_requester_or_officer()
         return super().unlink()
