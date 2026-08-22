@@ -61,9 +61,7 @@ class MaintenanceEquipment(models.Model):
             "sedar_inventory_equipment_write"
         )
         if provenance.intersection(vals) and not controlled:
-            for equipment in self:
-                if any(equipment[field_name] for field_name in provenance):
-                    raise AccessError(_("Equipment inventory provenance is immutable."))
+            raise AccessError(_("Equipment inventory provenance is immutable."))
         if (
             "sedar_inventory_current_lifecycle_id" in vals
             and not controlled

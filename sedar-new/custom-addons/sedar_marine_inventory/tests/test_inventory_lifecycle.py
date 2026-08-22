@@ -168,9 +168,15 @@ class TestInventoryLifecycle(TransactionCase):
 
     def test_item_type_and_audit_records_are_immutable(self):
         lifecycle = self._issue().lifecycle_id
+        equipment = self.env["maintenance.equipment"].create({
+            "name": "Unlinked Equipment Without Inventory Provenance",
+            "company_id": self.company.id,
+        })
 
         with self.assertRaises(UserError):
             self.product.write({"sedar_item_type": "fuel_lubricant"})
+        with self.assertRaisesRegex(AccessError, "provenance is immutable"):
+            equipment.write({"sedar_inventory_product_id": self.product.id})
         with self.assertRaises(AccessError):
             lifecycle.write({"usage_state": "assigned"})
         with self.assertRaises(AccessError):
