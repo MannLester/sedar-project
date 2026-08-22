@@ -22,6 +22,16 @@ class SedarMarineCustomerPortal(CustomerPortal):
             ("company_id", "in", self._allowed_company_ids()),
         ]
 
+    def _order_count(self):
+        return request.env["sedar.marine.service.order"].sudo().search_count(
+            self._order_domain()
+        )
+
+    def _prepare_portal_layout_values(self):
+        values = super()._prepare_portal_layout_values()
+        values["sedar_has_orders"] = bool(self._order_count())
+        return values
+
     def _get_portal_order(self, order_id, extra_domain=None):
         return request.env["sedar.marine.service.order"].sudo().search([
             ("id", "=", order_id),
@@ -32,9 +42,7 @@ class SedarMarineCustomerPortal(CustomerPortal):
     def _prepare_home_portal_values(self, counters):
         values = super()._prepare_home_portal_values(counters)
         if "sedar_order_count" in counters:
-            values["sedar_order_count"] = request.env["sedar.marine.service.order"].sudo().search_count(
-                self._order_domain()
-            )
+            values["sedar_order_count"] = self._order_count()
         return values
 
     def _new_order_values(self, **extra):

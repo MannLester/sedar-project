@@ -6,6 +6,7 @@ from odoo.addons.sedar_marine_operations.controllers.portal import (
     SedarMarineCustomerPortal,
 )
 from odoo.addons.sedar_marine_operations.controllers import portal as portal_controller
+from odoo.addons.portal.controllers.portal import CustomerPortal
 from odoo.tests.common import TransactionCase, tagged
 
 
@@ -76,3 +77,26 @@ class TestPortalOrderValidation(TransactionCase):
             self.assertEqual(visible, self.order_a)
             self.assertEqual(controller._get_portal_order(self.order_a.id), self.order_a)
             self.assertFalse(controller._get_portal_order(self.order_b.id))
+            self.assertEqual(controller._order_count(), 1)
+
+    def test_portal_home_visibility_ignores_orders_from_disabled_companies(self):
+        controller = SedarMarineCustomerPortal()
+
+        with self._portal_request(), patch.object(
+            CustomerPortal,
+            "_prepare_portal_layout_values",
+            return_value={},
+        ):
+            values = controller._prepare_portal_layout_values()
+
+        self.assertTrue(values["sedar_has_orders"])
+
+        self.order_a.unlink()
+        with self._portal_request(), patch.object(
+            CustomerPortal,
+            "_prepare_portal_layout_values",
+            return_value={},
+        ):
+            values = controller._prepare_portal_layout_values()
+
+        self.assertFalse(values["sedar_has_orders"])

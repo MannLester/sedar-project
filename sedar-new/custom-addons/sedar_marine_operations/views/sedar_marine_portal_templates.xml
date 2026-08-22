@@ -5,7 +5,6 @@
             <t t-set="portal_client_category_enable" t-value="True"/>
         </xpath>
         <div id="portal_client_category" position="inside">
-            <t t-set="sedar_has_orders" t-value="request.env['sedar.marine.service.order'].sudo().search_count([('client_id', '=', request.env.user.partner_id.commercial_partner_id.id)])"/>
             <t t-if="sedar_has_orders">
                 <t t-call="portal.portal_docs_entry">
                     <t t-set="title">Marine Service Orders</t>
