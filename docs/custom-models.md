@@ -65,6 +65,9 @@ fixture seeding.
 | `sedar.marine.operation` | Extended | Exposes operation fuel/lubricant logs and consumption summary | `sedar_marine_inventory/models/operation_fuel.py` |
 | `sedar.purchase.request` | New | Captures confirmed internal physical-goods needs, internal review, procurement progress, and links to resulting standard Purchase Orders | `sedar_purchase_request/models/purchase_request.py` |
 | `sedar.purchase.request.line` | New | Captures requested products, quantities, estimated costs, and maintenance/inventory source traceability | `sedar_purchase_request/models/purchase_request.py` |
+| `sedar.purchase.bid` | New | Preserves one supplier quotation for one Purchase Request, including private evidence, commercial terms, lifecycle, and audit facts | `sedar_purchase_request/models/purchase_bid.py` |
+| `sedar.purchase.bid.line` | New | Records the subset of requested products quoted by one Bidder at full requested quantities and supplier prices | `sedar_purchase_request/models/purchase_bid.py` |
+| `ir.attachment` | Method-only extension | Protects Bid quotation files from public/token access, reassignment, and post-receipt mutation | `sedar_purchase_request/models/ir_attachment.py` |
 | `purchase.order` | Extended | Links each standard Purchase Order to the Purchase Request that produced it | `sedar_purchase_request/models/purchase_request.py` |
 | `sedar.hsse.incident` | New | Tracks incidents, near misses, investigation, source links, confidential evidence, corrective actions, and verified closure | `sedar_hsse/models/hsse.py` |
 | `sedar.hsse.inspection` | New | Tracks HSSE inspections, source links, findings, overdue counts, and verification | `sedar_hsse/models/hsse.py` |
@@ -821,7 +824,7 @@ Access rules:
 
 ## Procurement Handoff
 
-`sedar_purchase_request` is a focused procurement-control addon on top of standard Odoo Purchase. SEDAR owns the confirmed internal need, internal review, procurement progress, and source traceability. Standard `purchase.order`, stock receipts, supplier bills, payments, and accounting entries remain owned by Odoo Purchase, Inventory, and Accounting. Bid capture and Line Awards are intentionally deferred to the later procurement slice described by ADR-0007.
+`sedar_purchase_request` is a focused procurement-control addon on top of standard Odoo Purchase. SEDAR owns the confirmed internal need, internal review, supplier Bid capture, procurement progress, and source traceability. Standard `purchase.order`, stock receipts, supplier bills, payments, and accounting entries remain owned by Odoo Purchase, Inventory, and Accounting. Line Awards and grouped Purchase Order creation remain in the later procurement slice described by ADR-0007.
 
 ### `res.company` and Purchase settings
 
@@ -851,12 +854,14 @@ One record is a department request to buy goods needed by maintenance, inventory
 | `priority` | Required selection | Normal, urgent, or emergency. |
 | `justification` | Required text | Business reason for the purchase. |
 | `line_ids` | One-to-many to `sedar.purchase.request.line` | Requested products, quantities, estimated costs, and source traceability. |
+| `bid_ids` | Officer-only read-only one-to-many to `sedar.purchase.bid` | Supplier Bids captured for the approved request. The relation is hidden from ordinary requesters at field-access level. |
+| `bid_count` | Officer-only computed, stored integer | Count used by the Bids smart button without exposing Bid identities or commercial values to requesters. |
 | `purchase_order_ids` | Read-only one-to-many to `purchase.order` | All standard Purchase Orders linked to the request. One request may result in multiple orders when different suppliers win different lines. |
 | `purchase_order_count` | Computed integer | Count used by the Purchase Orders smart button. |
 | `purchase_order_id` | Legacy hidden many-to-one to `purchase.order` | Preserves the former single-order link for upgrade compatibility; it is included in the multi-order relationship during migration. |
 | `purchase_order_state` | Legacy hidden related selection | Preserves the state of the former single-order link for upgrade compatibility. |
 | `state` | Required selection | Internal request progress: draft, submitted, approved, order created, rejected, or cancelled. It remains separate from procurement progress. |
-| `procurement_progress` | Computed selection | Procurement progress derived from internal state and linked downstream facts: not started, awaiting approval, ready for Bids, ordering, ordered, or cancelled. Bidding, partially awarded, and fully awarded are reserved for the later Bid/Line Award slices and are not emitted yet. It is displayed separately from internal review progress. |
+| `procurement_progress` | Computed selection | Procurement progress derived from internal state, non-withdrawn Bids, and linked downstream orders: not started, awaiting approval, ready for Bids, bidding, ordering, ordered, or cancelled. Partially awarded and fully awarded remain reserved for the Line Award slice. It is displayed separately from internal review progress. |
 | `approved_by_id` | Read-only many-to-one to `res.users` | Procurement and Inventory Officer who approved the request. |
 | `approved_at` | Read-only datetime | Approval timestamp. |
 | `rejected_by_id` | Read-only many-to-one to `res.users` | Procurement and Inventory Officer who rejected the request. |
@@ -871,8 +876,10 @@ Key behavior:
 - `action_approve()` and `action_reject()` enforce Procurement and Inventory Officer authority server-side. Approval does not require or select a supplier; rejection requires a reason and posts that reason to permanent chatter history before a corrected request may be resubmitted.
 - Equipment-specific requests preserve a direct Equipment link in addition to any maintenance work-order source.
 - `action_create_rfq()` remains only as an upgrade-safe legacy method and explains that Purchase Orders will be created from later Bid and Line Award workflow. It does not create an RFQ.
+- `action_open_bids()` is Officer-only server-side and opens the request's Bid records with the request preselected for capture.
 - The Purchase Orders smart button opens every linked standard order. Existing single-order history remains available after upgrade.
 - Internal request state and computed procurement progress are separate so procurement work cannot make the internal need appear unreviewed.
+- Once Bid capture begins, the request company, currency, and line baseline are immutable. A request with Bid history cannot return to correction through rejection; received offers are withdrawn instead so commercial history is not erased.
 - Service Orders are company-neutral in the current owning model and therefore cannot yet participate in automatic company consistency checks. Purchase Requests, Equipment, products, locations, maintenance sources, and resulting Purchase Orders remain company-scoped; adding Service Order company ownership must be handled by the Marine Operations owner rather than inferred in Procurement.
 
 ### `sedar.purchase.request.line`
@@ -894,13 +901,15 @@ One record is one requested product line under a Purchase Request.
 | `maintenance_part_line_id` | Many-to-one to `sedar.maintenance.part.line` | Optional maintenance spare-part shortage source. |
 | `inventory_requirement_id` | Many-to-one to `sedar.inventory.requirement` | Optional Service Order inventory shortage source. |
 | `need_reason` | Text | Optional line-specific explanation. |
+| `bid_line_ids` | Officer-only read-only one-to-many to `sedar.purchase.bid.line` | Bid lines that quote this requested product; protected from ordinary requester reads at field-access level. |
 
 Key behavior:
 
 - Selecting a maintenance part line or inventory requirement populates product, quantity, and source location.
 - A request line may reference either one maintenance part line or one inventory requirement, not both.
 - The line validates physical goods only, positive quantity, non-negative estimated unit price, source-record consistency, and same-company products and locations.
-- Request facts and lines become read-only after submission; a rejected request returns to an editable correction state.
+- Request facts and lines become read-only after submission; a rejected request returns to an editable correction state only before Bid capture starts.
+- Once any Bid exists, request lines cannot be added or deleted and their request assignment, product, quantity, and unit baseline cannot be changed.
 
 Access rules:
 
@@ -909,7 +918,72 @@ Access rules:
 - The Procurement and Inventory Officer role implies Purchase Request User plus standard Odoo Purchase Manager and Inventory Manager authority. Its legacy `group_sedar_purchase_request_manager` XMLID remains unchanged only to preserve installed assignments and integrations.
 - Ordinary Purchase Request Users do not inherit standard Odoo Purchase User authority.
 - Global record rules restrict Purchase Requests and their lines to the user's allowed companies. Ordinary Purchase Request, Inventory, and Maintenance users can create and modify only requests where they are the requester; the Officer can manage all same-company requests.
+- Bid headers, lines, prices, terms, and quotation files are accessible only to the exact Procurement and Inventory Officer configured for their company. Merely holding the underlying manager group does not grant commercial access. Allowed-company rules apply in addition to that exact-user rule.
 - The addon links `purchase.order` but does not create receipts, supplier bills, payments, or ledger entries.
+
+### `sedar.purchase.bid`
+
+One record preserves one Bidder's quotation for one approved Purchase Request. A request and Bidder pair is unique; a later lifecycle change never replaces the historical row.
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `name` | Read-only character | Sequence-generated Bid reference using `SPB/<year>/#####`. |
+| `request_id` | Required many-to-one to `sedar.purchase.request` | Approved Purchase Request being quoted; deleting the request is restricted. |
+| `bidder_id` | Required many-to-one to `res.partner` | Canonical commercial supplier. It must have supplier standing and be shared or belong to the request company. |
+| `company_id` | Stored related many-to-one to `res.company` | Company inherited from the Purchase Request and used by company and exact-Officer record rules. |
+| `currency_id` | Stored related many-to-one to `res.currency` | MVP comparison currency inherited from the Purchase Request. Currency normalization is not performed. |
+| `state` | Required read-only selection | Draft while captured, Received when validated into history, or Withdrawn when the supplier offer no longer applies. |
+| `capture_source` | Required read-only selection | Manual Capture for new records or Legacy Conversion for a deterministic upgrade-created Bid. |
+| `received_date` | Required date | Business date on which SEDAR received the supplier quotation. |
+| `validity_date` | Date | Optional offer-expiry date; it cannot precede the received date. |
+| `promised_delivery_date` | Date | Optional header delivery promise; it cannot precede the received date. |
+| `delivery_terms` | Text | Supplier delivery terms applying to the Bid. |
+| `availability_notes` | Text | Header-level availability information supplied by the Bidder. |
+| `payment_terms` | Text | Supplier payment terms captured as quoted commercial text. |
+| `warranty_notes` | Text | Warranty terms or limitations in the supplier offer. |
+| `commercial_notes` | Text | Other Officer-only commercial context. |
+| `quotation_file` | Attachment-backed binary | Private supplier quotation evidence. A manual Bid requires this file before receipt. |
+| `quotation_filename` | Character | Original display filename for the private quotation. |
+| `line_ids` | One-to-many to `sedar.purchase.bid.line` | Only the Purchase Request products this Bidder quoted; absence means not quoted. |
+| `total_amount` | Computed, stored monetary | Currency-rounded sum of the quoted line subtotals. |
+| `received_by_id`, `received_at` | Read-only user and datetime | Officer and server time recorded by the controlled receipt action. |
+| `withdrawn_by_id`, `withdrawn_at` | Read-only user and datetime | Officer and server time recorded by the controlled withdrawal action. |
+| `withdrawal_reason` | Text | Required explanation entered while Received and frozen when the Bid is withdrawn. |
+
+Key behavior:
+
+- Only the exact company-configured Procurement and Inventory Officer may create, see, edit, receive, withdraw, or delete Bids. Direct RPC calls enforce the same authority as the views and record rules.
+- Drafts may be edited and deleted. `action_receive()` requires at least one valid quoted line and, for manual capture, a quotation file; it alone records receipt audit fields. `action_withdraw()` requires a reason and it alone records withdrawal audit fields.
+- Received and Withdrawn Bids, lines, commercial facts, quotation content, and audit metadata are immutable. Losing and unawarded offers therefore remain available as procurement history.
+- The Bidder must be its canonical commercial partner. Duplicate request/Bidder records, non-suppliers, contacts, cross-company suppliers, and Bids against a non-approved request are rejected.
+- Commercial values stay on the restricted Bid record and are not posted into the more broadly visible Purchase Request chatter.
+
+### `sedar.purchase.bid.line`
+
+One record is one requested product included in a supplier Bid. A Bid may cover any subset of the request, but each included line quotes the full requested quantity.
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `bid_id` | Required many-to-one to `sedar.purchase.bid` | Parent supplier Bid; deleting an editable Draft cascades to its lines. |
+| `request_id` | Stored related many-to-one to `sedar.purchase.request` | Purchase Request inherited from the Bid for grouping and traceability. |
+| `request_line_id` | Required many-to-one to `sedar.purchase.request.line` | Requested product being quoted; it must belong to the Bid's request and is unique within that Bid. |
+| `company_id` | Stored related many-to-one to `res.company` | Company inherited from the Bid for access isolation. |
+| `currency_id` | Stored related many-to-one to `res.currency` | Purchase Request currency inherited from the Bid. |
+| `product_id` | Stored related many-to-one to `product.product` | Product snapshot supplied by the immutable requested-line relationship. |
+| `product_uom_id` | Stored related many-to-one to `uom.uom` | Requested product unit used for full-quantity comparison and rounding. |
+| `quantity` | Required read-only float | Server-copied snapshot of the full requested quantity; callers cannot override it. |
+| `unit_price` | Required float with six decimal places | Non-negative supplier price per requested unit. |
+| `subtotal` | Computed, stored monetary | Requested quantity multiplied by unit price and rounded in the Bid currency. |
+| `availability_note` | Character | Product-specific availability statement. |
+| `promised_delivery_date` | Date | Optional product-specific delivery promise not earlier than Bid receipt. |
+| `delivery_terms` | Text | Product-specific delivery conditions. |
+| `notes` | Text | Other product-specific quotation context. |
+
+Bid-line identity, quantity snapshots, and all commercial values are editable only while the parent Bid is Draft. The server rejects cross-request lines, duplicate lines, partial quantities outside the unit-of-measure rounding tolerance, negative prices, invalid delivery dates, and direct reassignment.
+
+### `ir.attachment` Bid quotation behavior
+
+The method-only extension recognizes attachments linked to `sedar.purchase.bid`. It validates both the existing and proposed parent on mutations, requires the exact company-configured Officer, prevents reassignment, and permits content changes or deletion only while the Bid is Draft. Bid attachments must remain private binary records: public access, URL attachments, and generated access tokens are rejected. Odoo's linked-record and field access checks protect attachment metadata and bytes from requesters and other unconfigured users, including direct attachment searches and reads.
 
 ### `purchase.order` procurement extension
 

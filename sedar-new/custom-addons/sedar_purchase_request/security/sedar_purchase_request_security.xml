@@ -39,6 +39,40 @@
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
     </record>
 
+    <record id="rule_sedar_purchase_bid_company" model="ir.rule">
+        <field name="name">Purchase Bids: allowed companies</field>
+        <field name="model_id" ref="model_sedar_purchase_bid"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_sedar_purchase_bid_line_company" model="ir.rule">
+        <field name="name">Purchase Bid Lines: allowed companies</field>
+        <field name="model_id" ref="model_sedar_purchase_bid_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_sedar_purchase_bid_configured_officer" model="ir.rule">
+        <field name="name">Purchase Bids: configured Officer only</field>
+        <field name="model_id" ref="model_sedar_purchase_bid"/>
+        <field name="domain_force">[('company_id.sedar_procurement_inventory_officer_id', '=', user.id)]</field>
+        <field name="groups" eval="[Command.link(ref('sedar_marine_inventory.group_marine_inventory_manager'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="rule_sedar_purchase_bid_line_configured_officer" model="ir.rule">
+        <field name="name">Purchase Bid Lines: configured Officer only</field>
+        <field name="model_id" ref="model_sedar_purchase_bid_line"/>
+        <field name="domain_force">[('company_id.sedar_procurement_inventory_officer_id', '=', user.id)]</field>
+        <field name="groups" eval="[Command.link(ref('sedar_marine_inventory.group_marine_inventory_manager'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
     <record id="rule_sedar_purchase_request_own_modify" model="ir.rule">
         <field name="name">Purchase Requests: requesters modify their own</field>
         <field name="model_id" ref="model_sedar_purchase_request"/>
