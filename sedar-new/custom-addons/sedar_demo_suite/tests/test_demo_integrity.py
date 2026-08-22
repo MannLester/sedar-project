@@ -3,7 +3,7 @@ from datetime import datetime
 from unittest.mock import patch
 
 from odoo import Command
-from odoo.exceptions import UserError
+from odoo.exceptions import AccessError, UserError
 from odoo.tests import tagged
 from odoo.tests.common import TransactionCase
 
@@ -277,6 +277,9 @@ class TestSedarDemoIntegrity(TransactionCase):
             "group_ids": [Command.set([
                 self.env.ref("base.group_user").id,
                 self.env.ref("sedar_ais_demo.group_sedar_ais_user").id,
+                self.env.ref(
+                    "sedar_marine_maintenance.group_marine_maintenance_user"
+                ).id,
             ])],
         })
         limited = self.env["sedar.ais.position"].with_user(
@@ -289,6 +292,10 @@ class TestSedarDemoIntegrity(TransactionCase):
             "warranty", "quotation", "commercial", "supplier_name",
         ):
             self.assertNotIn(protected, serialized)
+
+        quotation = self.env.ref("sedar_demo_suite.pm_bid_one_quotation")
+        with self.assertRaises(AccessError):
+            quotation.with_user(restricted).read(["name"])
 
     def test_pm_reconciliation_is_semantically_idempotent(self):
         before = self._pm_snapshot()

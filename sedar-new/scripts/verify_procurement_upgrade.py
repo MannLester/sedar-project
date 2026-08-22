@@ -81,6 +81,7 @@ class VerificationRun:
     candidate_sha: str = ""
     candidate_tree_sha256: str = ""
     candidate_dirty: bool = False
+    odoo_image: dict = field(default_factory=dict)
 
     @property
     def compose_root(self) -> Path:
@@ -112,24 +113,24 @@ def compose_modules(compose_file: Path) -> list[str]:
     return match.group(1).split(",")
 
 
-def command_output(command: list[str], cwd: Path) -> str:
-    result = subprocess.run(command, cwd=cwd, check=False, capture_output=True, text=True)
-    if result.returncode:
-        raise VerificationError(result.stderr.strip() or "Command failed: " + " ".join(command))
-    return result.stdout.strip()
-
-
-def candidate_tree_digest(source_root: Path) -> str:
-    result = subprocess.run(
-        ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"],
-        cwd=source_root,
-        check=False,
-        capture_output=True,
-    )
-    if result.returncode:
-        raise VerificationError("Could not enumerate the candidate source tree.")
+def candidate_tree_digest(
+    source_root: Path, run: VerificationRun | None = None
+) -> str:
+    command = [
+        "git", "ls-files", "--cached", "--others", "--exclude-standard", "-z",
+    ]
+    if run:
+        output = run_logged(run, "list-candidate-files", command, source_root)
+        raw_paths = (path.encode() for path in output.split("\0"))
+    else:
+        result = subprocess.run(
+            command, cwd=source_root, check=False, capture_output=True
+        )
+        if result.returncode:
+            raise VerificationError("Could not enumerate the candidate source tree.")
+        raw_paths = result.stdout.split(b"\0")
     digest = hashlib.sha256()
-    for raw_path in sorted(filter(None, result.stdout.split(b"\0"))):
+    for raw_path in sorted(filter(None, raw_paths)):
         path = source_root / raw_path.decode()
         if not path.is_file():
             continue
@@ -168,23 +169,33 @@ def run_logged(run: VerificationRun, name: str, command: list[str], cwd: Path, s
 
 
 def create_run(source_root: Path, base_ref: str, keep_success: bool) -> VerificationRun:
+    safe_base_ref = validate_ref(base_ref)
     run_root = Path(tempfile.mkdtemp(prefix="sedar-procurement-release-"))
     workspace = run_root / "workspace"
     workspace.mkdir()
     (run_root / "logs").mkdir()
     token = secrets.token_hex(5)
-    status = command_output(["git", "status", "--porcelain=v1"], source_root)
     return VerificationRun(
         source_root=source_root,
-        base_ref=validate_ref(base_ref),
+        base_ref=safe_base_ref,
         keep_success=keep_success,
         run_root=run_root,
         workspace=workspace,
         project=f"sedar_release_{token}",
-        candidate_sha=command_output(["git", "rev-parse", "HEAD"], source_root),
-        candidate_tree_sha256=candidate_tree_digest(source_root),
-        candidate_dirty=bool(status),
     )
+
+
+def capture_candidate_metadata(run: VerificationRun) -> None:
+    status = run_logged(
+        run, "git-status-candidate", ["git", "status", "--porcelain=v1"],
+        run.source_root,
+    )
+    run.candidate_sha = run_logged(
+        run, "git-rev-parse-candidate", ["git", "rev-parse", "HEAD"],
+        run.source_root,
+    ).strip()
+    run.candidate_tree_sha256 = candidate_tree_digest(run.source_root, run)
+    run.candidate_dirty = bool(status.strip())
 
 
 def archive_base(run: VerificationRun) -> None:
@@ -536,13 +547,32 @@ def assert_pm_scenario(snapshot: list[dict]) -> None:
 
 
 def image_metadata(run: VerificationRun) -> dict:
-    image_id = command_output(["docker", "image", "inspect", "--format", "{{.Id}}", "odoo:19.0"], run.source_root)
-    repo_digests = command_output(["docker", "image", "inspect", "--format", "{{json .RepoDigests}}", "odoo:19.0"], run.source_root)
-    return {"image": "odoo:19.0", "id": image_id, "repo_digests": json.loads(repo_digests or "[]")}
+    image_id = run_logged(
+        run, "inspect-odoo-image-id",
+        ["docker", "image", "inspect", "--format", "{{.Id}}", "odoo:19.0"],
+        run.source_root,
+    ).strip()
+    repo_digests = run_logged(
+        run, "inspect-odoo-image-digests",
+        [
+            "docker", "image", "inspect", "--format",
+            "{{json .RepoDigests}}", "odoo:19.0",
+        ],
+        run.source_root,
+    ).strip()
+    return {
+        "image": "odoo:19.0", "id": image_id,
+        "repo_digests": json.loads(repo_digests or "[]"),
+    }
 
 
 def verify(run: VerificationRun) -> dict:
-    command_output(["git", "rev-parse", "--verify", f"{run.base_ref}^{{commit}}"], run.source_root)
+    run_logged(
+        run, "verify-base-ref",
+        ["git", "rev-parse", "--verify", f"{run.base_ref}^{{commit}}"],
+        run.source_root,
+    )
+    run.odoo_image = image_metadata(run)
     archive_base(run)
     base_modules = compose_modules(run.compose_root / "docker-compose.yml")
     run_logged(run, "compose-config-base", compose_command(run, "config", "--quiet"), run.compose_root)
@@ -582,7 +612,7 @@ def verify(run: VerificationRun) -> dict:
         "candidate_tree_sha256": run.candidate_tree_sha256,
         "candidate_dirty": run.candidate_dirty,
         "base_ref": run.base_ref,
-        "odoo_image": image_metadata(run),
+        "odoo_image": run.odoo_image,
         "database": run.database,
         "fresh_database": run.fresh_database,
         "compose_project": run.project,
@@ -631,9 +661,10 @@ def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv or sys.argv[1:])
     run = create_run(repo_root(), args.base_ref, args.keep_success)
     try:
+        capture_candidate_metadata(run)
         result = verify(run)
     except (VerificationError, OSError, json.JSONDecodeError) as error:
-        result = {"status": "failed", "error": str(error), "candidate_sha": run.candidate_sha, "candidate_tree_sha256": run.candidate_tree_sha256, "candidate_dirty": run.candidate_dirty, "base_ref": run.base_ref, "database": run.database, "fresh_database": run.fresh_database, "compose_project": run.project, "isolated_workspace": str(run.run_root), "isolated_data_path": str(run.compose_root / "data"), "commands": run.commands}
+        result = {"status": "failed", "error": str(error), "candidate_sha": run.candidate_sha, "candidate_tree_sha256": run.candidate_tree_sha256, "candidate_dirty": run.candidate_dirty, "base_ref": run.base_ref, "odoo_image": run.odoo_image, "database": run.database, "fresh_database": run.fresh_database, "compose_project": run.project, "isolated_workspace": str(run.run_root), "isolated_data_path": str(run.compose_root / "data"), "commands": run.commands}
         report = write_report(run, result)
         print(f"FAILED: evidence preserved at {run.run_root}; report: {report}", file=sys.stderr)
         return 1
