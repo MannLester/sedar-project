@@ -85,8 +85,7 @@ The demonstration shall:
 | Crewing User | Manages ranks, assignments, rotations, certificates, medicals, leave, and shortages. |
 | HSSE User | Records incidents, near misses, inspections, permits, risk assessments, audits, and training. |
 | HR User | Manages applicants, interviews, requirements, employees, attendance, evaluation, and recruitment. |
-| Procurement User | Manages purchase requests, approvals, suppliers, and purchase orders. |
-| Inventory User | Manages warehouses, spare parts, fuel, lubricants, consumables, and barcode transactions. |
+| Procurement and Inventory Officer | Reviews Purchase Requests, records Bids, selects justified product-level Line Awards, creates supplier-grouped Purchase Orders, and performs controlled Storage and Currently In Use work. |
 | Billing Officer | Reviews completed services, quantities, adjustments, and draft invoices. |
 | Accounting Manager | Approves Client Tariffs and controls standard Odoo accounting records. |
 | Document Controller | Maintains controlled templates, versions, owners, approvals, and expiry records. |
@@ -117,7 +116,11 @@ Odoo 19 shall serve as the primary transactional system and single source of tru
 - A Marine Operation is the execution record created for a Ready Service Order.
 - Service Completion occurs only when every active tug assignment has a submitted Tug Completion.
 - SEDAR modules own marine execution and Billing Review; standard Odoo Accounting owns invoices, receivables, ledger entries, payments, reconciliation, and credit notes.
-- Inventory readiness may be manually confirmed for the demonstration, but a future Inventory module must become the authoritative source.
+- Standard Odoo stock movements and exact-location quantities are authoritative for receipts,
+  Storage, Inventory Issues, Currently In Use, and stock-backed dispatch readiness. Historical
+  manual readiness confirmation remains only for older Service Orders without generated requirements.
+- SEDAR Procurement owns Purchase Requests, Bids, comparison, and Line Awards; standard Odoo
+  Purchase owns Purchase Orders and standard Odoo Inventory owns their receipts.
 
 ### 7.4 Platform decision context
 
@@ -163,12 +166,15 @@ The demonstration uses Odoo 19 as the approved working assumption. This does not
 
 ### 8.3 Maintenance and inventory flow
 
-1. A tugboat or equipment item reaches a planned interval or reports a defect.
-2. Technical creates a work order and reserves required spare parts.
-3. Procurement handles shortages through purchase requests and purchase orders.
-4. Inventory receives and issues parts to the work order.
-5. Maintenance completion updates equipment history and tugboat availability.
-6. Tugboat availability immediately affects the Dispatch Readiness Gate.
+1. A Running Hour Reading reaches a planned interval or Equipment reports a defect.
+2. Maintenance receives a due-review activity, confirms the physical-goods need, and creates a
+   Purchase Request linked to the Equipment or work order. Running Hours never purchase automatically.
+3. The Procurement and Inventory Officer approves the request, records partial supplier Bids,
+   selects one justified winner per product, and creates supplier-grouped Purchase Orders.
+4. Standard Odoo receipts replenish Storage; controlled Inventory Issues move required goods to the
+   tugboat and keep them visible as Currently In Use.
+5. Maintenance completion updates Equipment history and tugboat availability.
+6. Tugboat availability and stock-backed requirements immediately affect the Dispatch Readiness Gate.
 
 ### 8.4 HSSE and compliance flow
 
@@ -218,7 +224,8 @@ Priority uses `Must` for a required demonstration capability, `Should` for an im
 | OPS-006 | Every participating Tug Master shall submit Tug Completion before Service Completion. | Must | A two-tug service stays incomplete until both declarations are submitted. |
 | OPS-007 | The system shall monitor fuel usage by tugboat, operation, date, and transaction type. | Should | A sample operation shows opening, issued, consumed, and remaining fuel. |
 | OPS-008 | Towage billing shall consume the completed operation and Confirmed Rate. | Must | Billing Review uses actual operational facts and creates a linked draft invoice. |
-| OPS-009 | The system shall display AIS/GPS position and movement status when an external feed is available. | Future | A map or mock feed displays timestamped tugboat positions and integration status. |
+| OPS-009 | The demonstration shall display a clearly identified Simulated AIS Feed with timestamped tugboat positions and movement status. | Must | The offline map labels its fictional source and never presents it as navigational evidence. |
+| OPS-010 | The system shall accept position and movement status from an approved external AIS/GPS provider when one is available. | Future | A production adapter preserves provider identity, source timestamps, errors, history, and retention rules. |
 
 ### 9.4 Technical and Maintenance
 
@@ -230,6 +237,8 @@ Priority uses `Must` for a required demonstration capability, `Should` for an im
 | MNT-004 | Maintenance work shall reserve and consume spare parts from Inventory. | Must | A work order shows requested, reserved, and consumed parts. |
 | MNT-005 | The system shall preserve equipment installation, maintenance, defect, and replacement history. | Must | An equipment record shows chronological service history. |
 | MNT-006 | Maintenance status shall affect tugboat operational availability. | Must | A tugboat on maintenance hold cannot pass the Dispatch Readiness Gate. |
+| MNT-007 | The system shall preserve dated and attributable cumulative Running Hour Readings for Equipment. | Must | The latest valid reading supplies current Running Hours without replacing or silently reducing history. |
+| MNT-008 | A due Running Hours threshold shall notify Maintenance for technical review without automatically purchasing goods. | Must | Re-evaluation creates one deduplicated Maintenance activity and no Purchase Request. |
 
 ### 9.5 HSSE
 
@@ -259,11 +268,13 @@ Priority uses `Must` for a required demonstration capability, `Should` for an im
 
 | ID | Requirement | Priority | Demonstration acceptance |
 | --- | --- | --- | --- |
-| PRC-001 | Departments shall create Purchase Requests with justification, required date, items, quantities, and cost estimate. | Must | A maintenance or inventory need creates a traceable Purchase Request. |
-| PRC-002 | Purchase Requests and Purchase Orders shall follow configurable approval states. | Must | A sample request requires approval before a Purchase Order is issued. |
+| PRC-001 | Maintenance and Inventory shall create Purchase Requests only for physical Inventory Items, tugboat spare parts, or Replacement Equipment, with justification, required date, products, quantities, and estimated cost. | Must | A confirmed physical-goods need creates a traceable Purchase Request; labor and external maintenance services are rejected. |
+| PRC-002 | The configured Procurement and Inventory Officer shall review Purchase Requests and receive one actionable activity when a request is submitted. | Must | The exact company Officer approves or rejects the request server-side and duplicate review activities are not created. |
 | PRC-003 | Standard Odoo Purchase shall manage Purchase Orders and receipt linkage. Awarded request lines shall be grouped into one Purchase Order per winning Bidder. | Must | The approved A/B/C example produces one Purchase Order for Bidder 1 containing A and B, one for Bidder 3 containing C, and linked receipts. |
 | PRC-004 | The system shall maintain supplier records, contacts, terms, qualifications, and performance indicators. | Should | A supplier profile shows commercial and evaluation information. |
 | PRC-005 | Procurement, Inventory, and Finance shall share the same item, receipt, supplier, and bill references. | Must | A sample transaction can be followed from request to receipt and supplier bill. |
+| PRC-006 | One Bid shall capture the subset of Purchase Request products quoted by one Bidder, including commercial terms and protected quotation evidence. | Must | The comparison shows each product only under Bidders that quoted it; ordinary non-Procurement users cannot retrieve protected commercial details. |
+| PRC-007 | The Officer shall award each active requested product's full quantity to one quoted Bidder with a mandatory best-value reason. | Must | Unquoted or partial coverage cannot win, one line cannot have two current winners, and losing Bids remain history. |
 
 ### 9.8 Inventory
 
@@ -275,6 +286,8 @@ Priority uses `Must` for a required demonstration capability, `Should` for an im
 | INV-004 | The system shall support barcode-assisted stock transactions. | Should | A sample barcode identifies an item and records a receipt or issue. |
 | INV-005 | The authoritative inventory result shall feed the Dispatch Readiness Gate. | Must | Required stock availability automatically satisfies or blocks readiness. |
 | INV-006 | Fuel and lubricant transactions shall be traceable to tugboat and operation. | Must | Consumption can be summarized by tugboat and Service Order. |
+| INV-007 | A controlled Inventory Issue shall move goods from warehouse Storage to a named tugboat using standard Odoo stock movements. | Must | The completed move reduces Storage and exposes the issued quantity as Currently In Use on that tugboat. |
+| INV-008 | Currently In Use goods shall remain traceable until an explicit controlled return, consumption, or disposal. | Must | Open lifecycle quantity reconciles with physical tugboat stock; Technical Removal alone does not move stock. |
 
 ### 9.9 Human Resources and Recruitment
 
@@ -369,6 +382,8 @@ The demonstration should provide role-specific views rather than one unrestricte
 | NFR-008 | No demonstration feature shall claim production compliance without SEDAR and specialist validation. |
 | NFR-009 | The UI shall remain usable on common desktop and mobile portal viewports. |
 | NFR-010 | Required addons shall install or upgrade without Odoo registry, model, access, or XML errors. |
+| NFR-011 | Re-running demonstration reconciliation or module upgrade shall not duplicate stable fixture records or rewrite completed operational history. |
+| NFR-012 | Changed Python functions shall pass the repository's configured complexity, branch, and statement limits. |
 
 ## 13. Demonstration Acceptance Scenarios
 
@@ -383,9 +398,11 @@ The baseline demonstration is accepted when the project team can show:
 7. HR processes the applicant through interview, ADM-4, ADM-5, and employee conversion.
 8. A maintenance work order affects tug availability and consumes a spare part.
 9. An HSSE incident or inspection produces an assigned corrective action.
-10. A Purchase Request with product-level Line Awards becomes the correct supplier-grouped Purchase Orders, receipts, stock updates, and supplier bills.
-11. Controlled corporate, vessel, crew, HR, and compliance documents are organized with validity and status.
-12. An executive dashboard summarizes representative financial, operational, technical, HSSE, crewing, and HR indicators.
+10. The PM three-product scenario preserves partial Bids, awards A and B to Bidder 1 and C to Bidder 3, and creates exactly the two corresponding Purchase Orders.
+11. A standard receipt replenishes Storage, then a controlled Inventory Issue moves goods to a tugboat and exposes them as Currently In Use.
+12. The simulated fleet map exposes Equipment Running Hours and active/history procurement while redacting protected commercial details from a non-Procurement user.
+13. Controlled corporate, vessel, crew, HR, and compliance documents are organized with validity and status.
+14. An executive dashboard summarizes representative financial, operational, technical, HSSE, crewing, and HR indicators.
 
 ## 14. Assumptions Requiring SEDAR Confirmation
 

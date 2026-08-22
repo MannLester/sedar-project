@@ -6,5 +6,7 @@ class ResCompany(models.Model):
 
     def sedar_reconcile_demo_suite(self):
         from ..hooks import post_init_hook
-        post_init_hook(self.env)
+        for company in self:
+            company_env = self.env["res.company"].with_company(company).env
+            post_init_hook(company_env)
         return True

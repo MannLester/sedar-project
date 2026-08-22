@@ -32,11 +32,15 @@ class TestManpowerCompanyOwnership(TransactionCase):
             "pricing_basis": "per_service",
         })
         tug_class = cls.env["sedar.tug.class"].create({"name": "Manpower Company Tug"})
-        cls.tugboat = cls.env["sedar.tugboat"].create({
-            "name": "Manpower Company Tug",
-            "registration_number": "MCP-TUG-001",
-            "tug_class_id": tug_class.id,
-        })
+        cls.tugboats = {
+            company.id: cls.env["sedar.tugboat"].with_company(company).create({
+                "name": "Manpower Company Tug %s" % suffix,
+                "registration_number": "MCP-TUG-%s" % suffix,
+                "tug_class_id": tug_class.id,
+                "company_id": company.id,
+            })
+            for company, suffix in ((cls.company_a, "A"), (cls.company_b, "B"))
+        }
         cls.rank = cls.env["sedar.crew.rank"].create({
             "name": "Manpower Company Master",
             "code": "MCP-MASTER",
@@ -68,7 +72,7 @@ class TestManpowerCompanyOwnership(TransactionCase):
         })
         tug_assignment = cls.env["sedar.tug.assignment"].create({
             "order_id": order.id,
-            "tugboat_id": cls.tugboat.id,
+            "tugboat_id": cls.tugboats[company.id].id,
         })
         requirement = cls.env["sedar.manning.requirement"].create({
             "tug_assignment_id": tug_assignment.id,
@@ -361,6 +365,21 @@ class TestManpowerCompanyOwnership(TransactionCase):
                 "UPDATE sedar_crew_shortage SET %s = NULL WHERE id = %%s" % column,
                 (self.shortage_b.id,),
             )
+
+    def test_upgrade_does_not_require_future_manpower_line_company_column(self):
+        class LegacySchemaCursor:
+            def execute(self, query, params=None):
+                if "line.company_id" in query:
+                    raise AssertionError(
+                        "The pre-migration cannot read the stored related field before "
+                        "Odoo creates it."
+                    )
+                self.rows = []
+
+            def fetchall(self):
+                return self.rows
+
+        self._load_migration()._reject_legacy_link_conflicts(LegacySchemaCursor())
 
     def test_upgrade_rejects_cross_company_shortage_action_employee(self):
         action = self.env["sedar.crew.shortage.action"].create({
