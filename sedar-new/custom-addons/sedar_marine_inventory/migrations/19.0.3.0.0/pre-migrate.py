@@ -76,7 +76,7 @@ def _validate_legacy_issues(cr):
              OR move.product_id != issue.product_id
              OR move.location_id != issue.source_location_id
              OR move.product_uom_qty != issue.quantity
-             OR destination.usage != 'inventory'
+             OR destination.usage IS DISTINCT FROM 'inventory'
              OR source.company_id IS NULL
              OR tugboat.stock_location_id IS NULL)
          ORDER BY issue.id
@@ -86,6 +86,68 @@ def _validate_legacy_issues(cr):
         raise UserError(
             "Legacy Inventory Issues have anomalous or incomplete completed moves; "
             f"affected record IDs: {invalid_ids}."
+        )
+
+
+def _validate_legacy_company_evidence(cr):
+    move_mismatch_ids = _invalid_ids(
+        cr,
+        """
+        SELECT issue.id
+          FROM sedar_inventory_issue issue
+          JOIN stock_move move ON move.id = issue.stock_move_id
+          JOIN stock_location source ON source.id = issue.source_location_id
+         WHERE issue.lifecycle_id IS NULL
+           AND move.company_id IS DISTINCT FROM source.company_id
+         ORDER BY issue.id
+        """,
+    )
+    if move_mismatch_ids:
+        raise UserError(
+            "Legacy Inventory Issue moves must belong to their Storage company; "
+            f"affected record IDs: {move_mismatch_ids}."
+        )
+
+    destination_mismatch_ids = _invalid_ids(
+        cr,
+        """
+        SELECT issue.id
+          FROM sedar_inventory_issue issue
+          JOIN stock_move move ON move.id = issue.stock_move_id
+          JOIN stock_location source ON source.id = issue.source_location_id
+          JOIN stock_location destination ON destination.id = move.location_dest_id
+         WHERE issue.lifecycle_id IS NULL
+           AND destination.company_id IS DISTINCT FROM source.company_id
+         ORDER BY issue.id
+        """,
+    )
+    if destination_mismatch_ids:
+        raise UserError(
+            "Legacy Inventory Issue destinations must belong to their Storage company; "
+            f"affected record IDs: {destination_mismatch_ids}."
+        )
+
+    tug_mismatch_ids = _invalid_ids(
+        cr,
+        """
+        SELECT issue.id
+          FROM sedar_inventory_issue issue
+          JOIN stock_move move ON move.id = issue.stock_move_id
+          JOIN stock_location source ON source.id = issue.source_location_id
+          JOIN sedar_tugboat tugboat ON tugboat.id = issue.tugboat_id
+          JOIN stock_location tug_location
+            ON tug_location.id = tugboat.stock_location_id
+         WHERE issue.lifecycle_id IS NULL
+           AND (tugboat.company_id IS DISTINCT FROM source.company_id
+             OR tug_location.company_id IS DISTINCT FROM source.company_id)
+         ORDER BY issue.id
+        """,
+    )
+    if tug_mismatch_ids:
+        raise UserError(
+            "Legacy Inventory Issue tugboats and Tugboat Stock locations must "
+            "belong to their Storage company; "
+            f"affected record IDs: {tug_mismatch_ids}."
         )
 
 
@@ -268,6 +330,7 @@ def migrate(cr, version):
         return
     _prepare_contract_columns(cr)
     _validate_legacy_issues(cr)
+    _validate_legacy_company_evidence(cr)
     _classify_legacy_issues(cr)
     _tag_storage_locations(cr)
     _tag_tug_locations(cr)

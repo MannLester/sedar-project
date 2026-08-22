@@ -192,12 +192,13 @@ class SedarInventoryLifecycle(models.Model):
                 for event in lifecycle.event_ids
                 if event.event_type in CLOSING_EVENT_TYPES and event.stock_move_id.state == "done"
             )
-            lifecycle.open_qty = max(lifecycle.initial_qty - closed_qty, 0.0)
-            lifecycle.state = (
-                "closed"
-                if float_is_zero(lifecycle.open_qty, precision_rounding=lifecycle.product_uom_id.rounding)
-                else "open"
-            )
+            open_qty = max(lifecycle.initial_qty - closed_qty, 0.0)
+            if float_is_zero(
+                open_qty, precision_rounding=lifecycle.product_uom_id.rounding
+            ):
+                open_qty = 0.0
+            lifecycle.open_qty = open_qty
+            lifecycle.state = "closed" if open_qty == 0.0 else "open"
             moves = lifecycle.issue_move_id | lifecycle.event_ids.mapped("stock_move_id")
             lifecycle.reconciliation_state = (
                 "reconciled" if moves and all(move.state == "done" for move in moves) else "warning"
@@ -469,6 +470,7 @@ class SedarInventoryLifecycle(models.Model):
             lifecycle._check_exact_officer()
             lifecycle._lock_and_reload()
             lifecycle._validate_close_request(quantity, reason)
+            quantity = lifecycle._normalize_close_quantity(quantity)
             destination = lifecycle._closing_destination(event_type)
             move = lifecycle._create_done_stock_move(
                 lifecycle.product_id,
@@ -489,6 +491,17 @@ class SedarInventoryLifecycle(models.Model):
                 lifecycle.flush_recordset(["state", "serial_open_key"])
                 lifecycle._close_disposition_activity()
         return True
+
+    def _normalize_close_quantity(self, quantity):
+        """Close the exact remainder when a request is equal at UoM precision."""
+        self.ensure_one()
+        if float_compare(
+            quantity,
+            self.open_qty,
+            precision_rounding=self.product_uom_id.rounding,
+        ) == 0:
+            return self.open_qty
+        return quantity
 
     def _close_disposition_activity(self):
         self.ensure_one()
@@ -544,7 +557,7 @@ class SedarInventoryLifecycle(models.Model):
     def _create_done_stock_move(
         self, product, quantity, source, destination, origin, company, lot=None
     ):
-        move = self.env["stock.move"].with_company(company).create({
+        move_values = {
             "origin": origin,
             "company_id": company.id,
             "product_id": product.id,
@@ -552,7 +565,10 @@ class SedarInventoryLifecycle(models.Model):
             "product_uom": product.uom_id.id,
             "location_id": source.id,
             "location_dest_id": destination.id,
-        })
+        }
+        if "inventory" in {source.usage, destination.usage}:
+            move_values.update({"is_inventory": True, "inventory_name": origin})
+        move = self.env["stock.move"].with_company(company).create(move_values)
         move._action_confirm()
         if lot:
             reserved = move._update_reserved_quantity(
