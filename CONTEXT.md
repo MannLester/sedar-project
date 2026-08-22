@@ -12,6 +12,10 @@ _Avoid_: Test user, production role
 A temporary demonstration rule granting every internal employee Demo Persona all SEDAR and required Odoo manager permissions. Customer, applicant, and other portal accounts remain restricted; role-scoped employee permissions must replace this override after the demonstration.
 _Avoid_: Production access policy, portal access
 
+**Procurement and Inventory Officer**:
+The employee responsible for reviewing Purchase Requests, recording Bids, selecting justified Line Awards, creating Purchase Orders, and performing controlled inventory work. It is one combined company role for the current scope.
+_Avoid_: Purchase Request Manager, Procurement Manager
+
 **Service Order**:
 A client's request for one billable tug assist or move at one terminal. The team may also call it a Job Order; both names refer to the same record. A request containing multiple moves is represented by multiple Service Orders for the MVP.
 _Also known as_: Job Order, Service Request (in customer-facing and Marketing language)
@@ -80,6 +84,22 @@ _Avoid_: Captain, skipper
 An automated decision that allows a Service Order to proceed to execution only when its assigned tugboat, crew, and required inventory are ready. It is a system control, not a human approval role.
 _Avoid_: Dispatch Manager approval
 
+**Equipment**:
+An individually tracked machine, system, or component installed on a tugboat, such as a main engine, generator, or pump. It has its own maintenance identity and may have running-hour readings.
+_Avoid_: Item Type, inventory item, spare part, consumable
+
+**Replacement Equipment**:
+A complete physical unit procured to replace or add Equipment on a tugboat. It becomes tracked Equipment only when it is installed.
+_Avoid_: Spare part, repair service, installed Equipment
+
+**Running Hours**:
+The cumulative operating time recorded by an Equipment hour meter. It is a maintenance reading, not the duration of a trip, Service Order, or Marine Operation.
+_Avoid_: Runtime, Actual Service Time, job duration
+
+**Running Hour Reading**:
+A dated, attributable observation of an Equipment hour meter. Readings form an audit history, and the latest valid reading provides the Equipment's current Running Hours.
+_Avoid_: Editable running-hours total, Actual Service Time
+
 **Inventory Readiness Confirmation**:
 A historical manual confirmation by an authorized Operations user that the inventory required by a Service Order was available for execution. Stock-backed Inventory Requirements now provide the normal readiness truth; the confirmer and confirmation time remain for older records without generated requirements.
 _Avoid_: Automated inventory check
@@ -104,6 +124,14 @@ _Avoid_: SEDAR Item Code
 The physical quantity at the warehouse stock location minus quantities reserved there. It excludes stock at child or tug locations, damaged stock, and quantities not yet received.
 _Avoid_: Company-wide stock, forecast stock
 
+**Storage**:
+Physical Inventory Items held at a warehouse stock location and available for reservation or issue. It excludes goods already assigned to or installed on tugboats.
+_Avoid_: Currently In Use, company-wide stock
+
+**Currently In Use**:
+Physical goods assigned to or installed on a named tugboat and not yet removed or consumed. The record identifies the tugboat, related Equipment when applicable, quantity, and issue or installation date.
+_Avoid_: Storage, consumed inventory, equipment procurement request
+
 **Reorder Point**:
 The manually maintained Available-to-Issue threshold at or below which an Item Type is Low Stock. Automatic purchasing is outside the initial Inventory Check demo.
 _Avoid_: Purchase Request, automatic replenishment
@@ -113,8 +141,28 @@ The rule that an Item Type is either fleet-wide or restricted to one or more exp
 _Avoid_: Tug ownership
 
 **Inventory Issue**:
-An immutable, audited release of an Item Type from warehouse stock to a named tugboat for a stated purpose. For the initial demo it is one-step consumption: warehouse stock decreases immediately and no onboard tug balance is maintained.
-_Avoid_: Transfer to Tug, stock adjustment
+An immutable, audited release of an Item Type from Storage to a named tugboat for a stated purpose. The goods remain traceable as Currently In Use until a later removal or consumption is recorded.
+_Avoid_: Stock adjustment, immediate consumption
+
+**Bidder**:
+A supplier that has submitted a priced offer in response to a specific procurement request. Supplier registration or eligibility alone does not make a supplier a Bidder.
+_Avoid_: Preferred Vendor, supplier directory, eligible supplier
+
+**Bid**:
+A supplier's priced offer for one or more product lines in a specific Purchase Request. Different Bidders may quote different subsets of the requested products.
+_Avoid_: Request for Quotation, Purchase Order
+
+**Line Award**:
+Procurement's justified selection of one Bidder to supply the full quantity of a product line in a Purchase Request after comparing commercial terms. A line is not split between Bidders; awarded lines are grouped by winning Bidder for ordering.
+_Avoid_: Whole-request award, Bid, supplier eligibility
+
+**Purchase Order**:
+The order issued to one winning supplier for the product lines awarded to that supplier. One Purchase Request may produce multiple Purchase Orders when different Bidders win different lines.
+_Avoid_: Procurement Order, Bid, Purchase Request
+
+**Purchase Request**:
+An internal request asking Procurement to source physical Inventory Items, tugboat spare parts, or Replacement Equipment for a confirmed need. It excludes labor and external maintenance services and is not a Bid, Request for Quotation, or Purchase Order.
+_Avoid_: Bid, Request for Quotation, Purchase Order, service request
 
 **Simulated AIS Feed**:
 A clearly labeled demonstration-only stream of fictional tugboat positions used to present fleet
