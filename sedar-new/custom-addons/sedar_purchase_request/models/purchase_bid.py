@@ -28,6 +28,23 @@ BID_COMMERCIAL_FIELDS = {
 }
 
 
+def _check_duplicate_value_pairs(
+    model, vals_list, first_field, second_field, error_message
+):
+    seen = set()
+    for vals in vals_list:
+        key = (vals.get(first_field), vals.get(second_field))
+        if not all(key):
+            continue
+        duplicate = key in seen or model.sudo().search_count([
+            (first_field, "=", key[0]),
+            (second_field, "=", key[1]),
+        ])
+        if duplicate:
+            raise ValidationError(error_message)
+        seen.add(key)
+
+
 class SedarPurchaseBid(models.Model):
     _name = "sedar.purchase.bid"
     _description = "SEDAR Purchase Bid"
@@ -103,6 +120,10 @@ class SedarPurchaseBid(models.Model):
         "UNIQUE(request_id, bidder_id)",
         "Only one Bid per Bidder is allowed for each Purchase Request.",
     )
+    _name_unique = models.Constraint(
+        "UNIQUE(name)",
+        "Bid references must be unique.",
+    )
 
     @api.depends("line_ids.subtotal", "currency_id")
     def _compute_total_amount(self):
@@ -153,7 +174,13 @@ class SedarPurchaseBid(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        self._check_duplicate_bid_values(vals_list)
+        _check_duplicate_value_pairs(
+            self,
+            vals_list,
+            "request_id",
+            "bidder_id",
+            _("Only one Bid per Bidder is allowed for each Purchase Request."),
+        )
         prepared = []
         for incoming in vals_list:
             vals = dict(incoming)
@@ -183,25 +210,13 @@ class SedarPurchaseBid(models.Model):
             prepared.append(vals)
         return super().create(prepared)
 
-    def _check_duplicate_bid_values(self, vals_list):
-        seen = set()
-        for vals in vals_list:
-            key = (vals.get("request_id"), vals.get("bidder_id"))
-            if not all(key):
-                continue
-            duplicate = key in seen or self.sudo().search_count([
-                ("request_id", "=", key[0]),
-                ("bidder_id", "=", key[1]),
-            ])
-            if duplicate:
-                raise ValidationError(_(
-                    "Only one Bid per Bidder is allowed for each Purchase Request."
-                ))
-            seen.add(key)
-
     def write(self, vals):
         if not self.env.su:
             self._check_bid_officer()
+            if "name" in vals:
+                raise AccessError(_(
+                    "Bid references are assigned automatically and immutable."
+                ))
             if {"request_id", "bidder_id"}.intersection(vals):
                 raise AccessError(_(
                     "A Bid cannot be reassigned to another Purchase Request or Bidder."
@@ -366,7 +381,13 @@ class SedarPurchaseBidLine(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        self._check_duplicate_line_values(vals_list)
+        _check_duplicate_value_pairs(
+            self,
+            vals_list,
+            "bid_id",
+            "request_line_id",
+            _("A Purchase Request line can appear only once in the same Bid."),
+        )
         prepared = []
         for incoming in vals_list:
             vals = dict(incoming)
@@ -382,22 +403,6 @@ class SedarPurchaseBidLine(models.Model):
                 vals["quantity"] = request_line.quantity
             prepared.append(vals)
         return super().create(prepared)
-
-    def _check_duplicate_line_values(self, vals_list):
-        seen = set()
-        for vals in vals_list:
-            key = (vals.get("bid_id"), vals.get("request_line_id"))
-            if not all(key):
-                continue
-            duplicate = key in seen or self.sudo().search_count([
-                ("bid_id", "=", key[0]),
-                ("request_line_id", "=", key[1]),
-            ])
-            if duplicate:
-                raise ValidationError(_(
-                    "A Purchase Request line can appear only once in the same Bid."
-                ))
-            seen.add(key)
 
     def write(self, vals):
         if not self.env.su:

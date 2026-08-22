@@ -36,14 +36,7 @@ class IrAttachment(models.Model):
         if vals.get("type") not in (None, False, "binary"):
             raise ValidationError(_("Bid quotations must be private binary attachments."))
         if not self.env.su:
-            unauthorized = bids.filtered(
-                lambda bid: self.env.user
-                != bid.request_id.company_id.sedar_procurement_inventory_officer_id
-            )
-            if unauthorized:
-                raise AccessError(_(
-                    "Only the configured Procurement and Inventory Officer may maintain Bid quotations."
-                ))
+            bids._check_bid_officer()
             if bids.filtered(lambda bid: bid.state != "draft"):
                 raise AccessError(_(
                     "A received or withdrawn Bid quotation is immutable."
@@ -79,4 +72,3 @@ class IrAttachment(models.Model):
                 raise ValidationError(_(
                     "Bid quotations must remain private binary attachments without access tokens."
                 ))
-

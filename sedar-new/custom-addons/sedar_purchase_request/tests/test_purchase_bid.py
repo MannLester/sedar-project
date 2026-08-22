@@ -125,16 +125,21 @@ class TestSedarPurchaseBid(TransactionCase):
         first = self._make_bid(
             request, self.suppliers[0], lines[:2], [10.125, 20.125]
         )
+        second = self._make_bid(
+            request, self.suppliers[1], lines[:1], [11.125]
+        )
         third = self._make_bid(
             request, self.suppliers[2], lines[2:], [30.125]
         )
 
         self.assertEqual(first.line_ids.request_line_id, lines[:2])
         self.assertNotIn(lines[2], first.line_ids.request_line_id)
+        self.assertEqual(second.line_ids.request_line_id, lines[:1])
         self.assertEqual(third.line_ids.request_line_id, lines[2:])
         self.assertEqual(first.line_ids[0].quantity, lines[0].quantity)
         self.assertEqual(first.line_ids[1].quantity, lines[1].quantity)
         self.assertEqual(first.total_amount, first.currency_id.round(50.375))
+        self.assertEqual(second.total_amount, second.currency_id.round(11.125))
         self.assertEqual(third.total_amount, third.currency_id.round(90.375))
         self.assertEqual(request.procurement_progress, "bidding")
 
@@ -185,6 +190,40 @@ class TestSedarPurchaseBid(TransactionCase):
                 "bid_id": bid.id,
                 "request_line_id": request.line_ids[2].id,
                 "unit_price": -1.0,
+            })
+
+    def test_bid_quantity_validation_uses_request_uom_rounding(self):
+        request = self._make_request(products=self.products[:1])
+        bid = self._make_bid(request, request_lines=request.line_ids)
+        line = bid.line_ids
+        requested_quantity = line.request_line_id.quantity
+        rounding = line.product_uom_id.rounding
+
+        line.sudo().write({"quantity": requested_quantity + (rounding * 0.49)})
+        self.assertEqual(line.quantity, requested_quantity + (rounding * 0.49))
+        with self.assertRaisesRegex(ValidationError, "full requested quantity"):
+            line.sudo().write({"quantity": requested_quantity + (rounding * 0.51)})
+
+    def test_cross_company_supplier_is_rejected(self):
+        request = self._make_request(products=self.products[:1])
+        other_company = self.env["res.company"].create({"name": "Other Supplier Company"})
+        other_company_supplier = self.env["res.partner"].create({
+            "name": "Other Company Bidder",
+            "supplier_rank": 1,
+            "company_id": other_company.id,
+        })
+        self.officer.sudo().write({
+            "company_ids": [Command.link(other_company.id)],
+        })
+
+        with self.assertRaisesRegex(
+            ValidationError, "shared or belong to the Purchase Request company"
+        ):
+            self.env["sedar.purchase.bid"].with_user(self.officer).with_context(
+                allowed_company_ids=[self.company.id, other_company.id]
+            ).create({
+                "request_id": request.id,
+                "bidder_id": other_company_supplier.id,
             })
 
     def test_receive_and_withdraw_preserve_immutable_history(self):
@@ -344,13 +383,26 @@ class TestSedarPurchaseBid(TransactionCase):
     def test_request_baseline_is_locked_after_bid_capture(self):
         request = self._make_request()
         self._make_bid(request, request_lines=request.line_ids[:1])
+        other_request = self._make_request(products=self.products[:1])
 
         with self.assertRaises(AccessError):
             request.with_user(self.officer).write({
                 "currency_id": self.env.ref("base.USD").id,
             })
         with self.assertRaises(AccessError):
+            request.line_ids[:1].with_user(self.officer).write({
+                "product_id": self.products[1].id,
+            })
+        with self.assertRaises(AccessError):
             request.line_ids[:1].with_user(self.officer).write({"quantity": 99})
+        with self.assertRaises(AccessError):
+            request.line_ids[:1].with_user(self.officer).write({
+                "product_uom_id": self.env.ref("uom.product_uom_dozen").id,
+            })
+        with self.assertRaises(AccessError):
+            request.line_ids[:1].with_user(self.officer).write({
+                "request_id": other_request.id,
+            })
         with self.assertRaises(AccessError):
             self.env["sedar.purchase.request.line"].with_user(self.officer).create({
                 "request_id": request.id,
@@ -361,6 +413,18 @@ class TestSedarPurchaseBid(TransactionCase):
             request.line_ids[:1].with_user(self.officer).unlink()
         with self.assertRaises(UserError):
             request.with_user(self.officer).action_reject()
+
+    def test_bid_sequence_reference_is_immutable(self):
+        request = self._make_request(products=self.products[:1])
+        draft = self._make_bid(request, request_lines=request.line_ids)
+        original_name = draft.name
+
+        with self.assertRaises(AccessError):
+            draft.with_user(self.officer).write({"name": "FORGED-DRAFT"})
+        draft.with_user(self.officer).action_receive()
+        with self.assertRaises(AccessError):
+            draft.with_user(self.officer).write({"name": "FORGED-RECEIVED"})
+        self.assertEqual(draft.name, original_name)
 
     def test_legacy_bid_migration_is_narrow_and_idempotent(self):
         eligible = self._make_request(products=self.products[:2])
