@@ -69,6 +69,8 @@ class SedarMarineCustomerPortal(CustomerPortal):
         return record
 
     def _parse_requested_start(self, value, port):
+        if not port:
+            return False
         try:
             local_start = datetime.fromisoformat(value)
             timezone = pytz.timezone(port.timezone or request.env.user.tz or "Asia/Manila")
