@@ -158,8 +158,8 @@ Use this Procurement navigation:
 ### Purchase Request
 
 - Header status for internal review, bidding, award, and ordering progress.
-- Product lines with bidder count, winning Bidder, awarded price, and award status.
-- Bid comparison tab grouped by product, matching the PM example.
+- Product lines with Officer-only award/cancel actions, current award, and award status; mobile keeps the row actions beside the product so they do not require horizontal scrolling.
+- A dedicated Bid comparison action grouped by requested product, plus a per-line award picker showing Bidder, price, delivery, validity, availability, and warranty before confirmation.
 - Smart buttons for Bids and generated Purchase Orders.
 - Chatter and activities for request and award audit history.
 

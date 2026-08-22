@@ -281,9 +281,9 @@ class SedarPurchaseBid(models.Model):
             bid.invalidate_recordset()
             if bid.state != "received":
                 raise UserError(_("Only a received Bid can be withdrawn."))
-            if bid.sudo().award_ids.filtered(lambda award: award.state in {"awarded", "ordered"}):
+            if bid.sudo().award_ids:
                 raise UserError(_(
-                    "A Bid with an active or ordered Line Award cannot be withdrawn."
+                    "A Bid with Line Award history cannot be withdrawn."
                 ))
             if not bid.withdrawal_reason:
                 raise UserError(_("Enter a withdrawal reason before withdrawing the Bid."))
@@ -336,10 +336,13 @@ class SedarPurchaseBidLine(models.Model):
     product_uom_id = fields.Many2one(
         related="request_line_id.product_uom_id", store=True, readonly=True
     )
-    quantity = fields.Float(required=True, readonly=True)
-    unit_price = fields.Float(required=True, digits=(16, 6), default=0.0)
+    quantity = fields.Float(required=True, readonly=True, aggregator=False)
+    unit_price = fields.Float(
+        required=True, digits=(16, 6), default=0.0, aggregator=False,
+    )
     subtotal = fields.Monetary(
-        compute="_compute_subtotal", store=True, currency_field="currency_id"
+        compute="_compute_subtotal", store=True, currency_field="currency_id",
+        aggregator=False,
     )
     availability_note = fields.Char()
     promised_delivery_date = fields.Date()

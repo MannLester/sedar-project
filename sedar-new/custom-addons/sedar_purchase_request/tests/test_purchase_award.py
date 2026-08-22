@@ -1,9 +1,15 @@
 import base64
+import threading
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
-from odoo import Command, fields
+from psycopg2.errors import SerializationFailure
+
+from odoo import Command, api, fields
 from odoo.exceptions import AccessError, UserError, ValidationError
-from odoo.tests import TransactionCase, tagged
+from odoo.modules.registry import Registry
+from odoo.tests import BaseCase, TransactionCase, get_db_name, tagged
+from odoo.tools import mute_logger
 
 
 @tagged("post_install", "-at_install")
@@ -71,10 +77,21 @@ class TestSedarPurchaseAward(TransactionCase):
             },
         ])
 
-    def _make_request(self, products=None, required_date=None):
+    def _make_request(
+        self,
+        products=None,
+        required_date=None,
+        *,
+        company=None,
+        requester=None,
+        officer=None,
+    ):
         products = products or self.products
-        request = self.env["sedar.purchase.request"].with_user(self.requester).create({
-            "company_id": self.company.id,
+        company = company or self.company
+        requester = requester or self.requester
+        officer = officer or self.officer
+        request = self.env["sedar.purchase.request"].with_user(requester).create({
+            "company_id": company.id,
             "required_date": required_date or datetime.combine(
                 fields.Date.today() + timedelta(days=30), datetime.min.time()
             ),
@@ -89,8 +106,8 @@ class TestSedarPurchaseAward(TransactionCase):
                 for index, product in enumerate(products)
             ],
         })
-        request.with_user(self.requester).action_submit()
-        request.with_user(self.officer).action_approve()
+        request.with_user(requester).action_submit()
+        request.with_user(officer).action_approve()
         return request
 
     def _make_bid(
@@ -102,9 +119,11 @@ class TestSedarPurchaseAward(TransactionCase):
         *,
         received=True,
         validity_date=None,
+        officer=None,
     ):
+        officer = officer or self.officer
         today = fields.Date.today()
-        bid = self.env["sedar.purchase.bid"].with_user(self.officer).create({
+        bid = self.env["sedar.purchase.bid"].with_user(officer).create({
             "request_id": request.id,
             "bidder_id": supplier.id,
             "received_date": today - timedelta(days=10),
@@ -121,15 +140,17 @@ class TestSedarPurchaseAward(TransactionCase):
             ],
         })
         if received:
-            bid.with_user(self.officer).action_receive()
+            bid.with_user(officer).action_receive()
         return bid
 
-    def _award(self, request_line, bid_line, reason="Best overall value"):
-        return request_line.with_user(self.officer)._create_line_award(
+    def _award(
+        self, request_line, bid_line, reason="Best overall value", *, officer=None,
+    ):
+        return request_line.with_user(officer or self.officer)._create_line_award(
             bid_line, reason
         )
 
-    def _make_pm_scenario(self):
+    def _make_multi_bidder_multi_supplier_award_scenario(self):
         request = self._make_request()
         lines = request.line_ids.sorted("sequence")
         bidder_one = self._make_bid(
@@ -150,8 +171,10 @@ class TestSedarPurchaseAward(TransactionCase):
         ), "Only conforming full-quantity offer for Product C.")
         return request, lines, bidder_one, bidder_three
 
-    def test_pm_scenario_creates_two_grouped_draft_orders_and_retry_is_idempotent(self):
-        request, lines, bidder_one, bidder_three = self._make_pm_scenario()
+    def test_multi_supplier_awards_create_two_draft_orders_and_retry_is_idempotent(self):
+        request, lines, bidder_one, bidder_three = (
+            self._make_multi_bidder_multi_supplier_award_scenario()
+        )
 
         request.with_user(self.officer).action_create_purchase_orders()
         orders = request.sudo().purchase_order_ids
@@ -235,6 +258,26 @@ class TestSedarPurchaseAward(TransactionCase):
         self.assertEqual(line.sudo().current_award_id, replacement)
         self.assertEqual(len(line.sudo().award_history_ids), 2)
 
+    def test_line_with_reset_award_history_cannot_be_cancelled(self):
+        request = self._make_request(products=self.products[:1])
+        line = request.line_ids
+        bid = self._make_bid(request, self.suppliers[0], line, [10.0])
+        award = self._award(line, bid.line_ids)
+        award.with_user(self.officer)._reset_with_reason("Supplier revised its offer.")
+
+        with self.assertRaisesRegex(UserError, "no Line Award history"):
+            with self.env.cr.savepoint():
+                line.with_user(self.officer).action_open_cancel_wizard()
+        with self.assertRaisesRegex(UserError, "no Line Award history"):
+            with self.env.cr.savepoint():
+                line.with_user(self.officer)._cancel_for_procurement(
+                    "Requirement withdrawn after award reset."
+                )
+
+        self.assertEqual(line.line_state, "active")
+        self.assertFalse(line.sudo().current_award_id)
+        self.assertEqual(line.sudo().award_history_ids, award)
+
     def test_line_cancellation_requires_unawarded_line_and_excludes_it_from_handoff(self):
         request = self._make_request(products=self.products[:2])
         lines = request.line_ids.sorted("sequence")
@@ -311,7 +354,9 @@ class TestSedarPurchaseAward(TransactionCase):
         )
 
     def test_generated_order_sources_and_facts_are_immutable(self):
-        request, _lines, _bidder_one, _bidder_three = self._make_pm_scenario()
+        request, _lines, _bidder_one, _bidder_three = (
+            self._make_multi_bidder_multi_supplier_award_scenario()
+        )
         request.with_user(self.officer).action_create_purchase_orders()
         order = request.sudo().purchase_order_ids[:1]
         order_line = order.order_line[:1]
@@ -329,20 +374,72 @@ class TestSedarPurchaseAward(TransactionCase):
             with self.env.cr.savepoint():
                 order.with_user(self.officer).unlink()
 
-    def test_awarded_bid_cannot_be_withdrawn_and_ordered_award_cannot_reset(self):
+    def test_bid_with_reset_award_history_cannot_withdraw_and_ordered_award_cannot_reset(self):
         request = self._make_request(products=self.products[:1])
         line = request.line_ids
-        bid = self._make_bid(request, self.suppliers[0], line, [40.0])
-        award = self._award(line, bid.line_ids)
-        bid.with_user(self.officer).withdrawal_reason = "Supplier requested withdrawal."
+        first_bid = self._make_bid(request, self.suppliers[0], line, [40.0])
+        second_bid = self._make_bid(request, self.suppliers[1], line, [42.0])
+        reset_award = self._award(line, first_bid.line_ids)
+        reset_award.with_user(self.officer)._reset_with_reason(
+            "Supplier revised the quotation."
+        )
+        first_bid.with_user(self.officer).withdrawal_reason = (
+            "Supplier requested withdrawal."
+        )
 
-        with self.assertRaisesRegex(UserError, "active or ordered Line Award"):
+        with self.assertRaisesRegex(UserError, "Line Award history"):
             with self.env.cr.savepoint():
-                bid.with_user(self.officer).action_withdraw()
+                first_bid.with_user(self.officer).action_withdraw()
+        award = self._award(line, second_bid.line_ids)
         request.with_user(self.officer).action_create_purchase_orders()
         with self.assertRaisesRegex(UserError, "after Purchase Order handoff"):
             with self.env.cr.savepoint():
                 award.with_user(self.officer)._reset_with_reason("Try another supplier.")
+
+    def test_generated_order_notes_include_winning_terms_without_chatter_leak(self):
+        request = self._make_request(products=self.products[:1])
+        bid = self._make_bid(
+            request,
+            self.suppliers[0],
+            request.line_ids,
+            [75.0],
+            received=False,
+        )
+        bid.with_user(self.officer).write({
+            "delivery_terms": "Header delivery FOB Cebu",
+            "availability_notes": "Header availability: in stock",
+            "payment_terms": "Header payment: net 30",
+            "warranty_notes": "Header warranty: two years",
+            "commercial_notes": "Header commercial note",
+        })
+        bid.line_ids.with_user(self.officer).write({
+            "availability_note": "Winning line available now",
+            "delivery_terms": "Winning line delivered alongside vessel",
+            "notes": "Winning line note <script>alert('unsafe')</script>",
+        })
+        bid.with_user(self.officer).action_receive()
+        self._award(request.line_ids, bid.line_ids)
+
+        request.with_user(self.officer).action_create_purchase_orders()
+        order_note = str(request.sudo().purchase_order_ids.note)
+        request_chatter = "\n".join(
+            str(body) for body in request.sudo().message_ids.mapped("body")
+        )
+
+        for expected in (
+            "Header delivery FOB Cebu",
+            "Header availability: in stock",
+            "Header payment: net 30",
+            "Header warranty: two years",
+            "Header commercial note",
+            "Winning line available now",
+            "Winning line delivered alongside vessel",
+            "Winning line note",
+        ):
+            self.assertIn(expected, order_note)
+            self.assertNotIn(expected, request_chatter)
+        self.assertNotIn("<script>", order_note)
+        self.assertIn("&lt;script&gt;", order_note)
 
     def test_only_exact_configured_officer_can_award_or_read_awards(self):
         request = self._make_request(products=self.products[:1])
@@ -488,7 +585,9 @@ class TestSedarPurchaseAward(TransactionCase):
         )
 
     def test_failure_in_later_supplier_group_rolls_back_all_orders(self):
-        request, _lines, _bidder_one, _bidder_three = self._make_pm_scenario()
+        request, _lines, _bidder_one, _bidder_three = (
+            self._make_multi_bidder_multi_supplier_award_scenario()
+        )
         blocking_tax = self.env["account.tax"].create({
             "name": "Included tax on later supplier group",
             "amount": 5.0,
@@ -544,3 +643,268 @@ class TestSedarPurchaseAward(TransactionCase):
             order_line.sedar_line_award_id.id,
         ))
         self.assertEqual(award.sudo().purchase_order_line_id, order_line)
+
+    def test_generated_order_can_cancel_and_reset_to_draft_without_losing_links(self):
+        request = self._make_request(products=self.products[:1])
+        bid = self._make_bid(
+            request, self.suppliers[0], request.line_ids, [65.0]
+        )
+        award = self._award(request.line_ids, bid.line_ids)
+        request.with_user(self.officer).action_create_purchase_orders()
+        order = request.sudo().purchase_order_ids
+        order_line = order.order_line
+        source_links = (
+            order.sedar_purchase_request_id,
+            order.sedar_bid_id,
+            order_line.sedar_purchase_request_line_id,
+            order_line.sedar_bid_line_id,
+            order_line.sedar_line_award_id,
+        )
+
+        order.with_user(self.officer).button_confirm()
+        if order.state == "to approve":
+            order.with_user(self.officer).button_approve()
+        order.with_user(self.officer).button_cancel()
+        order.with_user(self.officer).button_draft()
+
+        self.assertEqual(order.state, "draft")
+        self.assertEqual(source_links, (
+            order.sedar_purchase_request_id,
+            order.sedar_bid_id,
+            order_line.sedar_purchase_request_line_id,
+            order_line.sedar_bid_line_id,
+            order_line.sedar_line_award_id,
+        ))
+        self.assertEqual(award.sudo().purchase_order_line_id, order_line)
+
+    def test_generated_order_supports_standard_supplier_bill_creation(self):
+        product = self.products[0]
+        product.product_tmpl_id.purchase_method = "purchase"
+        request = self._make_request(products=product)
+        bid = self._make_bid(
+            request, self.suppliers[0], request.line_ids, [65.0]
+        )
+        award = self._award(request.line_ids, bid.line_ids)
+        request.with_user(self.officer).action_create_purchase_orders()
+        order = request.sudo().purchase_order_ids
+        order.with_user(self.officer).button_confirm()
+        if order.state == "to approve":
+            order.with_user(self.officer).button_approve()
+
+        order.with_user(self.officer).action_create_invoice()
+        bill = order.sudo().invoice_ids
+
+        self.assertEqual(len(bill), 1)
+        self.assertEqual(bill.move_type, "in_invoice")
+        self.assertEqual(
+            bill.invoice_line_ids.filtered("purchase_line_id").purchase_line_id,
+            award.sudo().purchase_order_line_id,
+        )
+        self.assertEqual(order.sedar_purchase_request_id, request)
+        self.assertEqual(order.sedar_bid_id, bid)
+
+    def test_award_and_handoff_are_isolated_to_the_request_company(self):
+        second_company = self.env["res.company"].create({
+            "name": "Award Isolation Company",
+            "currency_id": self.company.currency_id.id,
+        })
+        base_group = self.env.ref("base.group_user")
+        request_group = self.env.ref(
+            "sedar_purchase_request.group_sedar_purchase_request_user"
+        )
+        officer_group = self.env.ref(
+            "sedar_marine_inventory.group_marine_inventory_manager"
+        )
+        requester = self.env["res.users"].create({
+            "name": "Second Company Requester",
+            "login": "award.second.requester@test.example",
+            "company_id": second_company.id,
+            "company_ids": [Command.set(second_company.ids)],
+            "group_ids": [Command.set([base_group.id, request_group.id])],
+        })
+        officer = self.env["res.users"].create({
+            "name": "Second Company Officer",
+            "login": "award.second.officer@test.example",
+            "company_id": second_company.id,
+            "company_ids": [Command.set(second_company.ids)],
+            "group_ids": [Command.set([
+                base_group.id, request_group.id, officer_group.id,
+            ])],
+        })
+        second_company.sudo().sedar_procurement_inventory_officer_id = officer
+        supplier = self.env["res.partner"].create({
+            "name": "Second Company Supplier",
+            "supplier_rank": 1,
+            "company_id": second_company.id,
+        })
+        product = self.env["product.product"].create({
+            "name": "Second Company Award Product",
+            "type": "consu",
+            "company_id": second_company.id,
+            "supplier_taxes_id": [Command.clear()],
+        })
+        request = self._make_request(
+            products=product,
+            company=second_company,
+            requester=requester,
+            officer=officer,
+        )
+        bid = self._make_bid(
+            request, supplier, request.line_ids, [55.0], officer=officer
+        )
+        award = self._award(
+            request.line_ids, bid.line_ids, officer=officer
+        )
+
+        with self.assertRaises(AccessError):
+            with self.env.cr.savepoint():
+                request.with_user(self.officer).action_create_purchase_orders()
+        self.assertFalse(
+            self.env["sedar.purchase.line.award"].with_user(self.officer).search([
+                ("id", "=", award.id),
+            ])
+        )
+
+        request.with_user(officer).action_create_purchase_orders()
+        order = request.sudo().purchase_order_ids
+        self.assertEqual(order.company_id, second_company)
+        self.assertEqual(order.currency_id, second_company.currency_id)
+        self.assertEqual(order.sedar_purchase_request_id.company_id, second_company)
+        self.assertEqual(order.sedar_bid_id.company_id, second_company)
+        self.assertEqual(order.order_line.sedar_line_award_id.company_id, second_company)
+
+
+@tagged("post_install", "-at_install")
+class TestSedarPurchaseAwardConcurrency(BaseCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.registry = Registry(get_db_name())
+        with cls.registry.cursor() as cr:
+            env = api.Environment(cr, api.SUPERUSER_ID, {})
+            company = env["res.company"].create({
+                "name": "Concurrent Award Company",
+                "currency_id": env.company.currency_id.id,
+            })
+            base_group = env.ref("base.group_user")
+            request_group = env.ref(
+                "sedar_purchase_request.group_sedar_purchase_request_user"
+            )
+            officer_group = env.ref(
+                "sedar_marine_inventory.group_marine_inventory_manager"
+            )
+            requester = env["res.users"].create({
+                "name": "Concurrent Award Requester",
+                "login": "concurrent.award.requester@test.example",
+                "company_id": company.id,
+                "company_ids": [Command.set(company.ids)],
+                "group_ids": [Command.set([base_group.id, request_group.id])],
+            })
+            officer = env["res.users"].create({
+                "name": "Concurrent Award Officer",
+                "login": "concurrent.award.officer@test.example",
+                "company_id": company.id,
+                "company_ids": [Command.set(company.ids)],
+                "group_ids": [Command.set([
+                    base_group.id, request_group.id, officer_group.id,
+                ])],
+            })
+            company.sedar_procurement_inventory_officer_id = officer
+            supplier = env["res.partner"].create({
+                "name": "Concurrent Award Supplier",
+                "supplier_rank": 1,
+                "company_id": company.id,
+            })
+            product = env["product.product"].create({
+                "name": "Concurrent Award Product",
+                "type": "consu",
+                "company_id": company.id,
+                "supplier_taxes_id": [Command.clear()],
+            })
+            request = env["sedar.purchase.request"].with_user(requester).create({
+                "company_id": company.id,
+                "required_date": datetime.combine(
+                    fields.Date.today() + timedelta(days=30), datetime.min.time()
+                ),
+                "source_type": "manual",
+                "justification": "Exercise concurrent grouped Purchase Order handoff.",
+                "line_ids": [Command.create({
+                    "product_id": product.id,
+                    "quantity": 1.0,
+                    "estimated_unit_price": 100.0,
+                })],
+            })
+            request.with_user(requester).action_submit()
+            request.with_user(officer).action_approve()
+            bid = env["sedar.purchase.bid"].with_user(officer).create({
+                "request_id": request.id,
+                "bidder_id": supplier.id,
+                "received_date": fields.Date.today(),
+                "validity_date": fields.Date.today() + timedelta(days=30),
+                "quotation_filename": "concurrent-quotation.txt",
+                "quotation_file": base64.b64encode(b"concurrent quotation"),
+                "line_ids": [Command.create({
+                    "request_line_id": request.line_ids.id,
+                    "unit_price": 95.0,
+                })],
+            })
+            bid.with_user(officer).action_receive()
+            request.line_ids.with_user(officer)._create_line_award(
+                bid.line_ids, "Best concurrent award value."
+            )
+            cls.request_id = request.id
+            cls.officer_id = officer.id
+
+    @mute_logger("odoo.sql_db")
+    def test_concurrent_handoff_creates_exactly_one_grouped_order(self):
+        start = threading.Barrier(2)
+        cursors = [self.registry.cursor() for _index in range(2)]
+        environments = [
+            api.Environment(cr, self.officer_id, {}) for cr in cursors
+        ]
+
+        def create_orders(env):
+            request = env["sedar.purchase.request"].browse(self.request_id)
+            retried = False
+            try:
+                env.cr.execute(
+                    "SELECT id FROM sedar_purchase_request WHERE id = %s",
+                    [self.request_id],
+                )
+                self.assertTrue(env.cr.fetchone())
+                start.wait(timeout=10)
+                request.action_create_purchase_orders()
+            except SerializationFailure:
+                retried = True
+                env.cr.rollback()
+                env.invalidate_all()
+                request = env["sedar.purchase.request"].browse(self.request_id)
+                request.action_create_purchase_orders()
+            try:
+                env.cr.commit()
+                return request.sudo().purchase_order_ids.ids, retried
+            except Exception:
+                env.cr.rollback()
+                raise
+
+        try:
+            with ThreadPoolExecutor(max_workers=2) as executor:
+                futures = [
+                    executor.submit(create_orders, env) for env in environments
+                ]
+                results = [future.result(timeout=20) for future in futures]
+        finally:
+            for cr in cursors:
+                cr.close()
+
+        with self.registry.cursor() as cr:
+            env = api.Environment(cr, api.SUPERUSER_ID, {})
+            request = env["sedar.purchase.request"].browse(self.request_id)
+            self.assertEqual(len(request.purchase_order_ids), 1)
+            self.assertEqual(
+                [order_ids for order_ids, _retried in results],
+                [request.purchase_order_ids.ids] * 2,
+            )
+            self.assertEqual(sum(retried for _order_ids, retried in results), 1)
+            self.assertEqual(request.award_ids.purchase_order_line_id.order_id,
+                             request.purchase_order_ids)

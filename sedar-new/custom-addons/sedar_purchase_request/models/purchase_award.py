@@ -318,9 +318,10 @@ class SedarPurchaseRequestAward(models.Model):
             ))
         return fiscal_position.map_tax(taxes)
 
-    def _purchase_order_notes(self, bid):
+    def _purchase_order_notes(self, bid, awards):
         sections = [
             (_("Delivery terms"), bid.delivery_terms),
+            (_("Availability"), bid.availability_notes),
             (_("Payment terms quoted"), bid.payment_terms),
             (_("Warranty"), bid.warranty_notes),
             (_("Commercial notes"), bid.commercial_notes),
@@ -329,11 +330,33 @@ class SedarPurchaseRequestAward(models.Model):
             Markup("<p><strong>%s:</strong> %s</p>") % (escape(label), escape(value))
             for label, value in sections if value
         )
-        return Markup("<p><strong>%s</strong> %s</p>") % (
+        header = Markup("<p><strong>%s</strong> %s</p>") % (
             escape(_("SEDAR Bid:")), escape(bid.name),
         ) + content
 
-    def _prepare_grouped_order_values(self, bid, fiscal_position):
+        line_content = Markup("")
+        for award in awards:
+            bid_line = award.bid_line_id
+            line_sections = [
+                (_("Availability"), bid_line.availability_note),
+                (_("Delivery terms"), bid_line.delivery_terms),
+                (_("Notes"), bid_line.notes),
+            ]
+            if not any(value for _label, value in line_sections):
+                continue
+            line_content += Markup("<p><strong>%s</strong></p>") % escape(_(
+                "Winning line: %(product)s",
+                product=award.product_id.display_name,
+            ))
+            line_content += Markup("").join(
+                Markup("<p><strong>%s:</strong> %s</p>") % (
+                    escape(label), escape(value),
+                )
+                for label, value in line_sections if value
+            )
+        return header + line_content
+
+    def _prepare_grouped_order_values(self, bid, awards, fiscal_position):
         partner = bid.bidder_id.with_company(self.company_id)
         return {
             "partner_id": partner.id,
@@ -343,7 +366,7 @@ class SedarPurchaseRequestAward(models.Model):
             "origin": self.name,
             "fiscal_position_id": fiscal_position.id,
             "payment_term_id": partner.property_supplier_payment_term_id.id,
-            "note": self._purchase_order_notes(bid),
+            "note": self._purchase_order_notes(bid, awards),
             "sedar_purchase_request_id": self.id,
             "sedar_bid_id": bid.id,
         }
@@ -412,7 +435,9 @@ class SedarPurchaseRequestAward(models.Model):
                     )._get_fiscal_position(bid.bidder_id)
                     order = self.env["purchase.order"].with_company(self.company_id).sudo().with_context(
                         **{AWARD_INTERNAL_CONTEXT: True}
-                    ).create(self._prepare_grouped_order_values(bid, fiscal_position))
+                    ).create(self._prepare_grouped_order_values(
+                        bid, awards, fiscal_position,
+                    ))
                     for award in awards:
                         line = self.env["purchase.order.line"].with_company(self.company_id).sudo().with_context(
                             **{AWARD_INTERNAL_CONTEXT: True}, skip_uom_conversion=True,
@@ -474,8 +499,14 @@ class SedarPurchaseRequestLineAward(models.Model):
     def action_open_cancel_wizard(self):
         self.ensure_one()
         self.request_id._check_procurement_inventory_officer()
-        if self.line_state != "active" or self.current_award_id:
-            raise UserError(_("Only an active unawarded line can be cancelled."))
+        if (
+            self.line_state != "active"
+            or self.current_award_id
+            or self.sudo().award_history_ids
+        ):
+            raise UserError(_(
+                "Only an active line with no Line Award history can be cancelled."
+            ))
         return {
             "type": "ir.actions.act_window",
             "name": _("Cancel Purchase Request Line"),
@@ -578,8 +609,15 @@ class SedarPurchaseRequestLineAward(models.Model):
         reason = (reason or "").strip()
         if not reason:
             raise UserError(_("Enter a reason for cancelling the requested product."))
-        if request.state != "approved" or self.line_state != "active" or self.current_award_id:
-            raise UserError(_("Only an active unawarded line on an approved request can be cancelled."))
+        if (
+            request.state != "approved"
+            or self.line_state != "active"
+            or self.current_award_id
+            or self.sudo().award_history_ids
+        ):
+            raise UserError(_(
+                "Only an active line with no Line Award history on an approved request can be cancelled."
+            ))
         if self.env["purchase.order.line"].sudo().search_count([
             ("sedar_purchase_request_line_id", "=", self.id),
         ]):
