@@ -1524,6 +1524,29 @@ feed, while AIS Simulation Managers may advance or maintain it. Records may not 
 normal access. The dashboard service combines these simulated positions with authoritative tugboat,
 crew assignment, Marine Operation, maintenance-request, and dry-dock records.
 
+`get_dashboard_data()` requires AIS access and projects only active-company tugboats that have a
+simulated position. Its fixed set of company-scoped queries batches current assignments, crew,
+dry-dock plans, maintenance blockers, installed Equipment, current Running Hours, and the count of
+distinct active Equipment-linked Purchase Requests; it does not infer an Equipment relationship
+from a requested product. The Equipment summary deliberately excludes Bids, Line Awards, Purchase
+Orders, suppliers, prices, commercial terms, reasons, dates, warranties, and attachments.
+
+`get_equipment_procurement_detail(equipment_id)` is the lazy drill-down boundary. It requires AIS
+access and rejects malformed, guessed, inactive, non-displayed, and cross-company Equipment IDs.
+Every response separates active procurement from line/order history; a confirmed, completed, or
+cancelled downstream Purchase Order moves its product line to history, and cancelled orders remain
+visible there. AIS-only callers receive only allowlisted request/product/progress/count fields.
+Commercial summaries are added only for the exact active-company
+`res.company.sedar_procurement_inventory_officer_id` (or the superuser), never merely because a user
+belongs to a manager group. Supplier/Bid/Award/PO-supplier identity, reasons, prices, commercial
+dates and terms, warranties, and attachment metadata/actions are absent recursively from limited
+payloads. Binary content is never returned. For the exact Officer, quotation metadata and a download
+action are included only when the caller's ordinary `ir.attachment` read check succeeds. The exact
+Officer's strict commercial allowlist includes the Bid reference and Bidder, quoted line quantity,
+unit price and subtotal, Bid total and currency, received/validity/promised-delivery dates, delivery,
+availability, payment, warranty and commercial notes, current Line Award summary, and resulting
+Purchase Order summary.
+
 | Field | Type | How it is used |
 | --- | --- | --- |
 | `tugboat_id` | Required unique many-to-one to `sedar.tugboat` | Tugboat represented by the current report; deleting the tugboat cascades to its simulated position. |
