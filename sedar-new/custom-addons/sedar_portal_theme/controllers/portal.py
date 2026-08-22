@@ -26,6 +26,7 @@ class SedarPortalHome(CustomerPortal):
             commercial_partner.sedar_is_customer_account
             or request.env["sedar.marine.service.order"].sudo().search_count([
                 ("client_id", "=", commercial_partner.id),
+                ("company_id", "in", request.env.companies.ids),
             ])
             or request.env["sedar.client.vessel"].sudo().search_count([
                 ("owner_id", "=", commercial_partner.id),

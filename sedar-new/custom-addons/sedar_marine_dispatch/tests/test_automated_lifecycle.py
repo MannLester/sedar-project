@@ -99,6 +99,23 @@ class TestAutomatedMarineLifecycle(TransactionCase):
                 "tugboat_id": other_assignment.tugboat_id.id,
             })
 
+    def test_assignment_cannot_move_after_operation_snapshot(self):
+        operation = self.env["sedar.marine.operation"].create({"order_id": self.order.id})
+        self.env["sedar.marine.operation.tug"].create({
+            "operation_id": operation.id,
+            "tug_assignment_id": self.assignment.id,
+            "tugboat_id": self.assignment.tugboat_id.id,
+        })
+        other_order = self.order.copy({
+            "assisted_vessel_name": "MV Assignment Reparenting Is Forbidden",
+            "state": "planning",
+        })
+
+        with self.assertRaisesRegex(ValidationError, "cannot move"):
+            self.assignment.write({"order_id": other_order.id})
+
+        self.assertEqual(self.assignment.order_id, self.order)
+
     def test_operation_cannot_move_to_another_service_order(self):
         self.order.action_confirm_inventory_ready()
         operation = self.order.operation_ids

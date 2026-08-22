@@ -201,6 +201,7 @@ Key behavior:
 The dispatch record inherits the Service Order company as described above. Its lifecycle contract also changed materially:
 
 - Its Service Order link is immutable after creation so the company, tug, crew, log, and delay snapshot cannot be reparented inconsistently.
+- A Tug Assignment captured in an Operation Tug snapshot cannot be moved to another Service Order; this preserves the exact-order and company relationship from both sides of the link.
 - The system creates exactly one operation for a Ready Service Order with state `awaiting_start`.
 - The earliest participating Tug Master's `actual_start` moves the operation and order to `in_progress` and becomes the operation's `actual_start`.
 - When every active Tug Completion is submitted, the latest tug `actual_end` becomes the operation's `actual_end`; the operation and order become `completed` automatically.

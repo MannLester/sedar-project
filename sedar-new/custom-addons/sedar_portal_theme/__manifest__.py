@@ -1,6 +1,6 @@
 {
     "name": "SEDAR Portal Theme",
-    "version": "19.0.1.0.6",
+    "version": "19.0.1.0.7",
     "category": "Theme/Frontend",
     "summary": "Shared SEDAR visual language for client and applicant portals",
     "author": "SEDAR Development Team",
