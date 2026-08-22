@@ -6,6 +6,21 @@ from odoo.exceptions import UserError, ValidationError
 from odoo.tests import TransactionCase, tagged
 
 
+def _load_tugboat_company_migration():
+    migration_path = (
+        Path(__file__).parents[1]
+        / "migrations"
+        / "19.0.3.0.0"
+        / "pre-migrate.py"
+    )
+    spec = importlib.util.spec_from_file_location(
+        "sedar_tugboat_company_migration", migration_path
+    )
+    migration = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(migration)
+    return migration
+
+
 @tagged("post_install", "-at_install")
 class TestServiceOrderCompanyOwnership(TransactionCase):
     @classmethod
@@ -67,6 +82,16 @@ class TestServiceOrderCompanyOwnership(TransactionCase):
         with self.assertRaisesRegex(ValidationError, "cannot be changed"):
             order.write({"company_id": self.company_a.id})
 
+    def test_tugboat_company_defaults_and_is_immutable(self):
+        tugboat = self.env["sedar.tugboat"].with_company(self.company_b).create({
+            "name": "Company B Tugboat",
+            "registration_number": "COMPANY-TEST-B-001",
+            "tug_class_id": self.tug_class.id,
+        })
+        self.assertEqual(tugboat.company_id, self.company_b)
+        with self.assertRaisesRegex(ValidationError, "cannot be changed"):
+            tugboat.write({"company_id": self.company_a.id})
+
     def test_company_owned_partner_cannot_cross_company(self):
         with self.assertRaises(UserError):
             self.env["sedar.marine.service.order"].with_company(self.company_a).create({
@@ -100,6 +125,18 @@ class TestServiceOrderCompanyOwnership(TransactionCase):
         self.assertEqual(crew_assignment.company_id, self.company_a)
         self.assertEqual(shortage.company_id, self.company_a)
 
+    def test_tug_assignment_rejects_tugboat_from_another_company(self):
+        tugboat_b = self.env["sedar.tugboat"].with_company(self.company_b).create({
+            "name": "Company B Assignment Tug",
+            "registration_number": "COMPANY-TEST-B-ASSIGN",
+            "tug_class_id": self.tug_class.id,
+        })
+        with self.assertRaisesRegex(UserError, "belongs to another company"):
+            self.env["sedar.tug.assignment"].create({
+                "order_id": self.order_a.id,
+                "tugboat_id": tugboat_b.id,
+            })
+
     def test_global_rule_hides_other_company(self):
         user = self.env["res.users"].create({
             "name": "Company A Operations User",
@@ -111,6 +148,71 @@ class TestServiceOrderCompanyOwnership(TransactionCase):
         visible = self.env["sedar.marine.service.order"].with_user(user).search([])
         self.assertIn(self.order_a, visible)
         self.assertNotIn(self.order_b, visible)
+
+        tugboat_b = self.env["sedar.tugboat"].with_company(self.company_b).create({
+            "name": "Company B Hidden Tug",
+            "registration_number": "COMPANY-TEST-B-HIDDEN",
+            "tug_class_id": self.tug_class.id,
+        })
+        visible_tugboats = self.env["sedar.tugboat"].with_user(user).search([])
+        self.assertIn(self.tug, visible_tugboats)
+        self.assertNotIn(tugboat_b, visible_tugboats)
+
+    def test_tugboat_migration_infers_company_from_service_order(self):
+        self.env["sedar.tug.assignment"].create({
+            "order_id": self.order_a.id,
+            "tugboat_id": self.tug.id,
+        })
+        self.env.cr.execute(
+            "ALTER TABLE sedar_tugboat ALTER COLUMN company_id DROP NOT NULL"
+        )
+        self.env.cr.execute(
+            "UPDATE sedar_tugboat SET company_id = NULL WHERE id = %s",
+            (self.tug.id,),
+        )
+
+        migration = _load_tugboat_company_migration()
+        migration.migrate(self.env.cr, "19.0.2.0.0")
+        migration.migrate(self.env.cr, "19.0.2.0.0")
+
+        self.tug.invalidate_recordset(["company_id"])
+        self.assertEqual(self.tug.company_id, self.company_a)
+
+    def test_tugboat_migration_rejects_conflicting_company_evidence(self):
+        tugboat_b = self.env["sedar.tugboat"].with_company(self.company_b).create({
+            "name": "Conflicting Company Tug",
+            "registration_number": "COMPANY-TEST-CONFLICT",
+            "tug_class_id": self.tug_class.id,
+        })
+        self.env.cr.execute(
+            """
+            INSERT INTO sedar_tug_assignment
+                (order_id, tugboat_id, state, completion_state, create_uid, write_uid,
+                 create_date, write_date)
+            VALUES (%s, %s, 'planned', 'pending', %s, %s, NOW(), NOW())
+            """,
+            (self.order_a.id, tugboat_b.id, self.env.uid, self.env.uid),
+        )
+
+        with self.assertRaisesRegex(UserError, "Tugboat company evidence conflicts"):
+            _load_tugboat_company_migration().migrate(self.env.cr, "19.0.2.0.0")
+
+    def test_tugboat_migration_rejects_missing_company_evidence(self):
+        tugboat = self.env["sedar.tugboat"].create({
+            "name": "No Evidence Tug",
+            "registration_number": "COMPANY-TEST-NO-EVIDENCE",
+            "tug_class_id": self.tug_class.id,
+        })
+        self.env.cr.execute(
+            "ALTER TABLE sedar_tugboat ALTER COLUMN company_id DROP NOT NULL"
+        )
+        self.env.cr.execute(
+            "UPDATE sedar_tugboat SET company_id = NULL WHERE id = %s",
+            (tugboat.id,),
+        )
+
+        with self.assertRaisesRegex(UserError, "company evidence is missing"):
+            _load_tugboat_company_migration().migrate(self.env.cr, "19.0.2.0.0")
 
     def test_migration_infers_company_from_company_owned_client(self):
         migration_path = (

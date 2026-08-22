@@ -1,5 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="action_inventory_return_wizard" model="ir.actions.act_window">
+        <field name="name">Return to Storage</field>
+        <field name="res_model">sedar.inventory.disposition.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_lifecycle_id': active_id, 'default_action': 'return'}</field>
+    </record>
+
+    <record id="action_inventory_consume_wizard" model="ir.actions.act_window">
+        <field name="name">Record Consumption</field>
+        <field name="res_model">sedar.inventory.disposition.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_lifecycle_id': active_id, 'default_action': 'consume'}</field>
+    </record>
+
+    <record id="action_inventory_dispose_wizard" model="ir.actions.act_window">
+        <field name="name">Record Disposal</field>
+        <field name="res_model">sedar.inventory.disposition.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_lifecycle_id': active_id, 'default_action': 'dispose'}</field>
+    </record>
+
+    <record id="action_inventory_assign_wizard" model="ir.actions.act_window">
+        <field name="name">Assign Inventory</field>
+        <field name="res_model">sedar.inventory.technical.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_lifecycle_id': active_id, 'default_action': 'assign'}</field>
+    </record>
+
+    <record id="action_inventory_install_wizard" model="ir.actions.act_window">
+        <field name="name">Install Replacement Equipment</field>
+        <field name="res_model">sedar.inventory.technical.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_lifecycle_id': active_id, 'default_action': 'install'}</field>
+    </record>
+
+    <record id="action_inventory_remove_wizard" model="ir.actions.act_window">
+        <field name="name">Uninstall Equipment</field>
+        <field name="res_model">sedar.inventory.technical.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_lifecycle_id': active_id, 'default_action': 'remove'}</field>
+    </record>
+
     <record id="view_service_order_form_inventory" model="ir.ui.view">
         <field name="name">sedar.marine.service.order.form.inventory</field>
         <field name="model">sedar.marine.service.order</field>
@@ -48,6 +96,27 @@
         </field>
     </record>
 
+    <record id="view_res_config_settings_sedar_inventory" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.sedar.inventory</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="stock.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='stock']" position="inside">
+                <block title="SEDAR Inventory Lifecycle">
+                    <setting string="Default Storage" help="Default tagged Storage location proposed for new tugboat issues.">
+                        <field name="sedar_default_storage_location_id" domain="[('company_id', '=', company_id), ('sedar_location_role', '=', 'storage')]"/>
+                    </setting>
+                    <setting string="Consumption Destination" help="Inventory-loss destination for controlled consumption movements.">
+                        <field name="sedar_consumption_location_id" domain="[('company_id', '=', company_id), ('sedar_location_role', '=', 'consumption')]"/>
+                    </setting>
+                    <setting string="Disposal Destination" help="Inventory-loss destination for controlled disposal movements.">
+                        <field name="sedar_disposal_location_id" domain="[('company_id', '=', company_id), ('sedar_location_role', '=', 'disposal')]"/>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+
     <record id="view_maintenance_request_form_inventory" model="ir.ui.view">
         <field name="name">maintenance.request.form.sedar.inventory</field>
         <field name="model">maintenance.request</field>
@@ -69,10 +138,11 @@
                             <field name="product_uom_id"/>
                             <field name="available_qty"/>
                             <field name="reserved_qty"/>
-                            <field name="issued_qty"/>
-                            <field name="consumed_qty"/>
+                            <field name="issued_qty" readonly="1"/>
+                            <field name="consumed_qty" readonly="1"/>
                             <field name="shortage_qty"/>
                             <field name="state"/>
+                            <field name="lifecycle_ids" widget="many2many_tags" readonly="1" optional="hide"/>
                         </list>
                     </field>
                 </page>
@@ -96,12 +166,17 @@
                             <field name="tugboat_id"/>
                             <field name="product_id"/>
                             <field name="source_location_id"/>
-                            <field name="tug_location_id"/>
-                            <field name="opening_qty"/>
-                            <field name="issued_qty"/>
-                            <field name="consumed_qty"/>
-                            <field name="remaining_qty"/>
-                            <field name="state"/>
+                            <field name="tug_location_id" readonly="1" optional="hide"/>
+                            <field name="quantity_to_issue"/>
+                            <button name="action_issue_to_tug" type="object" string="Issue" icon="fa-ship" groups="sedar_marine_inventory.group_marine_inventory_manager"/>
+                            <field name="quantity_to_consume"/>
+                            <button name="action_record_consumption" type="object" string="Consume" icon="fa-check" groups="sedar_marine_inventory.group_marine_inventory_manager"/>
+                            <field name="issued_qty" readonly="1"/>
+                            <field name="consumed_qty" readonly="1"/>
+                            <field name="remaining_qty" readonly="1"/>
+                            <field name="state" readonly="1" widget="badge"/>
+                            <field name="opening_qty" readonly="1" optional="hide"/>
+                            <field name="lifecycle_ids" widget="many2many_tags" readonly="1" optional="hide"/>
                         </list>
                     </field>
                 </page>
@@ -128,17 +203,23 @@
         <field name="name">product.product.sedar.inventory.check.search</field>
         <field name="model">product.product</field>
         <field name="arch" type="xml">
-            <search string="Inventory Check">
+            <search string="Storage">
                 <field name="default_code" string="SEDAR Item Code"/>
                 <field name="sedar_manufacturer_part_number"/>
                 <field name="name"/>
+                <field name="sedar_item_type"/>
                 <field name="sedar_compatible_tugboat_ids"/>
                 <filter name="in_stock" string="In Stock" domain="[('sedar_stock_status', '=', 'in_stock')]"/>
                 <filter name="low_stock" string="Low Stock" domain="[('sedar_stock_status', '=', 'low_stock')]"/>
                 <filter name="out_of_stock" string="Out of Stock" domain="[('sedar_stock_status', '=', 'out_of_stock')]"/>
                 <filter name="fleet_wide" string="Fleet-wide" domain="[('sedar_compatibility_scope', '=', 'fleet')]"/>
                 <separator/>
+                <filter name="fuel_lubricant" string="Fuel / Lubricant" domain="[('sedar_item_type', '=', 'fuel_lubricant')]"/>
+                <filter name="spare_consumable" string="Spare / Consumable" domain="[('sedar_item_type', '=', 'spare_consumable')]"/>
+                <filter name="replacement_equipment" string="Replacement Equipment" domain="[('sedar_item_type', '=', 'replacement_equipment')]"/>
+                <separator/>
                 <filter name="group_compatibility" string="Group by Compatibility" context="{'group_by': 'sedar_compatibility_scope'}"/>
+                <filter name="group_item_type" string="Group by Item Type" context="{'group_by': 'sedar_item_type'}"/>
             </search>
         </field>
     </record>
@@ -150,14 +231,15 @@
             <list decoration-warning="sedar_stock_status == 'low_stock'" decoration-danger="sedar_stock_status == 'out_of_stock'">
                 <field name="default_code" string="SEDAR Item Code"/>
                 <field name="name" string="Item Type"/>
-                <field name="sedar_manufacturer_part_number"/>
+                <field name="sedar_item_type" string="Classification" widget="badge"/>
+                <field name="sedar_available_to_issue" string="Available"/>
                 <field name="uom_id" string="Unit"/>
-                <field name="sedar_on_hand_qty"/>
-                <field name="sedar_reserved_qty"/>
-                <field name="sedar_available_to_issue"/>
-                <field name="sedar_reorder_point"/>
                 <field name="sedar_stock_status" widget="badge"/>
-                <field name="sedar_compatibility_display"/>
+                <field name="sedar_manufacturer_part_number" optional="hide"/>
+                <field name="sedar_on_hand_qty" string="Company Storage Total" optional="hide"/>
+                <field name="sedar_reserved_qty" optional="hide"/>
+                <field name="sedar_reorder_point" optional="hide"/>
+                <field name="sedar_compatibility_display" optional="hide"/>
             </list>
         </field>
     </record>
@@ -166,7 +248,7 @@
         <field name="name">product.product.sedar.inventory.check.form</field>
         <field name="model">product.product</field>
         <field name="arch" type="xml">
-            <form string="Inventory Item Type">
+            <form string="Storage Item Type">
                 <header>
                     <button name="action_open_sedar_issue_wizard" type="object" string="Issue to Tug" class="btn-primary" groups="sedar_marine_inventory.group_marine_inventory_manager"/>
                 </header>
@@ -179,12 +261,14 @@
                         <group string="Item Identity">
                             <field name="default_code" string="SEDAR Item Code" readonly="sedar_code_locked"/>
                             <field name="sedar_manufacturer_part_number"/>
+                            <field name="sedar_item_type" readonly="sedar_code_locked"/>
+                            <field name="tracking" readonly="sedar_code_locked and sedar_item_type == 'replacement_equipment'"/>
                             <field name="uom_id"/>
                             <field name="active"/>
                         </group>
-                        <group string="Warehouse Balance">
-                            <field name="sedar_stock_location_id" readonly="1"/>
-                            <field name="sedar_on_hand_qty" readonly="1"/>
+                        <group string="Company Storage Balance">
+                            <field name="sedar_stock_location_id" string="Default Storage" readonly="1"/>
+                            <field name="sedar_on_hand_qty" string="Tagged Storage Total" readonly="1"/>
                             <field name="sedar_reserved_qty" readonly="1"/>
                             <field name="sedar_available_to_issue" readonly="1"/>
                             <field name="sedar_reorder_point"/>
@@ -238,6 +322,9 @@
                             <field name="issued_by_id"/>
                             <field name="issued_at"/>
                             <field name="stock_move_id"/>
+                            <field name="lifecycle_id"/>
+                            <field name="legacy_consumed"/>
+                            <field name="lot_id"/>
                         </group>
                     </group>
                     <group><field name="purpose"/></group>
@@ -253,10 +340,13 @@
             <form string="Issue to Tug">
                 <group>
                     <field name="product_id"/>
+                    <field name="item_type" readonly="1"/>
                     <field name="manufacturer_part_number"/>
                     <field name="source_location_id"/>
                     <field name="available_to_issue"/>
                     <field name="tugboat_id"/>
+                    <field name="tug_location_id"/>
+                    <field name="lot_id" invisible="item_type != 'replacement_equipment'" required="item_type == 'replacement_equipment'"/>
                     <field name="quantity"/>
                     <field name="product_uom_id"/>
                     <field name="purpose" placeholder="Why is this item being issued?"/>
@@ -265,6 +355,159 @@
                     <button name="action_issue" type="object" string="Issue to Tug" class="btn-primary"/>
                     <button string="Cancel" special="cancel" class="btn-secondary"/>
                 </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_inventory_disposition_wizard_form" model="ir.ui.view">
+        <field name="name">sedar.inventory.disposition.wizard.form</field>
+        <field name="model">sedar.inventory.disposition.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Record Inventory Disposition">
+                <group>
+                    <field name="company_id" invisible="1"/>
+                    <field name="lifecycle_id"/>
+                    <field name="action" widget="badge"/>
+                    <field name="product_id"/>
+                    <field name="tugboat_id"/>
+                    <field name="open_qty"/>
+                    <field name="quantity"/>
+                    <field name="product_uom_id"/>
+                    <field name="reason" placeholder="Why is this stock being returned, consumed, or disposed?"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Confirm" class="btn-primary"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_inventory_technical_wizard_form" model="ir.ui.view">
+        <field name="name">sedar.inventory.technical.wizard.form</field>
+        <field name="model">sedar.inventory.technical.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Record Technical Action">
+                <group>
+                    <field name="company_id" invisible="1"/>
+                    <field name="lifecycle_id"/>
+                    <field name="action" widget="badge"/>
+                    <field name="product_id"/>
+                    <field name="tugboat_id"/>
+                    <field name="equipment_id" invisible="action != 'assign'"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Confirm" class="btn-primary"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_inventory_lifecycle_search" model="ir.ui.view">
+        <field name="name">sedar.inventory.lifecycle.search</field>
+        <field name="model">sedar.inventory.lifecycle</field>
+        <field name="arch" type="xml">
+            <search string="Currently In Use">
+                <field name="name"/>
+                <field name="product_id"/>
+                <field name="tugboat_id"/>
+                <field name="equipment_id"/>
+                <field name="lot_id"/>
+                <filter name="open" string="Open" domain="[('state', '=', 'open')]"/>
+                <filter name="needs_review" string="Needs Review" domain="[('reconciliation_state', '=', 'warning')]"/>
+                <separator/>
+                <filter name="onboard" string="Onboard" domain="[('usage_state', '=', 'onboard')]"/>
+                <filter name="assigned" string="Assigned" domain="[('usage_state', '=', 'assigned')]"/>
+                <filter name="installed" string="Installed" domain="[('usage_state', '=', 'installed')]"/>
+                <filter name="removed" string="Uninstalled" domain="[('usage_state', '=', 'removed')]"/>
+                <separator/>
+                <filter name="group_tugboat" string="Group by Tugboat" context="{'group_by': 'tugboat_id'}"/>
+                <filter name="group_item" string="Group by Item Type" context="{'group_by': 'product_id'}"/>
+                <filter name="group_usage" string="Group by Usage Status" context="{'group_by': 'usage_state'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_inventory_lifecycle_list" model="ir.ui.view">
+        <field name="name">sedar.inventory.lifecycle.list</field>
+        <field name="model">sedar.inventory.lifecycle</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0" decoration-warning="reconciliation_state == 'warning'">
+                <field name="tugboat_id"/>
+                <field name="product_id" string="Item Type"/>
+                <field name="open_qty"/>
+                <field name="product_uom_id" string="Unit"/>
+                <field name="usage_state" widget="badge"/>
+                <field name="lot_id" optional="show"/>
+                <field name="equipment_id" optional="show"/>
+                <field name="issued_at" optional="show"/>
+                <field name="reconciliation_state" widget="badge" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_inventory_lifecycle_form" model="ir.ui.view">
+        <field name="name">sedar.inventory.lifecycle.form</field>
+        <field name="model">sedar.inventory.lifecycle</field>
+        <field name="arch" type="xml">
+            <form string="Currently In Use" create="0" edit="0" delete="0">
+                <header>
+                    <button name="%(action_inventory_assign_wizard)d" type="action" string="Assign" class="btn-secondary" groups="sedar_marine_maintenance.group_marine_maintenance_manager" invisible="state != 'open' or usage_state not in ['onboard', 'removed']"/>
+                    <button name="%(action_inventory_install_wizard)d" type="action" string="Install" class="btn-primary" groups="sedar_marine_maintenance.group_marine_maintenance_manager" invisible="state != 'open' or item_type != 'replacement_equipment' or usage_state not in ['onboard', 'assigned', 'removed']"/>
+                    <button name="%(action_inventory_remove_wizard)d" type="action" string="Uninstall" class="btn-secondary" groups="sedar_marine_maintenance.group_marine_maintenance_manager" invisible="state != 'open' or usage_state != 'installed'"/>
+                    <button name="%(action_inventory_return_wizard)d" type="action" string="Return" groups="sedar_marine_inventory.group_marine_inventory_manager" invisible="state != 'open' or usage_state == 'installed' or not is_procurement_inventory_officer"/>
+                    <button name="%(action_inventory_consume_wizard)d" type="action" string="Consume" groups="sedar_marine_inventory.group_marine_inventory_manager" invisible="state != 'open' or usage_state == 'installed' or not is_procurement_inventory_officer"/>
+                    <button name="%(action_inventory_dispose_wizard)d" type="action" string="Dispose" groups="sedar_marine_inventory.group_marine_inventory_manager" invisible="state != 'open' or usage_state == 'installed' or not is_procurement_inventory_officer"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <field name="is_procurement_inventory_officer" invisible="1"/>
+                    <field name="item_type" invisible="1"/>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group string="Currently In Use">
+                            <field name="tugboat_id"/>
+                            <field name="product_id" string="Item Type"/>
+                            <field name="lot_id"/>
+                            <field name="equipment_id"/>
+                            <field name="usage_state" widget="badge"/>
+                            <field name="open_qty"/>
+                            <field name="product_uom_id"/>
+                        </group>
+                        <group string="Issue and Reconciliation">
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="issue_id"/>
+                            <field name="issued_by_id"/>
+                            <field name="issued_at"/>
+                            <field name="source_location_id"/>
+                            <field name="tug_location_id"/>
+                            <field name="issue_move_id"/>
+                            <field name="reconciliation_state" widget="badge"/>
+                        </group>
+                    </group>
+                    <group string="Technical Dates">
+                        <field name="installed_at"/>
+                        <field name="removed_at"/>
+                    </group>
+                    <notebook>
+                        <page string="Audit Events">
+                            <field name="event_ids" readonly="1">
+                                <list create="0" edit="0" delete="0">
+                                    <field name="event_at"/>
+                                    <field name="event_type" widget="badge"/>
+                                    <field name="quantity"/>
+                                    <field name="product_uom_id"/>
+                                    <field name="actor_id"/>
+                                    <field name="reason"/>
+                                    <field name="stock_move_id"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
             </form>
         </field>
     </record>
@@ -349,13 +592,31 @@
     </record>
 
     <record id="action_inventory_check" model="ir.actions.act_window">
-        <field name="name">Inventory Check</field>
+        <field name="name">Storage</field>
         <field name="res_model">product.product</field>
         <field name="view_mode">list,form</field>
         <field name="domain">[('sedar_inventory_item', '=', True)]</field>
         <field name="context">{'default_sedar_inventory_item': True, 'default_type': 'consu', 'default_is_storable': True}</field>
         <field name="search_view_id" ref="view_inventory_check_search"/>
         <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('view_inventory_check_list')}), (0, 0, {'view_mode': 'form', 'view_id': ref('view_inventory_check_form')})]"/>
+    </record>
+
+    <record id="action_inventory_currently_in_use" model="ir.actions.act_window">
+        <field name="name">Currently In Use</field>
+        <field name="res_model">sedar.inventory.lifecycle</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', '=', 'open')]</field>
+        <field name="context">{'search_default_open': 1}</field>
+        <field name="search_view_id" ref="view_inventory_lifecycle_search"/>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('view_inventory_lifecycle_list')}), (0, 0, {'view_mode': 'form', 'view_id': ref('view_inventory_lifecycle_form')})]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No inventory is currently onboard a tugboat.
+            </p>
+            <p>
+                Issue an Item Type from Storage to a tugboat to begin its lifecycle.
+            </p>
+        </field>
     </record>
 
     <record id="action_inventory_issues" model="ir.actions.act_window">
@@ -366,8 +627,9 @@
     </record>
 
     <menuitem id="menu_marine_inventory_root" name="Marine Inventory" parent="sedar_marine_operations.menu_marine_operations" sequence="75" groups="sedar_marine_inventory.group_marine_inventory_user,sedar_marine_operations.group_operations_manager"/>
-    <menuitem id="menu_inventory_check" name="Inventory Check" parent="sedar_marine_operations.menu_marine_operations" action="action_inventory_check" sequence="75" groups="sedar_marine_inventory.group_marine_inventory_user"/>
-    <menuitem id="menu_inventory_issues" name="Issue History" parent="sedar_marine_operations.menu_marine_operations" action="action_inventory_issues" sequence="76" groups="sedar_marine_inventory.group_marine_inventory_user"/>
+    <menuitem id="menu_inventory_check" name="Storage" parent="menu_marine_inventory_root" action="action_inventory_check" sequence="10" groups="sedar_marine_inventory.group_marine_inventory_user"/>
+    <menuitem id="menu_inventory_currently_in_use" name="Currently In Use" parent="menu_marine_inventory_root" action="action_inventory_currently_in_use" sequence="15" groups="sedar_marine_inventory.group_marine_inventory_user,sedar_marine_maintenance.group_marine_maintenance_manager"/>
+    <menuitem id="menu_inventory_issues" name="Issue History" parent="menu_marine_inventory_root" action="action_inventory_issues" sequence="18" groups="sedar_marine_inventory.group_marine_inventory_user"/>
     <menuitem id="menu_inventory_requirements" name="Service Inventory Requirements" parent="menu_marine_inventory_root" action="action_inventory_requirements" sequence="20"/>
     <menuitem id="menu_inventory_templates" name="Inventory Templates" parent="menu_marine_inventory_root" action="action_inventory_templates" sequence="30"/>
 </odoo>

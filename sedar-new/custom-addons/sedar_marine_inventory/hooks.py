@@ -1,4 +1,5 @@
 from odoo import Command
+from odoo.exceptions import UserError
 
 
 MODULE = "sedar_marine_inventory"
@@ -29,28 +30,98 @@ def _available(env, product, location):
     return env["stock.quant"]._get_available_quantity(product, location, strict=True)
 
 
-def _set_available(env, product, location, quantity):
-    current = _available(env, product, location)
-    delta = quantity - current
-    if abs(delta) > 1e-6:
-        env["stock.quant"]._update_available_quantity(product, location, delta)
+def _seed_available_once(env, product, location, quantity):
+    """Create an opening balance without overwriting later operational moves."""
+    existing = env["stock.quant"].search_count([
+        ("product_id", "=", product.id),
+        ("location_id", "=", location.id),
+    ])
+    if not existing and quantity:
+        env["stock.quant"]._update_available_quantity(product, location, quantity)
 
 
-def _ensure_warehouse(env):
+def _resolve_storage_location(env):
     company = env.company
-    warehouse = env["stock.warehouse"].search([("company_id", "=", company.id)], limit=1)
+    configured = company.sedar_default_storage_location_id
+    if configured:
+        return configured
+
+    tagged = env["stock.location"].search([
+        ("company_id", "=", company.id),
+        ("usage", "=", "internal"),
+        ("sedar_location_role", "=", "storage"),
+    ])
+    if len(tagged) == 1:
+        return tagged
+    if len(tagged) > 1:
+        raise UserError(env._(
+            "SEDAR inventory bootstrap found multiple tagged Storage locations "
+            "for %(company)s (location IDs: %(location_ids)s). Configure the "
+            "company's Default SEDAR Storage Location before retrying.",
+            company=company.display_name,
+            location_ids=", ".join(map(str, tagged.ids)),
+        ))
+
+    warehouses = env["stock.warehouse"].search([
+        ("company_id", "=", company.id),
+    ])
+    if len(warehouses) > 1:
+        raise UserError(env._(
+            "SEDAR inventory bootstrap found multiple warehouses for %(company)s "
+            "(warehouse IDs: %(warehouse_ids)s) and no explicit Storage location. "
+            "Configure the company's Default SEDAR Storage Location before retrying.",
+            company=company.display_name,
+            warehouse_ids=", ".join(map(str, warehouses.ids)),
+        ))
+
+    warehouse = warehouses
     if not warehouse:
-        warehouse = env["stock.warehouse"].create({
+        warehouse = _record(env, "stock.warehouse", "warehouse_demo", {
             "name": "SEDAR Demo Warehouse",
             "code": "SDR",
             "company_id": company.id,
             "partner_id": company.partner_id.id,
         })
-    return warehouse.lot_stock_id, _record(env, "stock.location", "location_tugboats", {
+    storage = warehouse.lot_stock_id
+    storage.write({"sedar_location_role": "storage"})
+    return storage
+
+
+def _ensure_warehouse(env):
+    company = env.company
+    storage = _resolve_storage_location(env)
+    return storage, _record(env, "stock.location", "location_tugboats", {
         "name": "SEDAR Tugboats",
         "usage": "internal",
-        "location_id": warehouse.lot_stock_id.id,
+        "location_id": storage.id,
         "company_id": company.id,
+    })
+
+
+def _ensure_inventory_configuration(env, storage_location):
+    company = env.company
+    virtual_parent = env["stock.location"].search([
+        ("usage", "=", "view"),
+        ("company_id", "in", [False, company.id]),
+    ], order="company_id desc, id", limit=1)
+    consumption = _record(env, "stock.location", "location_consumption", {
+        "name": "SEDAR Consumption",
+        "usage": "inventory",
+        "location_id": virtual_parent.id,
+        "company_id": company.id,
+        "sedar_location_role": "consumption",
+    })
+    disposal = _record(env, "stock.location", "location_disposal", {
+        "name": "SEDAR Disposal",
+        "usage": "inventory",
+        "location_id": virtual_parent.id,
+        "company_id": company.id,
+        "sedar_location_role": "disposal",
+    })
+    company.write({
+        "sedar_default_storage_location_id": storage_location.id,
+        "sedar_consumption_location_id": consumption.id,
+        "sedar_disposal_location_id": disposal.id,
     })
 
 
@@ -66,6 +137,7 @@ def _ensure_products(env, stock_location):
             "default_code": "SEDAR-FUEL-DIESEL",
             "barcode": "SEDAR000001",
             "sedar_inventory_item": True,
+            "sedar_item_type": "fuel_lubricant",
             "sedar_manufacturer_part_number": "DMA-ISO8217",
             "sedar_compatibility_scope": "fleet",
             "sedar_reorder_point": 30000,
@@ -78,6 +150,7 @@ def _ensure_products(env, stock_location):
             "default_code": "SEDAR-LUBE-ENGINE",
             "barcode": "SEDAR000002",
             "sedar_inventory_item": True,
+            "sedar_item_type": "fuel_lubricant",
             "sedar_manufacturer_part_number": "MEO-15W40-CI4",
             "sedar_compatibility_scope": "fleet",
             "sedar_reorder_point": 250,
@@ -90,6 +163,7 @@ def _ensure_products(env, stock_location):
             "default_code": "SEDAR-SP-FILTER",
             "barcode": "SEDAR000003",
             "sedar_inventory_item": True,
+            "sedar_item_type": "spare_consumable",
             "sedar_manufacturer_part_number": "FF-9001-KR",
             "sedar_reorder_point": 10,
         }),
@@ -101,6 +175,7 @@ def _ensure_products(env, stock_location):
             "default_code": "SEDAR-SP-ORING",
             "barcode": "SEDAR000005",
             "sedar_inventory_item": True,
+            "sedar_item_type": "spare_consumable",
             "sedar_manufacturer_part_number": "OR-KIT-220-ME",
             "sedar_reorder_point": 6,
         }),
@@ -112,16 +187,17 @@ def _ensure_products(env, stock_location):
             "default_code": "SEDAR-SP-PACKING",
             "barcode": "SEDAR000004",
             "sedar_inventory_item": True,
+            "sedar_item_type": "spare_consumable",
             "sedar_manufacturer_part_number": "PPK-440-KR",
             "sedar_reorder_point": 2,
         }),
     }
 
-    _set_available(env, products["diesel"], stock_location, 180000)
-    _set_available(env, products["lube"], stock_location, 1200)
-    _set_available(env, products["filter"], stock_location, 24)
-    _set_available(env, products["oring"], stock_location, 4)
-    _set_available(env, products["packing"], stock_location, 0)
+    _seed_available_once(env, products["diesel"], stock_location, 180000)
+    _seed_available_once(env, products["lube"], stock_location, 1200)
+    _seed_available_once(env, products["filter"], stock_location, 24)
+    _seed_available_once(env, products["oring"], stock_location, 4)
+    _seed_available_once(env, products["packing"], stock_location, 0)
     return products
 
 
@@ -171,10 +247,12 @@ def _ensure_tug_locations(env, tug_parent_location, products):
             "usage": "internal",
             "location_id": tug_parent_location.id,
             "company_id": company.id,
+            "sedar_location_role": "tug",
+            "sedar_tugboat_id": tug.id,
         })
         tug.write({"stock_location_id": location.id})
-        _set_available(env, products["diesel"], location, 12000)
-        _set_available(env, products["lube"], location, 80)
+        _seed_available_once(env, products["diesel"], location, 12000)
+        _seed_available_once(env, products["lube"], location, 80)
 
 
 def _configure_compatibility(env, products):
@@ -227,8 +305,8 @@ def _ensure_inventory_usage_demo(env, stock_location, products):
             "source_location_id": stock_location.id,
             "requested_qty": 4,
             "reserved_qty": 0,
-            "issued_qty": 0,
-            "consumed_qty": 0,
+            "legacy_issued_qty": 0,
+            "legacy_consumed_qty": 0,
         })
 
     completed_operation = env.ref("sedar_marine_dispatch_demo.operation_completed", raise_if_not_found=False)
@@ -241,14 +319,12 @@ def _ensure_inventory_usage_demo(env, stock_location, products):
             "source_location_id": stock_location.id,
             "tug_location_id": tug.stock_location_id.id,
             "opening_qty": 12000,
-            "issued_qty": 850,
-            "consumed_qty": 620,
-            "state": "consumed",
+            "quantity_to_issue": 0,
+            "quantity_to_consume": 0,
+            "legacy_issued_qty": 850,
+            "legacy_consumed_qty": 620,
             "note": "Demo completed-operation fuel consumption.",
         })
-        if not fuel_log.stock_move_ids:
-            fuel_log.state = "draft"
-            fuel_log.action_record_consumption()
         for move in fuel_log.stock_move_ids.filtered(
             lambda item: item.state not in {"done", "cancel"}
         ):
@@ -262,6 +338,7 @@ def _ensure_inventory_usage_demo(env, stock_location, products):
 
 def post_init_hook(env):
     stock_location, tug_parent_location = _ensure_warehouse(env)
+    _ensure_inventory_configuration(env, stock_location)
     products = _ensure_products(env, stock_location)
     _ensure_templates(env, stock_location, products)
     _ensure_tug_locations(env, tug_parent_location, products)

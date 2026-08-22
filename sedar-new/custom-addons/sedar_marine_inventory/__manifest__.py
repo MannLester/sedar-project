@@ -1,6 +1,6 @@
 {
     "name": "SEDAR Marine Inventory",
-    "version": "19.0.2.0.0",
+    "version": "19.0.3.0.0",
     "category": "Marine",
     "summary": "Marine inventory readiness, spare parts, fuel, and lubricant controls",
     "author": "SEDAR Development Team",

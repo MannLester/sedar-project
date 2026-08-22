@@ -1,6 +1,6 @@
 {
     "name": "SEDAR Marine Maintenance",
-    "version": "19.0.2.0.0",
+    "version": "19.0.3.0.0",
     "category": "Marine",
     "summary": "Marine maintenance, defects, dry dock planning, and tug availability controls",
     "author": "SEDAR Development Team",
