@@ -27,16 +27,19 @@
         <field name="arch" type="xml">
             <list decoration-warning="priority == 'urgent'" decoration-danger="priority == 'emergency'">
                 <field name="name"/>
-                <field name="requester_id"/>
-                <field name="source_type"/>
-                <field name="equipment_id" optional="show"/>
-                <field name="required_date"/>
-                <field name="priority"/>
-                <field name="estimated_total" sum="Total"/>
-                <field name="currency_id" column_invisible="True"/>
-                <field name="purchase_order_count" string="Purchase Orders" optional="show"/>
                 <field name="state" string="Internal Progress"/>
                 <field name="procurement_progress" optional="show"/>
+                <field name="required_date"/>
+                <field name="priority"/>
+                <field name="source_type"/>
+                <field name="requester_id"/>
+                <field name="equipment_id" optional="hide"/>
+                <field name="estimated_total" sum="Total"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="bid_count" string="Bidders" optional="hide" groups="sedar_marine_inventory.group_marine_inventory_manager"/>
+                <field name="winning_bidder_ids" widget="many2many_tags" optional="hide" groups="sedar_marine_inventory.group_marine_inventory_manager"/>
+                <field name="awarded_total" sum="Awarded Value" optional="hide" groups="sedar_marine_inventory.group_marine_inventory_manager"/>
+                <field name="purchase_order_count" string="Purchase Orders" optional="show"/>
             </list>
         </field>
     </record>
@@ -60,6 +63,11 @@
                 </header>
                 <sheet>
                     <field name="id" invisible="1"/>
+                    <div class="o_sedar_mobile_procurement_actions d-md-none mb-3" groups="sedar_marine_inventory.group_marine_inventory_manager" invisible="not is_procurement_inventory_officer">
+                        <button name="action_open_bids" type="object" string="Bids" class="btn btn-secondary me-2 mb-2" invisible="state not in ['approved', 'po_created']"/>
+                        <button name="action_open_bid_comparison" type="object" string="Compare Bids" class="btn btn-secondary me-2 mb-2" invisible="state not in ['approved', 'po_created']"/>
+                        <button name="action_open_purchase_orders" type="object" string="Purchase Orders" class="btn btn-secondary mb-2" invisible="purchase_order_count == 0"/>
+                    </div>
                     <div class="oe_button_box" name="button_box">
                         <button name="action_open_bids" type="object" class="oe_stat_button" icon="fa-file-text-o" groups="sedar_marine_inventory.group_marine_inventory_manager" invisible="state not in ['approved', 'po_created'] or not is_procurement_inventory_officer">
                             <field name="bid_count" widget="statinfo" string="Bids"/>
@@ -93,6 +101,9 @@
                             <field name="currency_id" readonly="state not in ['draft', 'rejected']"/>
                             <field name="estimated_total" readonly="1"/>
                             <field name="procurement_progress" readonly="1"/>
+                            <field name="bid_count" string="Bidders" readonly="1" groups="sedar_marine_inventory.group_marine_inventory_manager"/>
+                            <field name="winning_bidder_ids" widget="many2many_tags" readonly="1" groups="sedar_marine_inventory.group_marine_inventory_manager"/>
+                            <field name="awarded_total" readonly="1" groups="sedar_marine_inventory.group_marine_inventory_manager"/>
                         </group>
                     </group>
                     <field name="justification" readonly="state not in ['draft', 'rejected']"/>
@@ -113,6 +124,7 @@
                                     <field name="inventory_requirement_id" optional="hide"/>
                                     <field name="line_state" groups="sedar_marine_inventory.group_marine_inventory_manager" optional="show"/>
                                     <field name="current_award_id" groups="sedar_marine_inventory.group_marine_inventory_manager" optional="hide"/>
+                                    <field name="bid_count" string="Bidders" groups="sedar_marine_inventory.group_marine_inventory_manager" optional="show"/>
                                 </list>
                                 <form string="Requested Product">
                                     <header>
@@ -300,6 +312,7 @@
                 <field name="request_line_id"/>
                 <field name="bidder_id"/>
                 <field name="product_id"/>
+                <filter name="group_request" string="Group by Purchase Request" context="{'group_by': 'request_id'}"/>
                 <filter name="group_request_line" string="Group by Requested Product" context="{'group_by': 'request_line_id'}"/>
                 <filter name="group_bidder" string="Group by Bidder" context="{'group_by': 'bidder_id'}"/>
             </search>
@@ -312,16 +325,16 @@
         <field name="priority" eval="10"/>
         <field name="arch" type="xml">
             <list string="Bid Comparison" create="0" edit="0" delete="0">
-                <field name="request_line_id"/>
-                <field name="product_id" optional="show"/>
-                <field name="bidder_id"/>
-                <field name="unit_price"/>
+                <field name="request_line_id" optional="hide"/>
+                <field name="product_id" optional="hide"/>
+                <field name="bidder_id" width="240px"/>
+                <field name="unit_price" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                 <field name="currency_id" column_invisible="True"/>
-                <field name="quantity" optional="show"/>
-                <field name="product_uom_id" optional="show"/>
-                <field name="availability_note" optional="show"/>
-                <field name="promised_delivery_date" optional="show"/>
-                <field name="validity_date" optional="show"/>
+                <field name="quantity" optional="hide"/>
+                <field name="product_uom_id" optional="hide"/>
+                <field name="availability_note" optional="hide"/>
+                <field name="promised_delivery_date" optional="hide"/>
+                <field name="validity_date" optional="hide"/>
                 <field name="subtotal" optional="hide"/>
             </list>
         </field>
@@ -436,13 +449,15 @@
         <field name="name">sedar.purchase.bid.search</field>
         <field name="model">sedar.purchase.bid</field>
         <field name="arch" type="xml">
-            <search string="Bids">
+            <search string="Bidder List">
                 <field name="name"/>
                 <field name="request_id"/>
                 <field name="bidder_id"/>
-                <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
-                <filter name="received" string="Received" domain="[('state', '=', 'received')]"/>
-                <filter name="withdrawn" string="Withdrawn" domain="[('state', '=', 'withdrawn')]"/>
+                <filter name="active_bids" string="Active Bids" domain="['&amp;', ('state', '!=', 'withdrawn'), '|', ('validity_date', '=', False), ('validity_date', '&gt;=', context_today())]"/>
+                <filter name="partial_coverage" string="Partial Coverage" domain="[('coverage_state', '=', 'partial')]"/>
+                <filter name="has_awards" string="Has Awards" domain="[('award_count', '&gt;', 0)]"/>
+                <filter name="no_awards" string="No Awards" domain="[('award_count', '=', 0)]"/>
+                <filter name="closed_expired_history" string="Closed / Expired History" domain="['|', ('state', '=', 'withdrawn'), '&amp;', ('validity_date', '!=', False), ('validity_date', '&lt;', context_today())]"/>
                 <separator/>
                 <filter name="group_request" string="Group by Purchase Request" context="{'group_by': 'request_id'}"/>
                 <filter name="group_bidder" string="Group by Bidder" context="{'group_by': 'bidder_id'}"/>
@@ -455,16 +470,21 @@
         <field name="name">sedar.purchase.bid.list</field>
         <field name="model">sedar.purchase.bid</field>
         <field name="arch" type="xml">
-            <list string="Bids" decoration-muted="state == 'withdrawn'">
-                <field name="name"/>
+            <list string="Bidder List" decoration-muted="state == 'withdrawn'">
+                <field name="name" optional="hide"/>
                 <field name="request_id"/>
-                <field name="bidder_id"/>
-                <field name="received_date"/>
-                <field name="validity_date" optional="show"/>
-                <field name="promised_delivery_date" optional="show"/>
-                <field name="total_amount" sum="Total"/>
-                <field name="currency_id" column_invisible="True"/>
                 <field name="state"/>
+                <field name="bidder_id"/>
+                <field name="received_date" optional="hide"/>
+                <field name="validity_date" optional="hide"/>
+                <field name="promised_delivery_date" optional="hide"/>
+                <field name="quoted_line_count" string="Quoted Lines" optional="hide"/>
+                <field name="active_request_line_count" string="Request Lines" optional="hide"/>
+                <field name="coverage_state" string="Coverage" optional="show"/>
+                <field name="total_amount" sum="Total"/>
+                <field name="award_count" string="Awards" optional="hide"/>
+                <field name="awarded_amount" sum="Awarded Value" optional="show"/>
+                <field name="currency_id" column_invisible="True"/>
             </list>
         </field>
     </record>
@@ -591,6 +611,78 @@
         <field name="search_view_id" ref="view_sedar_purchase_request_search"/>
     </record>
 
+    <record id="action_sedar_purchase_bids" model="ir.actions.act_window">
+        <field name="name">Bidder List</field>
+        <field name="res_model">sedar.purchase.bid</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_sedar_purchase_bid_search"/>
+        <field name="context">{'search_default_active_bids': 1}</field>
+        <field name="group_ids" eval="[Command.link(ref('sedar_marine_inventory.group_marine_inventory_manager'))]"/>
+    </record>
+
+    <record id="action_sedar_purchase_bid_comparison" model="ir.actions.act_window">
+        <field name="name">Bid Comparison</field>
+        <field name="res_model">sedar.purchase.bid.line</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('bid_id.state', '=', 'received')]</field>
+        <field name="context">{'search_default_group_request': 1, 'search_default_group_request_line': 2}</field>
+        <field name="search_view_id" ref="view_sedar_purchase_bid_line_search"/>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('view_sedar_purchase_bid_line_comparison_list')}), (0, 0, {'view_mode': 'form', 'view_id': ref('view_sedar_purchase_bid_line_comparison_form')})]"/>
+        <field name="group_ids" eval="[Command.link(ref('sedar_marine_inventory.group_marine_inventory_manager'))]"/>
+    </record>
+
+    <record id="view_sedar_generated_purchase_order_list" model="ir.ui.view">
+        <field name="name">sedar.generated.purchase.order.list</field>
+        <field name="model">purchase.order</field>
+        <field name="arch" type="xml">
+            <list string="Purchase Orders" create="0" sample="0">
+                <field name="sedar_purchase_request_id" string="Source Request"/>
+                <field name="state"/>
+                <field name="name" string="Reference"/>
+                <field name="partner_id" string="Vendor"/>
+                <field name="date_order"/>
+                <field name="user_id" string="Buyer" optional="show"/>
+                <field name="amount_total" sum="Total"/>
+                <field name="currency_id" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_sedar_generated_purchase_orders" model="ir.actions.act_window">
+        <field name="name">Purchase Orders</field>
+        <field name="res_model">purchase.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('sedar_purchase_request_id', '!=', False)]</field>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('view_sedar_generated_purchase_order_list')})]"/>
+        <field name="group_ids" eval="[Command.link(ref('sedar_marine_inventory.group_marine_inventory_manager'))]"/>
+    </record>
+
     <menuitem id="menu_sedar_procurement_root" name="Procurement" parent="sedar_marine_operations.menu_marine_operations" sequence="80" groups="sedar_purchase_request.group_sedar_purchase_request_user,sedar_marine_inventory.group_marine_inventory_user,sedar_marine_maintenance.group_marine_maintenance_user"/>
     <menuitem id="menu_sedar_purchase_requests" name="Purchase Requests" parent="menu_sedar_procurement_root" action="action_sedar_purchase_requests" sequence="10"/>
+    <menuitem id="menu_sedar_purchase_bids" name="Bidder List" parent="menu_sedar_procurement_root" action="action_sedar_purchase_bids" sequence="20" groups="sedar_marine_inventory.group_marine_inventory_manager"/>
+    <menuitem id="menu_sedar_purchase_bid_comparison" name="Bid Comparison" parent="menu_sedar_procurement_root" action="action_sedar_purchase_bid_comparison" sequence="30" groups="sedar_marine_inventory.group_marine_inventory_manager"/>
+    <menuitem id="menu_sedar_generated_purchase_orders" name="Purchase Orders" parent="menu_sedar_procurement_root" action="action_sedar_generated_purchase_orders" sequence="40" groups="sedar_marine_inventory.group_marine_inventory_manager"/>
+    <menuitem id="menu_sedar_procurement_inventory" name="Inventory" parent="menu_sedar_procurement_root" sequence="50" groups="sedar_marine_inventory.group_marine_inventory_manager,sedar_marine_maintenance.group_marine_maintenance_manager"/>
+    <menuitem id="menu_sedar_procurement_storage" name="Storage" parent="menu_sedar_procurement_inventory" action="sedar_marine_inventory.action_inventory_check" sequence="10" groups="sedar_marine_inventory.group_marine_inventory_manager"/>
+    <menuitem id="menu_sedar_procurement_currently_in_use" name="Currently In Use" parent="menu_sedar_procurement_inventory" action="sedar_marine_inventory.action_inventory_currently_in_use" sequence="20" groups="sedar_marine_inventory.group_marine_inventory_manager,sedar_marine_maintenance.group_marine_maintenance_manager"/>
+
+    <!-- This downstream workspace replaces the legacy parallel Marine Inventory tree. -->
+    <record id="sedar_marine_inventory.menu_marine_inventory_root" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="sedar_marine_inventory.menu_inventory_check" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="sedar_marine_inventory.menu_inventory_currently_in_use" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="sedar_marine_inventory.menu_inventory_issues" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="sedar_marine_inventory.menu_inventory_requirements" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="sedar_marine_inventory.menu_inventory_templates" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
 </odoo>

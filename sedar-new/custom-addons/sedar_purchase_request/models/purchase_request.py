@@ -125,14 +125,19 @@ class SedarPurchaseRequest(models.Model):
     line_ids = fields.One2many("sedar.purchase.request.line", "request_id", string="Request Lines")
     # Legacy singular fields remain readable through the upgrade window.
     purchase_order_id = fields.Many2one(
-        "purchase.order", readonly=True, copy=False, check_company=True
+        "purchase.order", readonly=True, copy=False, check_company=True,
+        groups=OFFICER_GROUP,
     )
-    purchase_order_state = fields.Selection(related="purchase_order_id.state", store=True)
+    purchase_order_state = fields.Selection(
+        related="purchase_order_id.state", store=True, groups=OFFICER_GROUP,
+    )
     purchase_order_ids = fields.One2many(
-        "purchase.order", "sedar_purchase_request_id", string="Purchase Orders", readonly=True
+        "purchase.order", "sedar_purchase_request_id", string="Purchase Orders",
+        readonly=True, groups=OFFICER_GROUP,
     )
     purchase_order_count = fields.Integer(
-        compute="_compute_procurement_progress", compute_sudo=True, store=True
+        compute="_compute_procurement_progress", compute_sudo=True, store=True,
+        groups=OFFICER_GROUP,
     )
     bid_ids = fields.One2many(
         "sedar.purchase.bid", "request_id", string="Bids", readonly=True,
@@ -558,6 +563,14 @@ class SedarPurchaseRequestLine(models.Model):
         "sedar.purchase.bid.line", "request_line_id", string="Bid Lines",
         readonly=True, groups=OFFICER_GROUP,
     )
+    bid_count = fields.Integer(
+        compute="_compute_bid_count", compute_sudo=True, groups=OFFICER_GROUP,
+    )
+
+    @api.depends("bid_line_ids")
+    def _compute_bid_count(self):
+        for line in self:
+            line.bid_count = len(line.sudo().bid_line_ids)
 
     @api.depends("quantity", "estimated_unit_price")
     def _compute_estimated_subtotal(self):

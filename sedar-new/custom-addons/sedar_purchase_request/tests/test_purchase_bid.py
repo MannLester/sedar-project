@@ -141,6 +141,16 @@ class TestSedarPurchaseBid(TransactionCase):
         self.assertEqual(first.total_amount, first.currency_id.round(50.375))
         self.assertEqual(second.total_amount, second.currency_id.round(11.125))
         self.assertEqual(third.total_amount, third.currency_id.round(90.375))
+        self.assertEqual(first.quoted_line_count, 2)
+        self.assertEqual(first.active_request_line_count, 3)
+        self.assertEqual(first.coverage_state, "partial")
+        self.assertEqual(second.coverage_state, "partial")
+        self.assertEqual(third.coverage_state, "partial")
+        self.assertEqual(first.award_count, 0)
+        self.assertEqual(first.awarded_amount, 0)
+        self.assertEqual(
+            request.line_ids.with_user(self.officer).mapped("bid_count"), [2, 1, 1]
+        )
         self.assertEqual(request.procurement_progress, "bidding")
 
     def test_duplicate_header_line_and_cross_request_line_are_rejected(self):
@@ -298,6 +308,14 @@ class TestSedarPurchaseBid(TransactionCase):
 
         with self.assertRaises(AccessError):
             request.with_user(self.requester).read(["bid_ids"])
+        requester_fields = self.env["sedar.purchase.request"].with_user(
+            self.requester
+        ).fields_get()
+        for protected_field in (
+            "bid_ids", "bid_count", "purchase_order_ids", "purchase_order_count",
+            "winning_bidder_ids", "awarded_total",
+        ):
+            self.assertNotIn(protected_field, requester_fields)
 
     def test_multi_company_rules_require_the_configured_officer_for_each_company(self):
         second_company = self.env["res.company"].create({"name": "Second Bid Company"})

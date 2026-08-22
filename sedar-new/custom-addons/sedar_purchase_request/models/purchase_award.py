@@ -194,6 +194,16 @@ class SedarPurchaseRequestAward(models.Model):
         compute="_compute_award_count", compute_sudo=True,
         groups="sedar_marine_inventory.group_marine_inventory_manager",
     )
+    winning_bidder_ids = fields.Many2many(
+        "res.partner", compute="_compute_current_award_summary", compute_sudo=True,
+        string="Winning Bidders",
+        groups="sedar_marine_inventory.group_marine_inventory_manager",
+    )
+    awarded_total = fields.Monetary(
+        compute="_compute_current_award_summary", compute_sudo=True,
+        currency_field="currency_id", string="Awarded Value",
+        groups="sedar_marine_inventory.group_marine_inventory_manager",
+    )
     handoff_recovery_reason = fields.Text(readonly=True, copy=False)
     handoff_recovered_by_id = fields.Many2one("res.users", readonly=True, copy=False)
     handoff_recovered_at = fields.Datetime(readonly=True, copy=False)
@@ -212,6 +222,26 @@ class SedarPurchaseRequestAward(models.Model):
     def _compute_award_count(self):
         for request in self:
             request.award_count = len(request.sudo().award_ids)
+
+    @api.depends(
+        "line_ids.line_state",
+        "line_ids.current_award_id.state",
+        "line_ids.current_award_id.bidder_id",
+        "line_ids.current_award_id.quantity",
+        "line_ids.current_award_id.unit_price",
+        "currency_id",
+    )
+    def _compute_current_award_summary(self):
+        for request in self:
+            awards = request.sudo().line_ids.filtered(
+                lambda line: line.line_state == "active"
+                and line.current_award_id.state in {"awarded", "ordered"}
+            ).mapped("current_award_id")
+            request.winning_bidder_ids = awards.mapped("bidder_id")
+            amount = sum(award.quantity * award.unit_price for award in awards)
+            request.awarded_total = (
+                request.currency_id.round(amount) if request.currency_id else amount
+            )
 
     @api.depends("state", "purchase_order_id", "purchase_order_ids")
     def _compute_legacy_handoff_recovery_required(self):
@@ -248,7 +278,10 @@ class SedarPurchaseRequestAward(models.Model):
                 ("request_id", "=", self.id),
                 ("bid_id.state", "=", "received"),
             ],
-            "context": {"search_default_group_request_line": 1},
+            "context": {
+                "search_default_group_request": 1,
+                "search_default_group_request_line": 2,
+            },
         }
 
     def action_open_handoff_recovery_wizard(self):

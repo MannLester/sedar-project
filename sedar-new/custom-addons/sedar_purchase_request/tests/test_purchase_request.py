@@ -350,7 +350,9 @@ class TestSedarPurchaseRequest(TransactionCase):
             "partner_id": self.supplier.id, "company_id": self.company.id,
         })
         legacy_request.sudo().purchase_order_id = legacy_order
-        self.assertEqual(legacy_request.purchase_order_count, 1)
+        self.assertEqual(
+            legacy_request.with_user(self.officer).purchase_order_count, 1
+        )
         self.assertEqual(legacy_request.with_user(self.officer).action_open_purchase_orders()["res_id"], legacy_order.id)
 
     def test_purchase_order_link_cannot_be_forged(self):
@@ -379,7 +381,7 @@ class TestSedarPurchaseRequest(TransactionCase):
         order.invalidate_recordset(["sedar_purchase_request_id"])
 
         self.assertEqual(order.sedar_purchase_request_id, request)
-        self.assertEqual(request.purchase_order_id, order)
+        self.assertEqual(request.with_user(self.officer).purchase_order_id, order)
 
     def test_service_order_and_inventory_sources_must_match_request_company(self):
         other_company = self.env["res.company"].create({"name": "Other Procurement Source"})

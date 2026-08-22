@@ -230,11 +230,11 @@
         <field name="arch" type="xml">
             <list decoration-warning="sedar_stock_status == 'low_stock'" decoration-danger="sedar_stock_status == 'out_of_stock'">
                 <field name="default_code" string="SEDAR Item Code"/>
+                <field name="sedar_stock_status" widget="badge"/>
                 <field name="name" string="Item Type"/>
                 <field name="sedar_item_type" string="Classification" widget="badge"/>
                 <field name="sedar_available_to_issue" string="Available"/>
                 <field name="uom_id" string="Unit"/>
-                <field name="sedar_stock_status" widget="badge"/>
                 <field name="sedar_manufacturer_part_number" optional="hide"/>
                 <field name="sedar_on_hand_qty" string="Company Storage Total" optional="hide"/>
                 <field name="sedar_reserved_qty" optional="hide"/>
@@ -435,10 +435,10 @@
         <field name="arch" type="xml">
             <list create="0" edit="0" delete="0" decoration-warning="reconciliation_state == 'warning'">
                 <field name="tugboat_id"/>
+                <field name="usage_state" widget="badge"/>
                 <field name="product_id" string="Item Type"/>
                 <field name="open_qty"/>
                 <field name="product_uom_id" string="Unit"/>
-                <field name="usage_state" widget="badge"/>
                 <field name="lot_id" optional="show"/>
                 <field name="equipment_id" optional="show"/>
                 <field name="issued_at" optional="show"/>

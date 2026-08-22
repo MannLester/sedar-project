@@ -970,13 +970,15 @@ One record is a department request to buy goods needed by maintenance, inventory
 | `line_ids` | One-to-many to `sedar.purchase.request.line` | Requested products, quantities, estimated costs, and source traceability. |
 | `bid_ids` | Officer-only read-only one-to-many to `sedar.purchase.bid` | Supplier Bids captured for the approved request. The relation is hidden from ordinary requesters at field-access level. |
 | `bid_count` | Officer-only computed, stored integer | Count used by the Bids smart button without exposing Bid identities or commercial values to requesters. |
-| `purchase_order_ids` | Read-only one-to-many to `purchase.order` | All standard Purchase Orders linked to the request. One request may result in multiple orders when different suppliers win different lines. |
-| `purchase_order_count` | Computed integer | Count used by the Purchase Orders smart button. |
-| `purchase_order_id` | Legacy hidden many-to-one to `purchase.order` | Preserves the former single-order link for upgrade compatibility; it is included in the multi-order relationship during migration. |
-| `purchase_order_state` | Legacy hidden related selection | Preserves the state of the former single-order link for upgrade compatibility. |
+| `purchase_order_ids` | Officer-only read-only one-to-many to `purchase.order` | All standard Purchase Orders linked to the request. One request may result in multiple orders when different suppliers win different lines. |
+| `purchase_order_count` | Officer-only computed integer | Count used by the Purchase Orders smart button without exposing order identities to ordinary requesters. |
+| `purchase_order_id` | Officer-only legacy hidden many-to-one to `purchase.order` | Preserves the former single-order link for upgrade compatibility; it is included in the multi-order relationship during migration. |
+| `purchase_order_state` | Officer-only legacy hidden related selection | Preserves the state of the former single-order link for upgrade compatibility. |
 | `state` | Required selection | Internal request progress: draft, submitted, approved, order created, rejected, or cancelled. It remains separate from procurement progress. |
 | `procurement_progress` | Computed selection | Procurement progress derived from internal state, active request lines, Line Awards, and linked downstream orders: not started, awaiting approval, ready for Bids, bidding, partially awarded, fully awarded, ordering, ordered, or cancelled. It is displayed separately from internal review progress. |
 | `award_ids`, `award_count` | Officer-only one-to-many and computed integer | Opens the restricted immutable Line Award history without exposing commercial facts to ordinary requesters. |
+| `winning_bidder_ids` | Officer-only computed many-to-many to `res.partner` | Lists every current winning Bidder; the plural name is required because different request lines may have different winners. |
+| `awarded_total` | Officer-only computed monetary | Currency-rounded value of current active or ordered Line Awards. Reset awards are excluded. |
 | `legacy_handoff_recovery_required` | Computed boolean | Quarantines a legacy `po_created` request that no longer has a surviving linked order. |
 | `handoff_recovery_reason`, `handoff_recovered_by_id`, `handoff_recovered_at` | Read-only audit fields | Preserve the Officer's explicit recovery of an incomplete legacy handoff back to approved procurement review. |
 | `approved_by_id` | Read-only many-to-one to `res.users` | Procurement and Inventory Officer who approved the request. |
@@ -1023,6 +1025,7 @@ One record is one requested product line under a Purchase Request.
 | `inventory_requirement_id` | Company-checked many-to-one to `sedar.inventory.requirement` | Optional Service Order inventory shortage source; its inherited company must match the Purchase Request company. |
 | `need_reason` | Text | Optional line-specific explanation. |
 | `bid_line_ids` | Officer-only read-only one-to-many to `sedar.purchase.bid.line` | Bid lines that quote this requested product; protected from ordinary requester reads at field-access level. |
+| `bid_count` | Officer-only computed integer | Shows how many Bidder quotations cover the requested product; zero remains visible on the Purchase Request line. |
 | `line_state` | Read-only selection | Active or irreversibly cancelled. Only the exact Officer may cancel an approved line that has never been awarded or linked to a Purchase Order, through the controlled reason wizard. |
 | `current_award_id` | Officer-only read-only many-to-one to `sedar.purchase.line.award` | Current active or ordered Line Award; reset clears this pointer but preserves history. |
 | `award_history_ids` | Officer-only read-only one-to-many | Every award and reset event for this requested product. |
@@ -1077,6 +1080,10 @@ One record preserves one Bidder's quotation for one approved Purchase Request. A
 | `withdrawn_by_id`, `withdrawn_at` | Read-only user and datetime | Officer and server time recorded by the controlled withdrawal action. |
 | `withdrawal_reason` | Text | Required explanation entered while Received and frozen when the Bid is withdrawn. |
 | `award_ids` | Officer-only read-only one-to-many to `sedar.purchase.line.award` | Line Awards sourced from this Bid; any award history, including a reset award, permanently blocks Bid withdrawal. |
+| `quoted_line_count`, `active_request_line_count` | Computed, stored integers | Searchable Bidder List coverage facts over active request lines. |
+| `coverage_state` | Computed, stored selection | No, partial, or full active-line coverage; Partial Coverage drives the exact workspace filter. |
+| `award_count` | Computed, stored integer | Number of current Awarded or Ordered Line Awards; reset history is excluded from Has Awards and included in No Awards. |
+| `awarded_amount` | Computed, stored monetary | Currency-rounded value of the Bid's current Awarded or Ordered lines. |
 
 Key behavior:
 
@@ -1085,6 +1092,8 @@ Key behavior:
 - Received and Withdrawn Bids, lines, commercial facts, quotation content, and audit metadata are immutable. Losing and unawarded offers therefore remain available as procurement history. A received Bid that has ever supplied a Line Award cannot later be withdrawn, even if that award was reset.
 - The Bidder must be its canonical commercial partner. Duplicate request/Bidder records, non-suppliers, contacts, cross-company suppliers, and Bids against a non-approved request are rejected.
 - Commercial values stay on the restricted Bid record and are not posted into the more broadly visible Purchase Request chatter.
+- The Bidder List defines Active Bids as non-withdrawn and not expired, Partial Coverage from stored active-line counts, Has/No Awards from current awards, and Closed / Expired History as withdrawn or past-validity Bids.
+- Bid comparison uses standard list/form views grouped first by Purchase Request and then requested product. The Purchase Request lines remain the authoritative place to see products with zero Bids.
 
 ### `sedar.purchase.bid.line`
 
@@ -1183,6 +1192,7 @@ The method-only extension recognizes attachments linked to `sedar.purchase.bid`.
 
 Generated orders preserve partner, company, currency, and source identity. They may follow the standard confirmation, cancellation, receipt, supplier-bill, and Reset-to-Draft lifecycle, but cannot be deleted. A cancelled generated order remains award history and never causes an automatic replacement.
 The winning Bid's escaped delivery, availability, payment, warranty, commercial, and awarded line-level terms are intentionally copied to the generated Purchase Order note so standard Odoo Purchase can execute the approved supplier agreement. The private quotation file, losing offers, and Purchase Request chatter remain restricted to the exact configured Officer.
+The Procurement Purchase Orders action uses both explicit source links as its domain and does not filter by Odoo state, so drafts and later lifecycle states remain visible while unrelated standard orders are excluded. Standard Odoo Purchase ACLs continue to govern the records; ordinary requesters do not imply Odoo Purchase User access.
 
 ### `purchase.order.line` procurement extension
 

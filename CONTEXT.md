@@ -160,6 +160,10 @@ _Avoid_: Preferred Vendor, supplier directory, eligible supplier
 A supplier's priced offer for one or more product lines in a specific Purchase Request. Different Bidders may quote different subsets of the requested products.
 _Avoid_: Request for Quotation, Purchase Order
 
+**Bidder List**:
+The Procurement workspace listing Bid headers. Each row represents one Bid for one Purchase Request and one supplier; it is not a supplier-directory record.
+_Avoid_: Supplier directory, one row per supplier
+
 **Line Award**:
 Procurement's justified selection of one Bidder to supply the full quantity of a product line in a Purchase Request after comparing commercial terms. A line is not split between Bidders; awarded lines are grouped by winning Bidder for ordering.
 _Avoid_: Whole-request award, Bid, supplier eligibility

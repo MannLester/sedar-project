@@ -1,6 +1,6 @@
 {
     "name": "SEDAR Purchase Request",
-    "version": "19.0.5.0.0",
+    "version": "19.0.6.0.0",
     "category": "Purchase",
     "summary": "Department purchase request approval and standard Purchase Order handoff",
     "author": "SEDAR Development Team",
