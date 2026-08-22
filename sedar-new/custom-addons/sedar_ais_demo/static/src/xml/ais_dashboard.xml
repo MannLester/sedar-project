@@ -144,7 +144,7 @@
                                         <div class="o_sedar_ais_procurement_group_title"><h4>Active Procurement</h4><span><t t-esc="activeProcurement.length"/> line<t t-if="activeProcurement.length !== 1">s</t></span></div>
                                         <article t-foreach="activeProcurement" t-as="line" t-key="line.line_id" class="o_sedar_ais_procurement_row">
                                             <div class="o_sedar_ais_procurement_row_top"><div><strong t-esc="line.request_name"/><span t-esc="line.product_name"/></div><span class="o_sedar_ais_progress" t-esc="line.progress_label"/></div>
-                                            <div class="o_sedar_ais_procurement_counts"><span><b t-esc="line.bid_count"/> Bidders</span><span><b t-esc="line.order_count"/> Purchase Orders</span></div>
+                                            <div class="o_sedar_ais_procurement_counts"><span><b t-esc="line.bid_count"/> Bidder<t t-if="line.bid_count !== 1">s</t></span><span><b t-esc="line.order_count"/> Purchase Order<t t-if="line.order_count !== 1">s</t></span></div>
                                             <div t-if="line.commercial" class="o_sedar_ais_commercial">
                                                 <div t-if="line.commercial.bids.length">
                                                     <h5>Bidders and commercial summary</h5>
@@ -179,8 +179,12 @@
                                         <div class="o_sedar_ais_procurement_group_title"><h4>Procurement History</h4><span><t t-esc="procurementHistory.length"/> line<t t-if="procurementHistory.length !== 1">s</t></span></div>
                                         <article t-foreach="procurementHistory" t-as="line" t-key="line.line_id" class="o_sedar_ais_procurement_row">
                                             <div class="o_sedar_ais_procurement_row_top"><div><strong t-esc="line.request_name"/><span t-esc="line.product_name"/></div><span class="o_sedar_ais_progress" t-esc="line.outcome_label"/></div>
-                                            <div class="o_sedar_ais_procurement_counts"><span><b t-esc="line.bid_count"/> Bidders</span><span><b t-esc="line.order_count"/> Purchase Orders</span></div>
+                                            <div class="o_sedar_ais_procurement_counts"><span><b t-esc="line.bid_count"/> Bidder<t t-if="line.bid_count !== 1">s</t></span><span><b t-esc="line.order_count"/> Purchase Order<t t-if="line.order_count !== 1">s</t></span></div>
                                             <div t-if="line.commercial" class="o_sedar_ais_commercial">
+                                                <div t-if="line.commercial.bids.length">
+                                                    <h5>Bidders</h5>
+                                                    <div t-foreach="line.commercial.bids" t-as="bid" t-key="bid_index" class="o_sedar_ais_commercial_item"><span><strong t-esc="bid.bidder_name"/><small><t t-esc="bid.bid_name"/> · <t t-esc="bid.state_label"/></small></span><b><t t-esc="bid.currency"/> <t t-esc="bid.subtotal"/></b></div>
+                                                </div>
                                                 <div t-if="line.commercial.award" class="o_sedar_ais_award"><h5>Winning Bidder</h5><div><span><strong t-esc="line.commercial.award.bidder_name"/><small><t t-esc="line.commercial.award.state_label"/> · <t t-esc="line.commercial.award.reason"/></small></span><b><t t-esc="line.commercial.award.currency"/> <t t-esc="line.commercial.award.unit_price"/> × <t t-esc="line.commercial.award.quantity"/></b></div></div>
                                                 <div t-if="line.commercial.orders.length"><h5>Resulting Purchase Orders</h5><div t-foreach="line.commercial.orders" t-as="order" t-key="order.id" class="o_sedar_ais_commercial_item"><span><strong t-esc="order.name"/><small><t t-esc="order.supplier_name"/> · <t t-esc="order.state_label"/></small></span><b><t t-esc="order.currency"/> <t t-esc="order.amount_total"/></b></div></div>
                                             </div>
