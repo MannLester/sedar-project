@@ -27,14 +27,10 @@ Approved for implementation. Delivery is tracked by GitHub issue #1 and its orde
 - The map shows active procurement first and a separate procurement history for selected Equipment.
 - Inventory Issue no longer means immediate consumption. Goods move from Storage to a tugboat and remain Currently In Use until removal or consumption.
 
-## Current implementation mismatches
+## Remaining implementation mismatches
 
-The active `sedar-new/` implementation already provides useful foundations, but it does not implement this agreed workflow:
+The active `sedar-new/` implementation now provides Running Hour Readings, vendorless Purchase Requests, partial Bid capture, immutable Line Awards, and grouped standard Purchase Order handoff. The remaining gaps are:
 
-- `sedar.purchase.request` currently requires one preferred vendor, links one `purchase.order`, and creates one RFQ for all lines.
-- No Bid, Bid line, or Line Award record exists.
-- The visible and server-side approval role is inconsistently named Purchase Request Manager.
-- `maintenance.equipment` stores the last service reading and planned interval but has no historical Running Hour Readings or current cumulative value.
 - The AIS map returns tug, crew, operation, maintenance, and dry-dock facts but no Equipment or procurement payload.
 - `sedar.inventory.issue` currently moves issued goods directly to a consumption location, so no general tugboat Currently In Use balance exists.
 - Inventory menus are split across the Marine Operations menu instead of the agreed Procurement hierarchy.
@@ -95,7 +91,7 @@ The Bid header records:
 
 Each Bid line records the quoted Purchase Request line, full requested quantity, unit price, subtotal, availability, and line-specific delivery or notes. Absence of a Bid line means that Bidder did not quote that product.
 
-Each Purchase Request line records its winning Bid line, award reason, awarded by, and awarded at. Award rules:
+Each Purchase Request line points to its current immutable Line Award. The award snapshots the winning Bid line, supplier, price, quantity/UoM, award reason, awarded by/at, commercial-exception facts, reset audit, and generated Purchase Order line. Award rules:
 
 - only quoted lines may be awarded;
 - one request line has at most one winner;
@@ -103,6 +99,9 @@ Each Purchase Request line records its winning Bid line, award reason, awarded b
 - an award reason is mandatory;
 - changing an approved award requires an audited reset before a Purchase Order exists;
 - an awarded line cannot silently change after its Purchase Order is created.
+- a zero-price quote requires explicit confirmation;
+- an expired Bid requires an explicit company-local-date override and reason;
+- an unquoted line blocks ordering until the Officer irreversibly cancels it with reason/actor/time.
 
 For the MVP, all Bids use the Purchase Request currency. Foreign-currency normalization and exchange-rate snapshots are deferred.
 
@@ -110,7 +109,7 @@ For the MVP, all Bids use the Purchase Request currency. Foreign-currency normal
 
 After all required lines are awarded, group Line Awards by Bidder and create one standard `purchase.order` per winning supplier. Each order contains only that supplier's awarded lines and preserves the Purchase Request and Bid references in origin/source links.
 
-The operation is idempotent: rerunning it cannot create duplicate Purchase Orders. Standard Odoo then handles order confirmation, receipts, supplier bills, and accounting.
+The operation is idempotent and concurrency-safe: request/line locks plus database uniqueness prevent duplicate Purchase Orders and source lines. Generated orders cannot be deleted; cancellation remains linked history and standard Reset to Draft remains available. Standard Odoo then handles order confirmation, receipts, supplier bills, and accounting.
 
 ### Storage and Currently In Use
 

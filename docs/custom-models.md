@@ -67,8 +67,14 @@ fixture seeding.
 | `sedar.purchase.request.line` | New | Captures requested products, quantities, estimated costs, and maintenance/inventory source traceability | `sedar_purchase_request/models/purchase_request.py` |
 | `sedar.purchase.bid` | New | Preserves one supplier quotation for one Purchase Request, including private evidence, commercial terms, lifecycle, and audit facts | `sedar_purchase_request/models/purchase_bid.py` |
 | `sedar.purchase.bid.line` | New | Records the subset of requested products quoted by one Bidder at full requested quantities and supplier prices | `sedar_purchase_request/models/purchase_bid.py` |
+| `sedar.purchase.line.award` | New | Preserves immutable product-level winner, commercial snapshots, reset audit, and Purchase Order line handoff history | `sedar_purchase_request/models/purchase_award.py` |
+| `sedar.purchase.line.award.wizard` | New transient | Captures one received Bid line, required best-value reason, and explicit expiry/zero-price exceptions | `sedar_purchase_request/models/purchase_award.py` |
+| `sedar.purchase.line.award.reset.wizard` | New transient | Captures the mandatory reason for resetting an unordered Line Award | `sedar_purchase_request/models/purchase_award.py` |
+| `sedar.purchase.request.line.cancel.wizard` | New transient | Captures the mandatory reason for irreversibly cancelling one unawarded requested product | `sedar_purchase_request/models/purchase_award.py` |
+| `sedar.purchase.request.recovery.wizard` | New transient | Captures the Officer's reason for recovering an incomplete legacy handoff | `sedar_purchase_request/models/purchase_award.py` |
 | `ir.attachment` | Method-only extension | Protects Bid quotation files from public/token access, reassignment, and post-receipt mutation | `sedar_purchase_request/models/ir_attachment.py` |
-| `purchase.order` | Extended | Links each standard Purchase Order to the Purchase Request that produced it | `sedar_purchase_request/models/purchase_request.py` |
+| `purchase.order` | Extended | Links each standard Purchase Order to the Purchase Request and exact winning Bid that produced it | `sedar_purchase_request/models/purchase_request.py`; `sedar_purchase_request/models/purchase_award.py` |
+| `purchase.order.line` | Extended | Links each grouped order line to its requested product, winning Bid line, and immutable Line Award | `sedar_purchase_request/models/purchase_award.py` |
 | `sedar.hsse.incident` | New | Tracks incidents, near misses, investigation, source links, confidential evidence, corrective actions, and verified closure | `sedar_hsse/models/hsse.py` |
 | `sedar.hsse.inspection` | New | Tracks HSSE inspections, source links, findings, overdue counts, and verification | `sedar_hsse/models/hsse.py` |
 | `sedar.hsse.inspection.finding` | New | Tracks checklist findings, assigned owner, due date, overdue state, and corrective-action conversion | `sedar_hsse/models/hsse.py` |
@@ -893,7 +899,10 @@ One record is a department request to buy goods needed by maintenance, inventory
 | `purchase_order_id` | Legacy hidden many-to-one to `purchase.order` | Preserves the former single-order link for upgrade compatibility; it is included in the multi-order relationship during migration. |
 | `purchase_order_state` | Legacy hidden related selection | Preserves the state of the former single-order link for upgrade compatibility. |
 | `state` | Required selection | Internal request progress: draft, submitted, approved, order created, rejected, or cancelled. It remains separate from procurement progress. |
-| `procurement_progress` | Computed selection | Procurement progress derived from internal state, non-withdrawn Bids, and linked downstream orders: not started, awaiting approval, ready for Bids, bidding, ordering, ordered, or cancelled. Partially awarded and fully awarded remain reserved for the Line Award slice. It is displayed separately from internal review progress. |
+| `procurement_progress` | Computed selection | Procurement progress derived from internal state, active request lines, Line Awards, and linked downstream orders: not started, awaiting approval, ready for Bids, bidding, partially awarded, fully awarded, ordering, ordered, or cancelled. It is displayed separately from internal review progress. |
+| `award_ids`, `award_count` | Officer-only one-to-many and computed integer | Opens the restricted immutable Line Award history without exposing commercial facts to ordinary requesters. |
+| `legacy_handoff_recovery_required` | Computed boolean | Quarantines a legacy `po_created` request that no longer has a surviving linked order. |
+| `handoff_recovery_reason`, `handoff_recovered_by_id`, `handoff_recovered_at` | Read-only audit fields | Preserve the Officer's explicit recovery of an incomplete legacy handoff back to approved procurement review. |
 | `approved_by_id` | Read-only many-to-one to `res.users` | Procurement and Inventory Officer who approved the request. |
 | `approved_at` | Read-only datetime | Approval timestamp. |
 | `rejected_by_id` | Read-only many-to-one to `res.users` | Procurement and Inventory Officer who rejected the request. |
@@ -910,6 +919,9 @@ Key behavior:
 - `action_create_rfq()` remains only as an upgrade-safe legacy method and explains that Purchase Orders will be created from later Bid and Line Award workflow. It does not create an RFQ.
 - `action_open_bids()` is Officer-only server-side and opens the request's Bid records with the request preselected for capture.
 - The Purchase Orders smart button opens every linked standard order. Existing single-order history remains available after upgrade.
+- Grouped Purchase Order creation requires every non-cancelled line to have an active Line Award, locks the request and lines, groups by exact winning Bid, and is idempotent through database source uniqueness.
+- A legacy request-only Purchase Order is treated as an existing handoff and never causes synthetic Line Awards or duplicate orders.
+- A legacy `po_created` request with no surviving order can return to approved only through the audited Officer recovery action.
 - Internal request state and computed procurement progress are separate so procurement work cannot make the internal need appear unreviewed.
 - Once Bid capture begins, the request company, currency, and line baseline are immutable. A request with Bid history cannot return to correction through rejection; received offers are withdrawn instead so commercial history is not erased.
 - Service Order and inventory-requirement sources must belong to the Purchase Request company. Procurement consumes the ownership supplied by Marine Operations and Inventory rather than deriving a second company fact.
@@ -935,6 +947,10 @@ One record is one requested product line under a Purchase Request.
 | `inventory_requirement_id` | Company-checked many-to-one to `sedar.inventory.requirement` | Optional Service Order inventory shortage source; its inherited company must match the Purchase Request company. |
 | `need_reason` | Text | Optional line-specific explanation. |
 | `bid_line_ids` | Officer-only read-only one-to-many to `sedar.purchase.bid.line` | Bid lines that quote this requested product; protected from ordinary requester reads at field-access level. |
+| `line_state` | Read-only selection | Active or irreversibly cancelled. Only the exact Officer may cancel an unawarded approved line through the controlled reason wizard. |
+| `current_award_id` | Officer-only read-only many-to-one to `sedar.purchase.line.award` | Current active or ordered Line Award; reset clears this pointer but preserves history. |
+| `award_history_ids` | Officer-only read-only one-to-many | Every award and reset event for this requested product. |
+| `cancellation_reason`, `cancelled_by_id`, `cancelled_at` | Read-only audit fields | Preserve why an unawarded product was removed from the active order scope and who performed the irreversible action. |
 
 Key behavior:
 
@@ -943,6 +959,8 @@ Key behavior:
 - The line validates physical goods only, positive quantity, non-negative estimated unit price, source-record consistency, and same-company products, locations, Service Orders, and inventory requirements.
 - Request facts and lines become read-only after submission; a rejected request returns to an editable correction state only before Bid capture starts.
 - Once any Bid exists, request lines cannot be added or deleted and their request assignment, product, quantity, and unit baseline cannot be changed.
+- One active Line Award is enforced through a locked request line and a database-unique nullable active-line link. Reset is allowed only before any generated Purchase Order line has ever existed.
+- Cancelling the final active line cancels the Purchase Request. A changed need must be submitted as a new request rather than silently revising the approved baseline.
 
 Access rules:
 
@@ -982,6 +1000,7 @@ One record preserves one Bidder's quotation for one approved Purchase Request. A
 | `received_by_id`, `received_at` | Read-only user and datetime | Officer and server time recorded by the controlled receipt action. |
 | `withdrawn_by_id`, `withdrawn_at` | Read-only user and datetime | Officer and server time recorded by the controlled withdrawal action. |
 | `withdrawal_reason` | Text | Required explanation entered while Received and frozen when the Bid is withdrawn. |
+| `award_ids` | Officer-only read-only one-to-many to `sedar.purchase.line.award` | Line Awards sourced from this Bid; an active or ordered award blocks Bid withdrawal. |
 
 Key behavior:
 
@@ -1011,8 +1030,34 @@ One record is one requested product included in a supplier Bid. A Bid may cover 
 | `promised_delivery_date` | Date | Optional product-specific delivery promise not earlier than Bid receipt. |
 | `delivery_terms` | Text | Product-specific delivery conditions. |
 | `notes` | Text | Other product-specific quotation context. |
+| `bidder_id`, `validity_date`, `warranty_notes` | Read-only related fields | Expose the Bid header's supplier, expiry, and warranty context in the restricted product-level comparison UI. |
+| `award_display_name` | Computed character | Gives the award picker a meaningful restricted label containing Bidder, six-decimal price, validity, and delivery promise. |
 
 Bid-line identity, quantity snapshots, and all commercial values are editable only while the parent Bid is Draft. The server rejects cross-request lines, duplicate lines, partial quantities outside the unit-of-measure rounding tolerance, negative prices, invalid delivery dates, and direct reassignment.
+
+### `sedar.purchase.line.award`
+
+One record is the immutable commercial decision for one Purchase Request product. Reset changes only its lifecycle and reset audit fields; it never overwrites or deletes the original winner facts.
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `request_id`, `request_line_id` | Required read-only many-to-one links | Purchase Request aggregate and exact requested product line represented by the decision. |
+| `active_request_line_id` | Read-only nullable many-to-one with database uniqueness | Enforces at most one current award per request line; reset clears it while history remains. |
+| `bid_id`, `bid_line_id`, `bidder_id` | Required read-only many-to-one snapshots | Received Bid, exact quoted line, and canonical winning supplier. |
+| `company_id`, `currency_id`, `product_id`, `product_uom_id` | Required read-only snapshots | Ownership and product identity frozen when the award is recorded. |
+| `quantity`, `unit_price` | Required read-only numeric snapshots | Full requested quantity and tax-exclusive six-decimal Bid price in the request UoM/currency. |
+| `award_reason`, `awarded_by_id`, `awarded_at` | Required read-only audit fields | Best-value justification and exact Officer/server time. |
+| `expired_bid_override`, `expired_bid_override_reason` | Read-only exception facts | Explicit approval and reason required when the Bid validity date has passed in the company-local business date. |
+| `zero_price_confirmed` | Read-only boolean | Explicit confirmation required for a supplier quotation whose unit price rounds to zero at six decimals. |
+| `state` | Read-only selection | Awarded, Reset, or Ordered. |
+| `reset_reason`, `reset_by_id`, `reset_at` | Read-only audit fields | Mandatory controlled reset evidence, allowed only before order handoff. |
+| `purchase_order_line_id` | Read-only many-to-one to `purchase.order.line` | Durable standard Purchase Order line created from this award. |
+
+Awards are readable only by the exact Procurement and Inventory Officer configured for an allowed company. They cannot be created, edited, or deleted through normal model access; controlled wizards repeat exact-user validation and use internal elevated writes only after locking and revalidation. Purchase Request chatter receives neutral lifecycle notices and never copies Bidder, price, award reason, or other protected commercial facts.
+
+### Procurement award wizards
+
+The four transient models `sedar.purchase.line.award.wizard`, `sedar.purchase.line.award.reset.wizard`, `sedar.purchase.request.line.cancel.wizard`, and `sedar.purchase.request.recovery.wizard` collect only the decision input required by their corresponding controlled server action. They do not own durable business facts. Each action rechecks the exact configured Officer, locks and reloads its durable target, validates the current workflow state, and then stores the result on the immutable Line Award or Purchase Request audit fields. The award wizard also exposes read-only Bidder, quantity/UoM, price/currency, validity, delivery, availability, and warranty context so desktop and mobile users can understand the selected quote before confirming it.
 
 ### `ir.attachment` Bid quotation behavior
 
@@ -1023,6 +1068,19 @@ The method-only extension recognizes attachments linked to `sedar.purchase.bid`.
 | Field | Type | How it is used |
 | --- | --- | --- |
 | `sedar_purchase_request_id` | Read-only indexed many-to-one to `sedar.purchase.request` | Links one standard Purchase Order back to its originating Purchase Request. The relation supports multiple orders per request while Odoo Purchase continues to own the order lifecycle; only the controlled award workflow may set or change the link. |
+| `sedar_bid_id` | Officer-only read-only indexed many-to-one to `sedar.purchase.bid` | Exact winning Bid grouped into this standard order. Request and Bid are database-unique together. |
+
+Generated orders preserve partner, company, currency, and source identity. They may follow the standard confirmation, cancellation, receipt, supplier-bill, and Reset-to-Draft lifecycle, but cannot be deleted. A cancelled generated order remains award history and never causes an automatic replacement.
+
+### `purchase.order.line` procurement extension
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `sedar_purchase_request_line_id` | Read-only indexed many-to-one | Exact requested physical-goods line materialized by the standard order line. |
+| `sedar_bid_line_id` | Officer-only read-only indexed many-to-one | Exact winning supplier quote used for price and delivery facts. |
+| `sedar_line_award_id` | Officer-only read-only indexed unique many-to-one | Immutable Line Award that created the order line. |
+
+Generated line product, request UoM, full quantity, and tax-exclusive award price are immutable. Odoo Purchase and Inventory continue to own taxes, planned arrival, confirmation, receipt, billing, and accounting lifecycle fields.
 
 ## HSSE and Operational Compliance
 

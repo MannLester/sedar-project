@@ -205,6 +205,7 @@ class SedarPurchaseRequest(models.Model):
     @api.depends(
         "state", "bid_ids.state", "purchase_order_ids.state",
         "purchase_order_id", "purchase_order_id.state",
+        "line_ids.line_state", "line_ids.current_award_id.state",
     )
     def _compute_procurement_progress(self):
         for request in self:
@@ -213,12 +214,18 @@ class SedarPurchaseRequest(models.Model):
             orders = privileged.purchase_order_ids | privileged.purchase_order_id
             request.bid_count = len(bids)
             request.purchase_order_count = len(orders)
+            active_lines = privileged.line_ids.filtered(lambda line: line.line_state == "active")
+            awarded_lines = active_lines.filtered("current_award_id")
             if request.state == "cancelled":
                 progress = "cancelled"
             elif orders and all(order.state in {"purchase", "done"} for order in orders):
                 progress = "ordered"
             elif orders:
                 progress = "ordering"
+            elif active_lines and len(awarded_lines) == len(active_lines):
+                progress = "fully_awarded"
+            elif awarded_lines:
+                progress = "partially_awarded"
             elif bids.filtered(lambda bid: bid.state != "withdrawn"):
                 progress = "bidding"
             elif request.state in {"approved", "po_created"}:

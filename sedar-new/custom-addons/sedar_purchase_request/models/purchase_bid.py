@@ -115,6 +115,10 @@ class SedarPurchaseBid(models.Model):
     withdrawn_by_id = fields.Many2one("res.users", readonly=True, copy=False)
     withdrawn_at = fields.Datetime(readonly=True, copy=False)
     withdrawal_reason = fields.Text(copy=False)
+    award_ids = fields.One2many(
+        "sedar.purchase.line.award", "bid_id", readonly=True,
+        groups="sedar_marine_inventory.group_marine_inventory_manager",
+    )
 
     _request_bidder_unique = models.Constraint(
         "UNIQUE(request_id, bidder_id)",
@@ -277,6 +281,10 @@ class SedarPurchaseBid(models.Model):
             bid.invalidate_recordset()
             if bid.state != "received":
                 raise UserError(_("Only a received Bid can be withdrawn."))
+            if bid.sudo().award_ids.filtered(lambda award: award.state in {"awarded", "ordered"}):
+                raise UserError(_(
+                    "A Bid with an active or ordered Line Award cannot be withdrawn."
+                ))
             if not bid.withdrawal_reason:
                 raise UserError(_("Enter a withdrawal reason before withdrawing the Bid."))
             super(SedarPurchaseBid, bid.sudo()).write({
@@ -299,6 +307,7 @@ class SedarPurchaseBid(models.Model):
 class SedarPurchaseBidLine(models.Model):
     _name = "sedar.purchase.bid.line"
     _description = "SEDAR Purchase Bid Line"
+    _rec_name = "award_display_name"
     _order = "bid_id, request_line_id"
     _check_company_auto = True
 
@@ -336,6 +345,12 @@ class SedarPurchaseBidLine(models.Model):
     promised_delivery_date = fields.Date()
     delivery_terms = fields.Text()
     notes = fields.Text()
+    bidder_id = fields.Many2one(
+        related="bid_id.bidder_id", store=True, readonly=True,
+    )
+    validity_date = fields.Date(related="bid_id.validity_date", store=True, readonly=True)
+    warranty_notes = fields.Text(related="bid_id.warranty_notes", readonly=True)
+    award_display_name = fields.Char(compute="_compute_award_display_name")
 
     _bid_request_line_unique = models.Constraint(
         "UNIQUE(bid_id, request_line_id)",
@@ -347,6 +362,27 @@ class SedarPurchaseBidLine(models.Model):
         for line in self:
             amount = line.quantity * line.unit_price
             line.subtotal = line.currency_id.round(amount) if line.currency_id else amount
+
+    @api.depends(
+        "bidder_id", "unit_price", "currency_id", "validity_date",
+        "promised_delivery_date",
+    )
+    def _compute_award_display_name(self):
+        for line in self:
+            price = _(
+                "%(currency)s %(price)s",
+                currency=line.currency_id.name or "",
+                price=f"{line.unit_price:.6f}",
+            )
+            validity = line.validity_date or _("No expiry")
+            delivery = line.promised_delivery_date or line.bid_id.promised_delivery_date or _("No promise")
+            line.award_display_name = _(
+                "%(bidder)s — %(price)s — Valid %(validity)s — Delivery %(delivery)s",
+                bidder=line.bidder_id.display_name,
+                price=price,
+                validity=validity,
+                delivery=delivery,
+            )
 
     @api.constrains(
         "bid_id", "request_line_id", "quantity", "unit_price", "promised_delivery_date"
