@@ -205,16 +205,78 @@ applicant's **Offers** tab. HR issues an offer only after the internal controls 
 applicant portal shows the issued offer summary and lets the applicant accept or decline it. An
 accepted offer is required before HR can request ADM-5 or create the employee profile.
 
-Run the Finance workflow tests in an isolated database:
+Run the Finance workflow tests through the isolated test runner:
 
-```powershell
-docker compose run --rm -T odoo odoo -c /etc/odoo/odoo.conf `
-  -d sedar_finance_unit -i sedar_marine_finance --test-enable `
-  --test-tags /sedar_marine_finance --stop-after-init --no-http
+```sh
+python3 scripts/run_odoo_tests.py --module sedar_marine_finance
 ```
 
 These accounts, tariffs, completions, and prices are fictional demo fixtures. Replace them with
 approved SEDAR data and change all passwords before any non-local use.
+
+## Local Quality Checks
+
+Install the pinned developer tool from `sedar-new` without changing the Odoo image:
+
+```sh
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements-dev.txt
+```
+
+Check every Python function in the active Odoo 19 addons against the repository's complexity,
+branch, and statement limits:
+
+```sh
+.venv/bin/ruff check custom-addons
+```
+
+Run the isolated-runner safety tests after changing the runner itself:
+
+```sh
+python3 -m unittest discover -s scripts/tests -p 'test_*.py'
+```
+
+Run all SEDAR Python tests in a newly created, uniquely named database:
+
+```sh
+python3 scripts/run_odoo_tests.py
+```
+
+Run one module, or narrow that module to an Odoo class or method:
+
+```sh
+python3 scripts/run_odoo_tests.py --module sedar_marine_finance
+python3 scripts/run_odoo_tests.py --module sedar_marine_finance \
+  --test-tags /sedar_marine_finance:TestMarineFinanceWorkflow.test_missing_tariff_is_pricing_exception
+```
+
+The runner resolves this workspace from its own path, validates module and tag input, starts only
+the Compose database dependency, installs modules into a fresh `sedar_test_*` database, uses an
+isolated data directory and HTTP port, and removes its exact test container and database on success,
+failure, or interruption when its private ownership marker is present. Cleanup will never delete an
+unmarked database, even if it has a generated test name. It never accepts a shared database name. A full run installs
+`sedar_demo_suite`; targeted runs install only the selected modules and their dependencies.
+
+Odoo executes matching tests in two phases during module loading: default `at_install` tests after
+their module is installed, then `post_install,-at_install` tests after all modules are loaded. The
+runner's module-qualified selection preserves both phases. `--test-tags` enables tests, while
+`--stop-after-init` exits after initialization. Odoo 19 notes that `--no-http` is ignored when tests
+are enabled, so the runner binds the required HTTP server to a unique loopback port instead.
+
+Use Odoo's server-side `Form` helper when a model test must reproduce defaults, onchange behavior,
+and relational field editing from a form. Use `HttpCase` and tours for complete browser flows; they
+require a Chrome-enabled test image, which the current official Odoo container does not include.
+Use `assertQueryCount` only around stable, warmed-cache paths because query counts can change with
+cache state and Odoo patch versions. Use Odoo's profiler to diagnose slow code and query patterns,
+not as a pass/fail assertion by itself.
+
+References: [Odoo 19 testing](https://www.odoo.com/documentation/19.0/developer/reference/backend/testing.html),
+[performance](https://www.odoo.com/documentation/19.0/developer/reference/backend/performance.html),
+[frontend testing](https://www.odoo.com/documentation/19.0/developer/reference/frontend/unit_testing.html),
+and [CLI](https://www.odoo.com/documentation/19.0/developer/reference/cli.html).
+
+There is no GitHub Actions workflow for this repository. Run the Ruff check and the relevant
+targeted Odoo tests before review; run the full local suite for changes that cross module boundaries.
 
 ## Portal Theme
 

@@ -16,6 +16,36 @@ def _record(env, model_name, xmlid, values):
     return record
 
 
+def _assign_people_and_support_kpis(dashboard, env, sources, today):
+    profiles = sources["profiles"]
+    purchases = sources["purchases"]
+    dashboard.crew_count = len(profiles)
+    dashboard.available_crew_count = len(profiles.filtered(
+        lambda profile: profile.availability_status in ("available", "assigned")
+    ))
+    dashboard.vacancy_count = len(sources["vacancies"])
+    dashboard.applicant_count = env["hr.applicant"].sudo().search_count([])
+    dashboard.open_shortage_count = len(sources["shortages"])
+    dashboard.credential_expiry_count = len(sources["certificates"])
+    dashboard.maintenance_open_count = len(sources["requests"])
+    dashboard.maintenance_blocker_count = len(
+        sources["requests"].filtered("sedar_blocks_tug_readiness")
+    )
+    dashboard.drydock_active_count = len(sources["drydocks"])
+    dashboard.inventory_shortage_count = len(sources["inventory"])
+    dashboard.fuel_consumed_qty = sum(sources["fuel"].mapped("consumed_qty"))
+    dashboard.purchase_open_count = len(purchases)
+    dashboard.purchase_overdue_count = len(purchases.filtered(
+        lambda purchase: purchase.required_date and purchase.required_date.date() < today
+    ))
+    dashboard.hsse_incident_count = len(sources["incidents"])
+    dashboard.hsse_high_risk_count = len(sources["risks"])
+    dashboard.hsse_permit_exception_count = len(sources["permits"])
+    dashboard.hsse_overdue_action_count = len(sources["actions"])
+    dashboard.document_expiry_count = len(sources["documents"])
+    dashboard.governance_exception_count = len(sources["corporate"])
+
+
 class SedarExecutiveDashboard(models.Model):
     _name = "sedar.executive.dashboard"
     _description = "SEDAR Executive Management Dashboard"
@@ -100,25 +130,13 @@ class SedarExecutiveDashboard(models.Model):
             dashboard.available_tug_count = len(tugs.filtered(lambda tug: tug.availability_status == "available"))
             dashboard.tug_blocker_count = len(tugs.filtered(lambda tug: tug.availability_status not in ("available", "assigned")))
             dashboard.utilization_percent = actual_hours / planned_hours * 100 if planned_hours else 0
-            dashboard.crew_count = len(profiles)
-            dashboard.available_crew_count = len(profiles.filtered(lambda profile: profile.availability_status in ("available", "assigned")))
-            dashboard.vacancy_count = len(vacancies)
-            dashboard.applicant_count = env["hr.applicant"].sudo().search_count([])
-            dashboard.open_shortage_count = len(shortages)
-            dashboard.credential_expiry_count = len(certificates)
-            dashboard.maintenance_open_count = len(requests)
-            dashboard.maintenance_blocker_count = len(requests.filtered("sedar_blocks_tug_readiness"))
-            dashboard.drydock_active_count = len(drydocks)
-            dashboard.inventory_shortage_count = len(inventory)
-            dashboard.fuel_consumed_qty = sum(fuel.mapped("consumed_qty"))
-            dashboard.purchase_open_count = len(purchases)
-            dashboard.purchase_overdue_count = len(purchases.filtered(lambda request: request.required_date and request.required_date.date() < today))
-            dashboard.hsse_incident_count = len(incidents)
-            dashboard.hsse_high_risk_count = len(risks)
-            dashboard.hsse_permit_exception_count = len(permits)
-            dashboard.hsse_overdue_action_count = len(actions)
-            dashboard.document_expiry_count = len(documents)
-            dashboard.governance_exception_count = len(corporate)
+            _assign_people_and_support_kpis(dashboard, env, {
+                "profiles": profiles, "vacancies": vacancies, "shortages": shortages,
+                "certificates": certificates, "requests": requests, "drydocks": drydocks,
+                "inventory": inventory, "fuel": fuel, "purchases": purchases,
+                "incidents": incidents, "risks": risks, "permits": permits,
+                "actions": actions, "documents": documents, "corporate": corporate,
+            }, today)
 
     def _open(self, model, domain):
         return {"type": "ir.actions.act_window", "name": "Dashboard Source Records", "res_model": model, "view_mode": "list,form", "domain": domain, "target": "current"}
@@ -133,4 +151,3 @@ class SedarExecutiveDashboard(models.Model):
     def action_open_hsse(self): return self._open("sedar.hsse.incident", [("state", "in", ["open", "investigating"])])
     def action_open_documents(self): return self._open("sedar.document", [("state", "=", "active")])
     def action_open_governance(self): return self._open("sedar.corporate.record", [])
-

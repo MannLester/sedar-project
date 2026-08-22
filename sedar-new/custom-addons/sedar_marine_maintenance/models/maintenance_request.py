@@ -130,31 +130,10 @@ class MaintenanceRequest(models.Model):
                 [tuple(self.ids)],
             )
         for request in self:
-            if request.sedar_service_baseline_verified_at:
-                if (
-                    request.equipment_id.sedar_verified_service_work_order_id == request
-                    and request.equipment_id.sedar_verified_service_reading_id
-                    == request.sedar_service_reading_id
-                ):
-                    continue
-                raise UserError("This planned-maintenance service baseline is already verified.")
-            if request.sedar_work_order_type != "planned":
-                raise UserError("Only completed planned-maintenance work may establish a service baseline.")
-            if not request.stage_id.done:
-                raise UserError("Complete the planned-maintenance work order before verifying its service baseline.")
-            if not request.equipment_id:
-                raise UserError("Select the serviced Equipment before verifying the service baseline.")
-            reading = request.sedar_service_reading_id
-            if not reading or reading.state != "valid":
-                raise UserError("Select a valid Running Hour Reading for the completed service.")
-            if reading.equipment_id != request.equipment_id:
-                raise ValidationError("The service reading must belong to the work order's Equipment.")
+            if request._service_baseline_is_already_current():
+                continue
+            reading = request._validate_service_baseline()
             equipment = request.equipment_id
-            existing = equipment.sedar_verified_service_reading_id
-            if existing and existing.reading_at > reading.reading_at:
-                raise UserError(
-                    "This Equipment already has a newer verified service baseline. Correct that workflow instead."
-                )
 
             request.sudo().write({
                 "sedar_running_hours_at_service": reading.running_hours,
@@ -169,6 +148,38 @@ class MaintenanceRequest(models.Model):
             })
             equipment._sedar_reconcile_due_activity()
         return True
+
+    def _service_baseline_is_already_current(self):
+        self.ensure_one()
+        if not self.sedar_service_baseline_verified_at:
+            return False
+        if (
+            self.equipment_id.sedar_verified_service_work_order_id == self
+            and self.equipment_id.sedar_verified_service_reading_id
+            == self.sedar_service_reading_id
+        ):
+            return True
+        raise UserError("This planned-maintenance service baseline is already verified.")
+
+    def _validate_service_baseline(self):
+        self.ensure_one()
+        if self.sedar_work_order_type != "planned":
+            raise UserError("Only completed planned-maintenance work may establish a service baseline.")
+        if not self.stage_id.done:
+            raise UserError("Complete the planned-maintenance work order before verifying its service baseline.")
+        if not self.equipment_id:
+            raise UserError("Select the serviced Equipment before verifying the service baseline.")
+        reading = self.sedar_service_reading_id
+        if not reading or reading.state != "valid":
+            raise UserError("Select a valid Running Hour Reading for the completed service.")
+        if reading.equipment_id != self.equipment_id:
+            raise ValidationError("The service reading must belong to the work order's Equipment.")
+        existing = self.equipment_id.sedar_verified_service_reading_id
+        if existing and existing.reading_at > reading.reading_at:
+            raise UserError(
+                "This Equipment already has a newer verified service baseline. Correct that workflow instead."
+            )
+        return reading
 
     def action_sedar_mark_blocking(self):
         self._check_maintenance_manager()

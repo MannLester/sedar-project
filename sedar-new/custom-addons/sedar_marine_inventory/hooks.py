@@ -36,7 +36,7 @@ def _set_available(env, product, location, quantity):
         env["stock.quant"]._update_available_quantity(product, location, delta)
 
 
-def post_init_hook(env):
+def _ensure_warehouse(env):
     company = env.company
     warehouse = env["stock.warehouse"].search([("company_id", "=", company.id)], limit=1)
     if not warehouse:
@@ -46,15 +46,15 @@ def post_init_hook(env):
             "company_id": company.id,
             "partner_id": company.partner_id.id,
         })
-    stock_location = warehouse.lot_stock_id
-
-    tug_parent_location = _record(env, "stock.location", "location_tugboats", {
+    return warehouse.lot_stock_id, _record(env, "stock.location", "location_tugboats", {
         "name": "SEDAR Tugboats",
         "usage": "internal",
-        "location_id": stock_location.id,
+        "location_id": warehouse.lot_stock_id.id,
         "company_id": company.id,
     })
 
+
+def _ensure_products(env, stock_location):
     unit = env.ref("uom.product_uom_unit")
     liter = env.ref("uom.product_uom_litre", raise_if_not_found=False) or unit
     products = {
@@ -122,7 +122,10 @@ def post_init_hook(env):
     _set_available(env, products["filter"], stock_location, 24)
     _set_available(env, products["oring"], stock_location, 4)
     _set_available(env, products["packing"], stock_location, 0)
+    return products
 
+
+def _ensure_templates(env, stock_location, products):
     services = {
         key: env.ref(f"sedar_marine_operations.service_type_{key}")
         for key in ["harbor", "berthing", "towage", "shifting", "emergency"]
@@ -150,6 +153,9 @@ def post_init_hook(env):
                 "per_tug": True,
             })
 
+
+def _ensure_tug_locations(env, tug_parent_location, products):
+    company = env.company
     for xmlid in [
         "sedar_service_order_demo.tug_atlas",
         "sedar_service_order_demo.tug_harbor_one",
@@ -170,6 +176,8 @@ def post_init_hook(env):
         _set_available(env, products["diesel"], location, 12000)
         _set_available(env, products["lube"], location, 80)
 
+
+def _configure_compatibility(env, products):
     tug_atlas = env.ref("sedar_service_order_demo.tug_atlas")
     tug_harbor_one = env.ref("sedar_service_order_demo.tug_harbor_one")
     tug_matikas = env.ref("sedar_service_order_demo.tug_matikas")
@@ -196,6 +204,8 @@ def post_init_hook(env):
         "sedar_compatible_tugboat_ids": [Command.set([tug_bantay.id, tug_lakas.id])],
     })
 
+
+def _sync_order_inventory(env):
     orders = env["sedar.marine.service.order"].search([
         ("state", "in", ["planning", "blocked", "ready", "dispatched", "in_progress", "completed"]),
     ])
@@ -204,6 +214,8 @@ def post_init_hook(env):
         order._sync_inventory_readiness()
     orders._sync_automated_readiness()
 
+
+def _ensure_inventory_usage_demo(env, stock_location, products):
     work_order = env["maintenance.request"].search([
         ("sedar_tugboat_id", "!=", False),
         ("close_date", "=", False),
@@ -246,3 +258,13 @@ def post_init_hook(env):
             move.move_line_ids.write({"quantity": move.product_uom_qty})
             move.picked = True
             move._action_done()
+
+
+def post_init_hook(env):
+    stock_location, tug_parent_location = _ensure_warehouse(env)
+    products = _ensure_products(env, stock_location)
+    _ensure_templates(env, stock_location, products)
+    _ensure_tug_locations(env, tug_parent_location, products)
+    _configure_compatibility(env, products)
+    _sync_order_inventory(env)
+    _ensure_inventory_usage_demo(env, stock_location, products)
