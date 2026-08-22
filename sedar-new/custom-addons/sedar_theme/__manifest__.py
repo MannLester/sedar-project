@@ -1,10 +1,16 @@
 {
     'name': 'SEDAR Sidebar Theme',
-    'version': '19.0.1.0.0',
+    'version': '19.0.2.0.0',
     'summary': 'Reference-inspired sidebar theme for the SEDAR Odoo MVP',
     'author': 'SEDAR Development Team',
     'category': 'Theme/Backend',
-    'depends': ['web', 'sedar_document_control', 'sedar_marine_operations', 'sedar_marine_finance'],
+    'depends': [
+        'web',
+        'sedar_document_control',
+        'sedar_marine_operations',
+        'sedar_marine_finance',
+        'sedar_purchase_request',
+    ],
     'assets': {
         'web.assets_backend': [
             'sedar_theme/static/src/xml/sedar_sidebar.xml',

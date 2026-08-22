@@ -41,8 +41,20 @@
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_ais_demo.action_sedar_ais_dashboard"><span>Live Fleet Map <small>(Simulated)</small></span></a>
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_marine_operations.action_tug_assignments"><span>Tug and Crew Plans</span></a>
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_marine_operations.action_client_vessels"><span>Client Vessels</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_marine_inventory.action_inventory_check"><span>Inventory Check</span></a>
-                                <a class="o_sedar_nav_item" href="/web#action=sedar_marine_inventory.action_inventory_issues"><span>Issue History</span></a>
+                            </div>
+                        </details>
+                        <details t-if="sedarProcurementNavigation" class="o_sedar_nav_group" open="open">
+                            <summary class="o_sedar_nav_parent"><span><i class="fa fa-shopping-cart"/>Procurement</span><i class="fa fa-angle-down o_sedar_nav_chevron"/></summary>
+                            <div class="o_sedar_nav_children">
+                                <t t-foreach="sedarProcurementNavigation.childrenTree" t-as="procurementMenu" t-key="procurementMenu.id">
+                                    <a t-if="procurementMenu.actionID" class="o_sedar_nav_item" t-att-href="getMenuItemHref(procurementMenu)"><span t-esc="procurementMenu.name"/></a>
+                                    <details t-else="" class="o_sedar_nav_subgroup" open="open">
+                                        <summary class="o_sedar_nav_item o_sedar_nav_subparent"><span t-esc="procurementMenu.name"/><i class="fa fa-angle-down o_sedar_nav_chevron"/></summary>
+                                        <div class="o_sedar_nav_subchildren">
+                                            <a t-foreach="procurementMenu.childrenTree" t-as="procurementChild" t-key="procurementChild.id" class="o_sedar_nav_item" t-att-href="getMenuItemHref(procurementChild)"><span t-esc="procurementChild.name"/></a>
+                                        </div>
+                                    </details>
+                                </t>
                             </div>
                         </details>
                         <details class="o_sedar_nav_group">
