@@ -17,7 +17,8 @@ class MaintenanceEquipment(models.Model):
     _inherit = "maintenance.equipment"
 
     sedar_tugboat_id = fields.Many2one(
-        "sedar.tugboat", string="Tugboat", index=True, ondelete="restrict"
+        "sedar.tugboat", string="Tugboat", index=True, ondelete="restrict",
+        check_company=True,
     )
     sedar_parent_equipment_id = fields.Many2one(
         "maintenance.equipment", string="Parent Marine Equipment", ondelete="restrict"

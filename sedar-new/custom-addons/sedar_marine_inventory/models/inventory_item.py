@@ -1,5 +1,6 @@
 from odoo import Command, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
+from odoo.tools.float_utils import float_compare
 
 
 class ProductProduct(models.Model):
@@ -12,6 +13,17 @@ class ProductProduct(models.Model):
     )
     sedar_manufacturer_part_number = fields.Char(
         string="Manufacturer Part Number",
+        index=True,
+    )
+    sedar_item_type = fields.Selection(
+        [
+            ("fuel_lubricant", "Fuel / Lubricant"),
+            ("spare_consumable", "Spare / Consumable"),
+            ("replacement_equipment", "Replacement Equipment"),
+        ],
+        string="Item Type",
+        required=True,
+        default="spare_consumable",
         index=True,
     )
     sedar_compatibility_scope = fields.Selection(
@@ -66,24 +78,28 @@ class ProductProduct(models.Model):
     @api.depends_context("company")
     @api.depends("sedar_reorder_point")
     def _compute_sedar_inventory_check(self):
-        warehouses = {}
+        company_locations = {}
         Quant = self.env["stock.quant"]
         for product in self:
             company = product.company_id or self.env.company
-            warehouse = warehouses.get(company.id)
-            if warehouse is None:
-                warehouse = self.env["stock.warehouse"].search(
-                    [("company_id", "=", company.id)], order="id", limit=1
+            locations = company_locations.get(company.id)
+            if locations is None:
+                locations = self.env["stock.location"].search(
+                    [
+                        ("company_id", "=", company.id),
+                        ("sedar_location_role", "=", "storage"),
+                        ("usage", "=", "internal"),
+                    ]
                 )
-                warehouses[company.id] = warehouse
-            location = warehouse.lot_stock_id
+                company_locations[company.id] = locations
+            location = company.sedar_default_storage_location_id
             product.sedar_stock_location_id = location
             quants = Quant.search([
                 ("product_id", "=", product.id),
-                ("location_id", "=", location.id),
-            ]) if location else Quant
-            on_hand = sum(quants.mapped("quantity")) if location else 0.0
-            reserved = sum(quants.mapped("reserved_quantity")) if location else 0.0
+                ("location_id", "in", locations.ids),
+            ]) if locations else Quant
+            on_hand = sum(quants.mapped("quantity")) if locations else 0.0
+            reserved = sum(quants.mapped("reserved_quantity")) if locations else 0.0
             available = on_hand - reserved
             product.sedar_on_hand_qty = on_hand
             product.sedar_reserved_qty = reserved
@@ -129,6 +145,8 @@ class ProductProduct(models.Model):
         "sedar_compatibility_scope",
         "sedar_compatible_tugboat_ids",
         "sedar_reorder_point",
+        "sedar_item_type",
+        "tracking",
     )
     def _check_sedar_inventory_item(self):
         for product in self:
@@ -138,6 +156,13 @@ class ProductProduct(models.Model):
                 raise ValidationError("A SEDAR Inventory Item requires a SEDAR Item Code.")
             if not product.is_storable:
                 raise ValidationError("A SEDAR Inventory Item must track inventory.")
+            if (
+                product.sedar_item_type == "replacement_equipment"
+                and product.tracking != "serial"
+            ):
+                raise ValidationError(
+                    "Replacement Equipment must use Odoo serial-number tracking."
+                )
             duplicate = self.search_count([
                 ("id", "!=", product.id),
                 ("sedar_inventory_item", "=", True),
@@ -161,10 +186,14 @@ class ProductProduct(models.Model):
         return super().create(normalized)
 
     def write(self, vals):
-        if "default_code" in vals:
+        if {"default_code", "sedar_item_type"}.intersection(vals):
             for product in self.filtered("sedar_inventory_item"):
-                if product.sedar_code_locked and vals["default_code"] != product.default_code:
+                if not product.sedar_code_locked:
+                    continue
+                if "default_code" in vals and vals["default_code"] != product.default_code:
                     raise UserError("The SEDAR Item Code cannot change after the first stock transaction.")
+                if "sedar_item_type" in vals and vals["sedar_item_type"] != product.sedar_item_type:
+                    raise UserError("Item Type cannot change after the first stock transaction.")
         vals = dict(vals)
         if vals.get("sedar_compatibility_scope") == "fleet":
             vals["sedar_compatible_tugboat_ids"] = [Command.clear()]
@@ -189,22 +218,47 @@ class SedarInventoryIssue(models.Model):
     _description = "SEDAR Inventory Issue to Tug"
     _inherit = ["sedar.inventory.mixin"]
     _order = "issued_at desc, id desc"
+    _check_company_auto = True
 
     name = fields.Char(required=True, readonly=True, copy=False)
-    product_id = fields.Many2one("product.product", required=True, readonly=True, ondelete="restrict")
+    company_id = fields.Many2one(
+        "res.company", required=True, readonly=True, index=True, copy=False
+    )
+    product_id = fields.Many2one(
+        "product.product", required=True, readonly=True, ondelete="restrict", check_company=True
+    )
     manufacturer_part_number = fields.Char(
         related="product_id.sedar_manufacturer_part_number",
         string="Manufacturer Part Number",
         readonly=True,
     )
-    tugboat_id = fields.Many2one("sedar.tugboat", required=True, readonly=True, ondelete="restrict")
-    source_location_id = fields.Many2one("stock.location", required=True, readonly=True, ondelete="restrict")
+    tugboat_id = fields.Many2one(
+        "sedar.tugboat", required=True, readonly=True, ondelete="restrict", check_company=True
+    )
+    source_location_id = fields.Many2one(
+        "stock.location", required=True, readonly=True, ondelete="restrict", check_company=True
+    )
+    tug_location_id = fields.Many2one(
+        "stock.location", required=True, readonly=True, ondelete="restrict", check_company=True
+    )
     quantity = fields.Float(required=True, readonly=True)
     product_uom_id = fields.Many2one(related="product_id.uom_id", readonly=True)
     purpose = fields.Text(required=True, readonly=True)
     issued_by_id = fields.Many2one("res.users", required=True, readonly=True, ondelete="restrict")
     issued_at = fields.Datetime(required=True, readonly=True)
-    stock_move_id = fields.Many2one("stock.move", required=True, readonly=True, ondelete="restrict")
+    stock_move_id = fields.Many2one(
+        "stock.move", required=True, readonly=True, ondelete="restrict", check_company=True
+    )
+    lot_id = fields.Many2one(
+        "stock.lot", string="Serial / Lot", readonly=True, copy=False,
+        ondelete="restrict", check_company=True,
+    )
+    lifecycle_id = fields.Many2one(
+        "sedar.inventory.lifecycle", readonly=True, copy=False, ondelete="restrict"
+    )
+    legacy_consumed = fields.Boolean(
+        string="Legacy One-step Consumption", readonly=True, copy=False, default=False
+    )
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -213,17 +267,17 @@ class SedarInventoryIssue(models.Model):
         return super().create(vals_list)
 
     def write(self, vals):
+        if self.env.context.get("sedar_inventory_issue_link_lifecycle") and set(vals) == {"lifecycle_id"}:
+            return super().write(vals)
         raise AccessError("Completed inventory issues are immutable.")
 
     def unlink(self):
         raise AccessError("Completed inventory issues cannot be deleted.")
 
     @api.model
-    def _issue_to_tug(self, product, tugboat, quantity, purpose, source_location=None):
-        if not self.env.su and not self.env.user.has_group(
-            "sedar_marine_inventory.group_marine_inventory_manager"
-        ):
-            raise AccessError("Only a Procurement and Inventory Officer may issue stock to a tugboat.")
+    def _issue_to_tug(
+        self, product, tugboat, quantity, purpose, source_location=None, lot=None
+    ):
         if not product.sedar_inventory_item:
             raise UserError("Select a SEDAR Inventory Item.")
         if quantity <= 0:
@@ -235,20 +289,28 @@ class SedarInventoryIssue(models.Model):
             and tugboat not in product.sedar_compatible_tugboat_ids
         ):
             raise UserError("%s is not compatible with %s." % (product.display_name, tugboat.display_name))
-        source_location = source_location or product.sedar_stock_location_id
-        available = self._sedar_available_qty(product, source_location)
+        source_location = source_location or self.env.company.sedar_default_storage_location_id
+        company = source_location.company_id if source_location else self.env.company
+        self._check_issue_authority(company)
+        tug_location = tugboat.stock_location_id
+        self._validate_issue_locations(company, tugboat, source_location, tug_location)
+        self._validate_issue_serial(product, quantity, lot)
+        available = self.env["sedar.inventory.lifecycle"]._available_quantity(
+            product, source_location, lot
+        )
         if quantity > available:
             raise UserError("Only %.2f %s is available to issue." % (
                 available, product.uom_id.display_name
             ))
         name = self.env["ir.sequence"].next_by_code("sedar.inventory.issue") or "New"
-        destination = self._sedar_consumption_location()
-        move = self._sedar_create_done_move(
+        move = self.env["sedar.inventory.lifecycle"]._create_done_stock_move(
             product,
             quantity,
             source_location,
-            destination,
+            tug_location,
             "%s - Issue to %s" % (name, tugboat.display_name),
+            company,
+            lot,
         )
         product.invalidate_recordset([
             "sedar_on_hand_qty",
@@ -257,18 +319,72 @@ class SedarInventoryIssue(models.Model):
             "sedar_stock_status",
             "sedar_code_locked",
         ])
-        # TODO(next inventory iteration): decide Return to Warehouse and correction rules.
-        return self.with_context(sedar_inventory_issue_create=True).create({
+        issue = self.with_context(sedar_inventory_issue_create=True).create({
             "name": name,
+            "company_id": company.id,
             "product_id": product.id,
             "tugboat_id": tugboat.id,
             "source_location_id": source_location.id,
+            "tug_location_id": tug_location.id,
             "quantity": quantity,
             "purpose": purpose.strip(),
             "issued_by_id": self.env.user.id,
             "issued_at": fields.Datetime.now(),
             "stock_move_id": move.id,
+            "lot_id": lot.id if lot else False,
         })
+        lifecycle = self.env["sedar.inventory.lifecycle"].sudo().with_context(
+            sedar_inventory_lifecycle_create=True
+        ).create({
+            "issue_id": issue.id,
+            "company_id": company.id,
+            "product_id": product.id,
+            "product_uom_id": product.uom_id.id,
+            "tugboat_id": tugboat.id,
+            "source_location_id": source_location.id,
+            "tug_location_id": tug_location.id,
+            "issue_move_id": move.id,
+            "initial_qty": quantity,
+            "lot_id": lot.id if lot else False,
+            "issued_by_id": self.env.user.id,
+            "issued_at": issue.issued_at,
+        })
+        issue.sudo().with_context(sedar_inventory_issue_link_lifecycle=True).write({
+            "lifecycle_id": lifecycle.id
+        })
+        return issue
+
+    def _check_issue_authority(self, company):
+        if not company or self.env.user != company.sedar_procurement_inventory_officer_id:
+            raise AccessError(
+                "Only this company's configured Procurement and Inventory Officer may issue stock."
+            )
+
+    def _validate_issue_locations(self, company, tugboat, source, destination):
+        if not source or source.company_id != company or source.sedar_location_role != "storage":
+            raise UserError("Issue stock from a company-owned tagged Storage location.")
+        tug_company = getattr(tugboat, "company_id", False)
+        if tug_company and tug_company != company:
+            raise UserError("The tugboat belongs to another company.")
+        if (
+            not destination
+            or destination.company_id != company
+            or destination.sedar_location_role != "tug"
+            or destination.sedar_tugboat_id != tugboat
+        ):
+            raise UserError("Configure this tugboat's tagged company stock location first.")
+
+    def _validate_issue_serial(self, product, quantity, lot):
+        if product.sedar_item_type != "replacement_equipment":
+            if lot and lot.product_id != product:
+                raise UserError("The selected lot or serial belongs to another Item Type.")
+            return
+        if product.tracking != "serial" or not lot or lot.product_id != product:
+            raise UserError("Replacement Equipment requires its matching serial number.")
+        if float_compare(
+            quantity, 1.0, precision_rounding=product.uom_id.rounding
+        ) != 0:
+            raise UserError("Replacement Equipment must be issued one serialized unit at a time.")
 
 
 class SedarInventoryIssueWizard(models.TransientModel):
@@ -299,6 +415,11 @@ class SedarInventoryIssueWizard(models.TransientModel):
     quantity = fields.Float(required=True, default=1.0)
     product_uom_id = fields.Many2one(related="product_id.uom_id", readonly=True)
     purpose = fields.Text(required=True)
+    lot_id = fields.Many2one(
+        "stock.lot",
+        string="Serial / Lot",
+        domain="[('product_id', '=', product_id)]",
+    )
 
     def action_issue(self):
         self.ensure_one()
@@ -308,6 +429,7 @@ class SedarInventoryIssueWizard(models.TransientModel):
             self.quantity,
             self.purpose,
             self.source_location_id,
+            self.lot_id,
         )
         return {
             "type": "ir.actions.act_window",

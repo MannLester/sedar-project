@@ -17,6 +17,7 @@ class MaintenanceRequest(models.Model):
         string="Tugboat",
         index=True,
         ondelete="restrict",
+        check_company=True,
     )
     sedar_work_order_type = fields.Selection(
         [
@@ -57,6 +58,7 @@ class MaintenanceRequest(models.Model):
         "sedar.drydock.plan",
         string="Dry Dock Plan",
         ondelete="set null",
+        check_company=True,
     )
     sedar_spare_part_note = fields.Text(
         string="Spare Parts Note",

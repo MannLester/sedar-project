@@ -308,7 +308,9 @@ class SedarMarineOperationTug(models.Model):
     tug_assignment_id = fields.Many2one(
         "sedar.tug.assignment", required=True, ondelete="restrict", check_company=True,
     )
-    tugboat_id = fields.Many2one("sedar.tugboat", required=True, ondelete="restrict")
+    tugboat_id = fields.Many2one(
+        "sedar.tugboat", required=True, ondelete="restrict", check_company=True,
+    )
     state = fields.Selection([
         ("pending", "Pending"), ("dispatched", "Dispatched"),
         ("on_scene", "On Scene"), ("released", "Released"), ("returned", "Returned"),
@@ -320,12 +322,16 @@ class SedarMarineOperationTug(models.Model):
     remarks = fields.Text()
     crew_manifest_ids = fields.One2many("sedar.marine.operation.crew", "operation_tug_id")
 
-    @api.constrains("operation_id", "tug_assignment_id")
+    @api.constrains("operation_id", "tug_assignment_id", "tugboat_id")
     def _check_assignment_order(self):
         for tug in self:
             if tug.tug_assignment_id.order_id != tug.operation_id.order_id:
                 raise ValidationError(
                     "The tug assignment must belong to the Marine Operation's Service Order."
+                )
+            if tug.tugboat_id != tug.tug_assignment_id.tugboat_id:
+                raise ValidationError(
+                    "The Operation Tug must use the Tugboat selected by its Tug Assignment."
                 )
 
     def write(self, vals):

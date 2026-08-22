@@ -7,9 +7,16 @@ class SedarDrydockPlan(models.Model):
     _description = "SEDAR Dry Dock Plan"
     _inherit = ["mail.thread", "mail.activity.mixin"]
     _order = "planned_start desc, tugboat_id"
+    _check_company_auto = True
 
     name = fields.Char(required=True, tracking=True)
-    tugboat_id = fields.Many2one("sedar.tugboat", required=True, ondelete="restrict", tracking=True)
+    company_id = fields.Many2one(
+        related="tugboat_id.company_id", store=True, index=True, readonly=True,
+    )
+    tugboat_id = fields.Many2one(
+        "sedar.tugboat", required=True, ondelete="restrict", tracking=True,
+        check_company=True,
+    )
     planned_start = fields.Datetime(required=True, tracking=True)
     planned_end = fields.Datetime(required=True, tracking=True)
     yard_name = fields.Char(required=True)
@@ -112,8 +119,14 @@ class SedarDrydockMilestone(models.Model):
     _name = "sedar.drydock.milestone"
     _description = "SEDAR Dry Dock Milestone"
     _order = "plan_id, sequence, planned_date"
+    _check_company_auto = True
 
-    plan_id = fields.Many2one("sedar.drydock.plan", required=True, ondelete="cascade")
+    plan_id = fields.Many2one(
+        "sedar.drydock.plan", required=True, ondelete="cascade", check_company=True,
+    )
+    company_id = fields.Many2one(
+        related="plan_id.company_id", store=True, index=True, readonly=True,
+    )
     sequence = fields.Integer(default=10)
     name = fields.Char(required=True)
     planned_date = fields.Datetime(required=True)

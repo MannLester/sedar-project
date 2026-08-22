@@ -20,27 +20,6 @@ FACT_FIELDS = {
 class ResCompany(models.Model):
     _inherit = "res.company"
 
-    sedar_procurement_inventory_officer_id = fields.Many2one(
-        "res.users", string="Procurement and Inventory Officer",
-        domain="[('active', '=', True), ('share', '=', False)]",
-        help="Reviews and controls Purchase Requests for this company.",
-    )
-
-    @api.constrains("sedar_procurement_inventory_officer_id")
-    def _check_sedar_procurement_inventory_officer(self):
-        for company in self:
-            officer = company.sedar_procurement_inventory_officer_id
-            if not officer:
-                continue
-            if not officer.active or officer.share or company not in officer.company_ids:
-                raise ValidationError(_(
-                    "The Procurement and Inventory Officer must be an active internal user allowed in this company."
-                ))
-            if not officer.has_group(OFFICER_GROUP):
-                raise ValidationError(_(
-                    "The configured Procurement and Inventory Officer must have the Procurement and Inventory Officer role."
-                ))
-
     def write(self, vals):
         result = super().write(vals)
         if "sedar_procurement_inventory_officer_id" in vals:
