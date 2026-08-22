@@ -24,6 +24,31 @@
         <field name="privilege_id" ref="privilege_sedar_dispatch"/>
         <field name="implied_ids" eval="[Command.link(ref('group_dispatcher'))]"/>
     </record>
+    <record id="rule_dispatch_operation_company" model="ir.rule">
+        <field name="name">Marine operations are limited to allowed companies</field>
+        <field name="model_id" ref="model_sedar_marine_operation"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_operation_tug_company" model="ir.rule">
+        <field name="name">Operation tugs are limited to allowed companies</field>
+        <field name="model_id" ref="model_sedar_marine_operation_tug"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_operation_crew_company" model="ir.rule">
+        <field name="name">Operation crew are limited to allowed companies</field>
+        <field name="model_id" ref="model_sedar_marine_operation_crew"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_operation_log_company" model="ir.rule">
+        <field name="name">Operation logs are limited to allowed companies</field>
+        <field name="model_id" ref="model_sedar_marine_operation_log"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_operation_delay_company" model="ir.rule">
+        <field name="name">Operation delays are limited to allowed companies</field>
+        <field name="model_id" ref="model_sedar_marine_operation_delay"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
     <record id="rule_dispatch_portal_operation" model="ir.rule">
         <field name="name">Portal clients see their own operation status</field>
         <field name="model_id" ref="model_sedar_marine_operation"/>

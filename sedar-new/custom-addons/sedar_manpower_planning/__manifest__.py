@@ -1,6 +1,6 @@
 {
     "name": "SEDAR Manpower Planning",
-    "version": "19.0.1.0.0",
+    "version": "19.0.2.0.0",
     "category": "Human Resources",
     "summary": "Review marine crew shortages and approve manpower demand",
     "author": "SEDAR Development Team",

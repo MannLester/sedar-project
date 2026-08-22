@@ -4,11 +4,15 @@ from odoo.addons.sedar_marine_operations.controllers.portal import SedarMarineCu
 
 class SedarMarineDispatchPortal(SedarMarineCustomerPortal):
 
+    def _operation_domain(self, order):
+        return [
+            ("order_id", "=", order.id),
+            ("company_id", "in", self._allowed_company_ids()),
+        ]
+
     @route(["/my/sedar/orders/<int:order_id>"], type="http", auth="user", website=True, readonly=True)
     def portal_order_detail(self, order_id, **kwargs):
-        order = request.env["sedar.marine.service.order"].sudo().search([
-            ("id", "=", order_id), *self._order_domain()
-        ], limit=1)
+        order = self._get_portal_order(order_id)
         if not order:
             from werkzeug.exceptions import NotFound
             raise NotFound()
@@ -16,7 +20,9 @@ class SedarMarineDispatchPortal(SedarMarineCustomerPortal):
         values.update({
             "page_name": "sedar_order",
             "order": order,
-            "operation": order.operation_ids[:1],
+            "operation": request.env["sedar.marine.operation"].sudo().search(
+                self._operation_domain(order), limit=1
+            ),
         })
         operation = values["operation"]
         values["client_logs"] = operation.log_ids.filtered(lambda line: line.client_visible) if operation else request.env["sedar.marine.operation.log"]

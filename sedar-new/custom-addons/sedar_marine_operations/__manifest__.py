@@ -1,6 +1,6 @@
 {
     "name": "SEDAR Marine Operations",
-    "version": "19.0.1.0.0",
+    "version": "19.0.2.0.0",
     "category": "Operations",
     "summary": "Client service-order intake, tariffs, and marine operations planning",
     "author": "SEDAR Development Team",

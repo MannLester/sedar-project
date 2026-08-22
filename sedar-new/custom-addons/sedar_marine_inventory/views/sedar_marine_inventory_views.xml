@@ -21,6 +21,7 @@
                     <button name="action_generate_inventory_requirements" type="object" string="Generate Inventory Requirements" class="btn-secondary" invisible="state not in ['planning','blocked','ready']"/>
                     <field name="inventory_requirement_ids">
                         <list editable="bottom" decoration-danger="readiness_state == 'shortage'">
+                            <field name="company_id" column_invisible="1"/>
                             <field name="product_id"/>
                             <field name="source_location_id"/>
                             <field name="required_qty"/>
@@ -91,6 +92,7 @@
                     </group>
                     <field name="fuel_log_ids">
                         <list editable="bottom">
+                            <field name="company_id" column_invisible="1"/>
                             <field name="tugboat_id"/>
                             <field name="product_id"/>
                             <field name="source_location_id"/>
@@ -112,6 +114,7 @@
         <field name="model">sedar.inventory.template</field>
         <field name="arch" type="xml">
             <list>
+                <field name="company_id" groups="base.group_multi_company"/>
                 <field name="name"/>
                 <field name="service_type_id"/>
                 <field name="tug_class_id"/>
@@ -280,11 +283,13 @@
                         </group>
                         <group>
                             <field name="source_location_id"/>
+                            <field name="company_id" readonly="1" groups="base.group_multi_company"/>
                             <field name="active"/>
                         </group>
                     </group>
                     <field name="line_ids">
                         <list editable="bottom">
+                            <field name="company_id" column_invisible="1"/>
                             <field name="sequence"/>
                             <field name="product_id"/>
                             <field name="required_qty"/>
@@ -305,6 +310,7 @@
                 <field name="order_id"/>
                 <field name="product_id"/>
                 <field name="source_location_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
                 <filter name="shortage" string="Shortage" domain="[('readiness_state', '=', 'shortage')]"/>
                 <filter name="group_order" string="Group by Service Order" context="{'group_by': 'order_id'}"/>
                 <filter name="group_product" string="Group by Product" context="{'group_by': 'product_id'}"/>
@@ -317,6 +323,7 @@
         <field name="model">sedar.inventory.requirement</field>
         <field name="arch" type="xml">
             <list decoration-danger="readiness_state == 'shortage'">
+                <field name="company_id" groups="base.group_multi_company"/>
                 <field name="order_id"/>
                 <field name="product_id"/>
                 <field name="source_location_id"/>

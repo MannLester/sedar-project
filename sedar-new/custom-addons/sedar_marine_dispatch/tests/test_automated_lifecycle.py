@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from odoo import fields
+from odoo.exceptions import ValidationError
 from odoo.tests import TransactionCase, tagged
 
 
@@ -76,3 +77,35 @@ class TestAutomatedMarineLifecycle(TransactionCase):
         self.assertFalse(self.order.inventory_ready_by_id)
         self.assertFalse(self.order.inventory_ready_at)
         self.assertEqual(self.order.state, "blocked")
+
+    def test_dispatch_snapshot_inherits_service_order_company(self):
+        self.order.action_confirm_inventory_ready()
+        operation = self.order.operation_ids
+        self.assertEqual(operation.company_id, self.order.company_id)
+        self.assertEqual(operation.tug_operation_ids.company_id, self.order.company_id)
+        self.assertEqual(operation.tug_operation_ids.crew_manifest_ids.company_id, self.order.company_id)
+
+    def test_operation_tug_rejects_assignment_from_another_order(self):
+        other_order = self.order.copy({
+            "assisted_vessel_name": "MV Other Lifecycle",
+            "state": "planning",
+        })
+        other_assignment = self.assignment.copy({"order_id": other_order.id})
+        operation = self.env["sedar.marine.operation"].create({"order_id": self.order.id})
+        with self.assertRaisesRegex(ValidationError, "must belong"):
+            self.env["sedar.marine.operation.tug"].create({
+                "operation_id": operation.id,
+                "tug_assignment_id": other_assignment.id,
+                "tugboat_id": other_assignment.tugboat_id.id,
+            })
+
+    def test_operation_cannot_move_to_another_service_order(self):
+        self.order.action_confirm_inventory_ready()
+        operation = self.order.operation_ids
+        other_order = self.order.copy({
+            "assisted_vessel_name": "MV Reparenting Is Forbidden",
+            "state": "planning",
+        })
+
+        with self.assertRaisesRegex(ValidationError, "cannot move"):
+            operation.write({"order_id": other_order.id})

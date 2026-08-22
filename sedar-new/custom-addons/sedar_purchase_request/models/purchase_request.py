@@ -111,7 +111,7 @@ class SedarPurchaseRequest(models.Model):
         "maintenance.request", string="Maintenance Work Order", check_company=True
     )
     service_order_id = fields.Many2one(
-        "sedar.marine.service.order", string="Service Order"
+        "sedar.marine.service.order", string="Service Order", check_company=True
     )
     equipment_id = fields.Many2one(
         "maintenance.equipment", string="Equipment", ondelete="restrict", check_company=True,
@@ -237,6 +237,7 @@ class SedarPurchaseRequest(models.Model):
         self.ensure_one()
         for record, label in (
             (self.maintenance_request_id, _("Maintenance Work Order")),
+            (self.service_order_id, _("Service Order")),
             (self.equipment_id, _("Equipment")),
         ):
             if record and record.company_id and record.company_id != self.company_id:
@@ -527,7 +528,9 @@ class SedarPurchaseRequestLine(models.Model):
         "stock.location", domain=[("usage", "=", "internal")], ondelete="set null", check_company=True
     )
     maintenance_part_line_id = fields.Many2one("sedar.maintenance.part.line", ondelete="set null")
-    inventory_requirement_id = fields.Many2one("sedar.inventory.requirement", ondelete="set null")
+    inventory_requirement_id = fields.Many2one(
+        "sedar.inventory.requirement", ondelete="set null", check_company=True
+    )
     need_reason = fields.Text()
     bid_line_ids = fields.One2many(
         "sedar.purchase.bid.line", "request_line_id", string="Bid Lines",
@@ -598,6 +601,10 @@ class SedarPurchaseRequestLine(models.Model):
         source = self.inventory_requirement_id
         if not source:
             return
+        if source.company_id != request.company_id:
+            raise ValidationError(_(
+                "An inventory requirement source must belong to the Purchase Request company."
+            ))
         if request.service_order_id and source.order_id != request.service_order_id:
             raise ValidationError(_("An inventory requirement must belong to the selected Service Order."))
         if self.product_id != source.product_id or self.source_location_id != source.source_location_id:

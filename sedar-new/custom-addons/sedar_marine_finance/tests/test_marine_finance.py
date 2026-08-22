@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 from odoo import fields
-from odoo.exceptions import AccessError, UserError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import tagged
 from odoo.tests.common import TransactionCase, new_test_user
 
@@ -64,10 +64,12 @@ class TestMarineFinanceWorkflow(TransactionCase):
         })
         cls.tariff.with_user(cls.manager).action_approve()
 
-    def _make_order(self, *, service=None, tug_count=2, state="in_progress"):
+    def _make_order(self, *, service=None, tug_count=2, state="in_progress", company=None):
         service = service or self.service
+        company = company or self.company
         start = datetime(2026, 8, 4, 8, 0, 0)
-        order = self.env["sedar.marine.service.order"].create({
+        order = self.env["sedar.marine.service.order"].with_company(company).create({
+            "company_id": company.id,
             "client_id": self.client.id,
             "assisted_vessel_name": "MV Finance Test",
             "service_type_id": service.id,
@@ -279,3 +281,95 @@ class TestMarineFinanceWorkflow(TransactionCase):
         assignment.with_user(self.billing).action_return_completion()
         self.assertEqual(assignment.completion_state, "returned")
         self.assertEqual(order.billing_status, "not_ready")
+
+    def test_billing_sources_are_company_scoped(self):
+        order = self._make_order(tug_count=1)
+        adjustment = self.env["sedar.marine.billing.adjustment"].with_user(
+            self.billing
+        ).create({
+            "order_id": order.id,
+            "description": "Company scoped adjustment",
+            "quantity": 1,
+            "unit_rate": 50,
+            "reason": "Verify company propagation.",
+        })
+        self.assertEqual(adjustment.company_id, order.company_id)
+
+        other_company = self.env["res.company"].create({"name": "Other Finance Company"})
+        other_order = self.env["sedar.marine.service.order"].sudo().with_company(
+            other_company
+        ).create({
+            "company_id": other_company.id,
+            "client_id": self.client.id,
+            "assisted_vessel_name": "MV Other Finance Company",
+            "service_type_id": self.service.id,
+            "number_of_tugs": 1,
+            "scope_of_work": "Finance company isolation test.",
+            "port_id": self.port.id,
+            "requested_start": datetime(2026, 8, 7, 8, 0, 0),
+            "estimated_duration_hours": 2,
+        })
+        other_adjustment = self.env["sedar.marine.billing.adjustment"].with_user(
+            self.billing
+        ).sudo().create({
+            "order_id": other_order.id,
+            "description": "Other company adjustment",
+            "quantity": 1,
+            "unit_rate": 25,
+            "reason": "Must stay isolated.",
+        })
+        self.assertFalse(
+            self.env["sedar.marine.billing.adjustment"].with_user(
+                self.billing
+            ).search([("id", "=", other_adjustment.id)])
+        )
+
+        move = self.env["account.move"].new({
+            "company_id": other_company.id,
+            "sedar_service_order_id": order.id,
+        })
+        with self.assertRaises(ValidationError):
+            move._check_sedar_service_order_company()
+
+    def test_invoice_uses_order_company_when_another_company_is_active(self):
+        other_company = self.env["res.company"].create({"name": "Other Invoice Company"})
+        income_account = self.env["account.account"].with_company(other_company).create({
+            "name": "Other Company Marine Service Revenue",
+            "code": "400000",
+            "account_type": "income",
+            "company_ids": [(6, 0, other_company.ids)],
+        })
+        receivable_account = self.env["account.account"].with_company(
+            other_company
+        ).create({
+            "name": "Other Company Trade Receivable",
+            "code": "110000",
+            "account_type": "asset_receivable",
+            "reconcile": True,
+            "company_ids": [(6, 0, other_company.ids)],
+        })
+        self.env["account.journal"].create({
+            "name": "Other Company Sales",
+            "code": "OCS",
+            "type": "sale",
+            "company_id": other_company.id,
+        })
+        self.env.ref("sedar_marine_finance.product_marine_service").with_company(
+            other_company
+        ).property_account_income_id = income_account
+        self.client.with_company(other_company).property_account_receivable_id = (
+            receivable_account
+        )
+        self.billing.sudo().write({"company_ids": [(4, other_company.id)]})
+        order = self._make_order(tug_count=1, company=other_company)
+        start = fields.Datetime.to_datetime(order.requested_start)
+        self._add_completed_tug(order, "OTHER-COMPANY", start, start + timedelta(hours=2))
+        order._sync_completion_from_tugs()
+        self._add_completed_operation(order)
+
+        active_company_order = order.with_user(self.billing).with_company(self.company)
+        self.assertEqual(active_company_order.env.company, self.company)
+        active_company_order.action_mark_billing_reviewed()
+        active_company_order.action_create_draft_invoice()
+
+        self.assertEqual(order.invoice_ids.company_id, other_company)

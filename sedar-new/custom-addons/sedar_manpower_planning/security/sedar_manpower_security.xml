@@ -29,4 +29,19 @@
         <field name="privilege_id" ref="privilege_sedar_manpower"/>
         <field name="implied_ids" eval="[Command.link(ref('group_manpower_approver'))]"/>
     </record>
+    <record id="rule_shortage_action_company" model="ir.rule">
+        <field name="name">Crew shortage actions are limited to allowed companies</field>
+        <field name="model_id" ref="model_sedar_crew_shortage_action"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_manpower_request_company" model="ir.rule">
+        <field name="name">Manpower requests are limited to allowed companies</field>
+        <field name="model_id" ref="model_sedar_manpower_request"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_manpower_request_line_company" model="ir.rule">
+        <field name="name">Manpower request lines are limited to allowed companies</field>
+        <field name="model_id" ref="model_sedar_manpower_request_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
 </odoo>

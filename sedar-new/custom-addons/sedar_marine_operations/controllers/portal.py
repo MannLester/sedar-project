@@ -13,8 +13,21 @@ class SedarMarineCustomerPortal(CustomerPortal):
     def _commercial_partner(self):
         return request.env.user.partner_id.commercial_partner_id
 
+    def _allowed_company_ids(self):
+        return request.env.companies.ids
+
     def _order_domain(self):
-        return [("client_id", "=", self._commercial_partner().id)]
+        return [
+            ("client_id", "=", self._commercial_partner().id),
+            ("company_id", "in", self._allowed_company_ids()),
+        ]
+
+    def _get_portal_order(self, order_id, extra_domain=None):
+        return request.env["sedar.marine.service.order"].sudo().search([
+            ("id", "=", order_id),
+            *(extra_domain or []),
+            *self._order_domain(),
+        ], limit=1)
 
     def _prepare_home_portal_values(self, counters):
         values = super()._prepare_home_portal_values(counters)
@@ -135,6 +148,7 @@ class SedarMarineCustomerPortal(CustomerPortal):
         file_data, filename = self._uploaded_file_values(post.get("supporting_document"))
 
         order = request.env["sedar.marine.service.order"].sudo().create({
+            "company_id": request.env.company.id,
             "client_id": partner.id,
             "contact_id": request.env.user.partner_id.id,
             "request_channel": "portal",
@@ -164,9 +178,7 @@ class SedarMarineCustomerPortal(CustomerPortal):
 
     @route(["/my/sedar/orders/<int:order_id>"], type="http", auth="user", website=True, readonly=True)
     def portal_order_detail(self, order_id, **kwargs):
-        order = request.env["sedar.marine.service.order"].sudo().search([
-            ("id", "=", order_id), *self._order_domain()
-        ], limit=1)
+        order = self._get_portal_order(order_id)
         if not order:
             raise NotFound()
         values = self._prepare_portal_layout_values()
@@ -175,9 +187,7 @@ class SedarMarineCustomerPortal(CustomerPortal):
 
     @route(["/my/sedar/orders/<int:order_id>/confirm"], type="http", auth="user", website=True, methods=["POST"])
     def portal_order_confirm(self, order_id, **post):
-        order = request.env["sedar.marine.service.order"].sudo().search([
-            ("id", "=", order_id), ("state", "=", "quoted"), *self._order_domain()
-        ], limit=1)
+        order = self._get_portal_order(order_id, [("state", "=", "quoted")])
         if not order:
             raise NotFound()
         order.action_confirm()

@@ -140,8 +140,12 @@ class SedarTugAssignment(models.Model):
     _name = "sedar.tug.assignment"
     _description = "Service Order Tug Assignment"
     _order = "planned_start, tugboat_id"
+    _check_company_auto = True
 
-    order_id = fields.Many2one("sedar.marine.service.order", required=True, ondelete="cascade")
+    order_id = fields.Many2one(
+        "sedar.marine.service.order", required=True, ondelete="cascade", check_company=True,
+    )
+    company_id = fields.Many2one(related="order_id.company_id", store=True, index=True)
     order_state = fields.Selection(related="order_id.state", string="Service Order Status")
     tugboat_id = fields.Many2one("sedar.tugboat", required=True, ondelete="restrict")
     planned_start = fields.Datetime(related="order_id.requested_start", store=True)
@@ -321,8 +325,12 @@ class SedarManningRequirement(models.Model):
     _name = "sedar.manning.requirement"
     _description = "Service Order Manning Requirement"
     _order = "rank_id"
+    _check_company_auto = True
 
-    tug_assignment_id = fields.Many2one("sedar.tug.assignment", required=True, ondelete="cascade")
+    tug_assignment_id = fields.Many2one(
+        "sedar.tug.assignment", required=True, ondelete="cascade", check_company=True,
+    )
+    company_id = fields.Many2one(related="tug_assignment_id.company_id", store=True, index=True)
     rank_id = fields.Many2one("sedar.crew.rank", required=True, ondelete="restrict")
     required_count = fields.Integer(required=True, default=1)
     required_certificate_type_ids = fields.Many2many("sedar.crew.certificate.type")
@@ -354,10 +362,14 @@ class SedarCrewAssignment(models.Model):
     _name = "sedar.crew.assignment"
     _description = "Service Order Crew Assignment"
     _order = "requirement_id, crew_profile_id"
+    _check_company_auto = True
 
-    requirement_id = fields.Many2one("sedar.manning.requirement", required=True, ondelete="cascade")
+    requirement_id = fields.Many2one(
+        "sedar.manning.requirement", required=True, ondelete="cascade", check_company=True,
+    )
     tug_assignment_id = fields.Many2one(related="requirement_id.tug_assignment_id", store=True)
     order_id = fields.Many2one(related="tug_assignment_id.order_id", store=True)
+    company_id = fields.Many2one(related="order_id.company_id", store=True, index=True)
     crew_profile_id = fields.Many2one("sedar.crew.profile", required=True, ondelete="restrict")
     employee_id = fields.Many2one(related="crew_profile_id.employee_id", store=True)
     rank_id = fields.Many2one(related="crew_profile_id.rank_id", store=True)
@@ -415,9 +427,13 @@ class SedarCrewShortage(models.Model):
     _name = "sedar.crew.shortage"
     _description = "Service Order Crew Shortage"
     _order = "status, requirement_id"
+    _check_company_auto = True
 
-    requirement_id = fields.Many2one("sedar.manning.requirement", required=True, ondelete="cascade")
+    requirement_id = fields.Many2one(
+        "sedar.manning.requirement", required=True, ondelete="cascade", check_company=True,
+    )
     order_id = fields.Many2one(related="requirement_id.tug_assignment_id.order_id", store=True)
+    company_id = fields.Many2one(related="order_id.company_id", store=True, index=True)
     tugboat_id = fields.Many2one(related="requirement_id.tug_assignment_id.tugboat_id", store=True)
     rank_id = fields.Many2one(related="requirement_id.rank_id", store=True)
     missing_count = fields.Integer(required=True, default=1)

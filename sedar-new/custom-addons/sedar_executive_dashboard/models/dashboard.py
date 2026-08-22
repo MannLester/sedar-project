@@ -58,11 +58,12 @@ class SedarExecutiveDashboard(models.Model):
     governance_exception_count = fields.Integer(compute="_compute_kpis")
 
     def _assign_people_and_support_kpis(self, today, warning):
+        company_domain = [("company_id", "=", self.company_id.id)]
         profiles = self.env["sedar.crew.profile"].sudo().search([])
         requests = self.env["maintenance.request"].sudo().search([
             ("sedar_tugboat_id", "!=", False), ("done", "=", False)
         ])
-        purchases = self.env["sedar.purchase.request"].sudo().search([
+        purchases = self.env["sedar.purchase.request"].sudo().search(company_domain + [
             ("state", "in", ["submitted", "approved"])
         ])
         self.crew_count = len(profiles)
@@ -73,7 +74,7 @@ class SedarExecutiveDashboard(models.Model):
             ("state", "!=", "filled")
         ])
         self.applicant_count = self.env["hr.applicant"].sudo().search_count([])
-        self.open_shortage_count = self.env["sedar.crew.shortage"].sudo().search_count([
+        self.open_shortage_count = self.env["sedar.crew.shortage"].sudo().search_count(company_domain + [
             ("status", "=", "open")
         ])
         self.credential_expiry_count = self.env["sedar.crew.certificate"].sudo().search_count([
@@ -86,10 +87,10 @@ class SedarExecutiveDashboard(models.Model):
         self.drydock_active_count = self.env["sedar.drydock.plan"].sudo().search_count([
             ("state", "in", ["planned", "in_progress"])
         ])
-        self.inventory_shortage_count = self.env["sedar.inventory.requirement"].sudo().search_count([
+        self.inventory_shortage_count = self.env["sedar.inventory.requirement"].sudo().search_count(company_domain + [
             ("readiness_state", "=", "shortage")
         ])
-        fuel = self.env["sedar.operation.fuel.log"].sudo().search([
+        fuel = self.env["sedar.operation.fuel.log"].sudo().search(company_domain + [
             ("state", "=", "consumed")
         ])
         self.fuel_consumed_qty = sum(fuel.mapped("consumed_qty"))
@@ -125,9 +126,12 @@ class SedarExecutiveDashboard(models.Model):
             moves = env["account.move"].sudo().search([("company_id", "=", dashboard.company_id.id), ("state", "=", "posted")])
             sales = moves.filtered(lambda move: move.move_type in ("out_invoice", "out_refund"))
             bills = moves.filtered(lambda move: move.move_type in ("in_invoice", "in_refund"))
-            orders = env["sedar.marine.service.order"].sudo().search([])
-            operations = env["sedar.marine.operation"].sudo().search([])
-            assignments = env["sedar.tug.assignment"].sudo().search([("actual_start", "!=", False), ("actual_end", "!=", False)])
+            company_domain = [("company_id", "=", dashboard.company_id.id)]
+            orders = env["sedar.marine.service.order"].sudo().search(company_domain)
+            operations = env["sedar.marine.operation"].sudo().search(company_domain)
+            assignments = env["sedar.tug.assignment"].sudo().search(
+                company_domain + [("actual_start", "!=", False), ("actual_end", "!=", False)]
+            )
             actual_hours = sum((line.actual_end - line.actual_start).total_seconds() / 3600 for line in assignments)
             planned_hours = sum(max((line.planned_end - line.planned_start).total_seconds() / 3600, 0) for line in assignments if line.planned_start and line.planned_end)
             tugs = env["sedar.tugboat"].sudo().search([])
@@ -150,12 +154,12 @@ class SedarExecutiveDashboard(models.Model):
         return {"type": "ir.actions.act_window", "name": "Dashboard Source Records", "res_model": model, "view_mode": "list,form", "domain": domain, "target": "current"}
 
     def action_open_invoices(self): return self._open("account.move", [("state", "=", "posted"), ("move_type", "in", ["out_invoice", "out_refund"])])
-    def action_open_service_orders(self): return self._open("sedar.marine.service.order", [])
+    def action_open_service_orders(self): return self._open("sedar.marine.service.order", [("company_id", "=", self.company_id.id)])
     def action_open_tugs(self): return self._open("sedar.tugboat", [])
     def action_open_crew(self): return self._open("sedar.crew.profile", [])
     def action_open_maintenance(self): return self._open("maintenance.request", [("done", "=", False)])
-    def action_open_inventory(self): return self._open("sedar.inventory.requirement", [("readiness_state", "=", "shortage")])
-    def action_open_procurement(self): return self._open("sedar.purchase.request", [("state", "in", ["submitted", "approved"])])
+    def action_open_inventory(self): return self._open("sedar.inventory.requirement", [("company_id", "=", self.company_id.id), ("readiness_state", "=", "shortage")])
+    def action_open_procurement(self): return self._open("sedar.purchase.request", [("company_id", "=", self.company_id.id), ("state", "in", ["submitted", "approved"])])
     def action_open_hsse(self): return self._open("sedar.hsse.incident", [("state", "in", ["open", "investigating"])])
     def action_open_documents(self): return self._open("sedar.document", [("state", "=", "active")])
     def action_open_governance(self): return self._open("sedar.corporate.record", [])

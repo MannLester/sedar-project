@@ -11,10 +11,19 @@ class SedarMarineServiceOrder(models.Model):
     _description = "Marine Service Order"
     _inherit = ["portal.mixin", "mail.thread", "mail.activity.mixin"]
     _order = "requested_start desc, id desc"
+    _check_company_auto = True
 
     name = fields.Char(default="New", readonly=True, copy=False, index=True)
-    client_id = fields.Many2one("res.partner", required=True, tracking=True, ondelete="restrict")
-    contact_id = fields.Many2one("res.partner", string="Requesting Contact")
+    company_id = fields.Many2one(
+        "res.company", required=True, default=lambda self: self.env.company,
+        index=True, copy=False,
+    )
+    client_id = fields.Many2one(
+        "res.partner", required=True, tracking=True, ondelete="restrict", check_company=True,
+    )
+    contact_id = fields.Many2one(
+        "res.partner", string="Requesting Contact", check_company=True,
+    )
     request_channel = fields.Selection([
         ("portal", "Client Portal"), ("phone", "Phone"),
         ("email", "Email"), ("walk_in", "Walk-in"),
@@ -282,6 +291,10 @@ class SedarMarineServiceOrder(models.Model):
         return orders
 
     def write(self, vals):
+        if "company_id" in vals:
+            company_id = vals["company_id"]
+            if any(order.company_id.id != company_id for order in self):
+                raise ValidationError("A Service Order's company cannot be changed after creation.")
         inventory_inputs = {
             "service_type_id", "number_of_tugs", "tug_class_id", "required_bollard_pull",
             "scope_of_work", "special_instructions", "port_id", "origin_berth_id",

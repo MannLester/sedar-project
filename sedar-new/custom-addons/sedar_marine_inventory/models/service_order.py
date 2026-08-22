@@ -95,6 +95,7 @@ class SedarMarineServiceOrder(models.Model):
         self.ensure_one()
         domain = [
             ("service_type_id", "=", self.service_type_id.id),
+            ("company_id", "=", self.company_id.id),
             ("active", "=", True),
             "|", ("tug_class_id", "=", self.tug_class_id.id),
             ("tug_class_id", "=", False),
@@ -150,15 +151,28 @@ class SedarInventoryRequirement(models.Model):
     _description = "Service Order Inventory Requirement"
     _inherit = ["sedar.inventory.mixin"]
     _order = "order_id, product_id"
+    _check_company_auto = True
 
-    order_id = fields.Many2one("sedar.marine.service.order", required=True, ondelete="cascade", index=True)
-    product_id = fields.Many2one("product.product", required=True, ondelete="restrict")
+    order_id = fields.Many2one(
+        "sedar.marine.service.order",
+        required=True,
+        ondelete="cascade",
+        index=True,
+        check_company=True,
+    )
+    company_id = fields.Many2one(
+        related="order_id.company_id", store=True, index=True, readonly=True
+    )
+    product_id = fields.Many2one(
+        "product.product", required=True, ondelete="restrict", check_company=True
+    )
     product_uom_id = fields.Many2one(related="product_id.uom_id", store=True, readonly=True)
     source_location_id = fields.Many2one(
         "stock.location",
         required=True,
         domain=[("usage", "=", "internal")],
         ondelete="restrict",
+        check_company=True,
     )
     required_qty = fields.Float(required=True, default=1.0)
     available_qty = fields.Float(compute="_compute_stock_status", store=True)
@@ -184,6 +198,16 @@ class SedarInventoryRequirement(models.Model):
         for line in self:
             if line.required_qty <= 0:
                 raise ValidationError("Required inventory quantity must be greater than zero.")
+
+    @api.constrains("order_id", "product_id", "source_location_id")
+    def _check_requirement_company(self):
+        for line in self:
+            company = line.order_id.company_id
+            for record in (line.product_id, line.source_location_id):
+                if record.company_id and record.company_id != company:
+                    raise ValidationError(
+                        "Inventory Requirement products and locations must belong to the Service Order company."
+                    )
 
     @api.model_create_multi
     def create(self, vals_list):
