@@ -3,12 +3,91 @@
     <record id="group_sedar_purchase_request_user" model="res.groups">
         <field name="name">Purchase Request User</field>
         <field name="privilege_id" ref="sedar_marine_operations.privilege_sedar_marine_operations"/>
-        <field name="implied_ids" eval="[Command.link(ref('base.group_user')), Command.link(ref('purchase.group_purchase_user'))]"/>
+        <field name="implied_ids" eval="[
+            Command.unlink(ref('purchase.group_purchase_user')),
+            Command.link(ref('base.group_user'))
+        ]"/>
     </record>
 
+    <record id="sedar_marine_inventory.group_marine_inventory_manager" model="res.groups">
+        <field name="implied_ids" eval="[
+            Command.link(ref('sedar_marine_inventory.group_marine_inventory_user')),
+            Command.link(ref('group_sedar_purchase_request_user')),
+            Command.link(ref('purchase.group_purchase_manager')),
+            Command.link(ref('stock.group_stock_manager'))
+        ]"/>
+    </record>
+
+    <!-- Compatibility alias: preserve the legacy XMLID and installed assignments. -->
     <record id="group_sedar_purchase_request_manager" model="res.groups">
-        <field name="name">Purchase Request Manager</field>
-        <field name="privilege_id" ref="sedar_marine_operations.privilege_sedar_marine_operations"/>
-        <field name="implied_ids" eval="[Command.link(ref('group_sedar_purchase_request_user')), Command.link(ref('purchase.group_purchase_manager'))]"/>
+        <field name="name">Procurement and Inventory Officer (Legacy Access)</field>
+        <field name="privilege_id" eval="False"/>
+        <field name="implied_ids" eval="[
+            Command.link(ref('sedar_marine_inventory.group_marine_inventory_manager'))
+        ]"/>
+    </record>
+
+    <record id="rule_sedar_purchase_request_company" model="ir.rule">
+        <field name="name">Purchase Requests: same company</field>
+        <field name="model_id" ref="model_sedar_purchase_request"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_sedar_purchase_request_line_company" model="ir.rule">
+        <field name="name">Purchase Request Lines: same company</field>
+        <field name="model_id" ref="model_sedar_purchase_request_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_sedar_purchase_request_own_modify" model="ir.rule">
+        <field name="name">Purchase Requests: requesters modify their own</field>
+        <field name="model_id" ref="model_sedar_purchase_request"/>
+        <field name="domain_force">[('requester_id', '=', user.id)]</field>
+        <field name="groups" eval="[
+            Command.link(ref('group_sedar_purchase_request_user')),
+            Command.link(ref('sedar_marine_inventory.group_marine_inventory_user')),
+            Command.link(ref('sedar_marine_maintenance.group_marine_maintenance_user'))
+        ]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_sedar_purchase_request_officer_modify" model="ir.rule">
+        <field name="name">Purchase Requests: Officer manages same-company requests</field>
+        <field name="model_id" ref="model_sedar_purchase_request"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[Command.link(ref('sedar_marine_inventory.group_marine_inventory_manager'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_sedar_purchase_request_line_own_modify" model="ir.rule">
+        <field name="name">Purchase Request Lines: requesters modify their own</field>
+        <field name="model_id" ref="model_sedar_purchase_request_line"/>
+        <field name="domain_force">[('request_id.requester_id', '=', user.id)]</field>
+        <field name="groups" eval="[
+            Command.link(ref('group_sedar_purchase_request_user')),
+            Command.link(ref('sedar_marine_inventory.group_marine_inventory_user')),
+            Command.link(ref('sedar_marine_maintenance.group_marine_maintenance_user'))
+        ]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_sedar_purchase_request_line_officer_modify" model="ir.rule">
+        <field name="name">Purchase Request Lines: Officer manages same-company lines</field>
+        <field name="model_id" ref="model_sedar_purchase_request_line"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[Command.link(ref('sedar_marine_inventory.group_marine_inventory_manager'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
     </record>
 </odoo>

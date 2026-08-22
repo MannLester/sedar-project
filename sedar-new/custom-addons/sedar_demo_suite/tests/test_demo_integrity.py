@@ -79,6 +79,12 @@ class TestSedarDemoIntegrity(TransactionCase):
         self.assertGreaterEqual(operation.client_confirmation_time, operation.actual_end)
 
     def test_procurement_demo_includes_stock_derived_job_order_shortage(self):
+        officer = self.env.ref("sedar_purchase_request.user_procurement_manager")
+        self.assertEqual(
+            self.env.company.sedar_procurement_inventory_officer_id,
+            officer,
+        )
+
         requirement = self.env.ref("sedar_demo_suite.job_order_inventory_shortage")
         order = self.env.ref("sedar_service_order_demo.order_missing_engineer")
         assigned_tugs = order.tug_assignment_ids.filtered(

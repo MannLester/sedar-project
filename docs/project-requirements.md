@@ -261,7 +261,7 @@ Priority uses `Must` for a required demonstration capability, `Should` for an im
 | --- | --- | --- | --- |
 | PRC-001 | Departments shall create Purchase Requests with justification, required date, items, quantities, and cost estimate. | Must | A maintenance or inventory need creates a traceable Purchase Request. |
 | PRC-002 | Purchase Requests and Purchase Orders shall follow configurable approval states. | Must | A sample request requires approval before a Purchase Order is issued. |
-| PRC-003 | Standard Odoo Purchase shall manage Purchase Orders and receipt linkage. | Must | An approved request produces a supplier Purchase Order and linked receipt. |
+| PRC-003 | Standard Odoo Purchase shall manage Purchase Orders and receipt linkage. Awarded request lines shall be grouped into one Purchase Order per winning Bidder. | Must | The approved A/B/C example produces one Purchase Order for Bidder 1 containing A and B, one for Bidder 3 containing C, and linked receipts. |
 | PRC-004 | The system shall maintain supplier records, contacts, terms, qualifications, and performance indicators. | Should | A supplier profile shows commercial and evaluation information. |
 | PRC-005 | Procurement, Inventory, and Finance shall share the same item, receipt, supplier, and bill references. | Must | A sample transaction can be followed from request to receipt and supplier bill. |
 
@@ -383,7 +383,7 @@ The baseline demonstration is accepted when the project team can show:
 7. HR processes the applicant through interview, ADM-4, ADM-5, and employee conversion.
 8. A maintenance work order affects tug availability and consumes a spare part.
 9. An HSSE incident or inspection produces an assigned corrective action.
-10. A Purchase Request becomes a Purchase Order, receipt, stock update, and supplier bill.
+10. A Purchase Request with product-level Line Awards becomes the correct supplier-grouped Purchase Orders, receipts, stock updates, and supplier bills.
 11. Controlled corporate, vessel, crew, HR, and compliance documents are organized with validity and status.
 12. An executive dashboard summarizes representative financial, operational, technical, HSSE, crewing, and HR indicators.
 
