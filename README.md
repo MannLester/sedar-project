@@ -1,136 +1,72 @@
-# SEDAR Tug Services ERP / Marine Fleet MVP
+# SEDAR Tug Services ERP / Marine Fleet Demonstration
 
-This repository contains the SEDAR tugboat ERP and marine fleet management MVP plan plus an Odoo Community prototype.
+This repository contains the active SEDAR Odoo 19 demonstration and its supporting business and
+architecture documentation. The working implementation is in [`sedar-new/`](sedar-new/); the
+older [`odoo/`](odoo/) tree is retained only as legacy reference.
 
-The MVP is based on [resources/Web System.pdf](resources/Web%20System.pdf). It uses generic tugboat business processes and sample data because final SEDAR-specific workflows, rate tables, approvals, and real company records are not available yet.
-
-The demo goal is simple:
-
-"We can build the integrated ERP and marine fleet management foundation. The remaining inputs after deal closing are the actual SEDAR data, approval rules, forms, rate tables, and department-specific business processes."
-
-## What Is Included
-
-- Planning documents for the MVP scope and build phases.
-- A PDF-to-dashboard coverage matrix.
-- An Odoo Community Docker setup.
-- A custom Odoo addon named `sedar_marine_mvp`.
-- Seed data for dashboard, vessel, operations, finance, maintenance, HSE, crew, procurement, inventory, HR, and document control records.
+The demonstration connects Service Orders, tug and crew dispatch, maintenance, procurement,
+inventory, HSSE, recruitment, billing, accounting, and management reporting in one Odoo database.
+All seeded companies, people, rates, positions, quotations, and transactions are fictional. This
+is not a production deployment or a claim of live AIS/GPS, regulatory, tax, payroll, or security
+certification.
 
 ## Requirements
 
-Install these before running the project:
+- Docker Desktop
+- Git
+- A modern browser
 
-- Docker Desktop.
-- Git.
-- A modern browser.
+Local Python is needed only for the optional developer-quality checks.
 
-No local Python, PostgreSQL, or Odoo installation is required. Docker provides Odoo Community and PostgreSQL.
+## Start the active workspace
 
-## Quick Start
-
-Clone the repository:
-
-```powershell
+```sh
 git clone https://github.com/MannLester/sedar-project.git
-cd sedar-project
-```
-
-Start Odoo and PostgreSQL:
-
-```powershell
-cd odoo
+cd sedar-project/sedar-new
 docker compose up -d
 ```
 
-Initialize the MVP database and install the SEDAR addon:
-
-```powershell
-docker compose exec -T odoo odoo -d sedar_mvp -i sedar_marine_mvp --stop-after-init --no-http
-docker compose restart odoo
-```
-
-Open Odoo:
+The Compose startup installs and upgrades the complete module list into `sedar_demo`. Open:
 
 ```text
-http://localhost:8069
+http://localhost:8069/web?db=sedar_demo
 ```
 
-Select the `sedar_mvp` database.
+See [`sedar-new/README.md`](sedar-new/README.md) for demo accounts, workflows, local quality
+checks, and focused Odoo test commands.
 
-## First Login
+## Procurement demonstration
 
-If Odoo asks you to log in, use the database's administrator account created during database setup. If you created the database through the Odoo UI, use the email and password you entered there.
+The Procurement workspace supports physical Inventory Items, tugboat spare parts, and Replacement
+Equipment. A Procurement and Inventory Officer records partial supplier Bids, awards each requested
+product to one Bidder with a reason, and creates one standard Odoo Purchase Order per winning
+supplier. Standard Odoo Inventory owns receipts and stock movements. Issued goods move from
+warehouse Storage to a tugboat and remain visible as Currently In Use until a controlled return,
+consumption, or disposal.
 
-After logging in, open the app switcher. You should see these app areas:
+The simulated fleet map shows installed Equipment and cumulative Running Hours. Selecting Equipment
+opens its active procurement and order history; protected Bid prices, terms, suppliers, and
+quotation attachments are returned only to the configured Procurement and Inventory Officer.
 
-- SEDAR Dashboard.
-- SEDAR Operations.
-- SEDAR Finance.
-- SEDAR Fleet.
-- SEDAR Crewing.
-- SEDAR HSE.
-- SEDAR Procurement.
-- SEDAR Inventory.
-- SEDAR HR.
-- SEDAR Documents.
+## Documentation
 
-## Re-running From Scratch
+- [`CONTEXT.md`](CONTEXT.md): canonical business terms
+- [`docs/project-requirements.md`](docs/project-requirements.md): demonstration requirements
+- [`docs/implementation-status.md`](docs/implementation-status.md): shipped capability status
+- [`docs/custom-models.md`](docs/custom-models.md): custom Odoo model and workflow contract
+- [`docs/adr/`](docs/adr/): accepted architecture decisions
+- [`docs/procurement-module-implementation-plan.md`](docs/procurement-module-implementation-plan.md): approved Procurement scope and verification contract
 
-To stop the stack:
+## Resetting local data
 
-```powershell
+Stop the stack without deleting its database:
+
+```sh
+cd sedar-new
 docker compose down
 ```
 
-To delete the local database volumes and start fresh:
-
-```powershell
-docker compose down -v
-docker compose up -d
-docker compose exec -T odoo odoo -d sedar_mvp -i sedar_marine_mvp --stop-after-init --no-http
-docker compose restart odoo
-```
-
-Only use `docker compose down -v` when you are okay deleting your local Odoo database.
-
-## Odoo Community Notes
-
-The Odoo Community source and standard Community apps come from the Docker image:
-
-```text
-odoo:19.0
-```
-
-We do not vendor the full Odoo Community source into this repository. Project-owned code lives in:
-
-```text
-odoo/custom_addons/sedar_marine_mvp
-```
-
-See [odoo/community/README.md](odoo/community/README.md) for the source boundary.
-
-## Documents
-
-- [PDF_ANALYSIS.md](PDF_ANALYSIS.md): What the PDF is asking for and how to interpret it for an MVP.
-- [PLAN_OF_PROCEEDINGS.md](PLAN_OF_PROCEEDINGS.md): Recommended order for starting and executing the MVP.
-- [DASHBOARD_COVERAGE_MATRIX.md](DASHBOARD_COVERAGE_MATRIX.md): Checklist proving every PDF item is represented in the dashboard.
-- [MVP_PRESIDENT_DATA_REQUIREMENTS.md](MVP_PRESIDENT_DATA_REQUIREMENTS.md): Data and KPIs a tugboat company president would want.
-- [RESEARCH_NOTES.md](RESEARCH_NOTES.md): Public research notes and what can safely be borrowed.
-- [odoo/README.md](odoo/README.md): Odoo Community MVP setup and run instructions.
-- [phases/01-mvp-alignment-and-demo-scope.md](phases/01-mvp-alignment-and-demo-scope.md): Phase 1 planning.
-- [phases/02-core-data-and-mock-data.md](phases/02-core-data-and-mock-data.md): Phase 2 planning.
-- [phases/03-core-workflows.md](phases/03-core-workflows.md): Phase 3 planning.
-- [phases/04-executive-dashboards.md](phases/04-executive-dashboards.md): Phase 4 planning.
-- [phases/05-demo-hardening-and-handoff.md](phases/05-demo-hardening-and-handoff.md): Phase 5 planning.
-
-## Current MVP Status
-
-The current Odoo prototype is functional but not final presentation polish. It proves:
-
-- The Odoo Community environment runs locally.
-- The custom SEDAR addon installs.
-- Every major PDF module is represented.
-- The app navigation is split into department-style Odoo app areas.
-- Demo data loads for dashboard and module records.
-
-Next work should focus on a more professional President Dashboard UI and richer end-to-end demo workflows.
+For a fresh environment, stop Compose and move `data/postgres` and `data/odoo` to a named backup
+outside the workspace before restarting. Those directories contain the local Odoo database and
+filestore and cannot be recovered from Git. Confirm the exact paths and backup before removing
+anything; do not reset an environment whose data must be retained.

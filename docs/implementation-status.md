@@ -2,9 +2,9 @@
 
 | Item | Value |
 | --- | --- |
-| Assessment date | 2026-08-05 |
-| Branch assessed | `sedar-new` |
-| Baseline commit | `f7c3952` before Slice 5 working-tree changes |
+| Assessment date | 2026-08-23 |
+| Branch assessed | `feat/issue-9-procurement-release` against `sedar-new` |
+| Baseline commit | `65863fa` after the Equipment procurement map release |
 | Active implementation | `sedar-new/` Odoo 19 Docker stack |
 | Requirements source | `docs/project-requirements.md` |
 
@@ -12,13 +12,14 @@
 
 This document records what the SEDAR demonstration currently implements and what remains to be demonstrated. It is a repository evidence assessment, not a claim of production readiness.
 
-P0 reconciliation update (2026-08-05): the active Docker bootstrap now installs the
+P0 reconciliation update (2026-08-23): the active Docker bootstrap installs the
 `sedar_demo_suite` reconciler. A clean or upgraded database is expected to contain both
 completed marine operations (including the two-tug flagship), one linked posted/paid
-customer invoice, a confirmed purchase order with a completed receipt/stock move, and a
-posted supplier bill. Operational spare-part and fuel actions now create standard Odoo
-stock moves; direct quant mutation is retained only for opening fixture balances. These
-records are demonstration evidence, not production policy or real financial data.
+customer invoice, and the deterministic three-product Procurement example with partial Bids,
+three Line Awards, two supplier-grouped Purchase Orders, receipts, Storage, and Currently In Use.
+Operational spare-part, fuel, receipt, issue, and disposition actions use standard Odoo stock
+moves; direct quant mutation is retained only for controlled create-once opening fixture balances.
+These records are demonstration evidence, not production policy or real financial data.
 
 ## 2. Status Definitions
 
@@ -47,8 +48,8 @@ The shared Docker setup installs these SEDAR addons and their Odoo dependencies:
 | Manpower and Careers | `sedar_manpower_planning`, `sedar_careers` |
 | Recruitment | `sedar_applicant_intake`, `sedar_applicant_portal`, `sedar_recruitment_operations` |
 | UI | `sedar_theme`, `sedar_ui_cards` |
-| Fictional data | `sedar_service_order_demo`, `sedar_marine_dispatch_demo`, `sedar_manpower_planning_demo` |
-| Repeatable recruitment fixtures | `sedar_recruitment_demo` |
+| Fictional data | `sedar_service_order_demo`, `sedar_marine_dispatch_demo`, `sedar_manpower_planning_demo`, `sedar_recruitment_demo` |
+| Cross-workspace reconciliation | `sedar_demo_suite` |
 
 ### 3.1 Coverage at a glance
 
@@ -62,8 +63,8 @@ The shared Docker setup installs these SEDAR addons and their Odoo dependencies:
 | Document Control | Implemented for demonstration | Generic controlled forms, six recruitment forms, and representative corporate, vessel, insurance, ISO, resolution, legal, and audit records are linked to governance metadata. |
 | Technical Maintenance | Partial | Slice 10 adds marine equipment, planned/corrective work orders, dry-dock plans, equipment history fields, and tug availability holds; Slice 11 adds work-order spare-part lines. |
 | HSSE | Partial | Slice 13 adds incidents, near misses, inspections, findings, risk assessments, permits, corrective actions, safety meetings, training records, and visible operational HSSE exceptions. |
-| Procurement | Partial | Purchase Requests now represent vendorless internal physical-goods needs, notify the configured Procurement and Inventory Officer, preserve Equipment/source traceability, and support multiple linked Purchase Orders. Bid capture, Line Awards, new Purchase Order creation, receipts, and supplier-bill walkthroughs remain later work. |
-| Inventory | Partial | Slice 11 adds standard stock-backed marine products, service-order inventory requirements, tugboat locations, work-order spare parts, and operation fuel/lubricant logs. Barcode, reorder policy, and procurement replenishment remain incomplete. |
+| Procurement | Partial; approved goods flow implemented | Physical-goods Purchase Requests notify the exact Officer, partial Bids and protected quotation evidence remain comparable, justified Line Awards create supplier-grouped standard Purchase Orders, and Equipment procurement is visible from the simulated map. The PM scenario reaches receipt and Currently In Use, but it does not yet demonstrate the PRC-005 supplier-bill handoff; supplier portal, scoring, services, and multi-currency also remain excluded. |
+| Inventory | Implemented for the approved flow | Standard receipts replenish Storage; controlled Inventory Issues move goods to tugboat locations and open Currently In Use lifecycles until return, consumption, or disposal. Barcode hardware and production valuation policy remain incomplete. |
 | Marketing and CRM | Implemented for demonstration | Client, contact, vessel, tariff, Service Order, CRM opportunity, follow-up activity, and resulting Service Order linkage are visible; campaigns remain deferred. |
 | Executive Management | Implemented for demonstration | Source-backed executive dashboard exposes Finance, Service Orders, fleet, crewing, maintenance, inventory, procurement, HSSE, document expiry, and governance exceptions. Profitability remains separated into revenue and known posted costs. |
 | External integrations | Future integration | Power BI, Microsoft 365, DocuSign, and a live AIS/GPS provider are not connected; AIS/GPS is represented by an explicitly fictional simulation. |
@@ -119,6 +120,27 @@ Approved source forms currently represented include:
 - CM-053 Company Interview Orientation Form
 - ADM-4A Background Inquiry Form
 - ADM-5 Employment Requirement List
+
+### 4.4 Equipment Need to Procurement and Currently In Use
+
+```text
+Running Hour Reading
+        -> deduplicated Maintenance review activity
+        -> confirmed physical-goods Purchase Request
+        -> Procurement and Inventory Officer review
+        -> partial supplier Bids and protected quotation evidence
+        -> justified product-level Line Awards
+        -> one standard Purchase Order per winning Bidder
+        -> standard receipt into Storage
+        -> controlled Inventory Issue to a tugboat
+        -> Currently In Use until return, consumption, or disposal
+```
+
+The PM fixture demonstrates Products A/B/C across three Bidders. Bidder 1 wins A and B, Bidder 3
+wins C, and exactly two standard Purchase Orders result. Equipment detail on the Simulated AIS Feed
+separates active procurement from history. A valid restricted AIS/Maintenance caller receives the
+operational detail with protected commercial fields recursively redacted; direct Bid and quotation
+attachment access remains denied.
 
 ## 5. Requirement Coverage by Department
 
@@ -197,20 +219,23 @@ Approved source forms currently represented include:
 | Requirement | Status | Current evidence | Remaining demonstration work |
 | --- | --- | --- | --- |
 | Purchase Requests | Implemented | `sedar.purchase.request` captures a vendorless physical-goods need, requester, Equipment/source, department, required date, priority, justification, lines, and estimated total. | Add richer category, amount threshold, and department budget controls after discovery. |
-| Purchase Orders | Partial | Requests preserve legacy single-order history and expose a canonical multi-order relationship for the supplier-grouped handoff defined by ADR-0007. Direct RFQ creation is disabled until Bids and Line Awards exist. | Implement Bid comparison, Line Awards, and idempotent creation of one standard Purchase Order per winning supplier. |
-| Supplier management | Planned | Standard Odoo supplier partners remain authoritative, but the SEDAR Bidder List and quotation capture are not implemented yet. | Implement Bid headers/lines, commercial terms, protected quotation attachments, qualification, and later performance measures. |
-| Approval workflow | Implemented | Submission creates one deduplicated activity for the configured Procurement and Inventory Officer; only that exact Officer can approve or reject server-side. | Add the separate Bid and Line Award states without introducing another procurement business role. |
-| Finance and receipt linkage | Partial | Existing linked orders remain accessible and standard Odoo Purchase/Inventory/Accounting retain downstream ownership under ADR-0001. | Complete the awarded-request-to-Purchase-Order-to-receipt-to-supplier-bill demonstration without custom accounting records. |
+| Bids and Bidder List | Implemented | One protected Bid per request/Bidder captures any quoted subset, commercial terms, full-quantity Bid lines, and immutable received quotation evidence. Product-grouped comparison exposes exact coverage and award state. | Supplier portal, multi-currency normalization, automated scoring, qualification, and performance measures remain future work. |
+| Line Awards | Implemented | The exact Officer selects one full-quantity quoted winner per active request line with mandatory reason and explicit expiry/zero-price exceptions. Losing and reset awards remain audit history. | Confirm production approval limits and segregation-of-duties policy after discovery. |
+| Purchase Orders | Implemented | Request locks and database uniqueness make supplier-grouped order creation idempotent; each standard order and line preserves request, Bid, Bid line, and Line Award sources. Legacy single-order history remains linked. | Standard Odoo continues to own confirmation, cancellation, receipt, billing, and accounting policy. |
+| Approval workflow | Implemented | Submission creates one deduplicated activity for the configured Procurement and Inventory Officer; only that exact Officer can approve/reject, record Bids, award, and order server-side. | Replace the Demo Access Override with production role assignments before deployment. |
+| Receipt linkage | Implemented | The PM scenario follows two awarded standard Purchase Orders through done receipts into Storage using standard Odoo Inventory records. | Confirm production receiving and warehouse controls. |
+| Supplier bill linkage | Not implemented in the PM scenario | Standard Odoo owns supplier bills and ledger entries under ADR-0001, but the PM fixture stops after receipt and has no linked supplier bill. | Add a representative supplier bill and payment before claiming PRC-005 end-to-end Finance acceptance. |
 
 ### 5.7 Inventory
 
 | Requirement | Status | Current evidence | Remaining demonstration work |
 | --- | --- | --- | --- |
 | Inventory readiness | Implemented | Service Orders generate stock-backed requirement lines from inventory templates; shortages block only the inventory component of readiness. | Confirm SEDAR's exact service stock policy. |
-| Spare parts | Partial | Demo spare-part products and maintenance part lines exist with reserved, issued, and consumed quantities. | Add reorder rules and supplier replenishment in Procurement. |
+| Spare parts | Implemented for demonstration | Demo Item Types, maintenance part lines, partial supplier Bids, Purchase Orders, receipts, and controlled tugboat issues share standard product and stock records. | Confirm production reorder and valuation policies. |
 | Fuel and lubricants | Partial | Demo fuel and lubricant products, main stock, tugboat locations, and operation consumption logs exist. | Add production receipt/sounding evidence and tank measurement policy. |
 | Office supplies | Not implemented | No supply stock records exist. | Add representative consumable products and transactions. |
-| Warehouse management | Partial | Standard Odoo Inventory is installed; the demo seeds a main warehouse and tugboat stock locations. | Add receipt, transfer, return, and adjustment walkthroughs. |
+| Storage and receipts | Implemented | Standard Purchase receipts replenish tagged warehouse Storage and Available to Issue is derived from exact-location physical stock less reservations. | Confirm production warehouse layout and receiving controls. |
+| Currently In Use | Implemented | Controlled Inventory Issue moves goods to a named tugboat and opens an immutable lifecycle reconciled with standard stock moves until return, consumption, or disposal. Technical Removal alone does not move stock. | Confirm disposition approvals and serialized-equipment procedures. |
 | Barcode support | Partial | Demo products include representative barcode values. | Add a working Barcode-app scan flow if the installed edition supports it. |
 
 ### 5.8 Human Resources and Recruitment
@@ -282,7 +307,12 @@ Approved source forms currently represented include:
 
 ## 6. Current Demo Data and Verification Notes
 
-The Docker stack has been verified to load the combined custom modules on Odoo 19. The local demonstration database has included representative service orders, tugboats, crew profiles, employees, manpower records, vacancies, and Marine Operations. Exact record counts can vary on a reused database because Odoo post-install hooks do not automatically overwrite existing fictional fixtures during module upgrades.
+The Docker stack loads the combined custom modules on Odoo 19. The final `sedar_demo_suite`
+reconciliation uses stable XMLIDs and semantic checks for the PM procurement scenario so a fresh
+install and repeated candidate upgrade preserve the same request, products, suppliers, Bids, Bid
+lines, Line Awards, Purchase Orders, receipts, running-hour facts, maintenance activity, Inventory
+Issue, stock move, and Inventory Lifecycle. Older non-PM volume fixtures may still vary where their
+own addon contract does not promise exact counts.
 
 Slice 1 adds `sedar_recruitment_demo`, a dedicated non-production fixture addon that reconciles
 named applicant, interview, ADM-5, applicant-portal, employee-conversion, and recruitment-user
@@ -331,7 +361,14 @@ tugboat and valid required credentials exist. Non-marine hires stop at the HR em
 Deployment eligibility still does not resolve the original Service Order shortage until Operations
 or Crewing assigns a qualified profile to a concrete requirement.
 
-The repository contains automated tests for the marine readiness/completion lifecycle and Marine Finance calculations and controls. Applicant portal and recruitment slices have been manually verified through Odoo module upgrades and representative portal/backend workflows.
+The repository contains focused Odoo tests for Maintenance, Inventory, Procurement, AIS projection,
+demo idempotency, marine readiness/completion, Finance, and recruitment controls. The isolated
+upgrade verifier starts from the agreed pre-procurement legacy commit, snapshots legacy procurement,
+stock, receipt, and supplier-bill facts, upgrades the exact Compose module list twice, and reports
+SHA, Odoo image identity, isolated data path, commands, exits, and logs. It also installs and
+re-upgrades a separate clean candidate database, so fresh installation and legacy migration are
+independent release gates. Desktop/mobile browser and
+restricted JSON-RPC checks remain required because screenshots cannot prove payload redaction.
 
 ## 7. Demonstration Gaps That Affect Existing Flows
 
@@ -339,7 +376,7 @@ These are the highest-value missing capabilities because they already connect to
 
 1. Crew certificate and medical records should link to controlled document evidence and renewal actions.
 2. Leave, training, and temporary relief should provide dated crew availability facts.
-3. Procurement now creates approved RFQs from maintenance and inventory shortages; receipt, supplier-bill, and replenishment walkthroughs still need to be demonstrated.
+3. Production Procurement still needs approved supplier master data, monetary approval limits, segregation-of-duties policy, and accounting configuration; these are discovery inputs, not missing demo mechanics.
 4. HSSE now formalizes incidents, inspections, risks, permits, corrective actions, meetings, and training; broader dashboards and portal-safe exposure remain later work.
 5. Executive KPIs should use the operational, HR, technical, inventory, procurement, safety, and financial source records already available.
 
@@ -383,20 +420,23 @@ technical blocker remains.
 Implemented for demonstration. Standard Odoo Inventory is installed as the stock foundation.
 `sedar_marine_inventory` adds service-order inventory templates and requirement lines,
 stock-derived inventory readiness, tugboat internal stock locations, work-order spare-part
-reservation/issue/consumption records, and Marine Operation fuel/lubricant logs. The old manual
+reservation/issue/consumption records, and Marine Operation fuel/lubricant logs. Controlled new
+Inventory Issues move from tagged Storage to a tugboat location and create an auditable Currently In
+Use lifecycle. Technical Removal preserves the physical tugboat balance; later return, consumption,
+or disposal owns the closing stock move. The old manual
 Inventory Readiness Confirmation fields remain visible only as historical audit fields when no
-stock requirement lines exist. Procurement replenishment, formal reorder policy, valuation, and a
-full barcode walkthrough remain later slices.
+stock requirement lines exist. Formal production reorder policy, valuation, and a full barcode
+walkthrough remain later work.
 
 ### Slice 12: Purchase Request and Standard Purchase Handoff
 
-Partially implemented for demonstration. `sedar_purchase_request` captures vendorless internal
-physical-goods needs, maintenance spare-part shortages, Service Order inventory shortage sources,
-affected Equipment, Officer review activities, approval/rejection audit, estimated totals, and a
-multi-order-compatible link to standard Odoo Purchase Orders. Existing single-order history is
-preserved during upgrade. Bid capture, per-line awards, and creation of supplier-grouped Purchase
-Orders remain the next procurement slices. Standard Odoo Purchase, Inventory, and Accounting remain
-responsible for order confirmation, receipts, supplier bills, payments, and ledger records.
+Implemented for demonstration. `sedar_purchase_request` captures vendorless internal physical-goods
+needs, maintenance and inventory sources, affected Equipment, exact-Officer activities, partial Bids,
+protected quotation evidence, product-level Line Awards, and idempotent supplier-grouped standard
+Purchase Orders. Existing single-order history remains linked during upgrade. The PM example produces
+one Bidder 1 order for Products A/B and one Bidder 3 order for Product C. Standard Odoo Purchase,
+Inventory, and Accounting remain responsible for order lifecycle, receipts, supplier bills, payments,
+and ledger records.
 
 ### Slice 13: HSSE and Operational Compliance
 

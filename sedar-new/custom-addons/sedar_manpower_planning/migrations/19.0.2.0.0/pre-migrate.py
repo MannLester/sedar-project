@@ -43,7 +43,9 @@ def _reject_legacy_link_conflicts(cr):
               FROM sedar_crew_shortage shortage
               JOIN sedar_manpower_request_line line
                 ON line.id = shortage.manpower_request_line_id
-             WHERE line.company_id IS DISTINCT FROM shortage.company_id
+              JOIN sedar_manpower_request request
+                ON request.id = line.request_id
+             WHERE request.company_id IS DISTINCT FROM shortage.company_id
              ORDER BY shortage.id
             """,
         ),

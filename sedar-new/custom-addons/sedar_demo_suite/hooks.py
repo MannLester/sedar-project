@@ -4,6 +4,7 @@ import base64
 from datetime import date, datetime, timedelta
 
 from odoo import Command
+from odoo.exceptions import UserError
 
 
 DEMO_MANAGER_GROUP_XMLIDS = (
@@ -48,7 +49,7 @@ def post_init_hook(env):
     # products exist. Re-run the accounting portion after reconciliation.
     company._sedar_ensure_accounting_demo(company)
     _ensure_paid_service_demo(env)
-    _ensure_procurement_demo(env)
+    _ensure_pm_procurement_demo(env)
     # Reconcile customer projections after the final Service Order, invoice,
     # maintenance, and procurement fixtures exist. AIS then reads the final
     # authoritative fleet state for its fictional positions.
@@ -61,12 +62,24 @@ def post_init_hook(env):
     return True
 
 
-def _record(env, model, xmlid, values, update=True):
+def _fixture_data(env, xmlid):
     data = env["ir.model.data"].search([
         ("module", "=", "sedar_demo_suite"),
         ("name", "=", xmlid),
-    ], limit=1)
+    ])
+    if len(data) > 1:
+        raise UserError(f"Duplicate fixture identity sedar_demo_suite.{xmlid}.")
+    return data
+
+
+def _record(env, model, xmlid, values, update=True):
+    data = _fixture_data(env, xmlid)
     if data:
+        if data.model != model:
+            raise UserError(
+                f"Fixture sedar_demo_suite.{xmlid} points to {data.model}, "
+                f"not {model}; reconciliation stopped without changing it."
+            )
         record = env[model].browse(data.res_id).exists()
         if record:
             if update:
@@ -78,6 +91,87 @@ def _record(env, model, xmlid, values, update=True):
         "module": "sedar_demo_suite",
         "name": xmlid,
         "model": model,
+        "res_id": record.id,
+        "noupdate": True,
+    })
+    return record
+
+
+def _identity_value(record, field_name):
+    value = record[field_name]
+    return value.id if record._fields[field_name].type == "many2one" else value
+
+
+def _validate_immutable_identity(
+    env, record, xmlid, values, identity_fields
+):
+    if "company_id" in record._fields and record.company_id != env.company:
+        raise UserError(
+            f"Fixture sedar_demo_suite.{xmlid} belongs to another company; "
+            "reconciliation stopped without changing it."
+        )
+    mismatched = [
+        field_name
+        for field_name in identity_fields
+        if _identity_value(record, field_name) != values[field_name]
+    ]
+    if mismatched:
+        raise UserError(
+            f"Fixture sedar_demo_suite.{xmlid} has mismatched business identity "
+            f"({', '.join(mismatched)}); reconciliation stopped without changing it."
+        )
+
+
+def _immutable_record(
+    env, model, xmlid, values, *, identity_fields
+):
+    """Create one immutable fixture or verify its exact stable identity."""
+    record = _resolve_immutable_record(
+        env, model, xmlid, values, identity_fields=identity_fields
+    )
+    if record:
+        return record
+    record = env[model].create(values)
+    _validate_immutable_identity(env, record, xmlid, values, identity_fields)
+    return _bind_xmlid(env, xmlid, record)
+
+
+def _resolve_immutable_record(
+    env, model, xmlid, values, *, identity_fields
+):
+    data = _fixture_data(env, xmlid)
+    if not data:
+        return env[model]
+    if data.model != model:
+        raise UserError(
+            f"Fixture sedar_demo_suite.{xmlid} points to {data.model}, "
+            f"not {model}; reconciliation stopped without changing it."
+        )
+    record = env[model].browse(data.res_id).exists()
+    if not record:
+        raise UserError(
+            f"Fixture sedar_demo_suite.{xmlid} points to a missing record; "
+            "reconciliation stopped instead of fabricating history."
+        )
+    _validate_immutable_identity(env, record, xmlid, values, identity_fields)
+    return record
+
+
+def _bind_xmlid(env, xmlid, record):
+    """Give an exact, already-resolved fixture record a stable suite identity."""
+    record.ensure_one()
+    data = _fixture_data(env, xmlid)
+    if data and data.model == record._name and data.res_id == record.id:
+        return record
+    if data:
+        raise UserError(
+            f"Fixture sedar_demo_suite.{xmlid} already points to another record; "
+            "reconciliation stopped without rebinding it."
+        )
+    env["ir.model.data"].create({
+        "module": "sedar_demo_suite",
+        "name": xmlid,
+        "model": record._name,
         "res_id": record.id,
         "noupdate": True,
     })
@@ -150,38 +244,324 @@ def _ensure_paid_service_demo(env):
         register._create_payments()
 
 
-def _ensure_procurement_demo(env):
-    manager = env.ref("sedar_purchase_request.user_procurement_manager", raise_if_not_found=False)
-    request = env.ref("sedar_purchase_request.request_demo_spare_parts", raise_if_not_found=False)
-    if not manager or not request:
+def _ensure_pm_procurement_demo(env):
+    """Reconcile the approved three-product procurement walkthrough."""
+    officer = env.ref(
+        "sedar_purchase_request.user_procurement_manager",
+        raise_if_not_found=False,
+    )
+    equipment = env.ref(
+        "sedar_marine_maintenance.atlas_main_engine",
+        raise_if_not_found=False,
+    )
+    work_order = env.ref(
+        "sedar_marine_maintenance.work_order_atlas_planned",
+        raise_if_not_found=False,
+    )
+    storage = env.company.sedar_default_storage_location_id
+    if not all((officer, equipment, work_order, storage)):
         return
-    request = request.with_user(manager)
+
+    products = _ensure_pm_products(env)
+    bidders = _ensure_pm_bidders(env)
+    request, lines = _ensure_pm_request(
+        env, officer, equipment, work_order, storage, products
+    )
+    bids = _ensure_pm_bids(env, officer, request, lines, bidders)
+    _ensure_pm_awards(env, officer, lines, bids)
+    orders = _ensure_pm_orders(env, officer, request, bids, products)
+    _ensure_pm_receipts(env, orders, products)
+    _ensure_pm_current_use(
+        env, officer, products["a"], equipment.sedar_tugboat_id
+    )
+    _bind_pm_maintenance_facts(env, equipment)
+
+
+def _ensure_pm_products(env):
+    unit = env.ref("uom.product_uom_unit")
+    liter = env.ref("uom.product_uom_litre", raise_if_not_found=False) or unit
+    specs = {
+        "a": (
+            "pm_product_a_filter", "Product A — Main Engine Oil Filter Set",
+            "SEDAR-PM-A-FILTER", "ME-OF-500", unit, "spare_consumable",
+        ),
+        "b": (
+            "pm_product_b_lube", "Product B — Marine Engine Oil",
+            "SEDAR-PM-B-LUBE", "MEO-15W40", liter, "fuel_lubricant",
+        ),
+        "c": (
+            "pm_product_c_replacement_pump",
+            "Product C — Replacement Cooling-Water Pump",
+            "SEDAR-PM-C-PUMP", "CWP-500-R", unit, "replacement_equipment",
+        ),
+    }
+    products = {}
+    for key, (xmlid, name, code, part, uom, item_type) in specs.items():
+        products[key] = _immutable_record(env, "product.product", xmlid, {
+            "name": name,
+            "company_id": env.company.id,
+            "type": "consu",
+            "is_storable": True,
+            "uom_id": uom.id,
+            "default_code": code,
+            "sedar_inventory_item": True,
+            "sedar_item_type": item_type,
+            "sedar_manufacturer_part_number": part,
+            "sedar_compatibility_scope": "fleet",
+            "sedar_reorder_point": 0.0,
+            "tracking": "serial" if item_type == "replacement_equipment" else "none",
+        }, identity_fields=("company_id", "default_code"))
+    return products
+
+
+def _ensure_pm_bidders(env):
+    specs = {
+        "one": ("pm_bidder_1", "Bidder 1 — Batangas Marine Supply"),
+        "two": ("pm_bidder_2", "Bidder 2 — Harbor Parts Trading"),
+        "three": ("pm_bidder_3", "Bidder 3 — Pacific Engine Systems"),
+    }
+    return {
+        key: _immutable_record(env, "res.partner", xmlid, {
+            "name": name,
+            "is_company": True,
+            "supplier_rank": 1,
+            "company_id": env.company.id,
+        }, identity_fields=("company_id", "name"))
+        for key, (xmlid, name) in specs.items()
+    }
+
+
+def _ensure_pm_request(
+    env, officer, equipment, work_order, storage, products
+):
+    request = _immutable_record(env, "sedar.purchase.request", "pm_request", {
+        "requester_id": officer.id,
+        "company_id": env.company.id,
+        "currency_id": env.company.currency_id.id,
+        "source_type": "maintenance",
+        "maintenance_request_id": work_order.id,
+        "equipment_id": equipment.id,
+        "required_date": datetime(2026, 9, 5, 8, 0, 0),
+        "priority": "urgent",
+        "justification": (
+            "Procure physical maintenance stock for the due STS Atlas main-engine service."
+        ),
+    }, identity_fields=(
+        "company_id", "maintenance_request_id", "equipment_id",
+    ))
+    line_specs = {
+        "a": ("pm_request_line_a", 4.0, 850.0, 10),
+        "b": ("pm_request_line_b", 60.0, 320.0, 20),
+        "c": ("pm_request_line_c", 1.0, 185000.0, 30),
+    }
+    lines = {}
+    for key, (xmlid, quantity, estimate, sequence) in line_specs.items():
+        lines[key] = _immutable_record(
+            env, "sedar.purchase.request.line", xmlid, {
+                "request_id": request.id,
+                "sequence": sequence,
+                "product_id": products[key].id,
+                "quantity": quantity,
+                "estimated_unit_price": estimate,
+                "source_location_id": storage.id,
+                "need_reason": "Required physical stock for the scheduled service cycle.",
+            },
+            identity_fields=("request_id", "product_id"),
+        )
+    if request.state == "draft":
+        request.with_user(officer).action_submit()
     if request.state == "submitted":
-        request.action_approve()
-    orders = (request.purchase_order_ids | request.purchase_order_id).with_user(manager)
-    if not orders:
-        return
-    accounting_user = env.ref("sedar_service_order_demo.user_accounting_manager", raise_if_not_found=False)
-    for order in orders:
-        _complete_existing_procurement_order(env, order, accounting_user)
+        request.with_user(officer).action_approve()
+    return request, lines
 
 
-def _complete_existing_procurement_order(env, order, accounting_user):
-    if order.state in {"draft", "sent"}:
-        order.button_confirm()
-    for picking in order.picking_ids.filtered(lambda item: item.state not in {"done", "cancel"}):
-        picking.action_confirm()
-        picking.action_assign()
-        for move_line in picking.move_line_ids:
-            move_line.quantity = move_line.move_id.product_uom_qty
-        result = picking.button_validate()
-        if isinstance(result, dict) and result.get("res_model") == "stock.immediate.transfer":
-            env[result["res_model"]].with_context(**result.get("context", {})).create({}).process()
-    if order.invoice_status == "to invoice" and not order.invoice_ids:
-        order.action_create_invoice()
-    for bill in order.invoice_ids.filtered(lambda item: item.state == "draft"):
-        bill.invoice_date = "2026-08-18"
-        (bill.with_user(accounting_user) if accounting_user else bill).action_post()
+def _ensure_pm_bids(env, officer, request, request_lines, bidders):
+    specs = {
+        "one": (
+            "pm_bid_1", ("a", "b"), (780.0, 305.0),
+            "Combined delivery in seven days; stock confirmed.",
+        ),
+        "two": (
+            "pm_bid_2", ("a",), (745.0,),
+            "Filter set available in fourteen days.",
+        ),
+        "three": (
+            "pm_bid_3", ("b", "c"), (330.0, 179500.0),
+            "Pump includes commissioning support and twelve-month warranty.",
+        ),
+    }
+    bids = {}
+    for key, (xmlid, line_keys, prices, notes) in specs.items():
+        bid = _immutable_record(
+            env, "sedar.purchase.bid", xmlid, {
+                "request_id": request.id,
+                "bidder_id": bidders[key].id,
+                "received_date": date(2026, 8, 20),
+                # No expiry keeps fresh installs deterministic after 2026; a
+                # fixed historical expiry would eventually block Line Awards.
+                "validity_date": False,
+                "promised_delivery_date": date(2026, 8, 29),
+                "delivery_terms": "Delivered to SEDAR Storage, Batangas.",
+                "availability_notes": notes,
+                "payment_terms": "Thirty days from accepted delivery.",
+                "warranty_notes": "Manufacturer warranty applies.",
+                "commercial_notes": (
+                    "Fictional quotation for the approved PM demonstration."
+                ),
+                "quotation_filename": f"{xmlid}-quotation.txt",
+                "quotation_file": base64.b64encode(
+                    f"SEDAR DEMO QUOTATION — {bidders[key].name}\n".encode()
+                ),
+                "line_ids": [
+                    Command.create({
+                        "request_line_id": request_lines[line_key].id,
+                        "unit_price": price,
+                        "availability_note": notes,
+                    })
+                    for line_key, price in zip(line_keys, prices)
+                ],
+            },
+            identity_fields=("request_id", "bidder_id"),
+        )
+        if bid.state == "draft":
+            bid.with_user(officer).action_receive()
+        bids[key] = bid
+        _bind_pm_bid_children(env, key, bid, line_keys, request_lines)
+    return bids
+
+
+def _bind_pm_bid_children(env, bidder_key, bid, line_keys, request_lines):
+    for line_key in line_keys:
+        bid_line = bid.line_ids.filtered(
+            lambda line, key=line_key: line.request_line_id == request_lines[key]
+        )
+        _bind_xmlid(env, f"pm_bid_line_{bidder_key}_{line_key}", bid_line)
+    attachment = env["ir.attachment"].sudo().search([
+        ("res_model", "=", "sedar.purchase.bid"),
+        ("res_id", "=", bid.id),
+        ("res_field", "=", "quotation_file"),
+    ], limit=1)
+    if attachment:
+        _bind_xmlid(env, f"pm_bid_{bidder_key}_quotation", attachment)
+
+
+def _ensure_pm_awards(env, officer, request_lines, bids):
+    winners = {
+        "a": (
+            bids["one"],
+            "Bidder 1 offers the best delivery and total service value.",
+        ),
+        "b": (
+            bids["one"],
+            "Bidder 1 consolidates Products A and B in one delivery.",
+        ),
+        "c": (
+            bids["three"],
+            "Bidder 3 provides the required pump warranty and support.",
+        ),
+    }
+    for key, (bid, reason) in winners.items():
+        line = request_lines[key]
+        award = line.sudo().current_award_id
+        if not award:
+            bid_line = bid.line_ids.filtered(
+                lambda item: item.request_line_id == line
+            )
+            award = line.with_user(officer)._create_line_award(bid_line, reason)
+        _bind_xmlid(env, f"pm_award_{key}", award)
+
+
+def _ensure_pm_orders(env, officer, request, bids, products):
+    request.with_user(officer).action_create_purchase_orders()
+    product_keys = {product.id: key for key, product in products.items()}
+    orders = {}
+    for key in ("one", "three"):
+        order = request.sudo().purchase_order_ids.filtered(
+            lambda item, bid=bids[key]: item.sedar_bid_id == bid
+        )
+        _bind_xmlid(env, f"pm_purchase_order_bidder_{key}", order)
+        for line in order.order_line:
+            product_key = product_keys[line.product_id.id]
+            _bind_xmlid(env, f"pm_purchase_order_line_{product_key}", line)
+        orders[key] = order
+    return orders
+
+
+def _ensure_pm_receipts(env, orders, products):
+    replacement_lot = _immutable_record(env, "stock.lot", "pm_product_c_serial", {
+        "name": "DEMO-CWP-500-0001",
+        "product_id": products["c"].id,
+        "company_id": env.company.id,
+    }, identity_fields=("company_id", "product_id", "name"))
+    for key, order in orders.items():
+        if order.state in {"draft", "sent"}:
+            order.button_confirm()
+        for picking in order.picking_ids.filtered(
+            lambda item: item.state not in {"done", "cancel"}
+        ):
+            picking.action_confirm()
+            picking.action_assign()
+            for move_line in picking.move_line_ids:
+                if move_line.product_id == products["c"]:
+                    move_line.lot_id = replacement_lot
+                move_line.quantity = move_line.move_id.product_uom_qty
+            result = picking.button_validate()
+            if (
+                isinstance(result, dict)
+                and result.get("res_model") == "stock.immediate.transfer"
+            ):
+                env[result["res_model"]].with_context(
+                    **result.get("context", {})
+                ).create({}).process()
+        done_picking = order.picking_ids.filtered(
+            lambda item: item.state == "done"
+        )[:1]
+        if done_picking:
+            _bind_xmlid(env, f"pm_receipt_bidder_{key}", done_picking)
+
+
+def _ensure_pm_current_use(env, officer, product, tugboat):
+    identity = {
+        "company_id": env.company.id,
+        "product_id": product.id,
+        "tugboat_id": tugboat.id,
+    }
+    issue = _resolve_immutable_record(
+        env,
+        "sedar.inventory.issue",
+        "pm_inventory_issue_a",
+        identity,
+        identity_fields=("company_id", "product_id", "tugboat_id"),
+    )
+    if not issue:
+        issue = env["sedar.inventory.issue"].with_user(officer)._issue_to_tug(
+            product,
+            tugboat,
+            1.0,
+            "Issue Product A to STS Atlas for the due main-engine service.",
+        )
+        _bind_xmlid(env, "pm_inventory_issue_a", issue)
+    _bind_xmlid(env, "pm_inventory_issue_move_a", issue.stock_move_id)
+    _bind_xmlid(env, "pm_inventory_lifecycle_a", issue.lifecycle_id)
+
+
+def _bind_pm_maintenance_facts(env, equipment):
+    baseline = env.ref(
+        "sedar_marine_maintenance.atlas_main_engine_reading_service_1000",
+        raise_if_not_found=False,
+    )
+    current = env.ref(
+        "sedar_marine_maintenance.atlas_main_engine_reading_current_1510",
+        raise_if_not_found=False,
+    )
+    if baseline:
+        _bind_xmlid(env, "pm_running_hour_baseline", baseline)
+    if current:
+        _bind_xmlid(env, "pm_running_hour_current", current)
+    equipment._sedar_reconcile_due_activity()
+    due_activity = equipment._sedar_open_due_activities()[:1]
+    if due_activity:
+        _bind_xmlid(env, "pm_due_maintenance_activity", due_activity)
 
 
 def _ensure_broader_demo_data(env):
@@ -221,6 +601,14 @@ def _ensure_inventory_breadth(env):
         ("radio", "Demo Handheld VHF Radio", "SEDAR-NAV-VHF", "VHF-HH-IP67", unit.id, 5, 4),
     ]
     for xmlid, name, code, part_number, uom_id, quantity, reorder_point in products:
+        product_data = env["ir.model.data"].search([
+            ("module", "=", "sedar_demo_suite"),
+            ("name", "=", f"inventory_item_{xmlid}"),
+        ], limit=1)
+        existing_product = (
+            env["product.product"].browse(product_data.res_id).exists()
+            if product_data else env["product.product"]
+        )
         product = _record(env, "product.product", f"inventory_item_{xmlid}", {
             "name": name,
             "type": "consu",
@@ -232,9 +620,10 @@ def _ensure_inventory_breadth(env):
             "sedar_compatibility_scope": "fleet",
             "sedar_reorder_point": reorder_point,
         })
-        current = env["stock.quant"]._get_available_quantity(product, stock_location, strict=True)
-        if abs(quantity - current) > 1e-6:
-            env["stock.quant"]._update_available_quantity(product, stock_location, quantity - current)
+        if not existing_product and quantity:
+            env["stock.quant"]._update_available_quantity(
+                product, stock_location, quantity
+            )
 
     manager = env.ref("sedar_purchase_request.user_procurement_manager", raise_if_not_found=False)
     tugboats = env["sedar.tugboat"].search([], order="id", limit=3)

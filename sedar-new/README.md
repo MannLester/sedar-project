@@ -280,6 +280,71 @@ and [CLI](https://www.odoo.com/documentation/19.0/developer/reference/cli.html).
 There is no GitHub Actions workflow for this repository. Run the Ruff check and the relevant
 targeted Odoo tests before review; run the full local suite for changes that cross module boundaries.
 
+## Procurement and Inventory Demo
+
+Open **SEDAR > Procurement** as the configured Procurement and Inventory Officer. The workspace
+contains Purchase Requests, Bidder List, Purchase Orders, Storage, and Currently In Use.
+
+The deterministic PM scenario has three requested products and partial supplier coverage:
+
+- Bidder 1 quotes Products A and B and wins both.
+- Bidder 2 quotes Product A and does not win.
+- Bidder 3 quotes Products B and C and wins Product C.
+- The resulting Bidder 1 Purchase Order contains A and B; the Bidder 3 Purchase Order contains C.
+
+Both receipts are standard Odoo Inventory receipts into Storage. The seeded Product A issue is a
+standard internal move to the tugboat and remains visible under Currently In Use through its open
+Inventory Lifecycle. Equipment Running Hours and related active/history procurement are also visible
+from **SEDAR > Fleet Monitoring > AIS Operations Map**. The map is a Simulated AIS Feed; it is not
+live tracking or navigational evidence.
+
+Commercial Bid data is restricted to the exact company-configured Officer. An AIS/Maintenance-only
+user may open valid Equipment detail but receives a limited payload with commercial identities,
+prices, terms, awards, Purchase Order suppliers, and quotation attachments recursively omitted.
+
+## Procurement Release Verification
+
+Run the focused Odoo tests on fresh, disposable databases:
+
+```sh
+python3 scripts/run_odoo_tests.py \
+  --module sedar_marine_maintenance \
+  --module sedar_marine_inventory \
+  --module sedar_purchase_request \
+  --module sedar_ais_demo \
+  --module sedar_demo_suite
+```
+
+Then run the isolated legacy upgrade gate:
+
+```sh
+python3 scripts/verify_procurement_upgrade.py
+```
+
+The upgrade verifier does not use `sedar_demo`. It archives the agreed pre-procurement base into a
+temporary workspace, creates a uniquely named Compose project and isolated database/filestore,
+captures legacy Purchase Request, Purchase Order, receipt, supplier-bill, Inventory Issue, and stock
+move/line/lot facts, then replaces the temporary addons with the candidate tree. A separate clean
+candidate database is installed and upgraded, while the legacy database is upgraded twice; every
+pass uses the exact shared Compose module list. The gate fails if legacy facts change, the PM fixture
+does not have the exact stable record set and A/B-versus-C allocation, or a repeated pass changes
+fixture identity or semantic content. Its JSON output records the candidate HEAD, a SHA-256 digest
+of every tracked and untracked non-ignored source file, whether the tree was dirty, the Odoo image
+ID/digest, database and data path,
+commands, exits, and logs.
+
+Successful temporary evidence is removed by default; pass `--keep-success` when an audit copy is
+needed. On any failure, the script deliberately leaves the uniquely named Compose project, isolated
+database, filestore, report, and logs in the printed temporary directory. Diagnose that evidence,
+then remove only the printed project with `docker compose --project-name <printed-project> down`
+from the printed temporary `sedar-new` directory. Never use this verifier against a shared database.
+
+The isolated checks do not replace the final real-client walkthrough. Before merging a Procurement
+release, upgrade the shared stack, inspect comparison, the two Purchase Orders, receipt → Storage →
+issue → Currently In Use, and map active/history/empty states at 1440×900 and 390×844. Inspect the
+valid Equipment-detail JSON-RPC payload as a restricted AIS/Maintenance-only user; a screenshot alone
+cannot prove server-side commercial redaction.
+
 ## Portal Theme
 
 The `sedar_portal_theme` addon provides a shared SEDAR frontend style for the Client Portal,

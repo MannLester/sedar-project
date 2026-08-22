@@ -6,7 +6,9 @@ Build the Procurement workspace around the company's actual flow: Maintenance or
 
 ## Status
 
-Approved for implementation. Delivery is tracked by GitHub issue #1 and its ordered child issues #2–#9.
+Implemented for the Odoo 19 demonstration. Delivery and final release verification are tracked by
+GitHub issue #1 and its ordered child issues #2–#9. This document remains the accepted scope and
+verification contract; it is not a list of unfinished work.
 
 ## Confirmed scope
 
@@ -25,15 +27,18 @@ Approved for implementation. Delivery is tracked by GitHub issue #1 and its orde
 - Awards are manual best-value decisions with a required reason, not automatic lowest-price selection.
 - Procurement and Inventory Officer is the only procurement business role in this scope. “Purchase Request Manager” must not appear in business-facing copy.
 - The map shows active procurement first and a separate procurement history for selected Equipment.
-- Inventory Issue no longer means immediate consumption. Goods move from Storage to a tugboat and remain Currently In Use until removal or consumption.
+- Inventory Issue no longer means immediate consumption. Goods move from Storage to a tugboat and
+  remain Currently In Use until a controlled return, consumption, or disposal. Technical Removal
+  does not close the lifecycle or move stock.
 
-## Remaining implementation mismatches
+## Delivered implementation
 
-The active `sedar-new/` implementation now provides Running Hour Readings, vendorless Purchase Requests, partial Bid capture, immutable Line Awards, and grouped standard Purchase Order handoff. The remaining gaps are:
-
-- The AIS map returns tug, crew, operation, maintenance, and dry-dock facts but no Equipment or procurement payload.
-- `sedar.inventory.issue` currently moves issued goods directly to a consumption location, so no general tugboat Currently In Use balance exists.
-- Inventory menus are split across the Marine Operations menu instead of the agreed Procurement hierarchy.
+The active `sedar-new/` implementation provides Running Hour Readings, vendorless physical-goods
+Purchase Requests, partial Bid capture, immutable Line Awards, supplier-grouped standard Purchase
+Orders, stock-backed Storage and Currently In Use, and Equipment procurement drill-down from the
+Simulated AIS Feed. The Procurement navigation contains Purchase Requests, Bidder List, Purchase
+Orders, Storage, and Currently In Use. Standard Odoo continues to own Purchase Orders, receipts,
+supplier bills, stock movements, and accounting records.
 
 ## Ownership boundaries
 
@@ -44,7 +49,7 @@ The active `sedar-new/` implementation now provides Running Hour Readings, vendo
 - Standard Odoo Accounting owns supplier bills, payments, and ledger entries.
 - The simulated AIS module presents read-only projections from these owning records; it does not become their source of truth.
 
-## Planned domain model
+## Delivered domain model
 
 ### Running Hour Readings
 
@@ -142,7 +147,8 @@ Historical one-step issues are preserved as completed legacy consumption. The up
 9. The system groups won lines by supplier and creates one standard Purchase Order per winner.
 10. Standard Odoo receipts replenish Storage.
 11. A controlled Inventory Issue moves goods from Storage to the named tugboat.
-12. Installed or assigned goods remain under Currently In Use until an explicit removal or consumption records the next controlled stock movement.
+12. Installed or assigned goods remain under Currently In Use until an explicit return, consumption,
+    or disposal records the next controlled stock movement. Technical Removal preserves that balance.
 
 ## User interface
 
@@ -260,7 +266,8 @@ Also seed:
 - Repeating Purchase Order creation creates no duplicates.
 - Losing Bids remain visible and immutable as award history.
 - Inventory Issue creates a done movement from Storage to the tugboat location.
-- Currently In Use reconciles with tugboat stock movements and closes only through removal or consumption.
+- Currently In Use reconciles with tugboat stock movements and closes only through return,
+  consumption, or disposal; Technical Removal does not close it.
 - Procurement users cannot bypass stock moves or alter historical done movements.
 - Non-procurement map users cannot receive protected Bid prices or attachments from the server payload.
 
@@ -268,9 +275,18 @@ Also seed:
 
 - Install or upgrade the affected Odoo 19 modules through the shared Docker setup.
 - Run focused module tests for Maintenance, Inventory, Purchase Request, AIS, and demo reconciliation.
+- Run `python3 scripts/verify_procurement_upgrade.py` from `sedar-new/` to verify the agreed
+  pre-procurement legacy base in an isolated Compose project. The verifier snapshots legacy
+  request/order/receipt/bill/issue/stock-move/line/lot facts, installs and upgrades a separate clean
+  candidate database, upgrades the legacy database twice with the exact shared module list, checks
+  the stable PM record set and A/B-versus-C order allocation after every candidate pass, and retains
+  its isolated databases, filestore, JSON report, and logs on failure.
 - Exercise the PM example through Purchase Request, Bid comparison, Line Awards, two Purchase Orders, receipt, Storage, issue, and Currently In Use.
 - Open the fleet map, select the tugboat and Equipment, and verify active/history procurement behavior.
-- Verify the Procurement navigation and responsive map/detail layout at desktop and narrow widths.
+- Verify the Procurement navigation and responsive map/detail layout at 1440×900 and 390×844.
+- Inspect the valid Equipment-detail JSON-RPC response as a restricted AIS/Maintenance-only user:
+  access remains `limited`, while commercial identities, prices, terms, awards, suppliers, and
+  quotation attachments are absent recursively. Direct Bid and attachment reads remain denied.
 
 ## Out of scope
 

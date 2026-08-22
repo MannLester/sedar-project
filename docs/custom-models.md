@@ -1,6 +1,11 @@
 # Custom Model Reference
 
-This document records the Odoo models and fields introduced or extended by the SEDAR service-completion, finance, applicant portal, and recruitment-operations MVP. It covers the local changes built on top of the existing Marine Operations, Marine Dispatch, Odoo Accounting, Odoo Recruitment, and SEDAR Document Control models. It does not attempt to document unrelated models owned by the manpower, applicant-intake, or careers modules.
+This document records the custom Odoo models, inherited fields, and material method-only workflow
+extensions in the active SEDAR Odoo 19 demonstration. It covers Marine Operations and Dispatch,
+Maintenance, Inventory, Procurement, Finance, HSSE, HR and Recruitment, Marketing, Executive
+Management, portal behavior, the Simulated AIS Feed, and cross-workspace demonstration
+reconciliation. Standard Odoo fields and behavior are described only where a SEDAR extension relies
+on or constrains them.
 
 Update this document in the same change whenever a listed custom field is added, renamed, removed, or given a materially different workflow meaning.
 
@@ -14,7 +19,22 @@ fixtures for Service Orders, standard Odoo invoices, maintenance work orders, pu
 requests, HSSE records, inventory items/issues, and controlled documents so demonstration
 list views do not appear empty. It preserves one tug-compatible, stock-derived Job Order
 shortage so the Procurement Inventory Check demonstration includes both Ready and Shortage
-requirements. For the local demonstration only, reconciliation grants Odoo's built-in
+requirements.
+
+The reconciler also owns the stable `sedar_demo_suite.pm_*` PM procurement fixture: one
+Equipment-linked three-line Purchase Request, three Item Types, three supplier partners, three
+partial Bids with five Bid lines and protected quotation attachments, three Line Awards, and two
+supplier-grouped standard Purchase Orders and receipts. It reconciles two Running Hour Readings and
+one due Maintenance activity, then creates one controlled Product A Inventory Issue, done internal
+stock move, and open Currently In Use lifecycle. Stable XMLIDs identify every fixture and downstream
+record. On first installation, reconciliation creates a fixture when its stable XMLID has never
+been bound. On later runs, it verifies semantic ownership before using the existing record and
+stops if the XMLID target was deleted or changed instead of reconstructing operational history. It
+does not reset operational quants or rewrite completed legacy Purchase Orders, receipts, supplier
+bills, Inventory Issues, or done stock moves. Re-running it preserves PM record identity and
+content.
+
+For the local demonstration only, reconciliation grants Odoo's built-in
 Administrator and every active, internal `@sedar.demo` persona the highest SEDAR manager role
 in every installed workspace so every visible sidebar destination opens without switching
 accounts. Customer, applicant, and other shared portal users remain restricted. This temporary

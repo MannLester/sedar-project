@@ -1,6 +1,6 @@
 {
     "name": "SEDAR Demonstration Suite",
-    "version": "19.0.1.0.0",
+    "version": "19.0.2.0.0",
     "category": "Operations",
     "summary": "Final deterministic reconciliation for the SEDAR demonstration",
     "author": "SEDAR Development Team",
