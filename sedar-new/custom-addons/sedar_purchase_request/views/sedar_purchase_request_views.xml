@@ -50,9 +50,13 @@
                     <button name="action_submit" type="object" string="Submit" class="btn-primary" invisible="state not in ['draft', 'rejected']"/>
                     <button name="action_approve" type="object" string="Approve" class="btn-primary" groups="sedar_marine_inventory.group_marine_inventory_manager" invisible="state != 'submitted' or not is_procurement_inventory_officer"/>
                     <button name="action_reject" type="object" string="Reject" groups="sedar_marine_inventory.group_marine_inventory_manager" invisible="state not in ['submitted', 'approved'] or not is_procurement_inventory_officer"/>
+                    <button name="action_create_purchase_orders" type="object" string="Create Purchase Orders" class="btn-primary" groups="sedar_marine_inventory.group_marine_inventory_manager" invisible="state != 'approved' or procurement_progress != 'fully_awarded' or not is_procurement_inventory_officer"/>
+                    <button name="action_open_handoff_recovery_wizard" type="object" string="Recover Handoff" groups="sedar_marine_inventory.group_marine_inventory_manager" invisible="not legacy_handoff_recovery_required or not is_procurement_inventory_officer"/>
                     <button name="action_cancel" type="object" string="Cancel" invisible="state not in ['draft', 'submitted', 'rejected']"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,submitted,approved,po_created"/>
                     <field name="is_procurement_inventory_officer" invisible="1"/>
+                    <field name="procurement_progress" invisible="1"/>
+                    <field name="legacy_handoff_recovery_required" invisible="1"/>
                 </header>
                 <sheet>
                     <field name="id" invisible="1"/>
@@ -62,6 +66,12 @@
                         </button>
                         <button name="action_open_purchase_orders" type="object" class="oe_stat_button" icon="fa-shopping-cart" groups="sedar_marine_inventory.group_marine_inventory_manager" invisible="purchase_order_count == 0 or not is_procurement_inventory_officer">
                             <field name="purchase_order_count" widget="statinfo" string="Purchase Orders"/>
+                        </button>
+                        <button name="action_open_awards" type="object" class="oe_stat_button" icon="fa-trophy" groups="sedar_marine_inventory.group_marine_inventory_manager" invisible="award_count == 0 or not is_procurement_inventory_officer">
+                            <field name="award_count" widget="statinfo" string="Awards"/>
+                        </button>
+                        <button name="action_open_bid_comparison" type="object" class="oe_stat_button" icon="fa-balance-scale" groups="sedar_marine_inventory.group_marine_inventory_manager" invisible="state not in ['approved', 'po_created'] or not is_procurement_inventory_officer">
+                            <div class="o_stat_info"><span class="o_stat_text">Compare Bids</span></div>
                         </button>
                     </div>
                     <div class="oe_title">
@@ -89,16 +99,59 @@
                     <notebook>
                         <page string="Request Lines">
                             <field name="line_ids" readonly="state not in ['draft', 'rejected']">
-                                <list editable="bottom">
+                                <list editable="bottom" open_form_view="1">
                                     <field name="sequence" widget="handle"/>
                                     <field name="product_id"/>
+                                    <button name="action_open_award_wizard" type="object" string="Award" icon="fa-trophy" groups="sedar_marine_inventory.group_marine_inventory_manager" invisible="parent.state != 'approved' or not parent.is_procurement_inventory_officer or line_state != 'active' or current_award_id"/>
+                                    <button name="action_open_cancel_wizard" type="object" string="Cancel Line" icon="fa-ban" groups="sedar_marine_inventory.group_marine_inventory_manager" invisible="parent.state != 'approved' or not parent.is_procurement_inventory_officer or line_state != 'active' or current_award_id"/>
+                                    <field name="quantity"/>
+                                    <field name="product_uom_id" optional="hide"/>
+                                    <field name="estimated_unit_price" optional="hide"/>
+                                    <field name="estimated_subtotal" optional="hide"/>
+                                    <field name="source_location_id" optional="hide"/>
+                                    <field name="maintenance_part_line_id" optional="hide"/>
+                                    <field name="inventory_requirement_id" optional="hide"/>
+                                    <field name="line_state" groups="sedar_marine_inventory.group_marine_inventory_manager" optional="show"/>
+                                    <field name="current_award_id" groups="sedar_marine_inventory.group_marine_inventory_manager" optional="hide"/>
+                                </list>
+                                <form string="Requested Product">
+                                    <header>
+                                        <button name="action_open_award_wizard" type="object" string="Compare and Award" class="btn-primary" groups="sedar_marine_inventory.group_marine_inventory_manager" invisible="parent.state != 'approved' or not parent.is_procurement_inventory_officer or line_state != 'active' or current_award_id"/>
+                                        <button name="action_open_cancel_wizard" type="object" string="Cancel Product" groups="sedar_marine_inventory.group_marine_inventory_manager" invisible="parent.state != 'approved' or not parent.is_procurement_inventory_officer or line_state != 'active' or current_award_id"/>
+                                    </header>
+                                    <sheet>
+                                        <group>
+                                            <field name="product_id"/>
+                                            <field name="quantity"/>
+                                            <field name="product_uom_id"/>
+                                            <field name="need_reason"/>
+                                        </group>
+                                        <group groups="sedar_marine_inventory.group_marine_inventory_manager">
+                                            <field name="line_state"/>
+                                            <field name="current_award_id"/>
+                                            <field name="cancellation_reason" invisible="line_state != 'cancelled'"/>
+                                            <field name="cancelled_by_id" invisible="line_state != 'cancelled'"/>
+                                            <field name="cancelled_at" invisible="line_state != 'cancelled'"/>
+                                        </group>
+                                    </sheet>
+                                </form>
+                            </field>
+                        </page>
+                        <page string="Awards" groups="sedar_marine_inventory.group_marine_inventory_manager" invisible="not is_procurement_inventory_officer">
+                            <field name="award_ids" readonly="1">
+                                <list create="0" delete="0" decoration-muted="state == 'reset'">
+                                    <field name="product_id"/>
+                                    <field name="bidder_id"/>
                                     <field name="quantity"/>
                                     <field name="product_uom_id"/>
-                                    <field name="estimated_unit_price"/>
-                                    <field name="estimated_subtotal"/>
-                                    <field name="source_location_id"/>
-                                    <field name="maintenance_part_line_id"/>
-                                    <field name="inventory_requirement_id"/>
+                                    <field name="unit_price"/>
+                                    <field name="currency_id" column_invisible="True"/>
+                                    <field name="award_reason" optional="show"/>
+                                    <field name="awarded_by_id" optional="show"/>
+                                    <field name="awarded_at" optional="show"/>
+                                    <field name="state"/>
+                                    <button name="action_open_reset_wizard" type="object" string="Reset" icon="fa-undo" invisible="state != 'awarded' or purchase_order_line_id"/>
+                                    <field name="purchase_order_line_id" column_invisible="True"/>
                                 </list>
                             </field>
                         </page>
@@ -115,6 +168,11 @@
                                 </group>
                             </group>
                             <field name="rejection_reason" readonly="not is_procurement_inventory_officer or state not in ['submitted', 'approved']"/>
+                            <group string="Legacy Handoff Recovery" invisible="not handoff_recovered_at">
+                                <field name="handoff_recovery_reason" readonly="1"/>
+                                <field name="handoff_recovered_by_id" readonly="1"/>
+                                <field name="handoff_recovered_at" readonly="1"/>
+                            </group>
                         </page>
                     </notebook>
                     <field name="vendor_id" invisible="1"/>
@@ -123,6 +181,254 @@
                 </sheet>
                 <chatter/>
             </form>
+        </field>
+    </record>
+
+    <record id="view_sedar_purchase_line_award_list" model="ir.ui.view">
+        <field name="name">sedar.purchase.line.award.list</field>
+        <field name="model">sedar.purchase.line.award</field>
+        <field name="arch" type="xml">
+            <list create="0" delete="0" decoration-muted="state == 'reset'">
+                <field name="request_id"/>
+                <field name="product_id"/>
+                <field name="bidder_id"/>
+                <field name="quantity"/>
+                <field name="product_uom_id"/>
+                <field name="unit_price"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="awarded_by_id" optional="show"/>
+                <field name="awarded_at"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sedar_purchase_line_award_form" model="ir.ui.view">
+        <field name="name">sedar.purchase.line.award.form</field>
+        <field name="model">sedar.purchase.line.award</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0" delete="0" string="Line Award">
+                <header>
+                    <button name="action_open_reset_wizard" type="object" string="Reset Award" invisible="state != 'awarded' or purchase_order_line_id"/>
+                    <field name="state" widget="statusbar" statusbar_visible="awarded,ordered,reset"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="request_id"/>
+                            <field name="request_line_id"/>
+                            <field name="product_id"/>
+                            <field name="quantity"/>
+                            <field name="product_uom_id"/>
+                        </group>
+                        <group>
+                            <field name="bid_id"/>
+                            <field name="bid_line_id"/>
+                            <field name="bidder_id"/>
+                            <field name="unit_price"/>
+                            <field name="currency_id"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="award_reason"/>
+                        <field name="expired_bid_override"/>
+                        <field name="expired_bid_override_reason" invisible="not expired_bid_override"/>
+                        <field name="zero_price_confirmed"/>
+                    </group>
+                    <group string="Audit">
+                        <group>
+                            <field name="awarded_by_id"/>
+                            <field name="awarded_at"/>
+                            <field name="purchase_order_line_id"/>
+                        </group>
+                        <group invisible="state != 'reset'">
+                            <field name="reset_reason"/>
+                            <field name="reset_by_id"/>
+                            <field name="reset_at"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_sedar_purchase_line_award_wizard_form" model="ir.ui.view">
+        <field name="name">sedar.purchase.line.award.wizard.form</field>
+        <field name="model">sedar.purchase.line.award.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Award Product Line">
+                <group>
+                    <group>
+                        <field name="request_line_id"/>
+                        <field name="bid_line_id" domain="[('request_line_id', '=', request_line_id), ('bid_id.state', '=', 'received')]" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="award_reason" placeholder="Explain the best-value decision (price, availability, delivery, warranty, or terms)."/>
+                    </group>
+                    <group string="Selected Bid" invisible="not bid_line_id">
+                        <field name="bidder_id"/>
+                        <field name="quantity"/>
+                        <field name="product_uom_id"/>
+                        <field name="unit_price"/>
+                        <field name="currency_id"/>
+                        <field name="validity_date"/>
+                        <field name="promised_delivery_date"/>
+                        <field name="availability_note"/>
+                        <field name="warranty_notes"/>
+                    </group>
+                </group>
+                <group string="Exceptions">
+                    <group>
+                        <field name="expired_bid_override"/>
+                        <field name="expired_bid_override_reason" invisible="not expired_bid_override" required="expired_bid_override"/>
+                    </group>
+                    <group>
+                        <field name="zero_price_confirmed"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Record Award" class="btn-primary"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_sedar_purchase_bid_line_search" model="ir.ui.view">
+        <field name="name">sedar.purchase.bid.line.search</field>
+        <field name="model">sedar.purchase.bid.line</field>
+        <field name="arch" type="xml">
+            <search string="Bid Comparison">
+                <field name="request_line_id"/>
+                <field name="bidder_id"/>
+                <field name="product_id"/>
+                <filter name="group_request_line" string="Group by Requested Product" context="{'group_by': 'request_line_id'}"/>
+                <filter name="group_bidder" string="Group by Bidder" context="{'group_by': 'bidder_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_sedar_purchase_bid_line_comparison_list" model="ir.ui.view">
+        <field name="name">sedar.purchase.bid.line.comparison.list</field>
+        <field name="model">sedar.purchase.bid.line</field>
+        <field name="priority" eval="10"/>
+        <field name="arch" type="xml">
+            <list string="Bid Comparison" create="0" edit="0" delete="0">
+                <field name="request_line_id"/>
+                <field name="product_id" optional="show"/>
+                <field name="bidder_id"/>
+                <field name="unit_price"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="quantity" optional="show"/>
+                <field name="product_uom_id" optional="show"/>
+                <field name="availability_note" optional="show"/>
+                <field name="promised_delivery_date" optional="show"/>
+                <field name="validity_date" optional="show"/>
+                <field name="subtotal" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sedar_purchase_bid_line_comparison_form" model="ir.ui.view">
+        <field name="name">sedar.purchase.bid.line.comparison.form</field>
+        <field name="model">sedar.purchase.bid.line</field>
+        <field name="priority" eval="10"/>
+        <field name="arch" type="xml">
+            <form string="Quoted Product" create="0" edit="0" delete="0">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="request_id"/>
+                            <field name="request_line_id"/>
+                            <field name="product_id"/>
+                            <field name="quantity"/>
+                            <field name="product_uom_id"/>
+                        </group>
+                        <group>
+                            <field name="bid_id"/>
+                            <field name="bidder_id"/>
+                            <field name="unit_price"/>
+                            <field name="currency_id"/>
+                            <field name="subtotal"/>
+                        </group>
+                    </group>
+                    <group string="Availability and Delivery">
+                        <field name="availability_note"/>
+                        <field name="promised_delivery_date"/>
+                        <field name="validity_date"/>
+                        <field name="delivery_terms"/>
+                        <field name="warranty_notes"/>
+                        <field name="notes"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_sedar_purchase_line_award_reset_wizard_form" model="ir.ui.view">
+        <field name="name">sedar.purchase.line.award.reset.wizard.form</field>
+        <field name="model">sedar.purchase.line.award.reset.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Reset Line Award">
+                <group>
+                    <group>
+                        <field name="award_id"/>
+                        <field name="reason" placeholder="Why must this award be reset?"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Reset Award" class="btn-primary"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_sedar_purchase_request_line_cancel_wizard_form" model="ir.ui.view">
+        <field name="name">sedar.purchase.request.line.cancel.wizard.form</field>
+        <field name="model">sedar.purchase.request.line.cancel.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Cancel Requested Product">
+                <group>
+                    <group>
+                        <field name="request_line_id"/>
+                        <field name="reason" placeholder="Why is this requested product no longer part of the approved need?"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Cancel Product" class="btn-primary"/>
+                    <button string="Keep Product" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_sedar_purchase_request_recovery_wizard_form" model="ir.ui.view">
+        <field name="name">sedar.purchase.request.recovery.wizard.form</field>
+        <field name="model">sedar.purchase.request.recovery.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Recover Legacy Handoff">
+                <group>
+                    <group>
+                        <field name="request_id"/>
+                        <field name="reason" placeholder="Explain why this incomplete legacy handoff is being returned to procurement review."/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Return to Approved" class="btn-primary"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_purchase_order_form_sedar_award_source" model="ir.ui.view">
+        <field name="name">purchase.order.form.sedar.award.source</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='origin']" position="after">
+                <field name="sedar_purchase_request_id" readonly="1" groups="sedar_marine_inventory.group_marine_inventory_manager"/>
+                <field name="sedar_bid_id" readonly="1" groups="sedar_marine_inventory.group_marine_inventory_manager"/>
+            </xpath>
         </field>
     </record>
 
