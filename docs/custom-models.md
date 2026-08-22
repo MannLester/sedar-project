@@ -124,6 +124,24 @@ Key behavior:
 
 The existing Service Order remains the workflow aggregate. Operations determines when every required tug has declared completion. Finance then uses the same record as its billing-review workspace.
 
+### Company ownership
+
+| Model and field | Type | How it is used |
+| --- | --- | --- |
+| `sedar.marine.service.order.company_id` | Required indexed many-to-one to `res.company` | Owns the complete operational aggregate. It defaults to the active company, is not copied, and cannot change after creation. Client and requesting-contact links are company-checked. |
+| `sedar.tug.assignment.company_id` | Stored indexed related many-to-one to `res.company` | Inherits the Service Order company through the company-checked `order_id`. |
+| `sedar.manning.requirement.company_id` | Stored indexed related many-to-one to `res.company` | Inherits company through the company-checked tug assignment. |
+| `sedar.crew.assignment.company_id` | Stored indexed related many-to-one to `res.company` | Inherits company through the company-checked manning requirement and Service Order. |
+| `sedar.crew.shortage.company_id` | Stored indexed related many-to-one to `res.company` | Inherits company through the company-checked manning requirement and Service Order. |
+| `sedar.crew.shortage.action.company_id` | Stored indexed related many-to-one to `res.company` | Inherits the operational shortage company and scopes resolution history to allowed companies. |
+| `sedar.marine.operation.company_id` | Stored indexed related many-to-one to `res.company` | Inherits company through the company-checked Service Order link. |
+| `sedar.marine.operation.tug.company_id` | Stored indexed related many-to-one to `res.company` | Inherits the Marine Operation company; its tug assignment must belong to the same Service Order. |
+| `sedar.marine.operation.crew.company_id` | Stored indexed related many-to-one to `res.company` | Inherits the operation-tug company; an optional crew assignment must belong to that operation tug's assignment. |
+| `sedar.marine.operation.log.company_id` | Stored indexed related many-to-one to `res.company` | Inherits the Marine Operation company; an optional operation tug must belong to the selected operation. |
+| `sedar.marine.operation.delay.company_id` | Stored indexed related many-to-one to `res.company` | Inherits the Marine Operation company; an optional operation tug must belong to the selected operation. |
+
+Global allowed-company record rules isolate the Service Order and every listed operational descendant. Customer portal lookups retain their explicit client-ownership check and also filter the enabled Odoo companies even though the controller uses elevated reads. Manpower Requests and lines also inherit their own company boundary, and operational shortage evidence may be linked only when it belongs to that same company. The upgrade migration infers one company from existing Service Order ownership, company-owned client/contact records, invoices, Purchase Requests, or inventory source locations. It aborts when the evidence conflicts and otherwise falls back deterministically to the main company. Tugboat ownership and company-neutral HSSE, Marketing, tariff, and other master configuration remain outside this aggregate boundary.
+
 ### Completion fields
 
 | Field | Type | How it is used |
@@ -180,8 +198,10 @@ Key behavior:
 
 ## `sedar.marine.operation` integration behavior
 
-No new field was added to the PM-owned model, but its lifecycle contract changed materially:
+The dispatch record inherits the Service Order company as described above. Its lifecycle contract also changed materially:
 
+- Its Service Order link is immutable after creation so the company, tug, crew, log, and delay snapshot cannot be reparented inconsistently.
+- Tug Assignments, Manning Requirements, Crew Assignments, and Crew Shortages cannot be reparented after creation, and Operation Tug snapshot links are immutable. Corrections replace planning records instead of mutating the ownership chain beneath dispatch or manpower evidence.
 - The system creates exactly one operation for a Ready Service Order with state `awaiting_start`.
 - The earliest participating Tug Master's `actual_start` moves the operation and order to `in_progress` and becomes the operation's `actual_start`.
 - When every active Tug Completion is submitted, the latest tug `actual_end` becomes the operation's `actual_end`; the operation and order become `completed` automatically.
@@ -215,6 +235,7 @@ This is the only new persistent model introduced by the finance MVP. One record 
 | --- | --- | --- |
 | `sequence` | Integer | Controls adjustment display and invoice-line order. |
 | `order_id` | Required many-to-one to `sedar.marine.service.order` | Parent billing review; deleting the order cascades to its adjustments. |
+| `company_id` | Stored related many-to-one to `res.company` | Company inherited from the Service Order and enforced by a global allowed-company record rule. |
 | `description` | Required character | Short customer-facing label placed on the invoice line. |
 | `adjustment_type` | Required selection | Chooses a positive `charge` or negative `deduction`. |
 | `quantity` | Required float | Number of units; must be positive. |
@@ -231,7 +252,7 @@ The finance module extends Odoo's standard invoice model instead of creating a c
 
 | Field | Type | How it is used |
 | --- | --- | --- |
-| `sedar_service_order_id` | Indexed many-to-one to `sedar.marine.service.order` | Links a customer invoice to its originating Service Order. The link is copied neither to duplicates nor removable while referenced by the invoice. |
+| `sedar_service_order_id` | Indexed company-checked many-to-one to `sedar.marine.service.order` | Links a customer invoice to its originating Service Order. The source order must belong to the invoice company; the link is copied neither to duplicates nor removable while referenced by the invoice. |
 
 Posting, taxes, receivables, payment registration, reconciliation, credit notes, and accounting reports remain standard Odoo Accounting behavior, as required by ADR-0001.
 
@@ -426,9 +447,11 @@ The existing shortage action remains the action log for operational shortage res
 
 | Field | Type | How it is used |
 | --- | --- | --- |
+| `company_id` | Stored indexed related many-to-one to `res.company` | Company inherited from the operational crew shortage and enforced by a global allowed-company record rule. |
+| `assigned_employee_id` | Company-checked many-to-one to `hr.employee` | Employee responsible for the resolution action; the employee must belong to the shortage company. |
 | `action_type` | Selection extension | Adds `temporary_reliever` alongside existing replacement, reschedule, certificate, medical, training, and manpower actions. |
 | `relief_crew_profile_id` | Many-to-one to `sedar.crew.profile` | Candidate relief crew for a temporary reliever action. |
-| `relief_assignment_id` | Read-only many-to-one to `sedar.crew.assignment` | Concrete Service Order crew assignment created after the relief candidate passes eligibility checks. |
+| `relief_assignment_id` | Read-only company-checked many-to-one to `sedar.crew.assignment` | Concrete Service Order crew assignment created after the relief candidate passes eligibility checks; it must belong to the shortage company. |
 | `unavailability_id` | Read-only many-to-one to `sedar.crew.unavailability` | Medical or training blocker created from the action. |
 | `unavailability_start` | Datetime | Start date/time used for medical or training unavailability created from the action. |
 | `unavailability_end` | Datetime | Optional end date/time for the medical or training blocker. |
@@ -709,19 +732,23 @@ One record defines the stock products normally required for one Service Order se
 | Field | Type | How it is used |
 | --- | --- | --- |
 | `name` | Required character | Template label. |
+| `company_id` | Stored related many-to-one to `res.company` | Company derived from the required source location and used for access isolation and Service Order template matching. |
 | `service_type_id` | Required many-to-one to `sedar.marine.service.type` | Service type that triggers this requirement template. |
 | `tug_class_id` | Many-to-one to `sedar.tug.class` | Optional tug-class-specific requirement rule. |
-| `source_location_id` | Required many-to-one to `stock.location` | Internal stock location checked for available quantity. |
+| `source_location_id` | Required company-checked many-to-one to `stock.location` | Company-owned internal stock location checked for available quantity. Shared locations are rejected because they do not establish deterministic template ownership. |
 | `line_ids` | One-to-many to `sedar.inventory.template.line` | Products and quantities generated for matching Service Orders. |
 | `active` | Boolean | Allows old demo templates to be retired without deleting history. |
+
+Changing the source location revalidates every existing line against the new location company before ownership can change. Company-owned products cannot be stranded under a template from another company.
 
 ### `sedar.inventory.template.line`
 
 | Field | Type | How it is used |
 | --- | --- | --- |
 | `template_id` | Required many-to-one to `sedar.inventory.template` | Parent template. |
+| `company_id` | Stored related many-to-one to `res.company` | Company inherited from the Inventory Template for company checks and record rules. |
 | `sequence` | Integer | Display order. |
-| `product_id` | Required many-to-one to `product.product` | Stock product required by the Service Order. |
+| `product_id` | Required company-checked many-to-one to `product.product` | Shared product or company-owned stock product required by the Service Order. |
 | `product_uom_id` | Related, stored many-to-one to `uom.uom` | Product unit of measure. |
 | `required_qty` | Required float | Base required quantity; must be greater than zero. |
 | `per_tug` | Boolean | Multiplies the required quantity by `number_of_tugs` when generated. |
@@ -733,9 +760,10 @@ One record is a stock-backed Service Order inventory requirement. It replaces th
 | Field | Type | How it is used |
 | --- | --- | --- |
 | `order_id` | Required many-to-one to `sedar.marine.service.order` | Parent Service Order. |
-| `product_id` | Required many-to-one to `product.product` | Required stock product. |
+| `company_id` | Stored related many-to-one to `res.company` | Company inherited from the Service Order for relationship checks and record rules. |
+| `product_id` | Required company-checked many-to-one to `product.product` | Required stock product; it must be shared or belong to the Service Order company. |
 | `product_uom_id` | Related, stored many-to-one to `uom.uom` | Product unit of measure. |
-| `source_location_id` | Required many-to-one to `stock.location` | Internal location checked for available quantity. |
+| `source_location_id` | Required company-checked many-to-one to `stock.location` | Internal location checked for available quantity; a company-owned location must match the Service Order company. |
 | `required_qty` | Required float | Required quantity; must be greater than zero. |
 | `available_qty` | Computed, stored float | Available quantity from standard Odoo stock quants at the source location. |
 | `shortage_qty` | Computed, stored float | Required quantity not currently available. |
@@ -746,9 +774,11 @@ One record is a stock-backed Service Order inventory requirement. It replaces th
 Key behavior:
 
 - `action_generate_inventory_requirements()` regenerates auto-generated requirement lines from the matching template for planned, blocked, or ready Service Orders.
+- `_find_inventory_template()` selects only a template owned by the Service Order company; another company's template is never used as a fallback.
 - `_sync_inventory_readiness()` writes the legacy `inventory_ready` flag from requirement-line availability only when requirement lines exist.
 - `action_confirm_inventory_ready()` is blocked for orders with requirement lines because readiness is stock-derived.
 - Service Order readiness shows `waiting_inventory` with a shortage summary when any requirement line is short.
+- Once a Purchase Request line cites an Inventory Requirement, that requirement's Service Order, product, and source location are immutable so procurement evidence cannot drift from its operational source.
 
 ### `maintenance.request` inventory extension
 
@@ -796,14 +826,16 @@ One record tracks fuel or lubricant issue and consumption for one tugboat in one
 | Field | Type | How it is used |
 | --- | --- | --- |
 | `operation_id` | Required many-to-one to `sedar.marine.operation` | Parent Marine Operation. |
+| `company_id` | Stored related many-to-one to `res.company` | Company inherited from the Marine Operation for relationship checks and record rules. |
 | `tugboat_id` | Required many-to-one to `sedar.tugboat` | Tugboat consuming fuel or lubricant. |
-| `product_id` | Required many-to-one to `product.product` | Fuel or lubricant product. |
+| `product_id` | Required company-checked many-to-one to `product.product` | Shared or same-company fuel or lubricant product. |
 | `product_uom_id` | Related, stored many-to-one to `uom.uom` | Product unit of measure. |
-| `source_location_id` | Required many-to-one to `stock.location` | Internal source stock location. |
-| `tug_location_id` | Required many-to-one to `stock.location` | Tugboat onboard stock location. |
+| `source_location_id` | Required company-checked many-to-one to `stock.location` | Internal source stock location; company-owned locations must match the operation company. |
+| `tug_location_id` | Required company-checked many-to-one to `stock.location` | Tugboat onboard stock location; company-owned locations must match the operation company. |
 | `opening_qty` | Float | Starting onboard quantity for the operation. |
 | `issued_qty` | Float | Quantity issued from source stock to the tugboat. |
 | `consumed_qty` | Float | Quantity consumed during the operation. |
+| `stock_move_ids` | Company-checked many-to-many to `stock.move` | Auditable issue and consumption moves; every linked move must belong to the Marine Operation company. |
 | `remaining_qty` | Computed, stored float | Opening plus issued minus consumed quantity. |
 | `state` | Selection | Draft, issued, or consumption recorded. |
 | `note` | Text | Optional operational fuel note. |
@@ -811,13 +843,13 @@ One record tracks fuel or lubricant issue and consumption for one tugboat in one
 Key behavior:
 
 - Issue and consumption actions are restricted to Procurement and Inventory Officers.
-- Issuing decreases source stock and increases tugboat stock.
-- Recording consumption decreases tugboat stock and updates operation fuel summary.
+- Issuing decreases source stock and increases tugboat stock using a standard move owned by the Marine Operation company, even when another company is active for the user.
+- Recording consumption decreases tugboat stock into that company's consumption location and updates the operation fuel summary.
 - Consumption cannot exceed opening plus issued quantity.
 
 Access rules:
 
-- Inventory Check Users can read Inventory Check records, immutable issue history, inventory templates, Service Order requirements, maintenance part lines, and operation fuel logs.
+- Inventory Check Users can read Inventory Check records, immutable issue history, same-company inventory templates, Service Order requirements, maintenance part lines, and operation fuel logs.
 - Procurement and Inventory Officers may maintain Item Types and use controlled issue actions, but cannot directly edit stock balances or alter completed Inventory Issues.
 - Operations Managers can read Service Order inventory requirements and operation fuel logs for dispatch and operational context.
 - Marine Maintenance Users can read and maintain work-order spare-part lines for maintenance execution context.
@@ -848,7 +880,7 @@ One record is a department request to buy goods needed by maintenance, inventory
 | `vendor_id` | Legacy hidden many-to-one to `res.partner` | Preserved only so existing databases and linked procurement history remain upgrade-safe. New Purchase Requests do not select a preferred supplier. |
 | `source_type` | Required selection | Maintenance, inventory, operations, or manual source classification. |
 | `maintenance_request_id` | Many-to-one to `maintenance.request` | Optional work-order source for spare-part replenishment. |
-| `service_order_id` | Many-to-one to `sedar.marine.service.order` | Optional Service Order source for operations or inventory replenishment. |
+| `service_order_id` | Company-checked many-to-one to `sedar.marine.service.order` | Optional Service Order source for operations or inventory replenishment; it must belong to the Purchase Request company. |
 | `equipment_id` | Many-to-one to `maintenance.equipment` | Optional affected Equipment for an equipment-specific physical-goods need. When a maintenance work order identifies Equipment, the request must remain consistent with that source. |
 | `required_date` | Required datetime | Date and time by which the requested goods are needed. |
 | `priority` | Required selection | Normal, urgent, or emergency. |
@@ -880,7 +912,8 @@ Key behavior:
 - The Purchase Orders smart button opens every linked standard order. Existing single-order history remains available after upgrade.
 - Internal request state and computed procurement progress are separate so procurement work cannot make the internal need appear unreviewed.
 - Once Bid capture begins, the request company, currency, and line baseline are immutable. A request with Bid history cannot return to correction through rejection; received offers are withdrawn instead so commercial history is not erased.
-- Service Orders are company-neutral in the current owning model and therefore cannot yet participate in automatic company consistency checks. Purchase Requests, Equipment, products, locations, maintenance sources, and resulting Purchase Orders remain company-scoped; adding Service Order company ownership must be handled by the Marine Operations owner rather than inferred in Procurement.
+- Service Order and inventory-requirement sources must belong to the Purchase Request company. Procurement consumes the ownership supplied by Marine Operations and Inventory rather than deriving a second company fact.
+- The Purchase Request company is immutable after request lines, Bids, or Purchase Orders exist, including for elevated maintenance code. This keeps every stored related company and standard Purchase Order link consistent.
 
 ### `sedar.purchase.request.line`
 
@@ -899,7 +932,7 @@ One record is one requested product line under a Purchase Request.
 | `estimated_subtotal` | Computed, stored monetary | Quantity multiplied by estimated unit price. |
 | `source_location_id` | Many-to-one to `stock.location` | Internal stock location whose shortage or replenishment need triggered the request. |
 | `maintenance_part_line_id` | Many-to-one to `sedar.maintenance.part.line` | Optional maintenance spare-part shortage source. |
-| `inventory_requirement_id` | Many-to-one to `sedar.inventory.requirement` | Optional Service Order inventory shortage source. |
+| `inventory_requirement_id` | Company-checked many-to-one to `sedar.inventory.requirement` | Optional Service Order inventory shortage source; its inherited company must match the Purchase Request company. |
 | `need_reason` | Text | Optional line-specific explanation. |
 | `bid_line_ids` | Officer-only read-only one-to-many to `sedar.purchase.bid.line` | Bid lines that quote this requested product; protected from ordinary requester reads at field-access level. |
 
@@ -907,7 +940,7 @@ Key behavior:
 
 - Selecting a maintenance part line or inventory requirement populates product, quantity, and source location.
 - A request line may reference either one maintenance part line or one inventory requirement, not both.
-- The line validates physical goods only, positive quantity, non-negative estimated unit price, source-record consistency, and same-company products and locations.
+- The line validates physical goods only, positive quantity, non-negative estimated unit price, source-record consistency, and same-company products, locations, Service Orders, and inventory requirements.
 - Request facts and lines become read-only after submission; a rejected request returns to an editable correction state only before Bid capture starts.
 - Once any Bid exists, request lines cannot be added or deleted and their request assignment, product, quantity, and unit baseline cannot be changed.
 
@@ -1080,7 +1113,11 @@ Access rules:
 
 ## `sedar.manpower.request` and `sedar.job.vacancy` fulfillment behavior
 
-No new field is added to either model in this slice, but their workflow contract changed materially under ADR-0003:
+`sedar.manpower.request.line.company_id` is a stored, indexed relation to the parent Manpower Request company. The parent request, its lines, and crew-shortage resolution actions use global allowed-company record rules. `shortage_ids`, `job_id`, and `sedar.crew.shortage.manpower_request_line_id` are company-checked; the job is compatible when it is shared or belongs to the request company. The shortage's `crew_assignment_id` and computed `operation_id` are also company-checked and explicitly validated against the owning Service Order. The shortage action's `assigned_employee_id` must belong to the shortage company. The shortage-to-manpower workflow explicitly creates the request in the Service Order shortage company rather than whichever company is currently active for the user.
+
+Once a Manpower Request has position lines, its company cannot change. Position lines and shortage-resolution actions also cannot be moved to another parent. These rules prevent existing shortage evidence, HR jobs, action history, and vacancy handoff records from silently inheriting a different owner.
+
+Their fulfillment workflow contract also changed materially under ADR-0003:
 
 - `sedar.manpower.request.action_open_vacancies()` creates or links vacancy records and moves the request to `position_open`; it no longer resolves linked operational crew shortages.
 - `sedar.job.vacancy._sedar_sync_hiring_fulfillment()` derives the vacancy's `filled_openings` from employees whose `sedar_source_vacancy_id` points to that vacancy.
@@ -1230,7 +1267,7 @@ One structured register entry represents a contract, vessel certificate, insuran
 
 ### `sedar.executive.dashboard`
 
-The dashboard is a read-only computed presentation record. It stores only `name`, `company_id`, and `last_refreshed`; all KPI fields are non-stored computed values. Finance indicators query posted `account.move` records and show revenue, invoiced, unpaid, collected, and known posted supplier costs. Operational indicators query `sedar.marine.service.order`, `sedar.marine.operation`, and `sedar.tug.assignment`, including actual/planned tug-hour utilization. Fleet and people indicators query `sedar.tugboat`, `sedar.crew.profile`, `sedar.crew.certificate`, `sedar.job.vacancy`, `hr.applicant`, and `sedar.crew.shortage`. Maintenance, inventory, procurement, HSSE, and governance indicators query their owning models directly. Each dashboard action opens a source-model list view; executive aggregation uses the explicit Executive Management role while source drill-downs continue through Odoo access rules. Profitability is intentionally not calculated because attributable fuel, labor, and parts cost rules are not approved.
+The dashboard is a read-only computed presentation record. It stores only `name`, `company_id`, and `last_refreshed`; all KPI fields are non-stored computed values. Finance indicators query posted `account.move` records and show revenue, invoiced, unpaid, collected, and known posted supplier costs. Operational indicators query `sedar.marine.service.order`, `sedar.marine.operation`, and `sedar.tug.assignment`, including actual/planned tug-hour utilization. Service Order, operation, assignment, shortage, inventory, fuel, and procurement facts are restricted to the dashboard company even though the executive aggregation uses elevated reads. Fleet and people indicators query `sedar.tugboat`, `sedar.crew.profile`, `sedar.crew.certificate`, `sedar.job.vacancy`, and `hr.applicant`; these remain company-neutral where their owning model has no approved company boundary. Maintenance, HSSE, and governance indicators query their owning models directly. Each dashboard action opens a source-model list view; company-owned source drill-downs include the dashboard company and still pass through Odoo access rules. Profitability is intentionally not calculated because attributable fuel, labor, and parts cost rules are not approved.
 
 ## Marketing customer workspace
 

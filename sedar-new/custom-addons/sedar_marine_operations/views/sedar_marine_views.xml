@@ -6,7 +6,7 @@
         <field name="arch" type="xml">
             <search string="Service Orders">
                 <field name="name"/><field name="client_id"/><field name="assisted_vessel_name"/>
-                <field name="service_type_id"/><field name="requested_start"/>
+                <field name="service_type_id"/><field name="requested_start"/><field name="company_id" groups="base.group_multi_company"/>
                 <filter name="submitted" string="Submitted" domain="[('state','=','submitted')]"/>
                 <filter name="needs_info" string="Needs Information" domain="[('state','=','needs_info')]"/>
                 <filter name="pricing_review" string="Pricing Review" domain="[('pricing_status','=','review')]"/>
@@ -33,6 +33,7 @@
                 <field name="name"/><field name="client_id"/><field name="assisted_vessel_name"/>
                 <field name="service_type_id"/><field name="port_id"/><field name="requested_start"/>
                 <field name="number_of_tugs"/><field name="estimated_amount" sum="Total"/>
+                <field name="company_id" groups="base.group_multi_company"/>
                 <field name="currency_id" column_invisible="True"/><field name="pricing_status"/><field name="inventory_ready"/><field name="readiness_status"/><field name="state"/>
             </list>
         </field>
@@ -87,6 +88,7 @@
                     <div class="oe_title"><label for="name"/><h1><field name="name"/></h1></div>
                     <group>
                         <group string="Client Request">
+                            <field name="company_id" groups="base.group_multi_company" readonly="id"/>
                             <field name="client_id"/><field name="contact_id" domain="[('commercial_partner_id','=',client_id)]"/>
                             <field name="request_channel"/><field name="client_reference"/><field name="priority"/>
                         </group>
@@ -177,7 +179,7 @@
     <record id="action_manning_templates" model="ir.actions.act_window"><field name="name">Manning Templates</field><field name="res_model">sedar.manning.template</field><field name="view_mode">list,form</field></record>
 
     <record id="view_tug_assignment_form" model="ir.ui.view"><field name="name">sedar.tug.assignment.form</field><field name="model">sedar.tug.assignment</field><field name="arch" type="xml"><form><header><button name="action_generate_requirements" type="object" string="Generate Manning Requirements" class="btn-primary" invisible="requirement_ids"/><button name="action_declare_complete" type="object" string="Declare Complete" class="btn-primary" groups="sedar_marine_operations.group_tug_master" invisible="state == 'cancelled' or completion_state == 'submitted' or order_state not in ['dispatched','in_progress','completed']"/><button name="action_return_completion" type="object" string="Return for Correction" groups="sedar_marine_operations.group_completion_reviewer" invisible="completion_state != 'submitted'"/><field name="state" widget="statusbar"/></header><sheet><group><group><field name="order_id"/><field name="order_state" readonly="1"/><field name="tugboat_id"/><field name="planned_start"/><field name="planned_end"/><field name="tug_available"/><field name="availability_reason"/></group><group string="Completion"><field name="tug_master_profile_id" readonly="1"/><field name="tug_master_user_id" readonly="1"/><field name="completion_state" readonly="1"/><field name="actual_start" readonly="completion_state == 'submitted'"/><field name="actual_end" readonly="completion_state == 'submitted'"/><field name="completion_note" readonly="completion_state == 'submitted'"/><field name="completion_evidence_filename" invisible="1"/><field name="completion_evidence" filename="completion_evidence_filename" readonly="completion_state == 'submitted'"/><field name="completion_declared_by_id" readonly="1"/><field name="completion_declared_at" readonly="1"/><field name="completion_return_reason" readonly="completion_state != 'submitted'"/></group></group><field name="requirement_ids"><list><field name="rank_id"/><field name="required_count"/><field name="assigned_count"/><field name="gap_count"/><field name="compliance_issue_count"/><field name="status"/></list></field></sheet></form></field></record>
-    <record id="view_tug_assignment_list" model="ir.ui.view"><field name="name">sedar.tug.assignment.list</field><field name="model">sedar.tug.assignment</field><field name="arch" type="xml"><list><field name="order_id"/><field name="tugboat_id"/><field name="tug_master_profile_id"/><field name="planned_start"/><field name="planned_end"/><field name="actual_start"/><field name="actual_end"/><field name="completion_state"/><field name="tug_available"/><field name="state"/></list></field></record>
+    <record id="view_tug_assignment_list" model="ir.ui.view"><field name="name">sedar.tug.assignment.list</field><field name="model">sedar.tug.assignment</field><field name="arch" type="xml"><list><field name="order_id"/><field name="company_id" groups="base.group_multi_company"/><field name="tugboat_id"/><field name="tug_master_profile_id"/><field name="planned_start"/><field name="planned_end"/><field name="actual_start"/><field name="actual_end"/><field name="completion_state"/><field name="tug_available"/><field name="state"/></list></field></record>
     <record id="action_tug_assignments" model="ir.actions.act_window"><field name="name">Tug and Crew Plans</field><field name="res_model">sedar.tug.assignment</field><field name="view_mode">list,form</field></record>
     <record id="action_my_tug_completions" model="ir.actions.act_window">
         <field name="name">My Tug Completions</field><field name="res_model">sedar.tug.assignment</field>

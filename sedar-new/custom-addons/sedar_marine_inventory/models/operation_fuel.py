@@ -19,27 +19,43 @@ class SedarOperationFuelLog(models.Model):
     _description = "Marine Operation Fuel or Lubricant Log"
     _inherit = ["sedar.inventory.mixin"]
     _order = "operation_id, tugboat_id, product_id"
+    _check_company_auto = True
 
-    operation_id = fields.Many2one("sedar.marine.operation", required=True, ondelete="cascade", index=True)
+    operation_id = fields.Many2one(
+        "sedar.marine.operation",
+        required=True,
+        ondelete="cascade",
+        index=True,
+        check_company=True,
+    )
+    company_id = fields.Many2one(
+        related="operation_id.company_id", store=True, index=True, readonly=True
+    )
     tugboat_id = fields.Many2one("sedar.tugboat", required=True, ondelete="restrict")
-    product_id = fields.Many2one("product.product", required=True, ondelete="restrict")
+    product_id = fields.Many2one(
+        "product.product", required=True, ondelete="restrict", check_company=True
+    )
     product_uom_id = fields.Many2one(related="product_id.uom_id", store=True, readonly=True)
     source_location_id = fields.Many2one(
         "stock.location",
         required=True,
         domain=[("usage", "=", "internal")],
         ondelete="restrict",
+        check_company=True,
     )
     tug_location_id = fields.Many2one(
         "stock.location",
         required=True,
         domain=[("usage", "=", "internal")],
         ondelete="restrict",
+        check_company=True,
     )
     opening_qty = fields.Float(default=0.0)
     issued_qty = fields.Float(default=0.0)
     consumed_qty = fields.Float(default=0.0)
-    stock_move_ids = fields.Many2many("stock.move", string="Inventory Movements", copy=False)
+    stock_move_ids = fields.Many2many(
+        "stock.move", string="Inventory Movements", copy=False, check_company=True
+    )
     remaining_qty = fields.Float(compute="_compute_remaining_qty", store=True)
     state = fields.Selection(
         [("draft", "Draft"), ("issued", "Issued"), ("consumed", "Consumption Recorded")],
@@ -66,6 +82,18 @@ class SedarOperationFuelLog(models.Model):
             if log.consumed_qty > log.opening_qty + log.issued_qty:
                 raise ValidationError("Consumed quantity cannot exceed opening plus issued quantity.")
 
+    @api.constrains(
+        "operation_id", "product_id", "source_location_id", "tug_location_id"
+    )
+    def _check_fuel_company(self):
+        for log in self:
+            company = log.operation_id.company_id
+            for record in (log.product_id, log.source_location_id, log.tug_location_id):
+                if record.company_id and record.company_id != company:
+                    raise ValidationError(
+                        "Fuel products and locations must belong to the Marine Operation company."
+                    )
+
     def _check_inventory_manager(self):
         if self.env.su:
             return
@@ -85,6 +113,7 @@ class SedarOperationFuelLog(models.Model):
             move = log._sedar_create_done_move(
                 log.product_id, log.issued_qty, log.source_location_id,
                 log.tug_location_id, "Fuel issue: %s" % log.operation_id.display_name,
+                company=log.company_id,
             )
             log.write({"stock_move_ids": [(4, move.id)]})
             log.state = "issued"
@@ -99,8 +128,9 @@ class SedarOperationFuelLog(models.Model):
                 log.action_issue_to_tug()
             move = log._sedar_create_done_move(
                 log.product_id, log.consumed_qty, log.tug_location_id,
-                log._sedar_consumption_location(),
+                log._sedar_consumption_location(log.company_id),
                 "Fuel consumption: %s" % log.operation_id.display_name,
+                company=log.company_id,
             )
             log.write({"stock_move_ids": [(4, move.id)]})
             log.state = "consumed"

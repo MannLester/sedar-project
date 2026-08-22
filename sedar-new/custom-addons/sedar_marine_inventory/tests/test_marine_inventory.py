@@ -1,7 +1,10 @@
 from datetime import datetime
+import importlib.util
+from pathlib import Path
 
 from odoo import Command
-from odoo.exceptions import AccessError, UserError
+from odoo.exceptions import AccessError, UserError, ValidationError
+from odoo.modules.module import get_module_path
 from odoo.tests import TransactionCase, tagged
 
 
@@ -185,3 +188,298 @@ class TestMarineInventory(TransactionCase):
         )
         self.assertEqual(len(consumption_move), 1)
         self.assertEqual(consumption_move.quantity, fuel_log.consumed_qty)
+
+    def test_requirements_and_templates_follow_service_order_company(self):
+        other_company = self.env["res.company"].create({"name": "Other Inventory Company"})
+        other_warehouse = self.env["stock.warehouse"].create({
+            "name": "Other Inventory Warehouse",
+            "code": "OIWH",
+            "company_id": other_company.id,
+        })
+        other_order = self.env["sedar.marine.service.order"].sudo().with_company(
+            other_company
+        ).create({
+            "company_id": other_company.id,
+            "client_id": self.partner.id,
+            "assisted_vessel_name": "MV Other Inventory Company",
+            "service_type_id": self.service.id,
+            "number_of_tugs": 1,
+            "scope_of_work": "Company isolation test.",
+            "port_id": self.port.id,
+            "requested_start": datetime(2026, 9, 7, 8, 0, 0),
+            "estimated_duration_hours": 2,
+            "state": "planning",
+        })
+
+        self.assertFalse(other_order._find_inventory_template())
+        requirement = self.env["sedar.inventory.requirement"].sudo().create({
+            "order_id": other_order.id,
+            "product_id": self.product.id,
+            "source_location_id": other_warehouse.lot_stock_id.id,
+            "required_qty": 1,
+        })
+        self.assertEqual(requirement.company_id, other_company)
+        self.assertFalse(
+            self.env["sedar.inventory.requirement"].with_user(
+                self.inventory_manager
+            ).search([("id", "=", requirement.id)])
+        )
+
+        main_order = self._make_order()
+        with self.assertRaises(ValidationError):
+            self.env["sedar.inventory.requirement"].sudo().create({
+                "order_id": main_order.id,
+                "product_id": self.product.id,
+                "source_location_id": other_warehouse.lot_stock_id.id,
+                "required_qty": 1,
+            })
+
+    def test_inventory_template_requires_company_owned_source_location(self):
+        shared_parent = self.env["stock.location"].search([
+            ("usage", "=", "view"),
+            ("company_id", "=", False),
+        ], limit=1)
+        shared_location = self.env["stock.location"].create({
+            "name": "Ambiguous Inventory Source",
+            "usage": "internal",
+            "location_id": shared_parent.id,
+            "company_id": False,
+        })
+        with self.assertRaises(ValidationError):
+            self.env["sedar.inventory.template"].create({
+                "name": "Ambiguous Template",
+                "service_type_id": self.service.id,
+                "source_location_id": shared_location.id,
+            })
+
+    def test_inventory_template_source_change_revalidates_existing_products(self):
+        company_product = self.env["product.product"].create({
+            "name": "Company-owned Template Product",
+            "type": "consu",
+            "is_storable": True,
+            "company_id": self.company.id,
+        })
+        template = self.env["sedar.inventory.template"].create({
+            "name": "Company-owned Product Template",
+            "service_type_id": self.service.id,
+            "source_location_id": self.stock_location.id,
+            "line_ids": [Command.create({
+                "product_id": company_product.id,
+                "required_qty": 1,
+            })],
+        })
+        other_company = self.env["res.company"].create({
+            "name": "Template Reparenting Other Company",
+        })
+        other_warehouse = self.env["stock.warehouse"].create({
+            "name": "Template Reparenting Other Warehouse",
+            "code": "TRWH",
+            "company_id": other_company.id,
+        })
+
+        with self.assertRaisesRegex(ValidationError, "conflicts"):
+            template.write({"source_location_id": other_warehouse.lot_stock_id.id})
+
+        self.assertEqual(template.company_id, self.company)
+
+    def test_fuel_log_inherits_operation_company(self):
+        fuel_log = self.env.ref("sedar_marine_inventory.fuel_completed_operation")
+
+        self.assertEqual(fuel_log.company_id, fuel_log.operation_id.company_id)
+        self.assertTrue(fuel_log._fields["stock_move_ids"].check_company)
+
+    def test_service_order_migration_infers_company_from_fuel_locations(self):
+        migration_path = (
+            Path(get_module_path("sedar_marine_operations"))
+            / "migrations/19.0.2.0.0/pre-migrate.py"
+        )
+        spec = importlib.util.spec_from_file_location(
+            "sedar_service_order_fuel_company_migration", migration_path
+        )
+        migration = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(migration)
+        other_company = self.env["res.company"].create({"name": "Fuel Evidence Company"})
+        other_warehouse = self.env["stock.warehouse"].create({
+            "name": "Fuel Evidence Warehouse",
+            "code": "FEWH",
+            "company_id": other_company.id,
+        })
+        tug_location = self.env["stock.location"].create({
+            "name": "Fuel Evidence Tug Tank",
+            "usage": "internal",
+            "location_id": other_warehouse.view_location_id.id,
+            "company_id": other_company.id,
+        })
+        order = self.env["sedar.marine.service.order"].with_company(
+            other_company
+        ).create({
+            "company_id": other_company.id,
+            "client_id": self.partner.id,
+            "assisted_vessel_name": "MV Fuel Evidence",
+            "service_type_id": self.service.id,
+            "scope_of_work": "Fuel-location migration evidence test.",
+            "port_id": self.port.id,
+            "requested_start": datetime(2026, 9, 8, 9, 0, 0),
+        })
+        operation = self.env["sedar.marine.operation"].with_company(
+            other_company
+        ).create({"order_id": order.id})
+        self.env["sedar.operation.fuel.log"].with_company(other_company).create({
+            "operation_id": operation.id,
+            "tugboat_id": self.tug.id,
+            "product_id": self.product.id,
+            "source_location_id": other_warehouse.lot_stock_id.id,
+            "tug_location_id": tug_location.id,
+        })
+        self.env.cr.execute(
+            "ALTER TABLE sedar_marine_service_order ALTER COLUMN company_id DROP NOT NULL"
+        )
+        self.env.cr.execute(
+            "UPDATE sedar_marine_service_order SET company_id = NULL WHERE id = %s",
+            (order.id,),
+        )
+
+        migration.migrate(self.env.cr, "19.0.1.0.0")
+
+        order.invalidate_recordset(["company_id"])
+        self.assertEqual(order.company_id, other_company)
+
+    def test_fuel_moves_use_operation_company_when_another_company_is_active(self):
+        other_company = self.env["res.company"].create({"name": "Other Fuel Company"})
+        other_warehouse = self.env["stock.warehouse"].create({
+            "name": "Other Fuel Warehouse",
+            "code": "OFWH",
+            "company_id": other_company.id,
+        })
+        tug_location = self.env["stock.location"].create({
+            "name": "Other Company Tug Tank",
+            "usage": "internal",
+            "location_id": other_warehouse.view_location_id.id,
+            "company_id": other_company.id,
+        })
+        other_order = self.env["sedar.marine.service.order"].with_company(other_company).create({
+            "company_id": other_company.id,
+            "client_id": self.partner.id,
+            "assisted_vessel_name": "MV Other Fuel Company",
+            "service_type_id": self.service.id,
+            "scope_of_work": "Fuel company-context test.",
+            "port_id": self.port.id,
+            "requested_start": datetime(2026, 9, 8, 8, 0, 0),
+        })
+        operation = self.env["sedar.marine.operation"].with_company(other_company).create({
+            "order_id": other_order.id,
+        })
+        self.env["stock.quant"].with_company(other_company)._update_available_quantity(
+            self.product, other_warehouse.lot_stock_id, 20,
+        )
+        fuel_log = self.env["sedar.operation.fuel.log"].with_company(other_company).create({
+            "operation_id": operation.id,
+            "tugboat_id": self.tug.id,
+            "product_id": self.product.id,
+            "source_location_id": other_warehouse.lot_stock_id.id,
+            "tug_location_id": tug_location.id,
+            "issued_qty": 10,
+            "consumed_qty": 4,
+        })
+
+        self.assertEqual(fuel_log.env.company, other_company)
+        fuel_log.with_company(self.company).sudo().action_record_consumption()
+
+        self.assertEqual(fuel_log.stock_move_ids.mapped("company_id"), other_company)
+        consumption_move = fuel_log.stock_move_ids.filtered(
+            lambda move: move.location_dest_id.usage == "inventory"
+        )
+        self.assertEqual(consumption_move.location_dest_id.company_id, other_company)
+
+    def test_inventory_template_upgrade_rejects_ambiguous_source_company(self):
+        migration_path = (
+            Path(get_module_path("sedar_marine_inventory"))
+            / "migrations/19.0.2.0.0/pre-migrate.py"
+        )
+        spec = importlib.util.spec_from_file_location(
+            "sedar_marine_inventory_pre_migrate", migration_path
+        )
+        migration = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(migration)
+
+        self.env.cr.execute(
+            "UPDATE stock_location SET company_id = NULL WHERE id = %s",
+            [self.stock_location.id],
+        )
+        with self.assertRaisesRegex(RuntimeError, "company-owned source locations"):
+            migration.migrate(self.env.cr, "19.0.1.0.0")
+        self.env.cr.execute(
+            "UPDATE stock_location SET company_id = %s WHERE id = %s",
+            [self.company.id, self.stock_location.id],
+        )
+        migration.migrate(self.env.cr, "19.0.1.0.0")
+        migration.migrate(self.env.cr, "19.0.1.0.0")
+
+    def test_inventory_upgrade_rejects_cross_company_requirement_product(self):
+        migration_path = (
+            Path(get_module_path("sedar_marine_inventory"))
+            / "migrations/19.0.2.0.0/pre-migrate.py"
+        )
+        spec = importlib.util.spec_from_file_location(
+            "sedar_inventory_requirement_pre_migrate", migration_path
+        )
+        migration = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(migration)
+        other_company = self.env["res.company"].create({"name": "Requirement Migration Company"})
+        product = self.env["product.product"].create({
+            "name": "Requirement Migration Product",
+            "type": "consu",
+            "is_storable": True,
+        })
+        order = self._make_order()
+        requirement = self.env["sedar.inventory.requirement"].create({
+            "order_id": order.id,
+            "product_id": product.id,
+            "source_location_id": self.stock_location.id,
+            "required_qty": 1,
+        })
+        self.env.cr.execute(
+            "UPDATE product_template SET company_id = %s WHERE id = %s",
+            (other_company.id, product.product_tmpl_id.id),
+        )
+
+        with self.assertRaisesRegex(RuntimeError, "Inventory Requirement products"):
+            migration.migrate(self.env.cr, "19.0.1.0.0")
+
+        self.env.cr.execute(
+            "UPDATE product_template SET company_id = NULL WHERE id = %s",
+            (product.product_tmpl_id.id,),
+        )
+        requirement.invalidate_recordset()
+
+    def test_inventory_upgrade_rejects_cross_company_fuel_location(self):
+        migration_path = (
+            Path(get_module_path("sedar_marine_inventory"))
+            / "migrations/19.0.2.0.0/pre-migrate.py"
+        )
+        spec = importlib.util.spec_from_file_location(
+            "sedar_inventory_fuel_pre_migrate", migration_path
+        )
+        migration = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(migration)
+        other_company = self.env["res.company"].create({"name": "Fuel Migration Company"})
+        other_warehouse = self.env["stock.warehouse"].create({
+            "name": "Fuel Migration Warehouse",
+            "code": "FMWH",
+            "company_id": other_company.id,
+        })
+        fuel_log = self.env.ref("sedar_marine_inventory.fuel_completed_operation")
+        original_location = fuel_log.source_location_id
+        self.env.cr.execute(
+            "UPDATE sedar_operation_fuel_log SET source_location_id = %s WHERE id = %s",
+            (other_warehouse.lot_stock_id.id, fuel_log.id),
+        )
+
+        with self.assertRaisesRegex(RuntimeError, "Fuel-log products or locations"):
+            migration.migrate(self.env.cr, "19.0.1.0.0")
+
+        self.env.cr.execute(
+            "UPDATE sedar_operation_fuel_log SET source_location_id = %s WHERE id = %s",
+            (original_location.id, fuel_log.id),
+        )
+        fuel_log.invalidate_recordset(["source_location_id"])

@@ -1,6 +1,6 @@
 {
     "name": "SEDAR Crewing Availability",
-    "version": "19.0.1.0.0",
+    "version": "19.0.2.0.0",
     "category": "Marine",
     "summary": "Tracks dated crew unavailability, leave, training blockers, and temporary relief",
     "author": "SEDAR Development Team",

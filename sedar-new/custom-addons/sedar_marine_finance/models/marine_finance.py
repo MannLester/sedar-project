@@ -128,9 +128,19 @@ class SedarMarineBillingAdjustment(models.Model):
     _name = "sedar.marine.billing.adjustment"
     _description = "Marine Service Billing Adjustment"
     _order = "sequence, id"
+    _check_company_auto = True
 
     sequence = fields.Integer(default=10)
-    order_id = fields.Many2one("sedar.marine.service.order", required=True, ondelete="cascade", index=True)
+    order_id = fields.Many2one(
+        "sedar.marine.service.order",
+        required=True,
+        ondelete="cascade",
+        index=True,
+        check_company=True,
+    )
+    company_id = fields.Many2one(
+        related="order_id.company_id", store=True, index=True, readonly=True
+    )
     description = fields.Char(required=True)
     adjustment_type = fields.Selection([("charge", "Charge"), ("deduction", "Deduction")], required=True, default="charge")
     quantity = fields.Float(required=True, default=1.0)
@@ -421,8 +431,9 @@ class SedarMarineServiceOrder(models.Model):
                 "quantity": adjustment.quantity,
                 "price_unit": adjustment.unit_rate * (-1 if adjustment.adjustment_type == "deduction" else 1),
             }))
-        invoice = self.env["account.move"].create({
+        invoice = self.env["account.move"].with_company(self.company_id).create({
             "move_type": "out_invoice",
+            "company_id": self.company_id.id,
             "partner_id": self.client_id.commercial_partner_id.id,
             "currency_id": self.confirmed_currency_id.id,
             "invoice_origin": self.name,

@@ -2,6 +2,12 @@ from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
 
+def _validate_operation_tug_links(records):
+    for record in records.filtered("operation_tug_id"):
+        if record.operation_tug_id.operation_id != record.operation_id:
+            raise ValidationError("The operation tug must belong to the selected Marine Operation.")
+
+
 OPERATION_STATES = [
     ("awaiting_start", "Awaiting Start"),
     ("in_progress", "In Progress"),
@@ -15,11 +21,14 @@ class SedarMarineOperation(models.Model):
     _description = "Marine Service Operation"
     _inherit = ["mail.thread", "mail.activity.mixin"]
     _order = "planned_start desc, id desc"
+    _check_company_auto = True
 
     name = fields.Char(default="New", readonly=True, copy=False, index=True)
     order_id = fields.Many2one(
         "sedar.marine.service.order", required=True, ondelete="restrict", index=True,
+        check_company=True,
     )
+    company_id = fields.Many2one(related="order_id.company_id", store=True, index=True)
     client_id = fields.Many2one(related="order_id.client_id", store=True)
     assisted_vessel_id = fields.Many2one(related="order_id.assisted_vessel_id", store=True)
     service_type_id = fields.Many2one(related="order_id.service_type_id", store=True)
@@ -63,6 +72,11 @@ class SedarMarineOperation(models.Model):
                 operation.name = self.env["ir.sequence"].next_by_code("sedar.marine.operation") or "New"
             operation._refresh_dispatch_snapshot()
         return operations
+
+    def write(self, vals):
+        if "order_id" in vals and any(operation.order_id.id != vals["order_id"] for operation in self):
+            raise ValidationError("A Marine Operation cannot move to another Service Order.")
+        return super().write(vals)
 
     def _refresh_dispatch_snapshot(self):
         for operation in self:
@@ -285,9 +299,15 @@ class SedarMarineOperationTug(models.Model):
     _name = "sedar.marine.operation.tug"
     _description = "Operation Tug"
     _order = "tugboat_id"
+    _check_company_auto = True
 
-    operation_id = fields.Many2one("sedar.marine.operation", required=True, ondelete="cascade")
-    tug_assignment_id = fields.Many2one("sedar.tug.assignment", required=True, ondelete="restrict")
+    operation_id = fields.Many2one(
+        "sedar.marine.operation", required=True, ondelete="cascade", check_company=True,
+    )
+    company_id = fields.Many2one(related="operation_id.company_id", store=True, index=True)
+    tug_assignment_id = fields.Many2one(
+        "sedar.tug.assignment", required=True, ondelete="restrict", check_company=True,
+    )
     tugboat_id = fields.Many2one("sedar.tugboat", required=True, ondelete="restrict")
     state = fields.Selection([
         ("pending", "Pending"), ("dispatched", "Dispatched"),
@@ -299,6 +319,26 @@ class SedarMarineOperationTug(models.Model):
     returned_base_at = fields.Datetime()
     remarks = fields.Text()
     crew_manifest_ids = fields.One2many("sedar.marine.operation.crew", "operation_tug_id")
+
+    @api.constrains("operation_id", "tug_assignment_id")
+    def _check_assignment_order(self):
+        for tug in self:
+            if tug.tug_assignment_id.order_id != tug.operation_id.order_id:
+                raise ValidationError(
+                    "The tug assignment must belong to the Marine Operation's Service Order."
+                )
+
+    def write(self, vals):
+        immutable_links = {"operation_id", "tug_assignment_id"}.intersection(vals)
+        if any(
+            getattr(tug, field_name).id != vals[field_name]
+            for tug in self
+            for field_name in immutable_links
+        ):
+            raise ValidationError(
+                "An Operation Tug snapshot cannot move to another operation or Tug Assignment."
+            )
+        return super().write(vals)
 
     def action_mark_on_scene(self):
         for tug in self:
@@ -313,9 +353,15 @@ class SedarMarineOperationCrew(models.Model):
     _name = "sedar.marine.operation.crew"
     _description = "Operation Crew Manifest"
     _order = "rank_id, employee_name"
+    _check_company_auto = True
 
-    operation_tug_id = fields.Many2one("sedar.marine.operation.tug", required=True, ondelete="cascade")
-    crew_assignment_id = fields.Many2one("sedar.crew.assignment", ondelete="restrict")
+    operation_tug_id = fields.Many2one(
+        "sedar.marine.operation.tug", required=True, ondelete="cascade", check_company=True,
+    )
+    company_id = fields.Many2one(related="operation_tug_id.company_id", store=True, index=True)
+    crew_assignment_id = fields.Many2one(
+        "sedar.crew.assignment", ondelete="restrict", check_company=True,
+    )
     crew_profile_id = fields.Many2one("sedar.crew.profile", required=True, ondelete="restrict")
     employee_id = fields.Many2one("hr.employee", ondelete="restrict")
     employee_name = fields.Char(required=True)
@@ -327,14 +373,28 @@ class SedarMarineOperationCrew(models.Model):
         ("released", "Released"), ("replaced", "Replaced"),
     ], default="assigned", required=True)
 
+    @api.constrains("operation_tug_id", "crew_assignment_id")
+    def _check_crew_assignment_tug(self):
+        for crew in self.filtered("crew_assignment_id"):
+            if crew.crew_assignment_id.tug_assignment_id != crew.operation_tug_id.tug_assignment_id:
+                raise ValidationError(
+                    "The crew assignment must belong to the operation tug's assignment."
+                )
+
 
 class SedarMarineOperationLog(models.Model):
     _name = "sedar.marine.operation.log"
     _description = "Marine Operation Log"
     _order = "event_time, id"
+    _check_company_auto = True
 
-    operation_id = fields.Many2one("sedar.marine.operation", required=True, ondelete="cascade")
-    operation_tug_id = fields.Many2one("sedar.marine.operation.tug", ondelete="set null")
+    operation_id = fields.Many2one(
+        "sedar.marine.operation", required=True, ondelete="cascade", check_company=True,
+    )
+    company_id = fields.Many2one(related="operation_id.company_id", store=True, index=True)
+    operation_tug_id = fields.Many2one(
+        "sedar.marine.operation.tug", ondelete="set null", check_company=True,
+    )
     event_time = fields.Datetime(required=True, default=fields.Datetime.now)
     event_type = fields.Selection([
         ("dispatched", "Operation Dispatched"),
@@ -356,14 +416,24 @@ class SedarMarineOperationLog(models.Model):
     attachment = fields.Binary(attachment=True)
     attachment_filename = fields.Char()
 
+    @api.constrains("operation_id", "operation_tug_id")
+    def _check_operation_tug(self):
+        _validate_operation_tug_links(self)
+
 
 class SedarMarineOperationDelay(models.Model):
     _name = "sedar.marine.operation.delay"
     _description = "Marine Operation Delay"
     _order = "start_time desc"
+    _check_company_auto = True
 
-    operation_id = fields.Many2one("sedar.marine.operation", required=True, ondelete="cascade")
-    operation_tug_id = fields.Many2one("sedar.marine.operation.tug", ondelete="set null")
+    operation_id = fields.Many2one(
+        "sedar.marine.operation", required=True, ondelete="cascade", check_company=True,
+    )
+    company_id = fields.Many2one(related="operation_id.company_id", store=True, index=True)
+    operation_tug_id = fields.Many2one(
+        "sedar.marine.operation.tug", ondelete="set null", check_company=True,
+    )
     category = fields.Selection([
         ("weather", "Weather"), ("client", "Client Delay"),
         ("port", "Port Congestion"), ("mechanical", "Mechanical Issue"),
@@ -395,3 +465,7 @@ class SedarMarineOperationDelay(models.Model):
         for delay in self:
             if delay.end_time and delay.end_time < delay.start_time:
                 raise ValidationError("Delay end time cannot be earlier than its start time.")
+
+    @api.constrains("operation_id", "operation_tug_id")
+    def _check_operation_tug(self):
+        _validate_operation_tug_links(self)

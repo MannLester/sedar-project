@@ -21,8 +21,12 @@ class SedarCrewShortage(models.Model):
     _inherit = "sedar.crew.shortage"
 
     detected_at = fields.Datetime(default=fields.Datetime.now, required=True)
-    crew_assignment_id = fields.Many2one("sedar.crew.assignment", ondelete="set null")
-    operation_id = fields.Many2one("sedar.marine.operation", compute="_compute_operation", store=True)
+    crew_assignment_id = fields.Many2one(
+        "sedar.crew.assignment", ondelete="set null", check_company=True
+    )
+    operation_id = fields.Many2one(
+        "sedar.marine.operation", compute="_compute_operation", store=True, check_company=True
+    )
     review_state = fields.Selection([
         ("unreviewed", "Unreviewed"), ("reviewing", "Under Review"),
         ("action_required", "Action Required"), ("escalated", "Escalated"),
@@ -40,12 +44,32 @@ class SedarCrewShortage(models.Model):
     resolution_notes = fields.Text()
     resolved_at = fields.Datetime()
     action_ids = fields.One2many("sedar.crew.shortage.action", "shortage_id")
-    manpower_request_line_id = fields.Many2one("sedar.manpower.request.line", ondelete="set null")
+    manpower_request_line_id = fields.Many2one(
+        "sedar.manpower.request.line", ondelete="set null", check_company=True
+    )
 
     @api.depends("order_id.operation_ids")
     def _compute_operation(self):
         for shortage in self:
             shortage.operation_id = shortage.order_id.operation_ids[:1]
+
+    @api.constrains(
+        "company_id", "crew_assignment_id", "operation_id", "manpower_request_line_id"
+    )
+    def _check_company_links(self):
+        for shortage in self:
+            linked_records = (
+                shortage.crew_assignment_id,
+                shortage.operation_id,
+                shortage.manpower_request_line_id,
+            )
+            if any(
+                linked.company_id and linked.company_id != shortage.company_id
+                for linked in linked_records
+            ):
+                raise ValidationError(
+                    "Crew shortage links must belong to the Service Order company."
+                )
 
     def action_start_review(self):
         self.write({"review_state": "reviewing", "reviewer_id": self.env.user.id})
@@ -85,8 +109,13 @@ class SedarCrewShortage(models.Model):
             raise UserError("Escalate the shortage as a headcount issue before creating a request.")
         if self.manpower_request_line_id:
             return self.manpower_request_line_id.request_id.action_open()
-        department = self.env["hr.department"].search([("name", "ilike", "marine")], limit=1)
-        request = self.env["sedar.manpower.request"].create({
+        company = self.company_id
+        department = self.env["hr.department"].search([
+            ("name", "ilike", "marine"),
+            ("company_id", "in", [False, company.id]),
+        ], order="company_id desc, id", limit=1)
+        request = self.env["sedar.manpower.request"].with_company(company).create({
+            "company_id": company.id,
             "department_id": department.id,
             "requested_by": self.env.user.id,
             "business_justification": "Operational crew shortage linked to service order %s." % self.order_id.name,
@@ -116,14 +145,29 @@ class SedarCrewShortageAction(models.Model):
     _name = "sedar.crew.shortage.action"
     _description = "Crew Shortage Resolution Action"
     _order = "planned_date desc, id desc"
+    _check_company_auto = True
 
-    shortage_id = fields.Many2one("sedar.crew.shortage", required=True, ondelete="cascade")
+    shortage_id = fields.Many2one(
+        "sedar.crew.shortage", required=True, ondelete="cascade", check_company=True
+    )
+    company_id = fields.Many2one(
+        related="shortage_id.company_id", store=True, index=True, readonly=True
+    )
     action_type = fields.Selection([
         ("replacement", "Replacement"), ("reschedule", "Reschedule"),
         ("certificate", "Certification"), ("medical", "Medical"),
         ("training", "Training"), ("manpower", "Manpower Request"),
     ], required=True)
-    assigned_employee_id = fields.Many2one("hr.employee")
+    assigned_employee_id = fields.Many2one("hr.employee", check_company=True)
+
+    @api.constrains("company_id", "assigned_employee_id")
+    def _check_assigned_employee_company(self):
+        for action in self:
+            employee = action.assigned_employee_id
+            if employee.company_id and employee.company_id != action.company_id:
+                raise ValidationError(
+                    "The assigned employee must belong to the shortage action company."
+                )
     responsible_user_id = fields.Many2one("res.users", default=lambda self: self.env.user, required=True)
     planned_date = fields.Date()
     completed_date = fields.Date()
@@ -133,6 +177,15 @@ class SedarCrewShortageAction(models.Model):
     ], default="planned", required=True)
     outcome = fields.Text()
     attachment_ids = fields.Many2many("ir.attachment", string="Evidence")
+
+    def write(self, vals):
+        if "shortage_id" in vals and any(
+            action.shortage_id.id != vals["shortage_id"] for action in self
+        ):
+            raise ValidationError(
+                "A shortage resolution action cannot move to another Crew Shortage."
+            )
+        return super().write(vals)
 
     def action_start(self):
         self.write({"state": "in_progress"})
@@ -154,10 +207,11 @@ class SedarManpowerRequest(models.Model):
     _description = "SEDAR Manpower Request"
     _inherit = ["mail.thread", "mail.activity.mixin"]
     _order = "request_date desc, id desc"
+    _check_company_auto = True
 
     name = fields.Char(default="New", readonly=True, copy=False, index=True)
     company_id = fields.Many2one("res.company", required=True, default=lambda self: self.env.company)
-    department_id = fields.Many2one("hr.department", required=True)
+    department_id = fields.Many2one("hr.department", required=True, check_company=True)
     requested_by = fields.Many2one("res.users", required=True, default=lambda self: self.env.user)
     request_date = fields.Date(default=fields.Date.context_today, required=True)
     priority = fields.Selection([
@@ -194,6 +248,18 @@ class SedarManpowerRequest(models.Model):
             if request.name == "New":
                 request.name = self.env["ir.sequence"].next_by_code("sedar.manpower.request") or "New"
         return requests
+
+    def write(self, vals):
+        if "company_id" in vals:
+            changed_with_lines = self.filtered(
+                lambda request: request.company_id.id != vals["company_id"]
+                and request.line_ids
+            )
+            if changed_with_lines:
+                raise ValidationError(
+                    "A Manpower Request company cannot change after position lines exist."
+                )
+        return super().write(vals)
 
     def _ensure_group(self, xmlid):
         if not self.env.user.has_group(xmlid):
@@ -305,10 +371,16 @@ class SedarManpowerRequest(models.Model):
 class SedarManpowerRequestLine(models.Model):
     _name = "sedar.manpower.request.line"
     _description = "Manpower Request Position"
+    _check_company_auto = True
 
-    request_id = fields.Many2one("sedar.manpower.request", required=True, ondelete="cascade")
+    request_id = fields.Many2one(
+        "sedar.manpower.request", required=True, ondelete="cascade", check_company=True
+    )
+    company_id = fields.Many2one(
+        related="request_id.company_id", store=True, index=True, readonly=True
+    )
     crew_rank_id = fields.Many2one("sedar.crew.rank", required=True, ondelete="restrict")
-    job_id = fields.Many2one("hr.job", ondelete="restrict")
+    job_id = fields.Many2one("hr.job", ondelete="restrict", check_company=True)
     request_type = fields.Selection([
         ("permanent", "Permanent"), ("fixed_term", "Fixed-Term"),
         ("temporary", "Temporary Reliever"),
@@ -316,7 +388,9 @@ class SedarManpowerRequestLine(models.Model):
     quantity = fields.Integer(required=True, default=1)
     approved_quantity = fields.Integer(default=1)
     required_date = fields.Date(required=True)
-    shortage_ids = fields.Many2many("sedar.crew.shortage", string="Operational Evidence")
+    shortage_ids = fields.Many2many(
+        "sedar.crew.shortage", string="Operational Evidence", check_company=True
+    )
     required_certificate_type_ids = fields.Many2many("sedar.crew.certificate.type")
     minimum_experience_years = fields.Float()
     required_qualifications = fields.Text()
@@ -329,6 +403,34 @@ class SedarManpowerRequestLine(models.Model):
                 raise ValidationError("Requested quantity must be at least one.")
             if line.approved_quantity < 0 or line.approved_quantity > line.quantity:
                 raise ValidationError("Approved quantity must be between zero and requested quantity.")
+
+    def write(self, vals):
+        if "request_id" in vals and any(
+            line.request_id.id != vals["request_id"] for line in self
+        ):
+            raise ValidationError(
+                "A Manpower Request line cannot move to another Manpower Request."
+            )
+        return super().write(vals)
+
+    @api.constrains("request_id", "shortage_ids")
+    def _check_shortage_companies(self):
+        for line in self:
+            foreign_shortages = line.shortage_ids.filtered(
+                lambda shortage: shortage.company_id != line.company_id
+            )
+            if foreign_shortages:
+                raise ValidationError(
+                    "Operational crew shortages must belong to the Manpower Request company."
+                )
+
+    @api.constrains("company_id", "job_id")
+    def _check_job_company(self):
+        for line in self:
+            if line.job_id.company_id and line.job_id.company_id != line.company_id:
+                raise ValidationError(
+                    "The requested HR job must belong to the Manpower Request company."
+                )
 
 
 class SedarJobVacancy(models.Model):

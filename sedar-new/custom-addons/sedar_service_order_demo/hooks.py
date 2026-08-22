@@ -353,6 +353,7 @@ def post_init_hook(env):
         client, vessel = clients[client_index], vessels[vessel_key]
         contact = env["res.partner"].search([("parent_id", "=", client.id)], limit=1)
         orders[code] = _record(env, "sedar.marine.service.order", f"order_{code}", {
+            "company_id": company.id,
             "client_id": client.id, "contact_id": contact.id,
             "request_channel": "portal" if code == "portal_submitted" else "internal",
             "client_reference": f"DEMO-{code.upper().replace('_', '-')}",

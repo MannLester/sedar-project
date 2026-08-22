@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from odoo import fields
+from odoo.exceptions import ValidationError
 from odoo.tests import TransactionCase, tagged
 
 
@@ -39,7 +40,7 @@ class TestAutomatedMarineLifecycle(TransactionCase):
         requirement = cls.env["sedar.manning.requirement"].create({
             "tug_assignment_id": cls.assignment.id, "rank_id": rank.id, "required_count": 1,
         })
-        cls.env["sedar.crew.assignment"].create({
+        cls.crew_assignment = cls.env["sedar.crew.assignment"].create({
             "requirement_id": requirement.id, "crew_profile_id": profile.id,
         })
 
@@ -76,3 +77,88 @@ class TestAutomatedMarineLifecycle(TransactionCase):
         self.assertFalse(self.order.inventory_ready_by_id)
         self.assertFalse(self.order.inventory_ready_at)
         self.assertEqual(self.order.state, "blocked")
+
+    def test_dispatch_snapshot_inherits_service_order_company(self):
+        self.order.action_confirm_inventory_ready()
+        operation = self.order.operation_ids
+        self.assertEqual(operation.company_id, self.order.company_id)
+        self.assertEqual(operation.tug_operation_ids.company_id, self.order.company_id)
+        self.assertEqual(operation.tug_operation_ids.crew_manifest_ids.company_id, self.order.company_id)
+
+    def test_operation_tug_rejects_assignment_from_another_order(self):
+        other_order = self.order.copy({
+            "assisted_vessel_name": "MV Other Lifecycle",
+            "state": "planning",
+        })
+        other_assignment = self.assignment.copy({"order_id": other_order.id})
+        operation = self.env["sedar.marine.operation"].create({"order_id": self.order.id})
+        with self.assertRaisesRegex(ValidationError, "must belong"):
+            self.env["sedar.marine.operation.tug"].create({
+                "operation_id": operation.id,
+                "tug_assignment_id": other_assignment.id,
+                "tugboat_id": other_assignment.tugboat_id.id,
+            })
+
+    def test_assignment_cannot_move_after_operation_snapshot(self):
+        operation = self.env["sedar.marine.operation"].create({"order_id": self.order.id})
+        self.env["sedar.marine.operation.tug"].create({
+            "operation_id": operation.id,
+            "tug_assignment_id": self.assignment.id,
+            "tugboat_id": self.assignment.tugboat_id.id,
+        })
+        other_order = self.order.copy({
+            "assisted_vessel_name": "MV Assignment Reparenting Is Forbidden",
+            "state": "planning",
+        })
+
+        with self.assertRaisesRegex(ValidationError, "cannot move"):
+            self.assignment.write({"order_id": other_order.id})
+
+        self.assertEqual(self.assignment.order_id, self.order)
+
+    def test_snapshot_sources_cannot_be_reparented(self):
+        operation = self.env["sedar.marine.operation"].create({"order_id": self.order.id})
+        operation_tug = self.env["sedar.marine.operation.tug"].create({
+            "operation_id": operation.id,
+            "tug_assignment_id": self.assignment.id,
+            "tugboat_id": self.assignment.tugboat_id.id,
+        })
+        self.env["sedar.marine.operation.crew"].create({
+            "operation_tug_id": operation_tug.id,
+            "crew_assignment_id": self.crew_assignment.id,
+            "crew_profile_id": self.crew_assignment.crew_profile_id.id,
+            "employee_name": self.crew_assignment.employee_id.name,
+        })
+        other_order = self.order.copy({
+            "assisted_vessel_name": "MV Snapshot Source Reparenting Is Forbidden",
+            "state": "planning",
+        })
+        other_assignment = self.assignment.copy({"order_id": other_order.id})
+        other_requirement = self.crew_assignment.requirement_id.copy({
+            "tug_assignment_id": other_assignment.id,
+        })
+
+        with self.assertRaisesRegex(ValidationError, "crew assignment cannot move"):
+            self.crew_assignment.write({"requirement_id": other_requirement.id})
+        with self.assertRaisesRegex(ValidationError, "manning requirement cannot move"):
+            self.crew_assignment.requirement_id.write({
+                "tug_assignment_id": other_assignment.id,
+            })
+        with self.assertRaisesRegex(ValidationError, "snapshot cannot move"):
+            operation_tug.write({"tug_assignment_id": other_assignment.id})
+        other_operation = self.env["sedar.marine.operation"].create({
+            "order_id": other_order.id,
+        })
+        with self.assertRaisesRegex(ValidationError, "snapshot cannot move"):
+            operation_tug.write({"operation_id": other_operation.id})
+
+    def test_operation_cannot_move_to_another_service_order(self):
+        self.order.action_confirm_inventory_ready()
+        operation = self.order.operation_ids
+        other_order = self.order.copy({
+            "assisted_vessel_name": "MV Reparenting Is Forbidden",
+            "state": "planning",
+        })
+
+        with self.assertRaisesRegex(ValidationError, "cannot move"):
+            operation.write({"order_id": other_order.id})

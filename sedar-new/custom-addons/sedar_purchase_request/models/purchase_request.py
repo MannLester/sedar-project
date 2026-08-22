@@ -85,6 +85,26 @@ class PurchaseOrder(models.Model):
         return super().write(vals)
 
 
+class SedarInventoryRequirementProcurementLock(models.Model):
+    _inherit = "sedar.inventory.requirement"
+
+    def write(self, vals):
+        protected = {"order_id", "product_id", "source_location_id"}.intersection(vals)
+        changed = self.filtered(
+            lambda requirement: any(
+                getattr(requirement, field_name).id != vals[field_name]
+                for field_name in protected
+            )
+        )
+        if changed and self.env["sedar.purchase.request.line"].sudo().search_count([
+            ("inventory_requirement_id", "in", changed.ids),
+        ]):
+            raise ValidationError(_(
+                "An Inventory Requirement linked to a Purchase Request cannot change its Service Order, product, or source location."
+            ))
+        return super().write(vals)
+
+
 class SedarPurchaseRequest(models.Model):
     _name = "sedar.purchase.request"
     _description = "SEDAR Purchase Request"
@@ -111,7 +131,7 @@ class SedarPurchaseRequest(models.Model):
         "maintenance.request", string="Maintenance Work Order", check_company=True
     )
     service_order_id = fields.Many2one(
-        "sedar.marine.service.order", string="Service Order"
+        "sedar.marine.service.order", string="Service Order", check_company=True
     )
     equipment_id = fields.Many2one(
         "maintenance.equipment", string="Equipment", ondelete="restrict", check_company=True,
@@ -237,6 +257,7 @@ class SedarPurchaseRequest(models.Model):
         self.ensure_one()
         for record, label in (
             (self.maintenance_request_id, _("Maintenance Work Order")),
+            (self.service_order_id, _("Service Order")),
             (self.equipment_id, _("Equipment")),
         ):
             if record and record.company_id and record.company_id != self.company_id:
@@ -453,11 +474,27 @@ class SedarPurchaseRequest(models.Model):
         return requests
 
     def write(self, vals):
+        self._check_company_integrity(vals)
         self._check_workflow_write_access(vals)
         self._check_fact_write_access(vals)
         self._check_ownership_write_access(vals)
         self._check_rejection_reason_write_access(vals)
         return super().write(self._prepare_source_write_values(vals))
+
+    def _check_company_integrity(self, vals):
+        if "company_id" not in vals:
+            return
+        changed = self.filtered(lambda request: request.company_id.id != vals["company_id"])
+        locked = changed.filtered(
+            lambda request: request.line_ids
+            or request.sudo().bid_ids
+            or request.sudo().purchase_order_ids
+            or request.purchase_order_id
+        )
+        if locked:
+            raise ValidationError(_(
+                "A Purchase Request company cannot change after request lines or procurement records exist."
+            ))
 
     def _check_workflow_write_access(self, vals):
         if WORKFLOW_FIELDS.intersection(vals) and not self.env.su:
@@ -527,7 +564,9 @@ class SedarPurchaseRequestLine(models.Model):
         "stock.location", domain=[("usage", "=", "internal")], ondelete="set null", check_company=True
     )
     maintenance_part_line_id = fields.Many2one("sedar.maintenance.part.line", ondelete="set null")
-    inventory_requirement_id = fields.Many2one("sedar.inventory.requirement", ondelete="set null")
+    inventory_requirement_id = fields.Many2one(
+        "sedar.inventory.requirement", ondelete="set null", check_company=True
+    )
     need_reason = fields.Text()
     bid_line_ids = fields.One2many(
         "sedar.purchase.bid.line", "request_line_id", string="Bid Lines",
@@ -598,6 +637,10 @@ class SedarPurchaseRequestLine(models.Model):
         source = self.inventory_requirement_id
         if not source:
             return
+        if source.company_id != request.company_id:
+            raise ValidationError(_(
+                "An inventory requirement source must belong to the Purchase Request company."
+            ))
         if request.service_order_id and source.order_id != request.service_order_id:
             raise ValidationError(_("An inventory requirement must belong to the selected Service Order."))
         if self.product_id != source.product_id or self.source_location_id != source.source_location_id:

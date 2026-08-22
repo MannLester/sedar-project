@@ -380,3 +380,119 @@ class TestSedarPurchaseRequest(TransactionCase):
 
         self.assertEqual(order.sedar_purchase_request_id, request)
         self.assertEqual(request.purchase_order_id, order)
+
+    def test_service_order_and_inventory_sources_must_match_request_company(self):
+        other_company = self.env["res.company"].create({"name": "Other Procurement Source"})
+        other_warehouse = self.env["stock.warehouse"].create({
+            "name": "Other Procurement Warehouse",
+            "code": "OPWH",
+            "company_id": other_company.id,
+        })
+        partner = self.env["res.partner"].create({"name": "Procurement Source Client"})
+        port = self.env["sedar.marine.port"].create({
+            "name": "Procurement Source Port",
+            "code": "PR-SRC",
+        })
+        service = self.env["sedar.marine.service.type"].create({
+            "name": "Procurement Source Service",
+            "code": "PR-SRC",
+            "pricing_basis": "per_service",
+        })
+        order = self.env["sedar.marine.service.order"].sudo().with_company(
+            other_company
+        ).create({
+            "company_id": other_company.id,
+            "client_id": partner.id,
+            "assisted_vessel_name": "MV Procurement Source",
+            "service_type_id": service.id,
+            "number_of_tugs": 1,
+            "scope_of_work": "Cross-company procurement source test.",
+            "port_id": port.id,
+            "requested_start": datetime(2026, 9, 9, 8, 0, 0),
+            "estimated_duration_hours": 2,
+        })
+        requirement = self.env["sedar.inventory.requirement"].sudo().create({
+            "order_id": order.id,
+            "product_id": self.product.id,
+            "source_location_id": other_warehouse.lot_stock_id.id,
+            "required_qty": 2,
+        })
+
+        with self.assertRaises(UserError):
+            self._make_request(service_order_id=order.id)
+        with self.assertRaises(UserError):
+            self._make_request(line_ids=[Command.create({
+                "product_id": self.product.id,
+                "quantity": 2,
+                "source_location_id": other_warehouse.lot_stock_id.id,
+                "inventory_requirement_id": requirement.id,
+            })])
+
+    def test_linked_inventory_source_and_request_company_are_immutable(self):
+        warehouse = self.env["stock.warehouse"].search([
+            ("company_id", "=", self.company.id),
+        ], limit=1)
+        partner = self.env["res.partner"].create({"name": "Immutable Procurement Client"})
+        port = self.env["sedar.marine.port"].create({
+            "name": "Immutable Procurement Port",
+            "code": "PR-IMM",
+        })
+        service = self.env["sedar.marine.service.type"].create({
+            "name": "Immutable Procurement Service",
+            "code": "PR-IMM",
+            "pricing_basis": "per_service",
+        })
+        order = self.env["sedar.marine.service.order"].create({
+            "client_id": partner.id,
+            "assisted_vessel_name": "MV Immutable Procurement",
+            "service_type_id": service.id,
+            "scope_of_work": "Verify immutable procurement source facts.",
+            "port_id": port.id,
+            "requested_start": datetime(2026, 9, 10, 8, 0, 0),
+        })
+        requirement = self.env["sedar.inventory.requirement"].create({
+            "order_id": order.id,
+            "product_id": self.product.id,
+            "source_location_id": warehouse.lot_stock_id.id,
+            "required_qty": 2,
+        })
+        request = self._make_request(
+            service_order_id=order.id,
+            line_ids=[Command.create({
+                "product_id": self.product.id,
+                "quantity": 2,
+                "source_location_id": warehouse.lot_stock_id.id,
+                "inventory_requirement_id": requirement.id,
+            })],
+        )
+        other_order = order.copy({"assisted_vessel_name": "MV Other Same Company"})
+        other_product = self.env["product.product"].create({
+            "name": "Other Immutable Source Product",
+            "type": "consu",
+            "is_storable": True,
+        })
+        other_location = self.env["stock.location"].create({
+            "name": "Other Immutable Source Location",
+            "usage": "internal",
+            "location_id": warehouse.lot_stock_id.id,
+            "company_id": self.company.id,
+        })
+
+        for values in (
+            {"order_id": other_order.id},
+            {"product_id": other_product.id},
+            {"source_location_id": other_location.id},
+        ):
+            with self.assertRaisesRegex(ValidationError, "linked to a Purchase Request"):
+                requirement.sudo().write(values)
+
+        other_company = self.env["res.company"].create({
+            "name": "Immutable Purchase Request Other Company",
+        })
+        with self.assertRaisesRegex(ValidationError, "company cannot change"):
+            request.sudo().write({"company_id": other_company.id})
+
+        self.assertEqual(requirement.order_id, order)
+        self.assertEqual(requirement.product_id, self.product)
+        self.assertEqual(requirement.source_location_id, warehouse.lot_stock_id)
+        self.assertEqual(request.company_id, self.company)

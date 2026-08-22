@@ -19,4 +19,9 @@
         <field name="privilege_id" ref="privilege_sedar_marine_finance"/>
         <field name="implied_ids" eval="[Command.link(ref('group_billing_officer')), Command.link(ref('account.group_account_manager'))]"/>
     </record>
+    <record id="rule_billing_adjustment_company" model="ir.rule">
+        <field name="name">Billing Adjustments: same company</field>
+        <field name="model_id" ref="model_sedar_marine_billing_adjustment"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
 </odoo>
