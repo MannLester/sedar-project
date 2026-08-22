@@ -237,9 +237,10 @@
         <field name="arch" type="xml">
             <form string="Maintenance Work Order">
                 <header>
+                    <field name="sedar_stage_done" invisible="1"/>
                     <button name="action_sedar_mark_blocking" type="object" string="Mark Blocking" class="btn-primary" groups="sedar_marine_maintenance.group_marine_maintenance_manager" invisible="sedar_availability_impact == 'blocking' or close_date"/>
                     <button name="action_sedar_release_tug" type="object" string="Release Tug" groups="sedar_marine_maintenance.group_marine_maintenance_manager" invisible="not sedar_blocks_tug_readiness"/>
-                    <button name="action_sedar_verify_service_baseline" type="object" string="Verify Service Baseline" class="btn-primary" groups="sedar_marine_maintenance.group_marine_maintenance_manager" invisible="sedar_work_order_type != 'planned' or not close_date or sedar_service_baseline_verified_at"/>
+                    <button name="action_sedar_verify_service_baseline" type="object" string="Verify Service Baseline" class="btn-primary" groups="sedar_marine_maintenance.group_marine_maintenance_manager" invisible="sedar_work_order_type != 'planned' or not sedar_stage_done or sedar_service_baseline_verified_at"/>
                 </header>
                 <sheet>
                     <group>

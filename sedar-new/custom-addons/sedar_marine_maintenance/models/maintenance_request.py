@@ -87,6 +87,11 @@ class MaintenanceRequest(models.Model):
         readonly=True,
         copy=False,
     )
+    sedar_stage_done = fields.Boolean(
+        string="Work Order Completed",
+        related="stage_id.done",
+        readonly=True,
+    )
     sedar_closure_note = fields.Text(string="Verification / Closure Note")
     sedar_released_by_id = fields.Many2one("res.users", string="Released By", readonly=True, copy=False)
     sedar_released_at = fields.Datetime(string="Released At", readonly=True, copy=False)
@@ -135,7 +140,7 @@ class MaintenanceRequest(models.Model):
                 raise UserError("This planned-maintenance service baseline is already verified.")
             if request.sedar_work_order_type != "planned":
                 raise UserError("Only completed planned-maintenance work may establish a service baseline.")
-            if not request.close_date and not request.stage_id.done:
+            if not request.stage_id.done:
                 raise UserError("Complete the planned-maintenance work order before verifying its service baseline.")
             if not request.equipment_id:
                 raise UserError("Select the serviced Equipment before verifying the service baseline.")

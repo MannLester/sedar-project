@@ -56,6 +56,10 @@ class TestMarineMaintenance(TransactionCase):
                 "name": "Maintenance Test Done",
                 "done": True,
             })
+        cls.open_stage = cls.env["maintenance.stage"].create({
+            "name": "Maintenance Test In Progress",
+            "done": False,
+        })
 
     def _new_metered_equipment(self, name="Metered Test Engine", technician=None, interval=100):
         return self.env["maintenance.equipment"].create({
@@ -240,6 +244,19 @@ class TestMarineMaintenance(TransactionCase):
         )
         now = fields.Datetime.now()
         baseline = self._reading(equipment, 100, now - timedelta(days=3))
+        incomplete_order = self.env["maintenance.request"].create({
+            "name": "In-progress service with a manually supplied close date",
+            "maintenance_type": "preventive",
+            "equipment_id": equipment.id,
+            "sedar_work_order_type": "planned",
+            "sedar_availability_impact": "none",
+            "stage_id": self.open_stage.id,
+            "close_date": fields.Datetime.now(),
+            "sedar_service_reading_id": baseline.id,
+        })
+        with self.assertRaises(UserError):
+            incomplete_order.with_user(self.manager).action_sedar_verify_service_baseline()
+
         work_order = self._completed_planned_order(equipment, baseline)
 
         with self.assertRaises(AccessError):

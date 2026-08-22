@@ -510,7 +510,7 @@ Key behavior:
 | `sedar_system` | Selection | Demonstration system grouping: propulsion, electrical, navigation, hull, deck machinery, safety, auxiliary, or other. |
 | `sedar_criticality` | Selection | Critical, major, or minor equipment criticality for maintenance prioritization. |
 | `sedar_installation_date` | Date | Installation date when known. |
-| `sedar_running_interval_hours` | Float | Representative planned-maintenance interval in running hours. Real intervals require SEDAR confirmation. |
+| `sedar_running_interval_hours` | Float | Running-hour interval measured from the last verified planned-service reading. |
 | `sedar_running_hour_reading_ids` | One-to-many to `sedar.equipment.running.hour.reading` | Immutable audit history of cumulative Equipment meter observations. |
 | `sedar_current_running_hour_reading_id` | Computed, stored many-to-one | Latest valid observation and source of current Running Hours. |
 | `sedar_current_running_hours` | Computed, stored float | Cumulative hours from the latest valid Running Hour Reading. |
@@ -572,6 +572,7 @@ Maintenance Users may create readings but cannot edit or delete them. Only Maint
 | `sedar_service_reading_id` | Many-to-one to `sedar.equipment.running.hour.reading` | Valid reading selected for a completed planned-maintenance baseline. |
 | `sedar_service_baseline_verified_by_id` | Read-only many-to-one to `res.users` | Maintenance Manager who verified the baseline. |
 | `sedar_service_baseline_verified_at` | Read-only datetime | Baseline verification audit time. |
+| `sedar_stage_done` | Related boolean | Exposes the standard Maintenance stage's done state for completion gating and UI visibility. |
 | `sedar_closure_note` | Text | Required verification note before releasing a blocking work order. |
 | `sedar_released_by_id` | Read-only many-to-one to `res.users` | Marine Maintenance Manager who released the tug from the work-order hold. |
 | `sedar_released_at` | Read-only datetime | Release timestamp. |
