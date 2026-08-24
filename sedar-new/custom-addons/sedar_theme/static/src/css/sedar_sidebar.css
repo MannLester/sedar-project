@@ -1,6 +1,6 @@
 :root {
     --sedar-sidebar-rail: 76px;
-    --sedar-sidebar-panel: 226px;
+    --sedar-sidebar-panel: 280px;
     --sedar-sidebar-total: var(--sedar-sidebar-panel);
     --sedar-navy-980: #031225;
     --sedar-navy-950: #06182f;
@@ -150,7 +150,7 @@
 .o_sedar_rail_icons {
     display: grid;
     justify-items: center;
-    gap: 19px;
+    gap: 28px;
     color: #ffffff;
     font-size: 17px;
 }
