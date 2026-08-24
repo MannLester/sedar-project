@@ -5,14 +5,13 @@
             <aside class="o_sedar_shell d-print-none">
                 <input id="o_sedar_sidebar_state" class="o_sedar_sidebar_state" type="checkbox" checked="checked"/>
                 <div class="o_sedar_icon_rail">
-                    <label class="o_sedar_sidebar_toggle o_sedar_sidebar_expand" for="o_sedar_sidebar_state" title="Open navigation"><i class="fa fa-bars"/></label>
-                    <div class="o_sedar_rail_logo"><img src="/sedar_theme/static/src/img/sedar-logo.png" alt="SEDAR Tug Services Corp."/></div>
+                    <label class="o_sedar_rail_logo" for="o_sedar_sidebar_state" title="Open navigation"><img src="/sedar_theme/static/src/img/sedar-logo.png?v=2" alt="SEDAR Tug Services Corp."/><i class="fa fa-bars o_sedar_rail_burger"/></label>
                     <div class="o_sedar_rail_icons"><i class="fa fa-th-large"/><i class="fa fa-ship"/><i class="fa fa-users"/><i class="fa fa-money"/><i class="fa fa-file-text"/></div>
                     <div class="o_sedar_rail_avatar"/>
                 </div>
                 <section class="o_sedar_sidebar">
                     <div class="o_sedar_sidebar_brand">
-                        <div class="o_sedar_brand_logo"><img src="/sedar_theme/static/src/img/sedar-logo-wide.png" alt="SEDAR Tug Services Corp."/></div>
+                        <div class="o_sedar_brand_logo"><img src="/sedar_theme/static/src/img/sedar-logo.png?v=2" alt="SEDAR Tug Services Corp."/><div class="o_sedar_brand_copy"><span class="o_sedar_brand_name">SEDAR</span><span class="o_sedar_brand_subtitle">TUG SERVICE CORP.</span></div></div>
                         <label class="o_sedar_sidebar_toggle o_sedar_sidebar_collapse" for="o_sedar_sidebar_state" title="Close navigation"><i class="fa fa-angle-left"/></label>
                     </div>
                     <nav class="o_sedar_sidebar_nav" aria-label="SEDAR navigation">
@@ -83,7 +82,7 @@
                         </details>
                     </nav>
                     <div class="o_sedar_sidebar_footer">
-                        <div class="o_sedar_user_avatar"><img src="/sedar_theme/static/src/img/sedar-logo.png" alt="SEDAR"/></div>
+                        <div class="o_sedar_user_avatar"><span t-esc="sedarUserName.charAt(0)"/></div>
                         <div class="o_sedar_footer_copy">
                             <div class="o_sedar_user_name" t-esc="sedarUserName"/>
                             <div class="o_sedar_user_role" t-esc="sedarUserContext"/>
