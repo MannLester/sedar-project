@@ -5,7 +5,7 @@
             <aside class="o_sedar_shell d-print-none">
                 <input id="o_sedar_sidebar_state" class="o_sedar_sidebar_state" type="checkbox" checked="checked"/>
                 <div class="o_sedar_icon_rail">
-                    <label class="o_sedar_rail_logo" for="o_sedar_sidebar_state" title="Open navigation"><img src="/sedar_theme/static/src/img/sedar-logo.png?v=2" alt="SEDAR Tug Services Corp."/><i class="fa fa-bars o_sedar_rail_burger"/></label>
+                    <label class="o_sedar_rail_logo" for="o_sedar_sidebar_state" title="Open navigation"><img src="/sedar_theme/static/src/img/sedar-logo.png?v=2" alt="SEDAR Tug Services Corp."/><i class="fa fa-angle-right o_sedar_rail_burger"/></label>
                     <div class="o_sedar_rail_icons"><i class="fa fa-th-large"/><i class="fa fa-ship"/><i class="fa fa-users"/><i class="fa fa-money"/><i class="fa fa-file-text"/></div>
                     <div class="o_sedar_rail_avatar"/>
                 </div>
@@ -87,7 +87,6 @@
                             <div class="o_sedar_user_name" t-esc="sedarUserName"/>
                             <div class="o_sedar_user_role" t-esc="sedarUserContext"/>
                         </div>
-                        <i class="fa fa-sign-out o_sedar_footer_icon" aria-hidden="true"/>
                     </div>
                 </section>
             </aside>
