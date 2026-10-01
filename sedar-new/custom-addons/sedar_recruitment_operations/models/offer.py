@@ -55,7 +55,12 @@ class SedarApplicantOffer(models.Model):
     @api.constrains("proposed_start_date", "expiry_date")
     def _check_offer_dates(self):
         for offer in self:
-            if offer.proposed_start_date and offer.expiry_date and offer.expiry_date < fields.Date.context_today(offer):
+            if (
+                offer.state in ("draft", "issued")
+                and offer.proposed_start_date
+                and offer.expiry_date
+                and offer.expiry_date < fields.Date.context_today(offer)
+            ):
                 raise ValidationError("The offer expiry date cannot be in the past.")
 
     @api.model_create_multi

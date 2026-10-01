@@ -474,20 +474,29 @@ class ResCompany(models.Model):
         return background | orientation
 
     def _sedar_demo_offer(self, applicant, spec, hr_manager):
-        offer = self._sedar_record("sedar.applicant.offer", spec["xmlid"], {
+        today = fields.Date.context_today(self)
+        active_offer = spec["state"] in ("draft", "issued")
+        offer_values = {
             "name": "Offer - %s" % applicant.sedar_reference,
             "applicant_id": applicant.id,
-            "state": "draft",
+            "state": spec["state"],
             "decision": "hire",
             "offered_position": applicant.sedar_vacancy_id.website_title,
             "employment_type": "probationary",
-            "proposed_start_date": "2026-09-01",
-            "expiry_date": "2026-08-27",
+            "proposed_start_date": fields.Date.add(today, days=30) if active_offer else "2026-09-01",
+            "expiry_date": fields.Date.add(today, days=14) if active_offer else "2026-08-27",
             "offer_summary": "Fictional demo employment offer for the listed marine crew position, subject to completion of SEDAR employment requirements and onboarding.",
             "decision_reason": "Fictional demo decision based on completed interview appraisal and cleared HR controls.",
             "issued_by_id": hr_manager.id,
             "issued_at": _dt(23, 9),
-        })
+        }
+        if spec["state"] == "accepted":
+            offer_values.update({
+                "accepted_at": _dt(23, 10),
+                "accepted_by_id": hr_manager.id,
+                "acceptance_source": "internal_hr_confirmation",
+            })
+        offer = self._sedar_record("sedar.applicant.offer", spec["xmlid"], offer_values)
         if offer.state != spec["state"]:
             values = {"state": spec["state"]}
             if spec["state"] == "accepted":

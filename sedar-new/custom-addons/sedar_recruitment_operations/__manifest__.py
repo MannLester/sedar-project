@@ -1,6 +1,6 @@
 {
     "name": "SEDAR Recruitment Operations",
-    "version": "19.0.1.0.0",
+    "version": "19.0.1.0.1",
     "category": "Human Resources",
     "summary": "HR applicant processing dashboard and controlled recruitment stages",
     "author": "SEDAR Development Team",

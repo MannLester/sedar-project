@@ -1,6 +1,6 @@
 {
     "name": "SEDAR Recruitment Demo Data",
-    "version": "19.0.1.0.0",
+    "version": "19.0.1.0.1",
     "category": "Human Resources",
     "summary": "Repeatable fictional recruitment scenarios for the SEDAR demonstration",
     "author": "SEDAR Development Team",

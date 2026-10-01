@@ -301,13 +301,14 @@ class TestRecruitmentControlHardening(TransactionCase):
 
     def test_offer_issue_and_internal_acceptance_require_manager_and_record_audit(self):
         applicant = self._make_applicant()
+        today = fields.Date.context_today(self.env.company)
         offer = self.env["sedar.applicant.offer"].create({
             "applicant_id": applicant.id,
             "decision": "hire",
             "offered_position": self.job.name,
             "employment_type": "probationary",
-            "proposed_start_date": "2026-09-10",
-            "expiry_date": "2026-09-05",
+            "proposed_start_date": fields.Date.add(today, days=10),
+            "expiry_date": fields.Date.add(today, days=5),
             "offer_summary": "Hardening test offer.",
         })
 
