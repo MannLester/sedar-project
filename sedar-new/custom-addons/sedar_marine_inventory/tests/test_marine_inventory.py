@@ -71,6 +71,9 @@ class TestMarineInventory(TransactionCase):
             }
         )
         cls.tug.stock_location_id = cls.tug_location
+        cls.env["stock.quant"]._update_available_quantity(
+            cls.product, cls.tug_location, 100
+        )
         cls.inventory_manager = cls.env["res.users"].create(
             {
                 "name": "Inventory Test Manager",
@@ -126,18 +129,65 @@ class TestMarineInventory(TransactionCase):
 
     def test_service_order_inventory_requirement_drives_readiness_component(self):
         order = self._make_order()
+        assignment = self.env["sedar.tug.assignment"].create({
+            "order_id": order.id,
+            "tugboat_id": self.tug.id,
+        })
         order.action_generate_inventory_requirements()
         self.assertTrue(order.inventory_requirement_ids)
+        self.assertEqual(order.inventory_requirement_ids.tug_assignment_id, assignment)
         self.assertTrue(order.inventory_auto_ready)
         self.assertTrue(order.inventory_ready)
 
         line = order.inventory_requirement_ids[:1]
-        line.required_qty = 200
-        self.assertEqual(line.readiness_state, "shortage")
+        line.expected_consumption_qty = 250
+        self.assertEqual(line.readiness_state, "purchase_required")
         self.assertFalse(order.inventory_auto_ready)
         self.assertFalse(order.inventory_ready)
+        self.assertEqual(assignment.inventory_readiness_status, "blocked")
         with self.assertRaises(UserError):
             order.action_confirm_inventory_ready()
+
+    def test_completed_internal_transfer_refreshes_tug_inventory_readiness(self):
+        order = self._make_order()
+        assignment = self.env["sedar.tug.assignment"].create({
+            "order_id": order.id,
+            "tugboat_id": self.tug.id,
+        })
+        line = assignment.inventory_requirement_ids[:1]
+        line.expected_consumption_qty = 150
+        self.assertEqual(line.readiness_state, "transfer_required")
+        self.assertEqual(assignment.inventory_readiness_status, "conditional")
+
+        self.env["sedar.inventory.issue"]._sedar_create_done_move(
+            self.product,
+            50,
+            self.stock_location,
+            self.tug_location,
+            "Inventory readiness transfer test",
+        )
+        self.assertEqual(line.readiness_state, "ready")
+        self.assertEqual(assignment.inventory_readiness_status, "ready")
+
+    def test_planned_drydock_blocks_only_an_overlapping_tug_assignment(self):
+        order = self._make_order()
+        assignment = self.env["sedar.tug.assignment"].create({
+            "order_id": order.id,
+            "tugboat_id": self.tug.id,
+        })
+        plan = self.env["sedar.drydock.plan"].create({
+            "name": "Inventory Test Future Dry Dock",
+            "tugboat_id": self.tug.id,
+            "planned_start": datetime(2026, 9, 10, 8, 0, 0),
+            "planned_end": datetime(2026, 9, 20, 17, 0, 0),
+            "yard_name": "Test Yard",
+            "scope_summary": "Test date-aware readiness.",
+            "state": "planned",
+        })
+        self.assertEqual(assignment.technical_status, "ready")
+        order.requested_start = datetime(2026, 9, 12, 8, 0, 0)
+        self.assertEqual(assignment.technical_status, "blocked")
+        self.assertIn(plan.name, assignment.integrated_readiness_summary)
 
     def test_maintenance_part_issue_consumes_stock_quantity(self):
         spare = self.env["product.product"].create(
@@ -312,7 +362,7 @@ class TestMarineInventory(TransactionCase):
                     "order_id": other_order.id,
                     "product_id": self.product.id,
                     "source_location_id": other_warehouse.lot_stock_id.id,
-                    "required_qty": 1,
+                    "expected_consumption_qty": 1,
                 }
             )
         )
@@ -330,7 +380,7 @@ class TestMarineInventory(TransactionCase):
                     "order_id": main_order.id,
                     "product_id": self.product.id,
                     "source_location_id": other_warehouse.lot_stock_id.id,
-                    "required_qty": 1,
+                    "expected_consumption_qty": 1,
                 }
             )
 
@@ -676,7 +726,7 @@ class TestMarineInventory(TransactionCase):
                 "order_id": order.id,
                 "product_id": product.id,
                 "source_location_id": self.stock_location.id,
-                "required_qty": 1,
+                "expected_consumption_qty": 1,
             }
         )
         self.env.cr.execute(

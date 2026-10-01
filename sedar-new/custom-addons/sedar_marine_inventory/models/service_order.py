@@ -18,12 +18,13 @@ class SedarMarineServiceOrder(models.Model):
         "inventory_requirement_ids.readiness_state",
         "inventory_requirement_ids.shortage_qty",
         "inventory_requirement_ids.product_id",
+        "inventory_requirement_ids.tug_assignment_id",
     )
     def _compute_inventory_summary(self):
         for order in self:
             requirements = order.inventory_requirement_ids
             order.inventory_requirement_count = len(requirements)
-            shortages = requirements.filtered(lambda line: line.readiness_state == "shortage")
+            shortages = requirements.filtered(lambda line: line.readiness_state != "ready")
             order.inventory_auto_ready = bool(requirements) and not shortages
             order.inventory_shortage_summary = ", ".join(
                 "%s: %.2f short" % (line.product_id.display_name, line.shortage_qty)
@@ -42,7 +43,16 @@ class SedarMarineServiceOrder(models.Model):
 
     @api.depends(
         "state", "number_of_tugs", "tug_assignment_ids.state",
+        "tug_class_id", "required_bollard_pull",
+        "tug_assignment_ids.planned_start", "tug_assignment_ids.planned_end",
+        "tug_assignment_ids.tugboat_id.active",
         "tug_assignment_ids.tugboat_id.availability_status",
+        "tug_assignment_ids.tugboat_id.tug_class_id",
+        "tug_assignment_ids.tugboat_id.bollard_pull",
+        "tug_assignment_ids.tugboat_id.drydock_plan_ids.state",
+        "tug_assignment_ids.tugboat_id.drydock_plan_ids.planned_start",
+        "tug_assignment_ids.tugboat_id.drydock_plan_ids.planned_end",
+        "tug_assignment_ids.tugboat_id.drydock_plan_ids.availability_impact",
         "tug_assignment_ids.requirement_ids.required_count",
         "tug_assignment_ids.requirement_ids.crew_assignment_ids.state",
         "tug_assignment_ids.requirement_ids.gap_count",
@@ -75,6 +85,17 @@ class SedarMarineServiceOrder(models.Model):
             return "blocked_tug", "Unavailable tugboat: %s" % ", ".join(
                 unavailable.mapped("tugboat_id.name")
             )
+        integrated_blockers = assignments.filtered(
+            lambda assignment: "blocked" in {
+                assignment.capability_status,
+                assignment.schedule_status,
+                assignment.technical_status,
+            }
+        )
+        if integrated_blockers:
+            return "blocked_tug", "; ".join(
+                integrated_blockers.mapped("integrated_readiness_summary")
+            )
         requirements = assignments.mapped("requirement_ids")
         if not requirements:
             return "waiting_crew", "Manning requirements have not been generated."
@@ -103,21 +124,39 @@ class SedarMarineServiceOrder(models.Model):
         return self.env["sedar.inventory.template"].search(domain, order="tug_class_id desc, id", limit=1)
 
     def action_generate_inventory_requirements(self):
+        Requirement = self.env["sedar.inventory.requirement"].with_context(
+            sedar_inventory_generation=True
+        )
         for order in self:
             template = order._find_inventory_template()
             if not template:
                 continue
             existing_auto = order.inventory_requirement_ids.filtered("auto_generated")
-            existing_auto.unlink()
+            retained = self.env["sedar.inventory.requirement"]
+            assignments = order.tug_assignment_ids.filtered(lambda item: item.state != "cancelled")
             for line in template.line_ids:
-                multiplier = order.number_of_tugs if line.per_tug else 1
-                self.env["sedar.inventory.requirement"].create({
-                    "order_id": order.id,
-                    "source_location_id": template.source_location_id.id,
-                    "product_id": line.product_id.id,
-                    "required_qty": line.required_qty * multiplier,
-                    "auto_generated": True,
-                })
+                targets = assignments if line.per_tug else [False]
+                for assignment in targets:
+                    matching = existing_auto.filtered(
+                        lambda requirement: (
+                            requirement.tug_assignment_id.id == (assignment.id if assignment else False)
+                            and requirement.product_id == line.product_id
+                        )
+                    )[:1]
+                    values = {
+                        "order_id": order.id,
+                        "tug_assignment_id": assignment.id if assignment else False,
+                        "source_location_id": template.source_location_id.id,
+                        "product_id": line.product_id.id,
+                        "expected_consumption_qty": line.required_qty,
+                        "auto_generated": True,
+                    }
+                    if matching:
+                        matching.with_context(sedar_inventory_generation=True).write(values)
+                        retained |= matching
+                    else:
+                        retained |= Requirement.create(values)
+            (existing_auto - retained).with_context(sedar_inventory_generation=True).unlink()
             order._sync_inventory_readiness()
         return True
 
@@ -146,6 +185,161 @@ class SedarMarineServiceOrder(models.Model):
         return result
 
 
+class SedarTugAssignment(models.Model):
+    _inherit = "sedar.tug.assignment"
+
+    inventory_requirement_ids = fields.One2many(
+        "sedar.inventory.requirement", "tug_assignment_id", string="Onboard Inventory Requirements"
+    )
+    capability_status = fields.Selection(
+        [("ready", "Ready"), ("blocked", "Blocked")],
+        compute="_compute_integrated_readiness",
+    )
+    schedule_status = fields.Selection(
+        [("ready", "Ready"), ("blocked", "Blocked")],
+        compute="_compute_integrated_readiness",
+    )
+    technical_status = fields.Selection(
+        [("ready", "Ready"), ("blocked", "Blocked")],
+        compute="_compute_integrated_readiness",
+    )
+    crew_readiness_status = fields.Selection(
+        [("ready", "Ready"), ("blocked", "Blocked")],
+        compute="_compute_integrated_readiness",
+    )
+    inventory_readiness_status = fields.Selection(
+        [("ready", "Onboard"), ("conditional", "Replenishment Required"), ("blocked", "Purchase Required")],
+        compute="_compute_integrated_readiness",
+    )
+    overall_readiness_status = fields.Selection(
+        [("ready", "Ready"), ("conditional", "Conditionally Ready"), ("blocked", "Blocked")],
+        compute="_compute_integrated_readiness",
+    )
+    integrated_readiness_summary = fields.Char(compute="_compute_integrated_readiness")
+
+    @api.depends(
+        "tugboat_id",
+        "tugboat_id.active",
+        "tugboat_id.availability_status",
+        "tugboat_id.stock_location_id",
+        "order_id.tug_class_id",
+        "order_id.required_bollard_pull",
+        "planned_start",
+        "planned_end",
+        "requirement_ids.gap_count",
+        "requirement_ids.compliance_issue_count",
+        "inventory_requirement_ids.readiness_state",
+    )
+    def _compute_integrated_readiness(self):
+        for assignment in self:
+            reasons = []
+            tug = assignment.tugboat_id
+
+            capability_ready = bool(tug and tug.active)
+            if assignment.order_id.tug_class_id and tug.tug_class_id != assignment.order_id.tug_class_id:
+                capability_ready = False
+                reasons.append("Tug class does not match")
+            if assignment.order_id.required_bollard_pull and tug.bollard_pull < assignment.order_id.required_bollard_pull:
+                capability_ready = False
+                reasons.append("Insufficient bollard pull")
+            assignment.capability_status = "ready" if capability_ready else "blocked"
+
+            overlap = self.search_count([
+                ("id", "!=", assignment.id),
+                ("tugboat_id", "=", tug.id),
+                ("state", "in", ["planned", "confirmed"]),
+                ("planned_start", "<", assignment.planned_end),
+                ("planned_end", ">", assignment.planned_start),
+            ]) if tug and assignment.planned_start and assignment.planned_end else 0
+            assignment.schedule_status = "blocked" if overlap else "ready"
+            if overlap:
+                reasons.append("Overlapping tug assignment")
+
+            requests, drydocks = tug._sedar_technical_blockers_for_window(
+                assignment.planned_start, assignment.planned_end
+            ) if tug else (self.env["maintenance.request"], self.env["sedar.drydock.plan"])
+            technical_ready = bool(tug) and tug.availability_status not in {"maintenance", "inactive"}
+            if requests:
+                reasons.append("Maintenance: %s" % ", ".join(requests.mapped("name")[:2]))
+            if drydocks:
+                reasons.append("Dry dock: %s" % ", ".join(drydocks.mapped("name")[:2]))
+            technical_ready = technical_ready and not requests and not drydocks
+            assignment.technical_status = "ready" if technical_ready else "blocked"
+
+            manning = assignment.requirement_ids
+            crew_ready = bool(manning) and not any(
+                requirement.gap_count or requirement.compliance_issue_count for requirement in manning
+            )
+            if not crew_ready:
+                reasons.append("Crew plan incomplete or noncompliant")
+            assignment.crew_readiness_status = "ready" if crew_ready else "blocked"
+
+            inventory = assignment.inventory_requirement_ids
+            if tug and not tug.stock_location_id:
+                inventory_status = "blocked"
+                reasons.append("Tug stock location is not configured")
+            elif inventory and all(line.readiness_state == "ready" for line in inventory):
+                inventory_status = "ready"
+            elif inventory and any(line.readiness_state == "purchase_required" for line in inventory):
+                inventory_status = "blocked"
+                reasons.append("Purchase required for onboard stock")
+            else:
+                inventory_status = "conditional"
+                reasons.append("Onboard replenishment required")
+            assignment.inventory_readiness_status = inventory_status
+
+            if "blocked" in {
+                assignment.capability_status,
+                assignment.schedule_status,
+                assignment.technical_status,
+                assignment.crew_readiness_status,
+                assignment.inventory_readiness_status,
+            }:
+                assignment.overall_readiness_status = "blocked"
+            elif inventory_status == "conditional":
+                assignment.overall_readiness_status = "conditional"
+            else:
+                assignment.overall_readiness_status = "ready"
+            assignment.integrated_readiness_summary = "; ".join(reasons) or "Tug, crew, and onboard stock are ready."
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        assignments = super().create(vals_list)
+        assignments.mapped("order_id").action_generate_inventory_requirements()
+        assignments._sedar_refresh_impacted_orders()
+        return assignments
+
+    def write(self, vals):
+        orders = self.mapped("order_id")
+        old_tugs = self.mapped("tugboat_id")
+        result = super().write(vals)
+        if self.env.context.get("sedar_automated_dispatch"):
+            return result
+        if {"tugboat_id", "state"}.intersection(vals):
+            (orders | self.mapped("order_id")).action_generate_inventory_requirements()
+            self._sedar_refresh_impacted_orders(old_tugs | self.mapped("tugboat_id"))
+        return result
+
+    def unlink(self):
+        orders = self.mapped("order_id")
+        old_tugs = self.mapped("tugboat_id")
+        result = super().unlink()
+        orders.action_generate_inventory_requirements()
+        self._sedar_refresh_impacted_orders(old_tugs)
+        return result
+
+    def _sedar_refresh_impacted_orders(self, tugboats=None):
+        tugboats = tugboats or self.mapped("tugboat_id")
+        assignments = self.env["sedar.tug.assignment"].search([
+            ("tugboat_id", "in", tugboats.ids),
+            ("state", "!=", "cancelled"),
+        ])
+        orders = assignments.mapped("order_id")
+        orders._compute_readiness()
+        orders._sync_automated_readiness()
+        return orders
+
+
 class SedarInventoryRequirement(models.Model):
     _name = "sedar.inventory.requirement"
     _description = "Service Order Inventory Requirement"
@@ -163,6 +357,19 @@ class SedarInventoryRequirement(models.Model):
     company_id = fields.Many2one(
         related="order_id.company_id", store=True, index=True, readonly=True
     )
+    tug_assignment_id = fields.Many2one(
+        "sedar.tug.assignment", ondelete="cascade", index=True, check_company=True
+    )
+    tugboat_id = fields.Many2one(
+        related="tug_assignment_id.tugboat_id", store=True, index=True, readonly=True
+    )
+    tug_location_id = fields.Many2one(
+        related="tugboat_id.stock_location_id",
+        string="Tug Stock Location",
+        store=True,
+        index=True,
+        readonly=True,
+    )
     product_id = fields.Many2one(
         "product.product", required=True, ondelete="restrict", check_company=True
     )
@@ -174,36 +381,70 @@ class SedarInventoryRequirement(models.Model):
         ondelete="restrict",
         check_company=True,
     )
-    required_qty = fields.Float(required=True, default=1.0)
+    expected_consumption_qty = fields.Float(required=True, default=1.0)
+    minimum_reserve_qty = fields.Float(default=0.0)
+    required_qty = fields.Float(compute="_compute_stock_status", store=True, string="Required Onboard")
     available_qty = fields.Float(compute="_compute_stock_status", store=True)
+    warehouse_available_qty = fields.Float(compute="_compute_stock_status", store=True)
+    transfer_required_qty = fields.Float(compute="_compute_stock_status", store=True)
+    procurement_required_qty = fields.Float(compute="_compute_stock_status", store=True)
     shortage_qty = fields.Float(compute="_compute_stock_status", store=True)
     readiness_state = fields.Selection(
-        [("ready", "Ready"), ("shortage", "Shortage")],
+        [
+            ("ready", "Onboard"),
+            ("transfer_required", "Warehouse Transfer Required"),
+            ("purchase_required", "Purchase Required"),
+        ],
         compute="_compute_stock_status",
         store=True,
     )
     auto_generated = fields.Boolean(default=False)
     note = fields.Text()
 
-    @api.depends("product_id", "source_location_id", "required_qty")
+    @api.depends(
+        "product_id", "source_location_id", "tug_location_id",
+        "expected_consumption_qty", "minimum_reserve_qty",
+    )
     def _compute_stock_status(self):
         for line in self:
-            available = line._sedar_available_qty(line.product_id, line.source_location_id)
-            line.available_qty = available
-            line.shortage_qty = max(line.required_qty - available, 0.0)
-            line.readiness_state = "ready" if line.shortage_qty <= 0 else "shortage"
+            required = line.expected_consumption_qty + line.minimum_reserve_qty
+            line.required_qty = required
+            warehouse = line._sedar_available_qty(line.product_id, line.source_location_id)
+            onboard = (
+                line._sedar_available_qty(line.product_id, line.tug_location_id)
+                if line.tug_assignment_id and line.tug_location_id
+                else warehouse if not line.tug_assignment_id else 0.0
+            )
+            shortage = max(required - onboard, 0.0)
+            line.available_qty = onboard
+            line.warehouse_available_qty = warehouse
+            line.shortage_qty = shortage
+            line.transfer_required_qty = min(shortage, warehouse) if line.tug_assignment_id else 0.0
+            line.procurement_required_qty = (
+                max(shortage - warehouse, 0.0) if line.tug_assignment_id else shortage
+            )
+            if shortage <= 0:
+                line.readiness_state = "ready"
+            elif line.tug_assignment_id and warehouse >= shortage:
+                line.readiness_state = "transfer_required"
+            else:
+                line.readiness_state = "purchase_required"
 
-    @api.constrains("required_qty")
+    @api.constrains("expected_consumption_qty", "minimum_reserve_qty")
     def _check_required_qty(self):
         for line in self:
-            if line.required_qty <= 0:
-                raise ValidationError("Required inventory quantity must be greater than zero.")
+            if line.expected_consumption_qty <= 0:
+                raise ValidationError("Expected consumption must be greater than zero.")
+            if line.minimum_reserve_qty < 0:
+                raise ValidationError("Minimum onboard reserve cannot be negative.")
 
-    @api.constrains("order_id", "product_id", "source_location_id")
+    @api.constrains("order_id", "tug_assignment_id", "product_id", "source_location_id")
     def _check_requirement_company(self):
         for line in self:
             company = line.order_id.company_id
-            for record in (line.product_id, line.source_location_id):
+            if line.tug_assignment_id and line.tug_assignment_id.order_id != line.order_id:
+                raise ValidationError("The tug assignment must belong to the Inventory Requirement Service Order.")
+            for record in (line.product_id, line.source_location_id, line.tugboat_id, line.tug_location_id):
                 if record.company_id and record.company_id != company:
                     raise ValidationError(
                         "Inventory Requirement products and locations must belong to the Service Order company."
@@ -212,13 +453,20 @@ class SedarInventoryRequirement(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         lines = super().create(vals_list)
+        if self.env.context.get("sedar_inventory_generation"):
+            return lines
         lines.mapped("order_id")._sync_inventory_readiness()
         lines.mapped("order_id")._sync_automated_readiness()
         return lines
 
     def write(self, vals):
         result = super().write(vals)
-        if {"product_id", "source_location_id", "required_qty"}.intersection(vals):
+        if self.env.context.get("sedar_inventory_generation"):
+            return result
+        if {
+            "product_id", "source_location_id", "tug_assignment_id",
+            "expected_consumption_qty", "minimum_reserve_qty",
+        }.intersection(vals):
             self.mapped("order_id")._sync_inventory_readiness()
             self.mapped("order_id")._sync_automated_readiness()
         return result
@@ -226,6 +474,8 @@ class SedarInventoryRequirement(models.Model):
     def unlink(self):
         orders = self.mapped("order_id")
         result = super().unlink()
+        if self.env.context.get("sedar_inventory_generation"):
+            return result
         orders._sync_inventory_readiness()
         orders._sync_automated_readiness()
         return result

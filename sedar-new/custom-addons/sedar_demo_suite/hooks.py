@@ -665,7 +665,7 @@ def _ensure_inventory_shortage_demo(env):
         "order_id": order.id,
         "product_id": product.id,
         "source_location_id": warehouse.lot_stock_id.id,
-        "required_qty": 1.0,
+        "expected_consumption_qty": 1.0,
         "auto_generated": False,
         "note": "Demo shortage: tug-compatible pump packing is unavailable for STS Lakas.",
     })

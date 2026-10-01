@@ -157,7 +157,7 @@ class TestSedarDemoIntegrity(TransactionCase):
         ).mapped("tugboat_id")
 
         self.assertEqual(requirement.order_id, order)
-        self.assertEqual(requirement.readiness_state, "shortage")
+        self.assertEqual(requirement.readiness_state, "purchase_required")
         self.assertGreater(requirement.shortage_qty, 0)
         self.assertFalse(order.inventory_auto_ready)
         self.assertFalse(order.inventory_ready)

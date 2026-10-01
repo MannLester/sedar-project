@@ -68,13 +68,20 @@
                 <page string="Inventory">
                     <button name="action_generate_inventory_requirements" type="object" string="Generate Inventory Requirements" class="btn-secondary" invisible="state not in ['planning','blocked','ready']"/>
                     <field name="inventory_requirement_ids">
-                        <list editable="bottom" decoration-danger="readiness_state == 'shortage'">
+                        <list editable="bottom" decoration-warning="readiness_state == 'transfer_required'" decoration-danger="readiness_state == 'purchase_required'">
                             <field name="company_id" column_invisible="1"/>
+                            <field name="tugboat_id"/>
                             <field name="product_id"/>
                             <field name="source_location_id"/>
+                            <field name="tug_location_id"/>
+                            <field name="expected_consumption_qty"/>
+                            <field name="minimum_reserve_qty"/>
                             <field name="required_qty"/>
                             <field name="product_uom_id"/>
                             <field name="available_qty"/>
+                            <field name="warehouse_available_qty"/>
+                            <field name="transfer_required_qty"/>
+                            <field name="procurement_required_qty"/>
                             <field name="shortage_qty"/>
                             <field name="readiness_state"/>
                             <field name="auto_generated"/>
@@ -92,6 +99,8 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='fuel_capacity']" position="after">
                 <field name="stock_location_id"/>
+                <field name="onboard_stock_item_count" readonly="1"/>
+                <button name="action_open_onboard_stock" type="object" string="View Onboard Stock" class="btn-secondary" invisible="not stock_location_id"/>
             </xpath>
         </field>
     </record>
@@ -551,11 +560,13 @@
         <field name="arch" type="xml">
             <search string="Inventory Requirements">
                 <field name="order_id"/>
+                <field name="tugboat_id"/>
                 <field name="product_id"/>
                 <field name="source_location_id"/>
                 <field name="company_id" groups="base.group_multi_company"/>
-                <filter name="shortage" string="Shortage" domain="[('readiness_state', '=', 'shortage')]"/>
+                <filter name="shortage" string="Replenishment Required" domain="[('readiness_state', '!=', 'ready')]"/>
                 <filter name="group_order" string="Group by Service Order" context="{'group_by': 'order_id'}"/>
+                <filter name="group_tug" string="Group by Tugboat" context="{'group_by': 'tugboat_id'}"/>
                 <filter name="group_product" string="Group by Product" context="{'group_by': 'product_id'}"/>
             </search>
         </field>
@@ -565,16 +576,40 @@
         <field name="name">sedar.inventory.requirement.list</field>
         <field name="model">sedar.inventory.requirement</field>
         <field name="arch" type="xml">
-            <list decoration-danger="readiness_state == 'shortage'">
+            <list decoration-warning="readiness_state == 'transfer_required'" decoration-danger="readiness_state == 'purchase_required'">
                 <field name="company_id" groups="base.group_multi_company"/>
                 <field name="order_id"/>
+                <field name="tugboat_id"/>
                 <field name="product_id"/>
                 <field name="source_location_id"/>
+                <field name="tug_location_id"/>
+                <field name="expected_consumption_qty"/>
+                <field name="minimum_reserve_qty"/>
                 <field name="required_qty"/>
                 <field name="available_qty"/>
+                <field name="warehouse_available_qty"/>
+                <field name="transfer_required_qty"/>
+                <field name="procurement_required_qty"/>
                 <field name="shortage_qty"/>
                 <field name="readiness_state"/>
             </list>
+        </field>
+    </record>
+
+    <record id="view_service_order_tug_assignment_integrated_readiness" model="ir.ui.view">
+        <field name="name">sedar.marine.service.order.tug.assignment.integrated.readiness</field>
+        <field name="model">sedar.marine.service.order</field>
+        <field name="inherit_id" ref="sedar_marine_operations.view_service_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='tug_assignment_ids']/list/field[@name='tug_available']" position="after">
+                <field name="capability_status" widget="badge"/>
+                <field name="schedule_status" widget="badge"/>
+                <field name="technical_status" widget="badge"/>
+                <field name="crew_readiness_status" widget="badge"/>
+                <field name="inventory_readiness_status" widget="badge"/>
+                <field name="overall_readiness_status" widget="badge"/>
+                <field name="integrated_readiness_summary"/>
+            </xpath>
         </field>
     </record>
 

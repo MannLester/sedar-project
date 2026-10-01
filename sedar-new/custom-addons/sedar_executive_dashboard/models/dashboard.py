@@ -88,7 +88,7 @@ class SedarExecutiveDashboard(models.Model):
             ("state", "in", ["planned", "in_progress"])
         ])
         self.inventory_shortage_count = self.env["sedar.inventory.requirement"].sudo().search_count(company_domain + [
-            ("readiness_state", "=", "shortage")
+            ("readiness_state", "!=", "ready")
         ])
         fuel = self.env["sedar.operation.fuel.log"].sudo().search(company_domain + [
             ("state", "=", "consumed")
@@ -158,7 +158,7 @@ class SedarExecutiveDashboard(models.Model):
     def action_open_tugs(self): return self._open("sedar.tugboat", [])
     def action_open_crew(self): return self._open("sedar.crew.profile", [])
     def action_open_maintenance(self): return self._open("maintenance.request", [("done", "=", False)])
-    def action_open_inventory(self): return self._open("sedar.inventory.requirement", [("company_id", "=", self.company_id.id), ("readiness_state", "=", "shortage")])
+    def action_open_inventory(self): return self._open("sedar.inventory.requirement", [("company_id", "=", self.company_id.id), ("readiness_state", "!=", "ready")])
     def action_open_procurement(self): return self._open("sedar.purchase.request", [("company_id", "=", self.company_id.id), ("state", "in", ["submitted", "approved"])])
     def action_open_hsse(self): return self._open("sedar.hsse.incident", [("state", "in", ["open", "investigating"])])
     def action_open_documents(self): return self._open("sedar.document", [("state", "=", "active")])

@@ -1,6 +1,6 @@
 {
     "name": "SEDAR Corporate Governance and Executive Dashboard",
-    "version": "19.0.2.0.0",
+    "version": "19.0.2.1.0",
     "category": "Operations",
     "summary": "Corporate document registers and source-backed executive KPIs",
     "author": "SEDAR Development Team",

@@ -8,3 +8,4 @@ from . import service_order
 from . import maintenance_parts
 from . import operation_fuel
 from . import tugboat
+from . import stock_move
