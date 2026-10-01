@@ -68,10 +68,17 @@ class SedarInventoryRequirementProcurementLock(models.Model):
     _inherit = "sedar.inventory.requirement"
 
     def write(self, vals):
-        protected = {"order_id", "product_id", "source_location_id"}.intersection(vals)
+        protected = {
+            "order_id", "tug_assignment_id", "product_id", "source_location_id",
+            "expected_consumption_qty", "minimum_reserve_qty",
+        }.intersection(vals)
         changed = self.filtered(
             lambda requirement: any(
-                getattr(requirement, field_name).id != vals[field_name]
+                (
+                    getattr(requirement, field_name).id
+                    if requirement._fields[field_name].type == "many2one"
+                    else getattr(requirement, field_name)
+                ) != vals[field_name]
                 for field_name in protected
             )
         )
@@ -79,9 +86,21 @@ class SedarInventoryRequirementProcurementLock(models.Model):
             ("inventory_requirement_id", "in", changed.ids),
         ]):
             raise ValidationError(_(
-                "An Inventory Requirement linked to a Purchase Request cannot change its Service Order, product, or source location."
+                "An Inventory Requirement linked to a Purchase Request cannot change its demand, tug assignment, Service Order, product, or source location."
             ))
         return super().write(vals)
+
+    def unlink(self):
+        linked = self.filtered(
+            lambda requirement: self.env["sedar.purchase.request.line"].sudo().search_count([
+                ("inventory_requirement_id", "=", requirement.id),
+            ])
+        )
+        if linked:
+            raise ValidationError(_(
+                "An Inventory Requirement linked to a Purchase Request cannot be deleted."
+            ))
+        return super().unlink()
 
 
 class SedarPurchaseRequest(models.Model):

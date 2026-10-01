@@ -417,7 +417,7 @@ class TestSedarPurchaseRequest(TransactionCase):
             "order_id": order.id,
             "product_id": self.product.id,
             "source_location_id": other_warehouse.lot_stock_id.id,
-            "required_qty": 2,
+            "expected_consumption_qty": 2,
         })
 
         with self.assertRaises(UserError):
@@ -456,7 +456,7 @@ class TestSedarPurchaseRequest(TransactionCase):
             "order_id": order.id,
             "product_id": self.product.id,
             "source_location_id": warehouse.lot_stock_id.id,
-            "required_qty": 2,
+            "expected_consumption_qty": 2,
         })
         request = self._make_request(
             service_order_id=order.id,
@@ -484,9 +484,12 @@ class TestSedarPurchaseRequest(TransactionCase):
             {"order_id": other_order.id},
             {"product_id": other_product.id},
             {"source_location_id": other_location.id},
+            {"expected_consumption_qty": 3},
         ):
             with self.assertRaisesRegex(ValidationError, "linked to a Purchase Request"):
                 requirement.sudo().write(values)
+        with self.assertRaisesRegex(ValidationError, "linked to a Purchase Request"):
+            requirement.sudo().unlink()
 
         other_company = self.env["res.company"].create({
             "name": "Immutable Purchase Request Other Company",
