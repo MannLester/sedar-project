@@ -55,8 +55,18 @@ class SedarDrydockPlan(models.Model):
     def _compute_sedar_blocks_tug_readiness(self):
         for plan in self:
             plan.sedar_blocks_tug_readiness = (
-                plan.availability_impact == "blocking" and plan.state in {"planned", "in_progress"}
+                plan.availability_impact == "blocking" and plan.state == "in_progress"
             )
+
+    def sedar_blocks_window(self, window_start, window_end):
+        """Return whether this plan prevents operating during a requested window."""
+        self.ensure_one()
+        if self.availability_impact != "blocking" or self.state not in {"planned", "in_progress"}:
+            return False
+        if not window_start:
+            return self.state == "in_progress"
+        window_end = window_end or window_start
+        return self.planned_start < window_end and self.planned_end > window_start
 
     @api.constrains("planned_start", "planned_end")
     def _check_dates(self):
@@ -101,17 +111,31 @@ class SedarDrydockPlan(models.Model):
         self.mapped("tugboat_id")._sedar_sync_maintenance_availability()
         return True
 
+    def _sedar_refresh_service_order_readiness(self, tugboats=None):
+        tugboats = tugboats or self.mapped("tugboat_id")
+        assignments = self.env["sedar.tug.assignment"].search([
+            ("tugboat_id", "in", tugboats.ids),
+            ("state", "!=", "cancelled"),
+        ])
+        orders = assignments.mapped("order_id")
+        orders._compute_readiness()
+        orders._sync_automated_readiness()
+        return orders
+
     @api.model_create_multi
     def create(self, vals_list):
         plans = super().create(vals_list)
         plans.mapped("tugboat_id")._sedar_sync_maintenance_availability()
+        plans._sedar_refresh_service_order_readiness()
         return plans
 
     def write(self, vals):
         old_tugs = self.mapped("tugboat_id")
         result = super().write(vals)
-        if {"state", "availability_impact", "tugboat_id"}.intersection(vals):
-            (old_tugs | self.mapped("tugboat_id"))._sedar_sync_maintenance_availability()
+        if {"state", "availability_impact", "tugboat_id", "planned_start", "planned_end"}.intersection(vals):
+            impacted_tugs = old_tugs | self.mapped("tugboat_id")
+            impacted_tugs._sedar_sync_maintenance_availability()
+            self._sedar_refresh_service_order_readiness(impacted_tugs)
         return result
 
 

@@ -137,7 +137,7 @@ class TestMarineMaintenance(TransactionCase):
         self.assertFalse(work_order.sedar_blocks_tug_readiness)
         self.assertEqual(self.tug.availability_status, "available")
 
-    def test_open_drydock_plan_keeps_tug_on_maintenance_hold_until_completed(self):
+    def test_planned_drydock_blocks_only_overlapping_jobs_and_in_progress_blocks_current_tug(self):
         work_order = self.env["maintenance.request"].create({
             "name": "Drydock Related Defect",
             "maintenance_type": "corrective",
@@ -155,17 +155,24 @@ class TestMarineMaintenance(TransactionCase):
             "scope_summary": "Demo planned dry dock.",
             "state": "planned",
         })
+        self.assertTrue(plan.sedar_blocks_window(
+            datetime(2026, 9, 12, 8, 0, 0), datetime(2026, 9, 12, 10, 0, 0)
+        ))
+        self.assertFalse(plan.sedar_blocks_window(
+            datetime(2026, 9, 5, 8, 0, 0), datetime(2026, 9, 5, 10, 0, 0)
+        ))
         self.assertEqual(self.tug.availability_status, "maintenance")
 
         work_order.sedar_closure_note = "Corrective work verified."
         work_order.with_user(self.manager).action_sedar_release_tug()
-        self.assertEqual(self.tug.availability_status, "maintenance")
+        self.assertEqual(self.tug.availability_status, "available")
 
         with self.assertRaises(UserError):
             plan.with_user(self.manager).action_complete()
 
         plan.release_note = "Dry dock sea trial completed."
         plan.with_user(self.manager).action_start()
+        self.assertEqual(self.tug.availability_status, "maintenance")
         plan.with_user(self.manager).action_complete()
         self.assertEqual(self.tug.availability_status, "available")
 

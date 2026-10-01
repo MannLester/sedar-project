@@ -48,6 +48,17 @@ class SedarTugboat(models.Model):
         self.ensure_one()
         return bool(self.open_maintenance_blocker_count)
 
+    def _sedar_technical_blockers_for_window(self, window_start, window_end):
+        """Return open technical records that block a particular operating window."""
+        self.ensure_one()
+        requests = self.maintenance_request_ids.filtered(
+            lambda request: request.sedar_blocks_tug_readiness
+        )
+        drydocks = self.drydock_plan_ids.filtered(
+            lambda plan: plan.sedar_blocks_window(window_start, window_end)
+        )
+        return requests, drydocks
+
     def _sedar_sync_maintenance_availability(self):
         for tugboat in self:
             tugboat.invalidate_recordset([
