@@ -63,7 +63,7 @@ Run these from `sedar-new/` before reporting work done. Fix every failure you ca
 | Command | Purpose |
 | --- | --- |
 | `make check` | All static checks: Ruff, boundaries, comments, file size, XML, manifests, access rules, model documentation, check-script tests |
-| `make test M=<addon>` | Run one addon's Odoo tests in a disposable database (repeat `M=` is not supported; call again per addon) |
+| `make test M="<addon> [<addon> ...]"` | Run those addons' Odoo tests in a disposable database |
 | `make install` | Install every SEDAR module into a fresh database to prove a clean install |
 | `make shell` | Odoo shell on the seeded database to try business methods |
 | `make smoke` | Headless browser walk through the Service Order flow against a running server |

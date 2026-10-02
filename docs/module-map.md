@@ -1,7 +1,7 @@
 # SEDAR Module Map
 
-SEDAR is one Odoo 19 application made of 29 addons in `sedar-new/custom-addons/`. This map groups
-them by domain. The authoritative grouping, public surfaces, and limits live in
+SEDAR is one Odoo 19 application made of 29 addons in `sedar-new/custom-addons/<domain>/<addon>`.
+The folder is the domain, so this map is also the folder layout. The authoritative grouping, public surfaces, and limits live in
 `sedar-new/architecture/boundaries.toml` and are enforced by `make check` (ADR-0011).
 
 ## How the pieces fit
@@ -22,7 +22,8 @@ beneath it, never above it.
 
 ## Rules
 
-- Every addon belongs to exactly one domain in `boundaries.toml`.
+- Every addon belongs to exactly one domain in `boundaries.toml`, and its folder is that domain. Moving an addon means changing both, and the `domain-folder` check fails if they disagree.
+- New domain folders must also be added to `addons_path` in `sedar-new/config/odoo.conf`.
 - Another addon may only use models its owner lists under `[public_models]`, and the manifest must depend on the owner.
 - Methods other addons call are public by name and decorated with `@api.private`; underscore methods are private to the addon.
 - Production addons never depend on demonstration addons.
@@ -96,6 +97,6 @@ The main ones:
 
 - `sedar_marine_inventory` depends on `sedar_marine_dispatch_demo`. Its install hook seeds demonstration records and relies on that load order, so removing the dependency breaks demo seeding until the seeding moves into demonstration addons.
 - `sedar_marine_maintenance` and `sedar_recruitment_crewing` reference demonstration records through soft `env.ref` lookups.
-- 21 files exceed the size limits and 61 models or fields are missing from `docs/custom-models.md`.
+- 11 files exceed the size limits (single classes over 400 lines, large demo hooks, and four XML view files) and 61 models or fields are missing from `docs/custom-models.md`.
 
 The baseline may only shrink. Remove entries with `make baseline` after fixing them.

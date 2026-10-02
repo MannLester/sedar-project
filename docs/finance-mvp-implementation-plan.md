@@ -187,29 +187,29 @@ Server-side methods must enforce the same authority as the interface. Hiding a b
 
 Expected operational changes:
 
-- `sedar-new/custom-addons/sedar_marine_operations/models/marine_crew.py`
-- `sedar-new/custom-addons/sedar_marine_operations/models/marine_service_order.py`
-- `sedar-new/custom-addons/sedar_marine_operations/views/sedar_marine_views.xml`
-- `sedar-new/custom-addons/sedar_marine_operations/security/sedar_marine_security.xml`
-- `sedar-new/custom-addons/sedar_marine_operations/security/ir.model.access.csv`
+- `sedar-new/custom-addons/marine/sedar_marine_operations/models/marine_crew.py`
+- `sedar-new/custom-addons/marine/sedar_marine_operations/models/marine_service_order.py`
+- `sedar-new/custom-addons/marine/sedar_marine_operations/views/sedar_marine_views.xml`
+- `sedar-new/custom-addons/marine/sedar_marine_operations/security/sedar_marine_security.xml`
+- `sedar-new/custom-addons/marine/sedar_marine_operations/security/ir.model.access.csv`
 
 Expected new Finance addon:
 
-- `sedar-new/custom-addons/sedar_marine_finance/__init__.py`
-- `sedar-new/custom-addons/sedar_marine_finance/__manifest__.py`
-- `sedar-new/custom-addons/sedar_marine_finance/models/__init__.py`
-- `sedar-new/custom-addons/sedar_marine_finance/models/marine_finance.py`
-- `sedar-new/custom-addons/sedar_marine_finance/models/account_move.py`
-- `sedar-new/custom-addons/sedar_marine_finance/security/sedar_marine_finance_security.xml`
-- `sedar-new/custom-addons/sedar_marine_finance/security/ir.model.access.csv`
-- `sedar-new/custom-addons/sedar_marine_finance/views/sedar_marine_finance_views.xml`
-- `sedar-new/custom-addons/sedar_marine_finance/data/sedar_marine_finance_data.xml`
-- `sedar-new/custom-addons/sedar_marine_finance/tests/`
+- `sedar-new/custom-addons/marine/sedar_marine_finance/__init__.py`
+- `sedar-new/custom-addons/marine/sedar_marine_finance/__manifest__.py`
+- `sedar-new/custom-addons/marine/sedar_marine_finance/models/__init__.py`
+- `sedar-new/custom-addons/marine/sedar_marine_finance/models/marine_finance.py`
+- `sedar-new/custom-addons/marine/sedar_marine_finance/models/account_move.py`
+- `sedar-new/custom-addons/marine/sedar_marine_finance/security/sedar_marine_finance_security.xml`
+- `sedar-new/custom-addons/marine/sedar_marine_finance/security/ir.model.access.csv`
+- `sedar-new/custom-addons/marine/sedar_marine_finance/views/sedar_marine_finance_views.xml`
+- `sedar-new/custom-addons/marine/sedar_marine_finance/data/sedar_marine_finance_data.xml`
+- `sedar-new/custom-addons/marine/sedar_marine_finance/tests/`
 
 Expected mock-data changes:
 
-- `sedar-new/custom-addons/sedar_service_order_demo/hooks.py`
-- `sedar-new/custom-addons/sedar_service_order_demo/__manifest__.py`
+- `sedar-new/custom-addons/demo/sedar_service_order_demo/hooks.py`
+- `sedar-new/custom-addons/demo/sedar_service_order_demo/__manifest__.py`
 
 ## Validation scenarios
 

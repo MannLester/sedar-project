@@ -81,7 +81,7 @@ def validate_database_name(name: str) -> None:
 def available_modules(root: Path) -> set[str]:
     return {
         path.parent.name
-        for path in (root / "custom-addons").glob("*/__manifest__.py")
+        for path in (root / "custom-addons").glob("*/*/__manifest__.py")
         if path.is_file()
     }
 
@@ -89,7 +89,7 @@ def available_modules(root: Path) -> set[str]:
 def tested_modules(root: Path) -> list[str]:
     return sorted(
         path.parent.parent.name
-        for path in (root / "custom-addons").glob("*/tests/test_*.py")
+        for path in (root / "custom-addons").glob("*/*/tests/test_*.py")
     )
 
 

@@ -164,7 +164,8 @@ def command_shell(args) -> int:
 
 def command_run(args) -> int:
     ensure_postgres()
-    return run(odoo_command(args.database, f"--http-port={args.port}")).returncode
+    command = odoo_command(args.database, f"--http-port={args.port}")
+    os.execv(command[0], command)
 
 
 def build_parser() -> argparse.ArgumentParser:

@@ -71,31 +71,21 @@
     "model:sedar.marine.port"
   ],
   "file-size": [
-    "custom-addons/sedar_ais_demo/models/ais_position.py",
-    "custom-addons/sedar_demo_suite/hooks.py",
-    "custom-addons/sedar_hsse/models/hsse.py",
-    "custom-addons/sedar_hsse/views/sedar_hsse_views.xml",
-    "custom-addons/sedar_manpower_planning/models/manpower_models.py",
-    "custom-addons/sedar_marine_dispatch/models/marine_operation.py",
-    "custom-addons/sedar_marine_finance/models/marine_finance.py",
-    "custom-addons/sedar_marine_inventory/models/inventory_item.py",
-    "custom-addons/sedar_marine_inventory/models/inventory_lifecycle.py",
-    "custom-addons/sedar_marine_inventory/models/service_order.py",
-    "custom-addons/sedar_marine_inventory/views/sedar_marine_inventory_views.xml",
-    "custom-addons/sedar_marine_maintenance/models/maintenance_equipment.py",
-    "custom-addons/sedar_marine_operations/models/marine_crew.py",
-    "custom-addons/sedar_purchase_request/models/purchase_award.py",
-    "custom-addons/sedar_purchase_request/models/purchase_bid.py",
-    "custom-addons/sedar_purchase_request/models/purchase_request.py",
-    "custom-addons/sedar_purchase_request/views/sedar_purchase_request_views.xml",
-    "custom-addons/sedar_recruitment_demo/models/res_company.py",
-    "custom-addons/sedar_recruitment_operations/models/applicant.py",
-    "custom-addons/sedar_recruitment_operations/views/sedar_recruitment_views.xml",
+    "custom-addons/demo/sedar_ais_demo/models/ais_position.py",
+    "custom-addons/demo/sedar_demo_suite/hooks.py",
+    "custom-addons/demo/sedar_recruitment_demo/models/res_company.py",
+    "custom-addons/marine/sedar_hsse/views/sedar_hsse_views.xml",
+    "custom-addons/marine/sedar_marine_inventory/models/inventory_lifecycle.py",
+    "custom-addons/marine/sedar_marine_inventory/views/sedar_marine_inventory_views.xml",
+    "custom-addons/people/sedar_recruitment_operations/models/applicant.py",
+    "custom-addons/people/sedar_recruitment_operations/views/sedar_recruitment_views.xml",
+    "custom-addons/supply/sedar_purchase_request/models/purchase_request.py",
+    "custom-addons/supply/sedar_purchase_request/views/sedar_purchase_request_views.xml",
     "scripts/verify_procurement_upgrade.py"
   ],
   "pragmas": [
-    "custom-addons/sedar_marine_inventory/models/service_order.py:noqa:2",
-    "custom-addons/sedar_marketing/models/activity.py:noqa:1",
-    "custom-addons/sedar_service_order_demo/hooks.py:noqa:1"
+    "custom-addons/customer/sedar_marketing/models/activity.py:noqa:1",
+    "custom-addons/demo/sedar_service_order_demo/hooks.py:noqa:1",
+    "custom-addons/marine/sedar_marine_inventory/models/service_order.py:noqa:2"
   ]
 }

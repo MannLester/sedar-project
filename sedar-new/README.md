@@ -5,7 +5,9 @@ This workspace is prepared for an Odoo 19.0 development environment.
 ## Layout
 
 - `config/` - Odoo configuration
-- `custom-addons/` - SEDAR custom modules
+- `custom-addons/<domain>/<addon>` - SEDAR custom modules grouped into marine, people, supply, customer, platform, and demo (see `../docs/module-map.md`)
+- `architecture/` - addon domains, declared public models, and the legacy-violation baseline
+- `scripts/` - test runners, static checks, native Odoo harness, and the browser smoke test
 - `data/` - local PostgreSQL and Odoo data mounts
 - `docker-compose.yml` - Odoo 19 and PostgreSQL services
 
