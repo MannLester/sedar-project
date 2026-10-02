@@ -692,6 +692,18 @@ The Daily Engine Monitoring Report records one tugboat's engine hours and fuel f
 
 `action_post()` creates one Running Hour Reading per line with hours (current Running Hours plus hours run), so the task status of the engine and its components updates at once. A posted report cannot be edited or deleted; correct an error with a manager reading correction.
 
+### `sedar.ship.log.entry`
+
+Receives what the offline Ship Log page uploads (`static/ship_log`, reached from the Technical Maintenance sidebar group). The page keeps no business rules: it downloads a snapshot (`_sedar_snapshot`) and uploads entries (`_sedar_sync`) that are applied through the normal Daily Engine Report and task completion rules.
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `client_id` | Required, unique character | Identifier the page generated for an entry. A retried upload returns the stored result instead of applying the entry twice. |
+| `user_id` | Read-only many-to-one to `res.users` | User who delivered the entry. |
+| `message` | Read-only character | Result shown to the crew, such as the posted report. |
+
+Each entry is applied in its own savepoint, so one rejected entry (for example a second report for the same tugboat and date) does not block the others. Entries are either a posted Daily Engine Report or a task completion; fields outside the documented columns are ignored.
+
 ### `maintenance.request` marine extension
 
 | Field | Type | How it is used |

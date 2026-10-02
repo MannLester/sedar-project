@@ -434,3 +434,38 @@ class TestMarineMaintenance(TransactionCase):
         report.action_post()
         self.assertEqual(report.posted_by_id, self.maintenance_user)
         self.assertEqual(engine.sedar_current_running_hours, 104)
+
+    def test_ship_log_snapshot_and_idempotent_sync(self):
+        engine = self._new_metered_equipment(name="Ship Log Engine")
+        self._reading(engine, 290, fields.Datetime.now() - timedelta(days=1))
+        task = self._task(engine, 300)
+        log = self.env["sedar.ship.log.entry"].with_user(self.maintenance_user)
+
+        tug = next(tug for tug in log._sedar_snapshot()["tugs"] if tug["id"] == self.tug.id)
+        self.assertIn(engine.id, [entry["id"] for entry in tug["engines"]])
+        self.assertEqual([entry["id"] for entry in tug["tasks"]], [task.id])
+
+        report = {
+            "client_id": "report-1", "kind": "report", "tugboat_id": self.tug.id,
+            "report_date": str(fields.Date.context_today(log)),
+            "lines": [{"equipment_id": engine.id, "hours_run": 12, "fuel_consumed": 300, "is_system": "ignored"}],
+        }
+        first = log._sedar_sync([report])[0]
+        again = log._sedar_sync([report])[0]
+        self.assertTrue(first["ok"])
+        self.assertEqual(again, first)
+        self.assertEqual(engine.sedar_current_running_hours, 302)
+        self.assertEqual(self.env["sedar.daily.engine.report"].search_count([("tugboat_id", "=", self.tug.id)]), 1)
+
+        results = log._sedar_sync([
+            {**report, "client_id": "report-2"},
+            {"client_id": "done-1", "kind": "completion", "task_id": task.id,
+             "done_on": str(fields.Date.context_today(log)), "remarks": "Checked at sea"},
+            {"client_id": "done-2", "kind": "completion", "task_id": task.id,
+             "done_on": str(fields.Date.context_today(log))},
+            {"client_id": "bad-1", "kind": "report"},
+            {"client_id": "bad-2", "kind": "lunch"},
+        ])
+        self.assertEqual([result["ok"] for result in results], [False, True, False, False, False])
+        self.assertEqual(task.completion_ids.remarks, "Checked at sea")
+        self.assertEqual(task.next_checkpoint_hours, 600)

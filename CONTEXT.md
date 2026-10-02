@@ -100,6 +100,10 @@ _Avoid_: Maintenance schedule, work order
 The Running Hours at which a Planned Maintenance Task falls due (300, 600, 900, ...). It is approaching shortly before, due when reached, and overdue once passed without completion.
 _Avoid_: Service baseline, next service
 
+**Ship Log**:
+The offline-capable page the crew uses aboard to enter the Daily Engine Monitoring Report and mark Planned Maintenance Tasks done. Entries wait on the device until a connection exists.
+_Avoid_: Logbook, tablet app
+
 **Daily Engine Monitoring Report** (DEMR):
 The daily record, per tugboat, of how long each engine ran and the fuel it consumed. Posting it adds the hours to each engine's Running Hours.
 _Avoid_: Engine log, running-hour reading
