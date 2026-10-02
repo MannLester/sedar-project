@@ -277,8 +277,26 @@ References: [Odoo 19 testing](https://www.odoo.com/documentation/19.0/developer/
 [frontend testing](https://www.odoo.com/documentation/19.0/developer/reference/frontend/unit_testing.html),
 and [CLI](https://www.odoo.com/documentation/19.0/developer/reference/cli.html).
 
-There is no GitHub Actions workflow for this repository. Run the Ruff check and the relevant
-targeted Odoo tests before review; run the full local suite for changes that cross module boundaries.
+GitHub Actions (`.github/workflows/ci.yml`) runs on every push and pull request: the static checks,
+each addon's Odoo tests on a native Odoo 19 with PostgreSQL, a full install with a browser smoke
+test, and the Docker Compose start. Run `make check` and the targeted tests before review.
+
+### Without Docker
+
+Cloud sessions and machines without Docker run Odoo natively:
+
+```sh
+make native-setup      # once: PostgreSQL, Odoo 19 source, virtualenv under .local/
+make install           # install every SEDAR module into the sedar_dev database
+make test M="sedar_marine_finance sedar_marine_dispatch"
+make shell             # Odoo shell on sedar_dev
+make run               # serve on http://localhost:8069
+make smoke             # headless browser check of the main workspaces (needs make tools)
+```
+
+`make tools` creates `.venv` with Ruff, pylint-odoo, and Playwright. `make check` runs Ruff, pylint-odoo,
+the architecture checks in `scripts/check.py` (see `docs/module-map.md` and ADR-0011), and the tests of
+those scripts. `make test` uses Docker when it is available and the native setup otherwise.
 
 ## Procurement and Inventory Demo
 
