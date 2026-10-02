@@ -1,0 +1,194 @@
+[00:00] Malakot sa document, mayroon pa sa DR, mayroon sa ano, pero kasama siya sa technical, so possible man, mayroon pa sa DR. [?]
+[00:08] Kasi yung, daily kasi yun, sir, mahirap lang. Pagka walang sumampa, hindi ka agad nakukuha yung report na yun, which is dapat talaga daily siyang...
+[00:21] Sino po yung nag-handle po?
+[00:23] Kaya sila sir, manually, may form silang pilipilakan manually. [?]
+[00:28] Sino yun sir? Sino yung nakakabotan? Sino yung engineer? [?]
+[00:31] Sa engine po.
+[00:32] Sa engine po. [?]
+[00:33] Chief engineer po.
+[00:34] Chief engineer po. [?]
+[00:35] Sila yung nagpipilak ng formula. [?]
+[00:38] Nandun naman lahat ng mga...
+[00:39] May ano ka sir dyan? [?]
+[00:40] May ano ka sir?
+[00:41] May ano ka sir? [?]
+[00:42] Ito per-design dito, sir. [?]
+[00:52] Tapos, daily ito.
+[00:56] Ito lang naman yun.
+[00:57] Monitoring lang sya ng
+[00:59] fuel consumption
+[01:01] at sya ka running hours [?]
+[01:04] ng
+[01:06] main engine
+[01:08] at sya ka ng generator. [?]
+[01:10] Ito, sir.
+[01:10] bali ito, ini-input lang naman
+[01:13] ito nung chief engineer.
+[01:17] Sila naman ang
+[01:18] nakakalam ng
+[01:19] mga datas na ini-input yan.
+[01:24] Lagi po, sir.
+[01:25] Araw-araw po yan lahat po.
+[01:27] Opo, pero nagbabago po yan.
+[01:29] Depende sa kanilang...
+[01:31] Minsan, sir,
+[01:34] minsan ito zero.
+[01:36] Pagka nakasiro siya,
+[01:37] ibig sabihin, nakastandby lang sila.
+[01:39] Pero gumagana ang kanilang generator.
+[01:40] So, minsan, isa o dalawa ang ginagamit nila.
+[01:44] Ito lang ang gagana doon.
+[01:47] Pero may fuel consumption pa rin yun.
+[01:49] Bale, ito kasi, sir, itong monitoring report na ito,
+[01:53] para siya sa fuel.
+[01:55] At the same time, yung running hours,
+[01:58] yun ang kinukomplete dito.
+[02:00] So, kahit hindi po siya pinapatakbo,
+[02:03] like buhay lang po talaga yung engine,
+[02:05] meron po siya ang consumption.
+[02:07] Kasi sa tugboat po, merong main engine, tsaka meron din silang generator.
+[02:12] Pagka naka-standby lang sila, syempre hindi naman gagana si main engine, naka-standby.
+[02:19] Yung generator nila, buhay po yun.
+[02:21] Depende kung ilan nga po yung ginagamit nila.
+[02:24] Minsan, dalawa, na-alternate lang nila.
+[02:27] Minsan, isa.
+[02:28] Sir, yung ating generator dito, kada tugboat, merong tatlong auxiliaries?
+[02:35] Tatlo.
+[02:36] Tatlo, sir.
+[02:37] magkakaiba po
+[02:40] bali tatlo rin po ang ganto
+[02:42] yung mangyayari
+[02:43] and ask ko lang po
+[02:48] magkaiba po ba yung fuel consumption
+[02:50] ng engine pot tsaka [?]
+[02:51] generator po
+[02:53] magkaiba po
+[02:53] kasi gumagamit din siya ng fuel
+[02:57] yung generator
+[02:59] na
+[03:00] separate po talaga
+[03:02] ng lagayan
+[03:04] hindi, meron siya talagang
+[03:07] pinaka
+[03:08] storage.
+[03:12] Tapos, dinidistribute
+[03:13] nyo lang. Halimbawa, gagana
+[03:15] si main engine. Siyempre,
+[03:17] dinidistribute nyo yun doon. So, parang
+[03:19] isa lang po yung pinagkukuhanan pero
+[03:21] ano ba? Isa lang yung pinagkukuhanan.
+[03:25] Ano po po kaya yung [?]
+[03:27] gawang seats nyo? [?]
+[03:28] Ito lang naman, sir.
+[03:31] Ito lang naman is para
+[03:32] mamonitor yung fuel consumption nila
+[03:35] at saka yung
+[03:36] running hours. Kasi sinasubmit po
+[03:39] kasi yung report nyo. Sinasummary yan.
+[03:42] Kasi ang ginagawa po namin
+[03:44] ngayon, manually,
+[03:45] edi gagawin nito ni [?]
+[03:47] Taibo, sasubmit sa akin. [?]
+[03:50] Ngayon, i-encode ko naman din siya
+[03:52] manually. As summary na.
+[03:54] Yung isang buong month na.
+[03:58] So, parang gusto nyo po
+[04:00] is
+[04:00] direct na po napupunta sa inyo
+[04:03] parang yung katulad po kayo sa...
+[04:05] Yes po, parang katulad kayo sir na from there
+[04:07] pwedeng bahara sila [?]
+[04:09] manual pa sila
+[04:11] for record nila
+[04:13] pero yung pong sabihin sana
+[04:15] in real time
+[04:17] every morning
+[04:19] nag-e-encode sila usually 6am
+[04:21] sila nag-send ang mga report
+[04:23] mag-e-encode sila
+[04:26] makikita na po namin
+[04:28] pagka
+[04:29] parang babasa-basay [?]
+[04:30] kasi nangyayari, misal, mabawa [?]
+[04:32] 3 days hindi ako nakapunta sa Tagbo [?]
+[04:35] So natatenga yung mga report nila din, naiipon. [?]
+[04:39] Or minsan po halimbawa si Tagbot nasa malayo, [?]
+[04:43] tulad doon nasa ang iba, nasa Calaca.
+[04:46] Kahit wala kami doon, makikita na namin yung kanilang report eh.
+[04:52] Kasi meron naman silang mga computer sa Tagbot. [?]
+[05:00] Kailangan nyo mga phone. [?]
+[05:02] Pwede kung pwede po.
+[05:04] sa mga requisition natin sir
+[05:11] yung job orders
+[05:12] makikita dun kung
+[05:14] anong status nga
+[05:16] natapos na nilang gawin
+[05:18] or natapos na ng service provider gawin
+[05:21] parang gano'n
+[05:23] complete
+[05:24] may status po nila
+[05:26] tapos
+[05:29] yung mga gano'n nga po is
+[05:32] from technical
+[05:33] kay procurement nyo po yung pinapasa yung mga gano'n
+[05:35] sa requisition
+[05:37] ng mga items
+[05:39] pero pag mga
+[05:41] yung kailangan i-upvote gawin [?]
+[05:43] ayusin nyo [?]
+[05:45] ganyan
+[05:47] kailangan ng tao gagawa
+[05:49] dito
+[05:51] technical
+[05:53] maganda dito
+[05:55] mag-upload sila ng halimbawa
+[05:59] yung scroll [?]
+[06:01] dun sa job order [?]
+[06:03] nasabihin nila yung scroll [?]
+[06:09] Ang bama dito sa job requisition na ito, sa job order na ito, sasabihin nila yung problem. [?]
+[06:16] Then, yung nakalagay dito kasi, ano yun, yung description, work, kung anong tatrabawin nila, kung anong gagawin, kung anong gagawin. [?]
+[06:28] Tapos dito, yung picture. Ang maganda yun, nag-upload sila na picture, para ngayon makita kami.
+[06:35] tapos pagka natapos na
+[06:37] meron kasing ganun ito
+[06:39] tentative date or delivery
+[06:41] pag natapos na nila
+[06:44] parang meron silang proof
+[06:45] na ilalagay doon or i-upload doon
+[06:48] na natapos na yung
+[06:49] tropol [?]
+[06:52] nabeldingan na ito [?]
+[06:54] na
+[06:55] paltan na yung cylinder gasket [?]
+[06:57] generator
+[06:59] parang ganun
+[07:00] na completed na yung
+[07:05] job.
+[07:11] So, ang mapapayaw nyo po sa amin [?]
+[07:13] is pokusan nyo po talaga ito. [?]
+[07:16] Yung nangahanapin nila. [?]
+[07:17] Kahit maganda yung
+[07:19] nagawa niya sa ibang
+[07:20] department.
+[07:22] Kung wala po.
+[07:23] Ano tayo dyan?
+[07:24] So, may meeting po sa Tuesday po.
+[07:29] Parang ito na muna po
+[07:31] ang gagawin namin.
+[07:31] Ah, yun yun.
+[07:32] Parang nangihingi po ng progress
+[07:37] report.
+[07:38] Okay.
+[07:39] Sige po.
+[07:40] Kasi nang last meeting na eh,
+[07:43] pinahanap,
+[07:44] kasi ako, ako,
+[07:45] nagkahanap din ako eh,
+[07:46] na losin ang kapit. [?]
+[07:47] Yan, anong nyo eh? [?]
+[07:49] Sige po.
+[07:50] Parang redemption. [?]
+[07:53] Graduate kayo ng BSU?
+[07:57] Oo po.
+[07:58] Graduate pa kayo?
+[07:59] Last July na po.
+[08:01] BSU din kasi ako dati.

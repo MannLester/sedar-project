@@ -1,0 +1,510 @@
+[00:00] Dito kasi meron tayong tatlong mahalagang component sa barko na kailangan mamonitor, kailangan mapita kung gaano kadalas yung maintenance ng mga makakita. [?]
+[00:27] Dito, nandito yung main engine.
+[00:33] Tapos, nakakita ka na ba ng barko?
+[00:38] Nakakita naman.
+[00:40] Alam mo yung mga diesel engine?
+[00:44] Pamilyar ka naman?
+[00:45] Hindi po.
+[00:45] Hindi po. [?]
+[00:46] Ano naman tayong trobook? [?]
+[00:51] Ngayon, ito yung auxiliary or yung mga generator.
+[00:55] Kasi ang mga barko, wala yung kagaya ng bahay na direct.
+[00:59] line o kuryente kaya gumagamit sila ng mga generators tapos ito naman yung sa transmission [?]
+[01:05] ngayon i-explain ko muna sa iyo itong kaming engine [?]
+[01:12] dito kasi ang gusto nilang mangyari kada tagbo may mga ganitong monitoring [?]
+[01:21] Kaya nung una, pinagawa kami ni Kaproquillo nito. [?]
+[01:27] Nung una, may ano na kami ginawa.
+[01:29] Gaya nito, sa main engine, name of the ship, port side at starboard side.
+[01:44] Sa isang engine kasi, dalawa yung makina nila.
+[01:47] Tapos, pinaghiwa-hiwalay lang namin yung kada hours.
+[01:53] Dito yung makikita, every 3 hours, ito yung ginagawa.
+[01:56] Kung baga, ito yung dapat gawin sa component na to.
+[02:02] Kada 250 hours ito ang dapat gawin sa component na to.
+[02:09] Tapos pag nagawa na nila, talaga nila ng done.
+[02:14] Then yung remarks parang ganito.
+[02:16] Sino pong nag-aasikaso po?
+[02:19] Yung taga-barko nila.
+[02:21] Yung mga engineer doon.
+[02:24] Gaya nito, sa user number 2, pag nagawa na nila, check-check nila, nalagyan nila ng oras. [?]
+[02:33] Toksang, check-check, visual inspection, okay, yun yung mga remarks. [?]
+[02:40] Tapos, ito yung present hours nila, 308 hours, kaya chinik na nila to.
+[02:50] Kasi every 300 hours, kaya chinik na nila to.
+[02:53] makalagay dito next p.m. is sa 600 hours na dito na sila
+[03:01] after another 300 hours ito naman yung check in nila kasama pa rin to siyempre kasi another 300 hours
+[03:10] ibig sabihin kasi nito interval
+[03:13] ulitin po yan
+[03:15] gagawin nila ulit every 300 hours i check in ulit nila every 600 hours i check in ulit nila
+[03:21] kaya ang ginawa namin nung una
+[03:24] gumawa kami dito
+[03:26] halimbawa ito, 300 hours
+[03:28] halimbawa
+[03:37] sa oras na to
+[03:38] ginawa nila yung
+[03:40] poche check ng engine [?]
+[03:42] sabihin natin, R1
+[03:46] tapos
+[03:47] ginamit ulit nila yung makina nila
+[03:49] halimbawa sa 24 hours na gamit nila
+[03:52] ang makina nila
+[03:54] ng 12 hours lang
+[03:55] hindi magpa-plus
+[03:58] Ano sila? 12 to 30 na. [?]
+[04:01] Makikita nila yung remaining hours nila.
+[04:04] Same as sa mga ito.
+[04:07] Kasi pag ginawa mo itong isa, kailangan ka po i-multiply.
+[04:10] Lahat talaga.
+[04:11] Then, pag nag-300 po, ulit na po.
+[04:13] Kailangan po ulit.
+[04:14] Ano nga ba ito?
+[04:14] Ang gawa mo na 300.
+[04:15] 300 na po.
+[04:17] Zero na.
+[04:18] Ibig sabihin,
+[04:20] Kailangan na pulling yan. [?]
+[04:21] O, mag-a-add ka ulit ng 300 dito sa current hours mo.
+[04:29] parang magiging
+[04:30] nilalagay mo muna dito yung previous hours
+[04:32] nagbaba, naka 300 na [?]
+[04:34] nalagay mo siya
+[04:36] tapos dito
+[04:37] alam mo, tumakbo na uli yung makina mo
+[04:41] nang nagawa mo na ito, tumakbo na uli
+[04:43] ng 12 hours
+[04:45] being ano na yan, 312
+[04:47] hanggang makaabot ka uli
+[04:49] ng 600
+[04:51] parang ito yung magiging
+[04:53] interval nila
+[04:55] kada 300, alam mo, nakatapos ka na
+[04:58] naman ng 600
+[04:58] mag-attract ka na naman dito [?]
+[05:04] ng another
+[05:06] 300
+[05:07] mag-give yung ano na [?]
+[05:09] 600
+[05:09] kasi yun yung previous hours mo
+[05:11] yan
+[05:14] next few hours mo na ulit
+[05:16] sa 900 na
+[05:19] wow [?]
+[05:20] inuhay mo ulit yung makina mo
+[05:21] ng 12 hours
+[05:22] parang ano lang siya
+[05:24] continuous cycle
+[05:25] yan yung gusto namin
+[05:27] lumabas dun sa
+[05:29] system natin
+[05:30] na real time?
+[05:33] Parang, ang mangyari po is
+[05:35] may device po dapat
+[05:36] yung mag-check po.
+[05:38] Kumbaga, may mga computer naman sila.
+[05:41] Computer po yung gagamitin.
+[05:43] Anong pang-anong?
+[05:44] Pwede pong halimbawa is
+[05:46] tablet, ganun po.
+[05:49] Pwede naman po namin gawan
+[05:50] ng mga checklist lang
+[05:52] naman pong gagawin.
+[05:53] Ang need lang naman pong tingnan is kung
+[05:56] complete at kung kailan po
+[05:57] nagawa, diba?
+[05:58] Tapos remarks po. Pwede po yung ganun. Wala naman po masyado magiging crowded na detail na kayang mag-fit sa maliit na screen. Kahit nandun po sa barko, pwede po. Mismong pag nagawa na, i-check na po agad yung tao.
+[06:16] Parang software o application?
+[06:21] Parang pwedeng application po.
+[06:22] Application na kailangan magre-reflect din dito sa office?
+[06:27] Magre-reflect na po lahat-lahat.
+[06:28] Lahat po yun, mga ano na po.
+[06:30] Kasi centralized po siya.
+[06:33] Lalo siya, tap nila [?]
+[06:34] yung
+[06:35] software na yun.
+[06:38] Tap yung check nila.
+[06:41] Updated po yun. Kita nyo rin po
+[06:42] agad yung cell mo. [?]
+[06:45] Yung mga approval-approval po,
+[06:47] meron po ba kayong ganun? May mga pinipirmahan
+[06:49] muna po.
+[06:50] Yan yung
+[06:51] binigay ko sa iyo kanina.
+[06:53] Ah, yun po. Requisition po.
+[07:05] Pag ito dumating sa amin,
+[07:07] ano lang yan, ito parang
+[07:09] yan lang yung perma niya
+[07:11] tapos, kapag na-receive ko na
+[07:14] ipipermaan ko siya
+[07:15] yung date, tapos
+[07:17] i-verify ko, paano ko i-verify
+[07:20] itatawag ko sa kanila
+[07:21] ihingan ko sila ng pictures
+[07:24] kung wala silang attachments
+[07:25] okay na, pag na-verified na, okay na
+[07:28] and then
+[07:29] sa absence ng aming technical manager
+[07:32] ako na rin ang nag-noted by
+[07:34] tapos, siya ako pa-aproban [?]
+[07:36] President po
+[07:38] Sino po yung ito?
+[07:41] Ano pong position?
+[07:42] Sa Batcoc [?]
+[07:43] Chief Officer
+[07:45] Anong
+[07:49] process dyan?
+[07:52] So parang ang
+[07:53] PMS ko diba?
+[07:55] Ito diba? Hindi na ito PMS
+[07:57] Ah hindi na po ito
+[07:57] Pero ito po yung PMS
+[08:01] Ito po yung pagbabasihan
+[08:03] para po magkalaman to
+[08:04] Hindi po?
+[08:06] Depende. Kasi ito, para lang ito sa makina.
+[08:09] Sa makina lang po.
+[08:10] Itong mga job requisitions forms natin, as a whole, sa buong parko yan.
+[08:15] Like, halimbawa po, paano po pag chineck po, then may problema po, ano pong mangyayari?
+[08:21] Yun, pag may problema, halimbawa, sa makina.
+[08:24] Okay.
+[08:25] Oo, dadaan din po dito.
+[08:27] Dadaan din. As a whole ito.
+[08:31] Then, sa kanya po, tapos sa inyo muna po.
+[08:33] Dito sa technical department.
+[08:36] Ano po kayo? Ano po kayong maano niya gawang since wala po ako sa field nga ng pag-ubarko ko? [?]
+[08:47] Ano bang gusto ng ating management sabi sa iyo?
+[08:53] Ang gusto po ay yung talagang centralized po talaga. Lahat ng data ay...
+[08:57] Ang maganda dyan siguro, diba may software tayo? Siguro parang may lalabas doon ng mga forms din.
+[09:08] Pwede pa silang mag-type, mag-upload.
+[09:12] Pwede naman yung tulad po sa HR na pinapaano po yung...
+[09:15] Yan, gano'n. Pwede yun.
+[09:16] Parang pipirmahan na lang po talaga.
+[09:18] Pagdating sa amin, ito na yung makikita namin doon.
+[09:21] Che-check nyo na lang po yan.
+[09:23] Pag yun, doon na namin i-receive, doon ko na rin ibe-verify na noted by din.
+[09:30] Yun, doon na rin makikita ni President.
+[09:33] Tapos, ang maganda nito, meron tayong makikita na,
+[09:37] Halimbawa, for vessel,
+[09:39] sitar 1, sitar 2, [?]
+[09:41] or makikita doon na
+[09:43] nagpasa si [?]
+[09:44] request. Tapos,
+[09:47] makikita din doon yung
+[09:48] pinaka-status ng request.
+[09:51] Halimbawa, for approval na
+[09:53] ni President, parang ganun. Or na-receive na,
+[09:55] then for approval na lang ni President,
+[09:57] and then,
+[09:59] for ano na, for...
+[10:00] Kung nakanino na po.
+[10:01] Or kung
+[10:03] i-execute na.
+[10:04] para makita rin ang taga-bar ko [?]
+[10:07] siguro
+[10:07] bali, sa inyo po yung
+[10:12] yung
+[10:13] parang clearance po
+[10:16] para masabi niyo yung bar ko [?]
+[10:18] is pwedeng gamitin o hindi po
+[10:20] sa technical po yan
+[10:22] gamitin sa
+[10:24] service po
+[10:25] pag may mga services
+[10:30] may mga job order na po
+[10:31] di ba po, parang
+[10:33] kayo marketing, may job order
+[10:36] or service request pong mangyayari
+[10:38] then, kanino po
+[10:40] ipapasa yung ano?
+[10:42] Anong service?
+[10:44] Like, ano po?
+[10:46] Parang, itong barkong to
+[10:48] is pwede pong gamitin talaga.
+[10:50] Like, may clearance po. Parang ganun po.
+[10:52] Pwede. Pwede dumaan din dito
+[10:54] na wala siyang problema
+[10:56] yung mga ganun po.
+[10:58] Kapag walang sina, wala. [?]
+[11:00] Aberiya. [?]
+[11:02] Pero kung
+[11:05] ano mo naman tanong mo ay
+[11:07] pwedeng gamitin na mag-a-assist dito
+[11:10] mag-a-assist doon sa operation
+[11:12] pero pag sa
+[11:14] kumbaga yung usefulness
+[11:17] or tawag namin dyan ay
+[11:18] worthiness dito sa teknika
+[11:21] pwede po kaya kumakainipunong [?]
+[11:26] kailangan mo talaga to
+[11:27] kasi ito yung magre-reflect dapat
+[11:30] sa software
+[11:31] then yung mga details pong yan, yan po ba
+[11:34] i-fix? yan po talaga ang standard procedure na
+[11:36] standard procedure
+[11:37] pero kung may mga
+[11:39] changes man [?]
+[11:41] kaya naman mabago [?]
+[11:43] kaya naman [?]
+[11:43] basta yan [?]
+[11:47] kailangan [?]
+[11:48] per panel [?]
+[11:52] main engine [?]
+[11:54] tapos ito [?]
+[11:55] ito sa transmission [?]
+[11:58] ano po ito? [?]
+[12:00] lahat po ito sa isang tao lang [?]
+[12:01] oo, bali isang bezel [?]
+[12:04] lahat yan gagawin nyo [?]
+[12:05] lahat na gagawin nyo [?]
+[12:06] gawin yung sa accounts po [?]
+[12:09] Sabi nyo pa si Chip. [?]
+[12:12] Ano po yung
+[12:12] mga official pa. [?]
+[12:15] Yan. Ganun.
+[12:16] Parang sa kanya lang po lalabas to.
+[12:18] Sa account niya lang po lalabas.
+[12:19] Ito. Itong part na to.
+[12:23] Itong mga papers na to.
+[12:24] Sa engine department.
+[12:31] Hindi siya sa past. [?]
+[12:32] Pag dalawa ka silang [?]
+[12:33] department ng banko. [?]
+[12:35] Death department tsaka engine department. [?]
+[12:38] Ang may hawak nito,
+[12:39] taga engine lang.
+[12:40] Engine lang po ito.
+[12:41] Pero kami, mostly talaga sa technical, ang hawak namin is sa engine department.
+[12:49] Tapos yung sa kapila, sa safety, sa deck. Basta sa mga machineries. [?]
+[12:56] So pag natapos po, is dry dock na po ito?
+[12:59] Hmm. Pag umabot na siya ng, ano, 3,000 hours.
+[13:02] Yun nga po palang sa dry dock na yun. [?]
+[13:08] Paano po yung listahan po na? [?]
+[13:10] Yung sa dry dock po, nag-release po po kayo ng mga ano. Kailangan pong ayusin, like pag may nakita pong ano.
+[13:18] Parang ito rin po ba yan?
+[13:20] Ito rin yung data.
+[13:21] Mahala ko po ibang paper. [?]
+[13:33] Yung magkaroon sila ng inventory. Ito, another ano daw dito. Another, magtawal dito. [?]
+[13:52] Yung mga inventory nila.
+[13:54] Mabawa, ito kasi sa [?]
+[13:57] deck.
+[14:01] Mabawa, ito sa [?]
+[14:02] main engine nila.
+[14:06] Sa pinakamakina nila.
+[14:09] Ito yung mga
+[14:10] meron sila
+[14:13] parts
+[14:13] or components dun sa barko.
+[14:17] Sino po nag-handle
+[14:18] nito? Sa mga to,
+[14:21] taga-barko din yung
+[14:22] na
+[14:22] nakakalam sa
+[14:26] stock nila. Ano po?
+[14:28] Sa deck po siya or sa engine po?
+[14:30] Pag dito sa engine
+[14:32] ito, ito sa engine po.
+[14:33] Sa engine po siya.
+[14:35] Pero sa amin tinitingnan namin
+[14:37] engine. Sa engine lang po talaga.
+[14:40] Itong mga to, ginagamit to lahat.
+[14:43] Itong mga makikita mo dyan.
+[14:45] Nakalagay dito.
+[14:47] Sa main engine.
+[14:48] Dito din.
+[14:49] Sa main engine, sa
+[14:50] generator, sa
+[14:53] transmission.
+[14:56] Itong mga excess bulb, bulb seat, components ng main engine natin, yan yung gusto na din nilang makita. [?]
+[15:05] Kapag may mga binabago pa? [?]
+[15:08] May stock pa sila na nasa onboard. Bago sila mag-request, dapat doon sa inventory makikita namin kung ilan pa ba yung onboard nila.
+[15:21] marami pa ba
+[15:23] or
+[15:24] ubus na
+[15:25] para makita namin na
+[15:26] oh ito
+[15:27] meron pa kayo dito
+[15:28] bakit nagre-request pa kayo
+[15:30] sa ganun po pala
+[15:33] edi parang
+[15:34] per tag boat po [?]
+[15:35] may
+[15:35] isang tao pong
+[15:37] nag-handle
+[15:37] ng mga ganun bagay
+[15:38] ano pong tawag
+[15:39] si chief engineer
+[15:40] chief engineer na rin po
+[15:42] mga official
+[15:43] halos
+[15:44] parang
+[15:45] ang mangyayari dyan
+[15:46] pag nagkaroon tayo
+[15:47] ng software
+[15:48] or application
+[15:50] itatype nila
+[15:51] or i-input nila doon.
+[15:54] Tapos, pag ginamit nila,
+[15:56] syempre, mababawasan.
+[15:58] Nga ba? Automatic po siya.
+[15:59] Tapos, ilalagay nila kung saan nila ginamit
+[16:01] or kailan nila ginamit.
+[16:02] Tapos, ilan nalang yung matigiran. [?]
+[16:05] Ganun. Ganun yung gusto nila
+[16:07] lumabas.
+[16:10] Balit doon naman, [?]
+[16:12] description, tapos yung
+[16:14] part number nila, tapos yung quantity.
+[16:17] Yan lang.
+[16:24] Balit, magkakaiba na po. [?]
+[16:25] So, ano, per-tag-book na po yung inventory. [?]
+[16:27] Yan, dapat per-tag-book. [?]
+[16:29] Dito dapat per-tag-book. [?]
+[16:32] Baka, pag-click natin [?]
+[16:33] si Darto, [?]
+[16:36] may nakalagay ito. [?]
+[16:37] PMS. [?]
+[16:38] Dito may nating clip. [?]
+[16:40] Dalabas ito, si 300, si 600, [?]
+[16:43] si 1000. [?]
+[16:44] Dito, bawa, bako pa. [?]
+[16:47] Si PMS, [?]
+[16:47] ito naman si Siddharth Korn. [?]
+[16:49] Dito, dalabas si PMS. [?]
+[16:52] Si, may nating transmission. [?]
+[16:58] Gusto nila kasi, [?]
+[16:59] tapos kung gusto nyo [?]
+[17:04] mas maganda [?]
+[17:04] in general [?]
+[17:06] para lang dun sa [?]
+[17:07] requisition or job orders [?]
+[17:10] kahit status lang yun [?]
+[17:13] kasi nung huli [?]
+[17:19] nag present kayo [?]
+[17:22] wala yan [?]
+[17:23] hindi pa po kasi namin [?]
+[17:25] nung unang unang punta po namin [?]
+[17:27] wala po kami nakausap na technical [?]
+[17:29] kakarating ko lang din [?]
+[17:31] Pero more, dyan. Dyan talaga kami nakatulog. Dyan sila kapitan-nakatulog. [?]
+[17:38] Kahit wala po at makikita namin. [?]
+[17:40] Sa makita lang namin na nagawa na siya. [?]
+[17:46] Simple eh. Tapos yun. [?]
+[17:49] Interval arch niya. [?]
+[17:51] Tapos, hindi ko alam kung malilito ba sila dito sa part na ito eh. [?]
+[17:57] Ikaw ba, nagets naman ba ito? [?]
+[17:59] Gets naman to. Parang ano lang po siya. Magre-reset po ba siya after ng ilang hours po ba yan?
+[18:05] Pag nag-dry dock po, ire-reset siya. Ayun.
+[18:08] Ang naiisip ko din dito, alimbawa, ito kasi, connected silang lahat.
+[18:14] Magkakasunod sila. Ang iniisip ko dito, alimbawa, mayroon tayo ditong running hours.
+[18:21] kada araw nagbabago yan
+[18:25] ang iniisip po
+[18:26] halimbawa
+[18:27] nagkamakba sila ng [?]
+[18:29] 12 hours
+[18:31] itong mga to
+[18:32] automatic madadagdagan
+[18:34] at ito madadagdagan
+[18:36] hindi na po isa-isa
+[18:38] mas maganda yun
+[18:40] para dito lang sila mag-input
+[18:42] pag makikita na nila na
+[18:45] uy malapit na to
+[18:47] kasi ano na to
+[18:48] 899
+[18:51] isang oras naman pala ito, makikita nila
+[18:54] pag binago nila dito
+[18:56] maana sila, maalarma sila [?]
+[18:58] gagawin na nila
+[19:00] and then pag nagawahan nila
+[19:02] may ganoon-ganoon status
+[19:05] complete, pag tapos na
+[19:09] pag sumakbo ng 900
+[19:10] dito naman, pagka
+[19:13] nasa
+[19:14] 850
+[19:16] yung progress sila [?]
+[19:20] tapos pag kalamampas na sila
+[19:22] halimbawa ito
+[19:23] Kung umabot na ng 901, hindi pa nila nagagawa, overdue na sila.
+[19:35] Ito mag-automatic na.
+[19:38] Ang gusto niyo po, Dan, parang may mag-notify natin sa iyo. [?]
+[19:43] Wala, pag binuksan namin si Darto, tapos may notification na red. [?]
+[19:51] Meron lang sa overdue na procedures para mas matutuwa din ang pagkain na ginawa niya. [?]
+[20:08] So parang ang pinakatrabaho po talaga ni Chief Engineer is mag-log lang po ng running hour tapos automatic na po siya lahat.
+[20:19] Tapos pag dumating na yung time na, ayan, dumating na yung malapit na oras mo yan,
+[20:31] dapat nagawa na ulit nila.
+[20:34] Para pag nagdagdag sila dito,
+[20:36] nagdagdag, dagdag, nandito na yung 900.
+[20:40] Ito ay magiging 900, Sir.
+[20:43] Hindi na sila mabuputok ang table, Sir. [?]
+[20:45] Oh, my God. [?]
+[20:46] Si-Si-Si-Si-Si-Si- [?]
+[20:48] Nasa kalakana, Sir. [?]
+[20:49] Ay, nagkalakana. [?]
+[20:50] Ano? [?]
+[20:51] Ano siya na? [?]
+[20:52] Siya nga po po siya pa rin. [?]
+[20:54] Hindi, Sir. [?]
+[20:55] Hindi, Sir. [?]
+[20:56] Ito, lahat yan dito sa ganun lang ang process sa mga nangyari dito. [?]
+[21:02] Bale, ano pong mga trabaho ng chip engine yun? [?]
+[21:07] Yung pinag-a-work niya po talaga.
+[21:09] Lahat po.
+[21:10] Yan po yung paglalag ng running hours.
+[21:12] Tapos ito, siya ang mamahala dito.
+[21:14] Siya po yung nag-monitor nga?
+[21:16] Oo. It's either siya ang gumawa or magpatulong siya doon sa mga tao.
+[21:20] Pagka check engine oil level sometimes.
+[21:23] Lahat yan.
+[21:27] Trabaho yan ng chief. Depende na lang kung kanino na itotoka.
+[21:31] Mababa ikaw, Oiler 1. I-check mo yung fuel injection valve by calibration assay. [?]
+[21:38] Hindi siyang maglalagay. Hindi siyang magkatrabaho. [?]
+[21:43] Tapos, ganoon out lang nila. Meron kasi silang ano dyan, yung gaya yung pinakita ko sa'yo. [?]
+[21:48] Yung manual. Manual na PMA. May manual sila. May ganda. [?]
+[22:00] Tapos iilalag nyo pa rin po yan. [?]
+[22:06] Yan, yung ginagawa namin, iilalag namin pa rin. [?]
+[22:10] Ang gusto ko dito, kakagawa ko lang din ito ngayong pag-gating po. [?]
+[22:16] Kung nag-aarap ako ng formula na pag binago ko yung running hours, lahat po yung mag-a-adjust na. [?]
+[22:23] Para pagkasi dito...
+[22:26] Face-eyes are in the business. [?]
+[22:28] Pag-prenogram naman to, possible po yun. [?]
+[22:31] Ang possible lang ito. Para input lang sila ng input.
+[22:38] Doon pa sa gagawin yung software ay online o offline?
+[22:43] Ano po online? Kasi nag-request po ang HR kung nasa bahay daw po sila. [?]
+[22:50] Sa pag-offline, hindi talaga ma... [?]
+[22:54] Parang magagawa na lang po ng domain po. Tapos yung may per accounts na lang po bawat tao.
+[23:00] Yung na lang po yung accessibility control.
+[23:02] Ang maganda dito, sa pagbobkas nga ng mga computer, tapos minsan yung signal sa barko, hindi stable. [?]
+[23:17] Ito, naitamigay ko na sa kanila. Ginagamit na namin ito.
+[23:21] Ngayon, ang challenge sa amin, hindi nila ma-access kasi mahigang hindi na. [?]
+[23:27] Yung ganyan naman po, pwede po siya is caching po.
+[23:30] kumbaga po is, magagamit po yung
+[23:33] app ni chip engineer kahit walang [?]
+[23:35] signal, pero once na magka-signal
+[23:37] na po yung halimbawa po, naka-iPad
+[23:39] or tablet po, automatic po
+[23:41] yun, mag-update
+[23:44] po siya, once na magka-signal
+[23:45] ito nasa
+[23:46] ah, wala
+[23:48] para kung yun, ang concern po
+[23:52] is, ganun nga po, naisip din
+[23:55] po namin yun, since may balak
+[23:56] nga po maglagay din ng GPS
+[23:58] sinang app po [?]
+[23:59] Gagawin nyo, parang kagaya ng kuna na pero ang lamang itong mga information mo. [?]
+[24:17] Parang hindi naman na po dito sa management. [?]
+[24:21] Maganda yun, kahit truco, pwede. [?]
+[24:26] Parang mas maganda.
+[24:27] Hindi po.
+[24:29] Yung sila, parang mga taga-barco pa siya, hindi rin sila masyado computer.
+[24:36] Hindi nga po. Parang pagka ganun po. Parang mas madali rin po kung checklist lang naman po ang mangyayari. Tapos type lang po ng date.
+[24:45] Ayan. Parang mas madalihan kayo ganun naman. Parang pagka nag-add tayo ng running hours. Lahat. Madali. Madali rin. Kaysa isa isa.
+[24:54] Sige, mga kaibigan! [?]
+[24:56] Sige. [?]
+[24:58] Sige, kalakas niya. [?]
+[25:00] Sige, kalakas niya. [?]
+[25:02] Sige, kalakas niya. [?]
+[25:05] Yung kay Kastra lang. [?]
+[25:07] Yung kay 6. [?]
+[25:09] Pero yung kay chemical, hindi pa rin magiging [?]
+[25:11] magiging traan sa akin. [?]
+[25:13] Eh, kailan tayo? [?]
+[25:15] Baka manday na. [?]
