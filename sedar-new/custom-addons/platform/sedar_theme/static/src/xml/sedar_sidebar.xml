@@ -42,6 +42,17 @@
                                 <a class="o_sedar_nav_item" href="/web#action=sedar_marine_operations.action_client_vessels"><span>Client Vessels</span></a>
                             </div>
                         </details>
+                        <details class="o_sedar_nav_group">
+                            <summary class="o_sedar_nav_parent"><span><i class="fa fa-wrench"/>Technical Maintenance</span><i class="fa fa-angle-down o_sedar_nav_chevron"/></summary>
+                            <div class="o_sedar_nav_children">
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_marine_maintenance.action_daily_engine_reports"><span>Daily Engine Reports</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_marine_maintenance.action_pm_tasks"><span>Planned Maintenance</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_marine_maintenance.action_marine_equipment"><span>Marine Equipment</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_marine_maintenance.action_marine_maintenance_work_orders"><span>Work Orders</span></a>
+                                <a class="o_sedar_nav_item" href="/web#action=sedar_marine_maintenance.action_drydock_plans"><span>Dry Dock Plans</span></a>
+                                <a class="o_sedar_nav_item" href="/sedar_marine_maintenance/static/ship_log/app.html"><span>Ship Log <small>(Works Offline)</small></span></a>
+                            </div>
+                        </details>
                         <details t-if="sedarProcurementNavigation" class="o_sedar_nav_group o_sedar_nav_group_procurement" open="open">
                             <summary class="o_sedar_nav_parent"><span><i class="fa fa-shopping-cart"/>Procurement</span><i class="fa fa-angle-down o_sedar_nav_chevron"/></summary>
                             <div class="o_sedar_nav_children">
