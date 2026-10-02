@@ -1,0 +1,99 @@
+[00:03] So prepared by, ito yung General Accountant, tapos siya yung daya kung approve ba yung patay ka na doon. [?]
+[00:14] Tapos nandiyan nalang pe-apply niya. [?]
+[00:16] Sino doon siya? [?]
+[00:18] Patay ka na doon. Siya yung acting GM namin noong September. [?]
+[00:22] Kaya siya may 4CA captain ako niya kasi siya captain ako niya yung GM talaga namin. [?]
+[00:28] Kasi pati nakuha niya sa mga country noong September, kaya ito sa foreign land niya na-upload. [?]
+[00:33] So, pati yung sa DOE, for example, pati yung naka-4CH Agustin, pati yung Canada. [?]
+[00:40] Ayan. So, may check portion nga. [?]
+[00:43] So, ito naman, ito naman, kung talaga kung mga sulat, kung mga tulad. [?]
+[00:47] Hindi. Ito? Ayan. Masyadong... [?]
+[00:51] Automated version. [?]
+[00:52] And then, printer. Meron kami yung printer ng check-in. Doon piniprint yung mga check voucher namin.
+[01:02] So ito, in-enroll din. Ito lang. Sinusulat na lang ito. Ito m-print.
+[01:09] May hindi hindi hindi hindi hindi hindi hindi hindi hindi hindi hindi hindi hindi hindi hindi hindi hindi hindi hindi hindi hindi hindi.
+[01:21] Anong details niya? May business process kung sa tingin ko na hindi pa po nababagay.
+[02:13] Ito yung sa collection process namin.
+[02:18] Sa collection, na-present si customer ng email, yung nabibisip.
+[02:25] Tapos, sinacheck ko yung payment nila. Ito yung payment nila, sinacheck ko kung tama sa invoice, yung balance siya.
+[02:35] Tapos, ito yung bank, kung saan nililipos, ito yung deposit.
+[02:39] Tapos, ako na rin yung nalagay ng, ito ay account, account code sa system.
+[02:45] So, ito yung cash in bank na code, ito yung AR na code na mga sasino mo rin.
+[02:50] Pag nagawa ko ito, biniverify siya ni si marketing or billing, na-check niya kung tama yung details, kung ito nga yung invoices na,
+[03:01] ang update na ina-addline. Tapos, napagawa ko niya siya kay cashier ng OR or AR, depending client.
+[03:10] Pag nagawa na siya ng OR or AR, pinagawa na siya ni Encode.
+[03:15] Yan. Tapos ito, pinapayit ko lang yan.
+[03:18] Yung iba, deposit lang. Deposit.
+[03:23] Yung iba, kami mismo yung nagde-deposit.
+[03:26] Yung iba naman, sila yung nagsisend ng deposit.
+[03:30] So tingin niyo ko, kailangan ko itong pag-imotorsan.
+[03:33] Kasi siya po ako nilalimit.
+[03:35] Ayun.
+[03:36] Dito po gusto ko sinasabi ko yung nilalimit.
+[03:39] Hmm. Ito kasi yung payment.
+[03:41] O.
+[03:43] Dahil lahat naman kung yung biyerman,
+[03:46] Bawal po yung print na lang. Kailangan po ma-exchange lahat.
+[03:50] So, parang ang nangyayari po is parang iti-print mo na lang po.
+[03:54] Kaya sa'yo magandang tutarag.
+[03:56] Kung pwede siyang parang, kunwari, online i-approve lang.
+[04:03] Kunwari, i-lalagay ko siya sa system, tapos i-verify.
+[04:07] I-take mark lang na verify the billing.
+[04:10] Tapos, ano na siya, approve na siya for OR.
+[04:15] Tapos pag in-OR siya, automatic na sana yung entry.
+[04:19] Kasi ito, pag in-OR itong ako, ako pa lang nag-assign ng entry, kung ano ang debit, ano ang credit.
+[04:28] So ako nag-assign yan.
+[04:29] So kung ma-input sa system, automatic, pag nilalito yung saan siya pumasok na ba,
+[04:37] at yung mga invoice na i-apply na pinabayaran niya, automatic na siya mag-offer sa system.
+[04:43] Tapos yung OR at AR, pwede naman itong i-manual, pero kung kaya rin siyang i-automate eh, mayroon.
+[04:57] Kasi hindi ko alam, parang siyang ngayon sa check voucher na i-film ko lang sa printer yung OR at AR, tapos i-print na niya.
+[05:05] Parang once mag-print ka ng OR at AR, automatically recorded na siya.
+[05:11] Gusto ko sa'yo nangyayari kapag OR na. Dahil tambak sa encoder, hindi ko na-encode.
+[05:19] Yun, doon naman po sa mga cash, parang nangyayari po kasi dyan.
+[05:22] Hindi naman po natin pwede ni-integrate mismo yung system sa mga bank, like sa BDO.
+[05:29] Parang hindi naman po sa'yo nakapayag basta na connected po talaga yung system doon.
+[05:34] Parang kayo po yung mag-limit talaga ng mga amounts.
+[05:38] Parang meron akong gating mark na anong box siya pumasok, hindi kasi siya hindi ito.
+[05:44] Kailangan din ako talaga namin itong list, pero hindi ko siya pumasok.
+[05:47] Yes.
+[05:51] Tapos, ito yung credit cash namin.
+[05:54] Ito yung credit cash.
+[05:58] Cash net.
+[06:01] Ito yung summary.
+[06:05] So, kapag kubot na yung 190 na lang.
+[06:09] Ah, 59 na lang pala.
+[06:11] 59 na lang yung remaining balance.
+[06:13] sa mga ganit-ganit na si cashier,
+[06:15] si very very cashier.
+[06:16] Ito yung entry fee balance niya.
+[06:18] Ito gaya niya sa iyo.
+[06:20] So ito yung P-cash and cash-out niya.
+[06:22] Ito yung total expenses.
+[06:24] Ang debi ng balance nito.
+[06:26] Saan po sumerge?
+[06:27] Ang entry ang daily namin na cash-out.
+[06:30] Ito pre-pay ka siya po?
+[06:32] Amat po to?
+[06:33] Hindi.
+[06:34] September 14 to 16 lang po.
+[06:36] 16 to 18.
+[06:37] So yung tipo ano kung hindi u-fix yung paggamit ng credit cash para
+[06:42] Depende, 500 sa 7J?
+[06:46] Depende kung kailan siya uubos
+[06:48] So ito, higap tene siya noong September 14, na uubos na siya noong September 16
+[06:54] Kasi mabilis lang, kasi magtagal, depende sa expenses
+[06:59] Ito, 8 to 11
+[07:03] So, basta ito kasi, hindi nagpa-uulog. Basta nag-iulog din siya, or may expected na expensive usunod na araw, or mawawalan na signatory na para klinish ko niya.
+[07:16] So, ito yung sinicheck niya. Ito yung prepared card, tapos yung approver. Ito rin yung mga liquidation.
+[07:27] So ito ang ikaw lang, mga cash advance, yung cash advance niya 5,000, yung September 10 liquidate niya 2017.
+[07:35] Diyan din yung liquidate, tapos depende kung sa iyo si Boy Call, refund.
+[07:43] Ito yung column natin.
+[07:47] Kasi yun yung accounting assistance, yun yung accounting.
+[08:07] Ayun lang po pala yung multi-year.
+[08:12] Talagang buwan yun.
+[08:14] ng transaction.
+[08:17] Ito na lang yung
+[08:18] server size.
+[08:21] Sige.
+[08:22] Ito na po po kayo na ang
+[08:24] system.
