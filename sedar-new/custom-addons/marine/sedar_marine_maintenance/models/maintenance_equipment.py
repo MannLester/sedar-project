@@ -1,7 +1,7 @@
 from odoo import _, api, fields, models
-from odoo.exceptions import AccessError, ValidationError
-from odoo.tools.float_utils import float_compare
-from .maintenance_equipment_common import EQUIPMENT_SERVICE_AUDIT_FIELDS, READING_PRECISION_DIGITS
+from odoo.exceptions import ValidationError
+
+PM_STATE_RANK = {"unconfigured": 0, "not_due": 1, "approaching": 2, "due": 3, "overdue": 4}
 
 
 class MaintenanceEquipment(models.Model):
@@ -38,9 +38,12 @@ class MaintenanceEquipment(models.Model):
         required=True,
     )
     sedar_installation_date = fields.Date(string="Installation Date")
-    sedar_running_interval_hours = fields.Float(
-        string="Planned Interval Hours",
-        help="Running-hour interval after the last verified planned service.",
+    sedar_hours_from_id = fields.Many2one(
+        "maintenance.equipment",
+        string="Running Hours From",
+        domain="[('sedar_tugboat_id', '=', sedar_tugboat_id), ('sedar_hours_from_id', '=', False), ('id', '!=', id)]",
+        ondelete="restrict",
+        help="Component that shares another Equipment's running hours, such as a part of a main engine.",
     )
     sedar_running_hour_reading_ids = fields.One2many(
         "sedar.equipment.running.hour.reading",
@@ -51,255 +54,94 @@ class MaintenanceEquipment(models.Model):
     sedar_current_running_hour_reading_id = fields.Many2one(
         "sedar.equipment.running.hour.reading",
         string="Current Reading",
-        compute="_compute_sedar_running_hour_status",
+        compute="_compute_sedar_running_hours",
         store=True,
         readonly=True,
         copy=False,
     )
     sedar_current_running_hours = fields.Float(
         string="Current Running Hours",
-        compute="_compute_sedar_running_hour_status",
+        compute="_compute_sedar_running_hours",
         store=True,
         readonly=True,
     )
-    sedar_verified_service_reading_id = fields.Many2one(
-        "sedar.equipment.running.hour.reading",
-        string="Verified Service Reading",
-        readonly=True,
-        copy=False,
-        ondelete="restrict",
-        check_company=True,
-    )
-    sedar_verified_service_work_order_id = fields.Many2one(
-        "maintenance.request",
-        string="Verified Service Work Order",
-        readonly=True,
-        copy=False,
-        ondelete="restrict",
-        check_company=True,
-    )
-    sedar_last_service_date = fields.Date(
-        string="Last Verified Service Date", readonly=True, copy=False
-    )
-    sedar_last_service_hours = fields.Float(
-        string="Last Verified Service Hours", readonly=True, copy=False
-    )
-    sedar_next_service_hours = fields.Float(
-        string="Next Service Hours",
-        compute="_compute_sedar_running_hour_status",
-        store=True,
-        readonly=True,
-    )
-    sedar_remaining_service_hours = fields.Float(
-        string="Hours Until Service",
-        compute="_compute_sedar_running_hour_status",
-        store=True,
-        readonly=True,
-        help="Positive before the threshold, zero when due, and negative when overdue.",
+    sedar_pm_task_ids = fields.One2many(
+        "sedar.pm.task", "equipment_id", string="Planned Maintenance Tasks"
     )
     sedar_service_due_state = fields.Selection(
         [
-            ("unconfigured", "Unconfigured"),
+            ("unconfigured", "No Tasks"),
             ("not_due", "Not Due"),
+            ("approaching", "Approaching"),
             ("due", "Due"),
             ("overdue", "Overdue"),
         ],
         string="Service Status",
-        compute="_compute_sedar_running_hour_status",
+        compute="_compute_sedar_pm_summary",
         store=True,
         readonly=True,
         default="unconfigured",
     )
-    sedar_service_cycle_key = fields.Char(
-        compute="_compute_sedar_running_hour_status",
+    sedar_next_service_hours = fields.Float(
+        string="Next Service Hours",
+        compute="_compute_sedar_pm_summary",
         store=True,
         readonly=True,
-        copy=False,
-    )
-    sedar_alerted_service_cycle_key = fields.Char(readonly=True, copy=False)
-    sedar_due_alert_assignment_state = fields.Selection(
-        [
-            ("not_required", "Not Required"),
-            ("assigned", "Assigned"),
-            ("unassigned", "Needs Assignee"),
-        ],
-        string="Alert Assignment",
-        compute="_compute_sedar_due_alert_assignment_state",
-        store=True,
+        help="Running hours of the nearest upcoming Planned Maintenance checkpoint.",
     )
 
     @api.depends(
         "sedar_running_hour_reading_ids.state",
         "sedar_running_hour_reading_ids.reading_at",
         "sedar_running_hour_reading_ids.running_hours",
-        "sedar_verified_service_reading_id",
-        "sedar_verified_service_reading_id.state",
-        "sedar_running_interval_hours",
+        "sedar_hours_from_id.sedar_running_hour_reading_ids.state",
+        "sedar_hours_from_id.sedar_running_hour_reading_ids.reading_at",
+        "sedar_hours_from_id.sedar_running_hour_reading_ids.running_hours",
     )
-    def _compute_sedar_running_hour_status(self):
+    def _compute_sedar_running_hours(self):
         for equipment in self:
-            valid_readings = equipment.sedar_running_hour_reading_ids.filtered(
+            source = equipment.sedar_hours_from_id or equipment
+            current = source.sedar_running_hour_reading_ids.filtered(
                 lambda reading: reading.state == "valid"
-            ).sorted(key=lambda reading: (reading.reading_at, reading.id), reverse=True)
-            current = valid_readings[:1]
+            ).sorted(key=lambda reading: (reading.reading_at, reading.id), reverse=True)[:1]
             equipment.sedar_current_running_hour_reading_id = current
             equipment.sedar_current_running_hours = current.running_hours if current else 0.0
-            equipment.sedar_next_service_hours = 0.0
-            equipment.sedar_remaining_service_hours = 0.0
-            equipment.sedar_service_due_state = "unconfigured"
-            equipment.sedar_service_cycle_key = False
 
-            baseline = equipment.sedar_verified_service_reading_id
-            interval = equipment.sedar_running_interval_hours
-            if not current or not baseline or baseline.state != "valid" or interval <= 0:
-                continue
-
-            next_service = baseline.running_hours + interval
-            remaining = next_service - current.running_hours
-            comparison = float_compare(
-                current.running_hours,
-                next_service,
-                precision_digits=READING_PRECISION_DIGITS,
-            )
-            equipment.sedar_next_service_hours = next_service
-            equipment.sedar_remaining_service_hours = remaining
-            equipment.sedar_service_due_state = (
-                "not_due" if comparison < 0 else "due" if comparison == 0 else "overdue"
-            )
-            equipment.sedar_service_cycle_key = f"{baseline.id}:{next_service:.6f}"
-
-    @api.depends(
-        "sedar_service_due_state",
-        "technician_user_id",
-        "technician_user_id.active",
-        "company_id.sedar_maintenance_fallback_user_id",
-        "company_id.sedar_maintenance_fallback_user_id.active",
-    )
-    def _compute_sedar_due_alert_assignment_state(self):
+    @api.depends("sedar_pm_task_ids.state", "sedar_pm_task_ids.next_checkpoint_hours")
+    def _compute_sedar_pm_summary(self):
         for equipment in self:
-            if equipment.sedar_service_due_state not in {"due", "overdue"}:
-                equipment.sedar_due_alert_assignment_state = "not_required"
-            else:
-                equipment.sedar_due_alert_assignment_state = (
-                    "assigned" if equipment._sedar_get_due_alert_assignee() else "unassigned"
-                )
+            tasks = equipment.sedar_pm_task_ids
+            equipment.sedar_service_due_state = max(
+                tasks.mapped("state"), key=PM_STATE_RANK.get, default="unconfigured"
+            )
+            equipment.sedar_next_service_hours = min(
+                tasks.mapped("next_checkpoint_hours"), default=0.0
+            )
 
-    @api.constrains("sedar_running_interval_hours")
-    def _check_sedar_running_interval_hours(self):
-        for equipment in self:
-            if equipment.sedar_running_interval_hours < 0:
-                raise ValidationError(_("Planned interval hours cannot be negative."))
-
-    def _sedar_get_due_alert_assignee(self):
-        self.ensure_one()
-        candidates = self.technician_user_id | self.company_id.sedar_maintenance_fallback_user_id
-        return candidates.filtered(
-            lambda user: user.active and not user.share and self.company_id in user.company_ids
-        )[:1]
-
-    def _sedar_open_due_activities(self):
-        activity_type = self.env.ref(
-            "sedar_marine_maintenance.mail_activity_type_equipment_service_due",
-            raise_if_not_found=False,
-        )
-        if not activity_type:
-            return self.env["mail.activity"]
-        return self.env["mail.activity"].search([
-            ("active", "=", True),
-            ("activity_type_id", "=", activity_type.id),
-            ("res_model", "=", self._name),
-            ("res_id", "in", self.ids),
-        ])
-
-    def _sedar_reconcile_due_activity(self):
-        equipment_ids = self.exists().ids
-        if not equipment_ids:
-            return
-        self.env.cr.execute(
-            "SELECT id FROM maintenance_equipment WHERE id IN %s FOR UPDATE",
-            [tuple(equipment_ids)],
-        )
-        activity_type = self.env.ref(
-            "sedar_marine_maintenance.mail_activity_type_equipment_service_due",
-            raise_if_not_found=False,
-        )
-        if not activity_type:
-            return
-
-        for equipment in self.browse(equipment_ids):
-            equipment.invalidate_recordset([
-                "sedar_service_due_state",
-                "sedar_service_cycle_key",
-                "sedar_alerted_service_cycle_key",
-            ])
-            active_due_activities = equipment._sedar_open_due_activities()
-            is_due = equipment.sedar_service_due_state in {"due", "overdue"}
-
-            if not is_due:
-                if active_due_activities:
-                    active_due_activities.action_feedback(
-                        feedback=_(
-                            "Closed automatically because the verified running-hour facts no longer show service as due."
-                        )
-                    )
-                if equipment.sedar_alerted_service_cycle_key:
-                    equipment.sudo().write({"sedar_alerted_service_cycle_key": False})
-                continue
-
-            cycle_key = equipment.sedar_service_cycle_key
-            if not cycle_key or equipment.sedar_alerted_service_cycle_key == cycle_key:
-                continue
-            assignee = equipment._sedar_get_due_alert_assignee()
-            if not assignee:
-                continue
-
-            if active_due_activities:
-                active_due_activities.action_feedback(
-                    feedback=_(
-                        "Closed automatically because a newer verified service cycle is now authoritative."
-                    )
-                )
-            self.env["mail.activity"].create({
-                "activity_type_id": activity_type.id,
-                "res_model_id": self.env["ir.model"]._get_id(self._name),
-                "res_id": equipment.id,
-                "user_id": assignee.id,
-                "summary": _(
-                    "Equipment service %(state)s",
-                    state=equipment.sedar_service_due_state.replace("_", " ").title(),
-                ),
-                "note": _(
-                    "%(equipment)s has %(current).2f running hours. Its verified service threshold is %(threshold).2f hours.",
+    @api.constrains("sedar_hours_from_id")
+    def _check_sedar_hours_from(self):
+        for equipment in self.filtered("sedar_hours_from_id"):
+            source = equipment.sedar_hours_from_id
+            if (
+                source == equipment
+                or source.sedar_hours_from_id
+                or equipment.sedar_running_hour_reading_ids
+                or self.search_count([("sedar_hours_from_id", "=", equipment.id)])
+            ):
+                raise ValidationError(_(
+                    "%(equipment)s cannot follow another Equipment's running hours: the source must be a different "
+                    "Equipment that keeps its own hours, and %(equipment)s must have no readings of its own.",
                     equipment=equipment.display_name,
-                    current=equipment.sedar_current_running_hours,
-                    threshold=equipment.sedar_next_service_hours,
-                ),
-                "date_deadline": fields.Date.context_today(equipment),
-            })
-            equipment.sudo().write({"sedar_alerted_service_cycle_key": cycle_key})
+                ))
 
-    @api.model_create_multi
-    def create(self, vals_list):
-        if not self.env.su and any(
-            EQUIPMENT_SERVICE_AUDIT_FIELDS.intersection(vals) for vals in vals_list
-        ):
-            raise AccessError(_(
-                "Verified service and due-alert audit fields are set only by their controlled workflows."
-            ))
-        equipment = super().create(vals_list)
-        equipment._sedar_reconcile_due_activity()
-        return equipment
+    def _sedar_refresh_pm_alerts(self):
+        """Re-evaluate Planned Maintenance alerts for this Equipment and every component sharing its hours."""
+        self.env["sedar.pm.task"].with_context(active_test=False).search([
+            "|", ("equipment_id", "in", self.ids), ("equipment_id.sedar_hours_from_id", "in", self.ids),
+        ])._sedar_reconcile_alert()
 
     def write(self, vals):
-        if EQUIPMENT_SERVICE_AUDIT_FIELDS.intersection(vals) and not self.env.su:
-            raise AccessError(_(
-                "Verified service and due-alert audit fields are changed only by their controlled workflows."
-            ))
         result = super().write(vals)
-        if {
-            "sedar_running_interval_hours",
-            "technician_user_id",
-            "company_id",
-        }.intersection(vals):
-            self._sedar_reconcile_due_activity()
+        if {"technician_user_id", "company_id", "sedar_hours_from_id"}.intersection(vals):
+            self._sedar_refresh_pm_alerts()
         return result

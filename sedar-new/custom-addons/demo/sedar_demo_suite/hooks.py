@@ -550,8 +550,7 @@ def _bind_pm_maintenance_facts(env, equipment):
         _bind_xmlid(env, "pm_running_hour_baseline", baseline)
     if current:
         _bind_xmlid(env, "pm_running_hour_current", current)
-    equipment._sedar_reconcile_due_activity()
-    due_activity = equipment._sedar_open_due_activities()[:1]
+    due_activity = equipment.sedar_pm_task_ids.sedar_open_alerts()[:1]
     if due_activity:
         _bind_xmlid(env, "pm_due_maintenance_activity", due_activity)
 
@@ -757,7 +756,11 @@ def _ensure_maintenance_breadth(env):
             "sedar_system": ["propulsion", "electrical", "navigation", "deck", "safety"][index % 5],
             "sedar_criticality": ["minor", "major", "critical"][index % 3],
             "sedar_installation_date": "2025-01-15",
-            "sedar_running_interval_hours": 250 + index * 50,
+        })
+        _record(env, "sedar.pm.task", f"enriched_pm_task_{index + 1:02d}", {
+            "name": "Scheduled service",
+            "equipment_id": equipment.id,
+            "interval_hours": 250 + index * 50,
         })
         request = _record(env, "maintenance.request", f"enriched_work_order_{index + 1:02d}", {
             "name": f"Demo Maintenance - {tugboat.name} scenario {index + 1}",

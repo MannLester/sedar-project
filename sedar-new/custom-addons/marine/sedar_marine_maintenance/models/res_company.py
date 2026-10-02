@@ -9,7 +9,7 @@ class ResCompany(models.Model):
         "res.users",
         string="Maintenance Alert Fallback",
         domain="[('active', '=', True), ('share', '=', False)]",
-        help="Receives Equipment running-hour alerts when no active technician is assigned.",
+        help="Receives Planned Maintenance due alerts when no active technician is assigned.",
     )
 
     @api.constrains("sedar_maintenance_fallback_user_id")
@@ -24,10 +24,10 @@ class ResCompany(models.Model):
     def write(self, vals):
         result = super().write(vals)
         if "sedar_maintenance_fallback_user_id" in vals:
-            self.env["maintenance.equipment"].search([
+            self.env["sedar.pm.task"].with_context(active_test=False).search([
                 ("company_id", "in", self.ids),
-                ("sedar_service_due_state", "in", ["due", "overdue"]),
-            ])._sedar_reconcile_due_activity()
+                ("state", "in", ["due", "overdue"]),
+            ])._sedar_reconcile_alert()
         return result
 
 

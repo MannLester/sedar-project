@@ -190,6 +190,10 @@ class EquipmentRunningHourReading(models.Model):
                     "A correction reason is only valid when correcting an existing reading."
                 ))
 
+            if self.env["maintenance.equipment"].browse(vals.get("equipment_id")).sedar_hours_from_id:
+                raise ValidationError(_(
+                    "This Equipment follows another Equipment's running hours. Record the reading on that Equipment."
+                ))
             reading = super(EquipmentRunningHourReading, self).create([vals])
             reading._validate_sedar_chronology(excluded_reading=original)
             if original:
@@ -198,18 +202,7 @@ class EquipmentRunningHourReading(models.Model):
                     "superseded_by_id": self.env.user.id,
                     "superseded_at": fields.Datetime.now(),
                 })
-                equipment = reading.equipment_id
-                if equipment.sedar_verified_service_reading_id == original:
-                    equipment.sudo().write({
-                        "sedar_verified_service_reading_id": reading.id,
-                        "sedar_last_service_date": fields.Date.to_date(reading.reading_at),
-                        "sedar_last_service_hours": reading.running_hours,
-                    })
-                    equipment.sedar_verified_service_work_order_id.sudo().write({
-                        "sedar_service_reading_id": reading.id,
-                        "sedar_running_hours_at_service": reading.running_hours,
-                    })
-            reading.equipment_id._sedar_reconcile_due_activity()
+            reading.equipment_id._sedar_refresh_pm_alerts()
             created |= reading
         return created
 

@@ -92,6 +92,14 @@ _Avoid_: Item Type, inventory item, spare part, consumable
 A complete physical unit procured to replace or add Equipment on a tugboat. It becomes tracked Equipment only when it is installed.
 _Avoid_: Spare part, repair service, installed Equipment
 
+**Planned Maintenance Task** (PM Task):
+One checklist item for one Equipment that repeats at fixed running-hour checkpoints, such as every 300 hours. Checkpoints are multiples of the interval; doing the work early or late does not move the next one.
+_Avoid_: Maintenance schedule, work order
+
+**Checkpoint**:
+The Running Hours at which a Planned Maintenance Task falls due (300, 600, 900, ...). It is approaching shortly before, due when reached, and overdue once passed without completion.
+_Avoid_: Service baseline, next service
+
 **Running Hours**:
 The cumulative operating time recorded by an Equipment hour meter. It is a maintenance reading, not the duration of a trip, Service Order, or Marine Operation.
 _Avoid_: Runtime, Actual Service Time, job duration

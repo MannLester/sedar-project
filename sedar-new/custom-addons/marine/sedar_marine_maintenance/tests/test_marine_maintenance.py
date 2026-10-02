@@ -61,7 +61,7 @@ class TestMarineMaintenance(TransactionCase):
             "done": False,
         })
 
-    def _new_metered_equipment(self, name="Metered Test Engine", technician=None, interval=100):
+    def _new_metered_equipment(self, name="Metered Test Engine", technician=None):
         return self.env["maintenance.equipment"].create({
             "name": name,
             "category_id": self.category.id,
@@ -70,7 +70,6 @@ class TestMarineMaintenance(TransactionCase):
             "sedar_tugboat_id": self.tug.id,
             "sedar_system": "propulsion",
             "sedar_criticality": "critical",
-            "sedar_running_interval_hours": interval,
         })
 
     def _reading(self, equipment, hours, reading_at, user=None, **extra):
@@ -81,18 +80,6 @@ class TestMarineMaintenance(TransactionCase):
             "running_hours": hours,
             "reading_at": reading_at,
             **extra,
-        })
-
-    def _completed_planned_order(self, equipment, service_reading):
-        return self.env["maintenance.request"].create({
-            "name": f"Completed service for {equipment.name}",
-            "maintenance_type": "preventive",
-            "equipment_id": equipment.id,
-            "sedar_work_order_type": "planned",
-            "sedar_availability_impact": "none",
-            "stage_id": self.done_stage.id,
-            "close_date": fields.Datetime.now(),
-            "sedar_service_reading_id": service_reading.id,
         })
 
     def _make_order_with_tug(self):
@@ -245,125 +232,109 @@ class TestMarineMaintenance(TransactionCase):
         self.assertEqual(equipment.sedar_current_running_hours, 205)
         self.assertEqual(first.state, "valid")
 
-    def test_verified_service_baseline_creates_one_activity_and_never_procurement(self):
-        equipment = self._new_metered_equipment(
-            name="Due Alert Test Engine", technician=self.maintenance_user, interval=100
-        )
-        now = fields.Datetime.now()
-        baseline = self._reading(equipment, 100, now - timedelta(days=3))
-        incomplete_order = self.env["maintenance.request"].create({
-            "name": "In-progress service with a manually supplied close date",
-            "maintenance_type": "preventive",
+    def _task(self, equipment, interval=300, **extra):
+        return self.env["sedar.pm.task"].with_user(self.maintenance_user).create({
+            "name": f"{interval}-hour check",
             "equipment_id": equipment.id,
-            "sedar_work_order_type": "planned",
-            "sedar_availability_impact": "none",
-            "stage_id": self.open_stage.id,
-            "close_date": fields.Datetime.now(),
-            "sedar_service_reading_id": baseline.id,
+            "interval_hours": interval,
+            **extra,
         })
+
+    def _complete(self, task, user=None, **extra):
+        return self.env["sedar.pm.task.completion"].with_user(user or self.maintenance_user).create({
+            "task_id": task.id, **extra,
+        })
+
+    def test_checkpoints_are_fixed_multiples_even_when_done_late(self):
+        equipment = self._new_metered_equipment(technician=self.maintenance_user)
+        task = self._task(equipment)
+        now = fields.Datetime.now()
+        self.assertEqual((task.state, task.next_checkpoint_hours), ("not_due", 300))
+
+        self._reading(equipment, 250, now - timedelta(days=4))
+        self.assertEqual(task.state, "approaching")
         with self.assertRaises(UserError):
-            incomplete_order.with_user(self.manager).action_sedar_verify_service_baseline()
+            self._complete(self._task(equipment, 600))
+        self._reading(equipment, 300, now - timedelta(days=3))
+        self.assertEqual(task.state, "due")
+        self._reading(equipment, 301, now - timedelta(days=2))
+        self.assertEqual(task.state, "overdue")
 
-        work_order = self._completed_planned_order(equipment, baseline)
-
+        self._reading(equipment, 308, now - timedelta(days=1))
+        done = self._complete(task, remarks="Visual inspection OK")
+        self.assertEqual((done.checkpoint_hours, done.running_hours), (300, 308))
+        self.assertEqual((task.next_checkpoint_hours, task.state), (600, "not_due"))
+        with self.assertRaises(UserError):
+            self._complete(task)
         with self.assertRaises(AccessError):
-            work_order.with_user(self.maintenance_user).action_sedar_verify_service_baseline()
-
-        work_order.with_user(self.manager).action_sedar_verify_service_baseline()
-        verified_at = work_order.sedar_service_baseline_verified_at
-        work_order.with_user(self.manager).action_sedar_verify_service_baseline()
-        self.assertEqual(work_order.sedar_service_baseline_verified_at, verified_at)
-        self.assertEqual(equipment.sedar_service_due_state, "not_due")
-        self.assertEqual(equipment.sedar_verified_service_work_order_id, work_order)
-        self.assertEqual(equipment.sedar_last_service_hours, 100)
+            done.write({"remarks": "edited"})
+        with self.assertRaises(UserError):
+            done.with_user(self.manager).unlink()
         with self.assertRaises(AccessError):
-            equipment.with_user(self.maintenance_user).with_context(
-                sedar_allow_service_audit_write=True
-            ).write({"sedar_last_service_hours": 999})
-        with self.assertRaises(AccessError):
-            work_order.with_user(self.manager).with_context(
-                sedar_allow_service_audit_write=True
-            ).write({"sedar_running_hours_at_service": 999})
-        with self.assertRaises(AccessError):
-            self.env["maintenance.equipment"].with_user(self.maintenance_user).create({
-                "name": "Forged Service Baseline Equipment",
-                "sedar_last_service_hours": 999,
-            })
-        with self.assertRaises(AccessError):
-            self.env["maintenance.request"].with_user(self.manager).create({
-                "name": "Forged Service Baseline Work Order",
-                "sedar_service_baseline_verified_at": fields.Datetime.now(),
-            })
+            self._complete(task, checkpoint_hours=0)
 
-        purchase_count = None
-        if "sedar.purchase.request" in self.env.registry:
-            purchase_count = self.env["sedar.purchase.request"].search_count([])
-        availability_before = self.tug.availability_status
+        self._reading(equipment, 560, now - timedelta(hours=3))
+        self.assertEqual(task.state, "approaching")
+        self._reading(equipment, 605, now - timedelta(hours=2))
+        self.assertEqual(task.state, "overdue")
+        self._complete(task)
+        self.assertEqual((task.next_checkpoint_hours, task.state), (900, "not_due"))
 
-        self._reading(equipment, 200, now - timedelta(hours=1))
-        equipment._sedar_reconcile_due_activity()
-        equipment._sedar_reconcile_due_activity()
-        activities = equipment._sedar_open_due_activities()
+    def test_missed_checkpoint_stays_overdue_until_done(self):
+        equipment = self._new_metered_equipment()
+        task = self._task(equipment, 300)
+        self._reading(equipment, 650, fields.Datetime.now() - timedelta(hours=1))
+        self.assertEqual((task.next_checkpoint_hours, task.state), (300, "overdue"))
+        self._complete(task)
+        self.assertEqual((task.next_checkpoint_hours, task.state), (600, "overdue"))
+        self._complete(task)
+        self.assertEqual((task.next_checkpoint_hours, task.state), (900, "not_due"))
 
-        self.assertEqual(equipment.sedar_service_due_state, "due")
-        self.assertEqual(len(activities), 1)
-        self.assertEqual(activities.user_id, self.maintenance_user)
-        self.assertEqual(
-            equipment.sedar_alerted_service_cycle_key,
-            equipment.sedar_service_cycle_key,
-        )
+    def test_components_follow_engine_hours_and_equipment_shows_worst_status(self):
+        engine = self._new_metered_equipment(name="Shared Hours Engine")
+        pump = self._new_metered_equipment(name="Shared Hours Pump")
+        pump.sedar_hours_from_id = engine
+        fast = self._task(pump, 100)
+        slow = self._task(pump, 1000)
+        self.assertEqual(pump.sedar_service_due_state, "not_due")
 
-        activities.action_feedback(feedback="Acknowledged for planning.")
-        equipment._sedar_reconcile_due_activity()
-        self.assertFalse(equipment._sedar_open_due_activities())
-        self._reading(equipment, 205, now - timedelta(minutes=30))
-        self.assertEqual(equipment.sedar_service_due_state, "overdue")
-        self.assertFalse(equipment._sedar_open_due_activities())
-        self.assertEqual(self.tug.availability_status, availability_before)
-        if purchase_count is not None:
-            self.assertEqual(
-                self.env["sedar.purchase.request"].search_count([]), purchase_count
-            )
+        self._reading(engine, 120, fields.Datetime.now() - timedelta(hours=1))
+        self.assertEqual(pump.sedar_current_running_hours, 120)
+        self.assertEqual((fast.state, slow.state), ("overdue", "not_due"))
+        self.assertEqual(pump.sedar_service_due_state, "overdue")
+        self.assertEqual(pump.sedar_next_service_hours, 100)
+        with self.assertRaises(ValidationError):
+            self._reading(pump, 130, fields.Datetime.now())
+        with self.assertRaises(ValidationError):
+            engine.sedar_hours_from_id = pump
 
-    def test_manager_correction_closes_stale_alert_and_preserves_service_baseline(self):
-        equipment = self._new_metered_equipment(
-            name="Corrected Due Test Engine", technician=self.manager, interval=100
-        )
-        now = fields.Datetime.now()
-        baseline = self._reading(equipment, 100, now - timedelta(days=3))
-        work_order = self._completed_planned_order(equipment, baseline)
-        work_order.with_user(self.manager).action_sedar_verify_service_baseline()
-        due_reading = self._reading(equipment, 200, now - timedelta(hours=2))
-        self.assertEqual(len(equipment._sedar_open_due_activities()), 1)
-
-        correction = self._reading(
-            equipment,
-            190,
-            due_reading.reading_at,
-            user=self.manager,
-            supersedes_reading_id=due_reading.id,
-            correction_reason="The photographed meter shows 190.00 hours.",
-        )
-        self.assertEqual(equipment.sedar_current_running_hour_reading_id, correction)
-        self.assertEqual(equipment.sedar_service_due_state, "not_due")
-        self.assertFalse(equipment._sedar_open_due_activities())
-        self.assertFalse(equipment.sedar_alerted_service_cycle_key)
-        self.assertEqual(equipment.sedar_verified_service_reading_id, baseline)
-
-        self._reading(equipment, 200, now - timedelta(minutes=15))
-        self.assertEqual(equipment.sedar_service_due_state, "due")
-        self.assertEqual(len(equipment._sedar_open_due_activities()), 1)
-
-    def test_company_fallback_receives_due_alert_without_equipment_technician(self):
+    def test_due_checkpoint_creates_one_activity_and_completion_closes_it(self):
         self.env.company.sedar_maintenance_fallback_user_id = self.manager
-        equipment = self._new_metered_equipment(
-            name="Fallback Alert Test Engine", technician=None, interval=50
-        )
+        equipment = self._new_metered_equipment()
+        task = self._task(equipment, 100)
+        self.assertEqual(task.alert_assignment_state, "not_required")
         now = fields.Datetime.now()
-        baseline = self._reading(equipment, 100, now - timedelta(days=2))
-        work_order = self._completed_planned_order(equipment, baseline)
-        work_order.with_user(self.manager).action_sedar_verify_service_baseline()
-        self._reading(equipment, 150, now - timedelta(hours=1))
+        self._reading(equipment, 100, now - timedelta(hours=2))
+        task._sedar_reconcile_alert()
+        activities = task.sedar_open_alerts()
 
-        self.assertEqual(equipment.sedar_due_alert_assignment_state, "assigned")
-        self.assertEqual(equipment._sedar_open_due_activities().user_id, self.manager)
+        self.assertEqual(len(activities), 1)
+        self.assertEqual(activities.user_id, self.manager)
+        self.assertEqual(task.alert_assignment_state, "assigned")
+        self.assertEqual(task.alerted_cycle_key, task.cycle_key)
+
+        self._complete(task)
+        self.assertFalse(task.sedar_open_alerts())
+        self.assertEqual(task.state, "not_due")
+
+    def test_manager_correction_closes_stale_alert(self):
+        equipment = self._new_metered_equipment(technician=self.manager)
+        task = self._task(equipment, 100)
+        reading = self._reading(equipment, 100, fields.Datetime.now() - timedelta(hours=2))
+        self.assertEqual(len(task.sedar_open_alerts()), 1)
+        self._reading(
+            equipment, 90, reading.reading_at, user=self.manager,
+            supersedes_reading_id=reading.id, correction_reason="Meter photo shows 90.",
+        )
+        self.assertEqual(task.state, "approaching")
+        self.assertFalse(task.sedar_open_alerts())

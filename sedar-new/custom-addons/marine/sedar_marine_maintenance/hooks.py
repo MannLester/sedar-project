@@ -84,10 +84,9 @@ def post_init_hook(env):
             "sedar_system": system,
             "sedar_criticality": criticality,
             "sedar_installation_date": "2024-01-15",
-            "sedar_running_interval_hours": 500,
         })
 
-    baseline_reading = _immutable_record(
+    _immutable_record(
         env,
         "sedar.equipment.running.hour.reading",
         "atlas_main_engine_reading_service_1000",
@@ -111,7 +110,7 @@ def post_init_hook(env):
     )
 
     done_stage = env["maintenance.stage"].search([("done", "=", True)], limit=1)
-    baseline_work_order = _record(env, "maintenance.request", "work_order_atlas_service_baseline", {
+    _record(env, "maintenance.request", "work_order_atlas_service_baseline", {
         "name": "Demo Completed PMS - STS Atlas Main Engine 1,000-hour service",
         "maintenance_type": "preventive",
         "equipment_id": equipment["atlas_main_engine"].id,
@@ -125,11 +124,10 @@ def post_init_hook(env):
         "sedar_work_order_type": "planned",
         "sedar_availability_impact": "none",
         "sedar_priority": "medium",
-        "sedar_service_reading_id": baseline_reading.id,
         "sedar_closure_note": "Planned service completed and meter reading independently verified.",
     }, update=False)
-    if not baseline_work_order.sedar_service_baseline_verified_at:
-        baseline_work_order.action_sedar_verify_service_baseline()
+
+    _seed_pm_tasks(env, equipment["atlas_main_engine"])
 
     _record(env, "maintenance.request", "work_order_atlas_planned", {
         "name": "Demo PMS - STS Atlas Main Engine 500-hour service",
@@ -185,3 +183,19 @@ def post_init_hook(env):
         "state": "pending",
     })
     tugs["bantay"]._sedar_sync_maintenance_availability()
+
+
+def _seed_pm_tasks(env, engine):
+    """Atlas main engine at 1,510 hours: the 500-hour task is overdue at its 1,500 checkpoint, the 1,000-hour one is not."""
+    for xmlid, name, interval, done in [
+        ("pm_task_atlas_500", "500-hour main engine service", 500, [(500, 512, "2025-06-10"), (1000, 1000, "2026-01-15")]),
+        ("pm_task_atlas_1000", "Cooling water pump inspection", 1000, [(1000, 1000, "2026-01-15")]),
+    ]:
+        task = _record(env, "sedar.pm.task", xmlid, {
+            "name": name, "equipment_id": engine.id, "interval_hours": interval,
+        })
+        for checkpoint, hours, day in done:
+            _immutable_record(env, "sedar.pm.task.completion", f"{xmlid}_done_{checkpoint}", {
+                "task_id": task.id, "checkpoint_hours": checkpoint, "running_hours": hours,
+                "done_on": day, "remarks": "Checked and completed by the ship's engineers.",
+            })

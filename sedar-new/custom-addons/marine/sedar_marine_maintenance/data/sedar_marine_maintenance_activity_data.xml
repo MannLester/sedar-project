@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="mail_activity_type_equipment_service_due" model="mail.activity.type">
-        <field name="name">Equipment Service Due</field>
-        <field name="summary">Review Equipment service due by running hours</field>
+        <field name="name">PM Task Due</field>
+        <field name="summary">Planned Maintenance checkpoint reached</field>
         <field name="icon">fa-wrench</field>
         <field name="delay_count">0</field>
         <field name="delay_unit">days</field>
         <field name="category">default</field>
-        <field name="res_model">maintenance.equipment</field>
+        <field name="res_model">sedar.pm.task</field>
     </record>
 </odoo>

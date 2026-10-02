@@ -7,3 +7,6 @@ access_drydock_plan_operations,dry dock plan operations,model_sedar_drydock_plan
 access_drydock_milestone_operations,dry dock milestone operations,model_sedar_drydock_milestone,sedar_marine_operations.group_operations_manager,1,0,0,0
 access_running_hour_reading_user,equipment running hour reading user,model_sedar_equipment_running_hour_reading,group_marine_maintenance_user,1,0,1,0
 access_running_hour_reading_manager,equipment running hour reading manager,model_sedar_equipment_running_hour_reading,group_marine_maintenance_manager,1,0,1,0
+access_pm_task_user,pm task user,model_sedar_pm_task,group_marine_maintenance_user,1,1,1,0
+access_pm_task_manager,pm task manager,model_sedar_pm_task,group_marine_maintenance_manager,1,1,1,1
+access_pm_completion_user,pm task completion user,model_sedar_pm_task_completion,group_marine_maintenance_user,1,0,1,0
