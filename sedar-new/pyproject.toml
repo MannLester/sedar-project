@@ -1,8 +1,19 @@
 [tool.ruff]
 target-version = "py312"
+line-length = 120
+extend-exclude = [".local"]
 
 [tool.ruff.lint]
-select = ["C901", "PLR0912", "PLR0915"]
+select = [
+    "E", "F", "W", "B", "SIM", "PIE", "RET504", "T20", "ERA001",
+    "C901", "PLR0911", "PLR0912", "PLR0913", "PLR0915",
+]
+ignore = ["E501", "B018", "B023", "B905", "SIM117"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/__init__.py" = ["F401"]
+"scripts/**" = ["T201"]
+"**/tests/**" = ["PLR0913", "PLR0915"]
 
 [tool.ruff.lint.mccabe]
 max-complexity = 10
@@ -10,3 +21,5 @@ max-complexity = 10
 [tool.ruff.lint.pylint]
 max-branches = 12
 max-statements = 50
+max-args = 8
+max-returns = 6

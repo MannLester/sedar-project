@@ -24,7 +24,8 @@ class SedarMarineServiceOrder(models.Model):
     def action_mark_ready(self):
         raise UserError("Readiness is automatic when tug, crew, and inventory checks pass.")
 
-    def _sync_automated_readiness(self):
+    @api.private
+    def sync_automated_readiness(self):
         for order in self:
             if order.state not in {"planning", "blocked", "ready"}:
                 continue
@@ -52,12 +53,12 @@ class SedarMarineServiceOrder(models.Model):
 
     def action_plan(self):
         result = super().action_plan()
-        self._sync_automated_readiness()
+        self.sync_automated_readiness()
         return result
 
     def action_confirm_inventory_ready(self):
         result = super().action_confirm_inventory_ready()
-        self._sync_automated_readiness()
+        self.sync_automated_readiness()
         return result
 
     def action_dispatch(self):
@@ -77,7 +78,7 @@ class SedarMarineServiceOrder(models.Model):
                 "inventory_ready",
             }
             if readiness_inputs.intersection(vals):
-                self._sync_automated_readiness()
+                self.sync_automated_readiness()
         return result
 
     def action_create_operation(self):

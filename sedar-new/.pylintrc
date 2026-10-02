@@ -1,0 +1,7 @@
+[MASTER]
+load-plugins=pylint_odoo
+ignore-paths=.*/migrations/.*,.*/tests/.*
+
+[MESSAGES CONTROL]
+disable=all
+enable=sql-injection,except-pass,print-used

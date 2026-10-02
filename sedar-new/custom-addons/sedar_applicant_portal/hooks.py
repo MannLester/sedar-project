@@ -19,4 +19,4 @@ def post_init_hook(env):
         if values:
             applicant.write(values)
         if not applicant.sedar_portal_event_ids:
-            applicant._create_portal_event("received", "Application Received", "Your application was received by SEDAR.")
+            applicant.create_portal_event("received", "Application Received", "Your application was received by SEDAR.")

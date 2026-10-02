@@ -48,7 +48,8 @@ class SedarTugboat(models.Model):
         self.ensure_one()
         return bool(self.open_maintenance_blocker_count)
 
-    def _sedar_technical_blockers_for_window(self, window_start, window_end):
+    @api.private
+    def sedar_technical_blockers_for_window(self, window_start, window_end):
         """Return open technical records that block a particular operating window."""
         self.ensure_one()
         requests = self.maintenance_request_ids.filtered(

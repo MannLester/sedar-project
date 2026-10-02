@@ -91,6 +91,7 @@ class TestMarineFinanceWorkflow(TransactionCase):
             "name": "Test Tug %s" % code,
             "registration_number": "FIN-TUG-%s" % code,
             "tug_class_id": self.tug_class.id,
+            "company_id": order.company_id.id,
         })
         return self.env["sedar.tug.assignment"].sudo().create({
             "order_id": order.id,
@@ -117,7 +118,7 @@ class TestMarineFinanceWorkflow(TransactionCase):
         start = fields.Datetime.to_datetime(order.requested_start)
         self._add_completed_tug(order, "A", start, start + timedelta(hours=2))
         self._add_completed_tug(order, "B", start, start + timedelta(hours=3))
-        order._sync_completion_from_tugs()
+        order.sync_completion_from_tugs()
 
         self.assertEqual(order.state, "completed")
         self.assertEqual(order.billing_status, "not_ready")
@@ -181,7 +182,7 @@ class TestMarineFinanceWorkflow(TransactionCase):
         order = self._make_order(tug_count=1)
         start = fields.Datetime.to_datetime(order.requested_start)
         assignment = self._add_completed_tug(order, "RETURN", start, start + timedelta(hours=2))
-        order._sync_completion_from_tugs()
+        order.sync_completion_from_tugs()
         operation = self._add_completed_operation(order)
         self.assertEqual(order.billing_status, "review")
         assignment.with_user(self.billing).completion_return_reason = "Incorrect actual end time."
@@ -243,7 +244,7 @@ class TestMarineFinanceWorkflow(TransactionCase):
         start = fields.Datetime.to_datetime(order.requested_start)
         self._add_completed_tug(order, "HANDOFF-A", start, start + timedelta(hours=2))
         self._add_completed_tug(order, "HANDOFF-B", start, start + timedelta(hours=2))
-        order._sync_completion_from_tugs()
+        order.sync_completion_from_tugs()
         self.assertEqual(order.state, "completed")
         self.assertFalse(order.automated_completion_handoff)
         self.assertEqual(order.billing_status, "not_ready")
@@ -252,7 +253,7 @@ class TestMarineFinanceWorkflow(TransactionCase):
         order = self._make_order(tug_count=1)
         start = fields.Datetime.to_datetime(order.requested_start)
         assignment = self._add_completed_tug(order, "REVIEW-RETURN", start, start + timedelta(hours=2))
-        order._sync_completion_from_tugs()
+        order.sync_completion_from_tugs()
         operation = self._add_completed_operation(order)
         order.with_user(self.billing).action_mark_billing_reviewed()
         self.assertTrue(order.billing_reviewed_at)
@@ -268,7 +269,7 @@ class TestMarineFinanceWorkflow(TransactionCase):
         order = self._make_order(tug_count=1)
         start = fields.Datetime.to_datetime(order.requested_start)
         assignment = self._add_completed_tug(order, "INVOICE-RETURN", start, start + timedelta(hours=2))
-        order._sync_completion_from_tugs()
+        order.sync_completion_from_tugs()
         self._add_completed_operation(order)
         order.with_user(self.billing).action_mark_billing_reviewed()
         order.with_user(self.billing).action_create_draft_invoice()
@@ -364,7 +365,7 @@ class TestMarineFinanceWorkflow(TransactionCase):
         order = self._make_order(tug_count=1, company=other_company)
         start = fields.Datetime.to_datetime(order.requested_start)
         self._add_completed_tug(order, "OTHER-COMPANY", start, start + timedelta(hours=2))
-        order._sync_completion_from_tugs()
+        order.sync_completion_from_tugs()
         self._add_completed_operation(order)
 
         active_company_order = order.with_user(self.billing).with_company(self.company)

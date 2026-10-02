@@ -16,8 +16,6 @@ from pathlib import Path
 DATABASE_RE = re.compile(r"^sedar_test_[a-z0-9_]{12,40}$")
 OWNERSHIP_MARKER_RE = re.compile(r"^sedar_runner_[0-9a-f]{32}$")
 CONTAINER_OWNER_LABEL = "sedar.test-owner"
-# A high, effectively non-binding PostgreSQL connection limit doubles as an atomic
-# ownership marker because it is stored by the same CREATE DATABASE statement.
 DATABASE_MARKER_MIN = 1_000_000_000
 DATABASE_MARKER_SPAN = 1_000_000_000
 MODULE_RE = re.compile(r"^[a-z][a-z0-9_]*$")

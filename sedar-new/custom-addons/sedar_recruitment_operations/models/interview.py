@@ -172,7 +172,7 @@ class SedarInterview(models.Model):
     def action_confirm_applicant(self):
         for interview in self:
             interview.write({"status": "confirmed", "applicant_confirmation_note": False})
-            interview.applicant_id._create_portal_event(
+            interview.applicant_id.create_portal_event(
                 "interview",
                 "Interview Confirmed",
                 "Your interview attendance has been confirmed.",
@@ -182,7 +182,7 @@ class SedarInterview(models.Model):
     def action_request_reschedule(self):
         for interview in self:
             interview.write({"status": "reschedule"})
-            interview.applicant_id._create_portal_event(
+            interview.applicant_id.create_portal_event(
                 "interview",
                 "Interview Reschedule Requested",
                 "Your reschedule request has been sent to HR.",

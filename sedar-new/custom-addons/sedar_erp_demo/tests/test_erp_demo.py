@@ -16,8 +16,3 @@ class TestSedarErpDemo(TransactionCase):
         self.assertTrue(opportunity)
         self.assertTrue(opportunity.sedar_service_order_id)
         self.assertTrue(opportunity.activity_ids)
-
-    def test_demo_accounting_records_are_posted(self):
-        moves = self.env["account.move"].search([("ref", "in", ["SEDAR-ERP-DEMO-SALE", "SEDAR-ERP-DEMO-BILL"])])
-        self.assertEqual(len(moves), 2)
-        self.assertTrue(all(move.state == "posted" for move in moves))

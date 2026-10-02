@@ -123,7 +123,12 @@ class SedarMarineServiceOrder(models.Model):
                 len(assignments) >= order.number_of_tugs and len(completed) == len(assignments)
             )
 
-    def _sync_completion_from_tugs(self):
+    @api.private
+    def recompute_readiness(self):
+        self._compute_readiness()
+
+    @api.private
+    def sync_completion_from_tugs(self):
         """Keep operational completion aligned with every active tug declaration."""
         for order in self:
             assignments = order.tug_assignment_ids.filtered(lambda assignment: assignment.state != "cancelled")

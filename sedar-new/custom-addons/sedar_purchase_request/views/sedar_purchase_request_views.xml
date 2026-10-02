@@ -666,7 +666,6 @@
     <menuitem id="menu_sedar_procurement_storage" name="Storage" parent="menu_sedar_procurement_inventory" action="sedar_marine_inventory.action_inventory_check" sequence="10" groups="sedar_marine_inventory.group_marine_inventory_manager"/>
     <menuitem id="menu_sedar_procurement_currently_in_use" name="Currently In Use" parent="menu_sedar_procurement_inventory" action="sedar_marine_inventory.action_inventory_currently_in_use" sequence="20" groups="sedar_marine_inventory.group_marine_inventory_manager,sedar_marine_maintenance.group_marine_maintenance_manager"/>
 
-    <!-- This downstream workspace replaces the legacy parallel Marine Inventory tree. -->
     <record id="sedar_marine_inventory.menu_marine_inventory_root" model="ir.ui.menu">
         <field name="active" eval="False"/>
     </record>

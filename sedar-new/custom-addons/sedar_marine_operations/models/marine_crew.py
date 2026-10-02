@@ -271,7 +271,7 @@ class SedarTugAssignment(models.Model):
                 "completion_declared_at": fields.Datetime.now(),
                 "completion_return_reason": False,
             })
-        self.mapped("order_id")._sync_completion_from_tugs()
+        self.mapped("order_id").sync_completion_from_tugs()
         return True
 
     def action_return_completion(self):
@@ -287,7 +287,7 @@ class SedarTugAssignment(models.Model):
                 "completion_declared_by_id": False,
                 "completion_declared_at": False,
             })
-        self.mapped("order_id")._sync_completion_from_tugs()
+        self.mapped("order_id").sync_completion_from_tugs()
         return True
 
     def write(self, vals):
@@ -318,7 +318,7 @@ class SedarTugAssignment(models.Model):
                 raise AccessError("Completion status and audit fields can only be changed by workflow actions.")
         result = super().write(vals)
         if "state" in vals:
-            self.mapped("order_id")._sync_completion_from_tugs()
+            self.mapped("order_id").sync_completion_from_tugs()
         return result
 
     @api.model_create_multi
@@ -340,7 +340,7 @@ class SedarTugAssignment(models.Model):
     def unlink(self):
         orders = self.mapped("order_id")
         result = super().unlink()
-        orders._sync_completion_from_tugs()
+        orders.sync_completion_from_tugs()
         return result
 
 

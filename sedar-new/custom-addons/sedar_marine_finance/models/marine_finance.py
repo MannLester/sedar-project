@@ -108,7 +108,6 @@ class SedarClientTariff(models.Model):
         immutable = governed - {"approval_state"}
         if (not self.env.context.get("sedar_tariff_supersede") and immutable.intersection(vals)
                 and any(t.approval_state == "approved" for t in self)):
-            # Approval itself uses write while the record is still draft.
             raise UserError(_("Approved tariffs are immutable. Create an effective-dated revision instead."))
         return super().write(vals)
 
@@ -303,8 +302,7 @@ class SedarMarineServiceOrder(models.Model):
             and set(vals) - {"billing_note"}
         ):
             raise AccessError(_("Billing Officers may review Service Orders and update only the billing note."))
-        result = super().write(vals)
-        return result
+        return super().write(vals)
 
     @api.depends("requested_start", "confirmed_service_date")
     def _compute_confirmed_service_date_changed(self):
@@ -472,7 +470,7 @@ class SedarTugAssignment(models.Model):
                 "completion_declared_at": False,
             })
         orders = self.mapped("order_id")
-        orders._sync_completion_from_tugs()
+        orders.sync_completion_from_tugs()
         for order in orders:
             completed_operations = order.operation_ids.filtered(lambda operation: operation.state == "completed")
             if completed_operations:

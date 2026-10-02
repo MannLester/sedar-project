@@ -115,7 +115,6 @@ class SedarPurchaseRequest(models.Model):
     department_id = fields.Many2one("hr.department", check_company=True)
     company_id = fields.Many2one("res.company", required=True, default=lambda self: self.env.company, index=True)
     currency_id = fields.Many2one("res.currency", required=True, default=lambda self: self.env.company.currency_id)
-    # Hidden legacy data retained for deterministic Bid migration in the next issue.
     vendor_id = fields.Many2one(
         "res.partner", string="Legacy Vendor Reference", domain=[("supplier_rank", ">", 0)],
         tracking=True, check_company=True,
@@ -142,7 +141,6 @@ class SedarPurchaseRequest(models.Model):
     )
     justification = fields.Text(required=True)
     line_ids = fields.One2many("sedar.purchase.request.line", "request_id", string="Request Lines")
-    # Legacy singular fields remain readable through the upgrade window.
     purchase_order_id = fields.Many2one(
         "purchase.order", readonly=True, copy=False, check_company=True,
         groups=OFFICER_GROUP,
@@ -511,11 +509,11 @@ class SedarPurchaseRequest(models.Model):
             raise AccessError(_("Purchase Request workflow, audit, and order-link fields are changed only by controlled actions."))
 
     def _check_fact_write_access(self, vals):
-        if {"company_id", "currency_id", "line_ids"}.intersection(vals) and not self.env.su:
-            if self.filtered(lambda request: request.sudo().bid_ids):
-                raise AccessError(_(
-                    "Purchase Request company, currency, and line baseline are locked after Bid capture begins."
-                ))
+        touches_baseline = {"company_id", "currency_id", "line_ids"}.intersection(vals) and not self.env.su
+        if touches_baseline and self.filtered(lambda request: request.sudo().bid_ids):
+            raise AccessError(_(
+                "Purchase Request company, currency, and line baseline are locked after Bid capture begins."
+            ))
         if FACT_FIELDS.intersection(vals) and not self.env.su and self.filtered(
                 lambda request: request.state not in {"draft", "rejected"}):
             raise AccessError(_("Submitted Purchase Request facts are locked. Reject the request before correcting it."))

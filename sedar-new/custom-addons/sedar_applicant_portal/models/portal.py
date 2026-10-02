@@ -65,7 +65,7 @@ class SedarApplicantPortal(models.Model):
             vals.setdefault("sedar_claim_expires_at", fields.Datetime.add(now, days=2))
         applicants = super().create(vals_list)
         for applicant in applicants:
-            applicant._create_portal_event("received", "Application Received", "Your application was received by SEDAR.")
+            applicant.create_portal_event("received", "Application Received", "Your application was received by SEDAR.")
         return applicants
 
     def write(self, vals):
@@ -76,10 +76,11 @@ class SedarApplicantPortal(models.Model):
             self.write({"sedar_status_updated_at": now})
             for applicant in self:
                 title = dict(PUBLIC_STATUSES).get(applicant.sedar_public_status, applicant.sedar_public_status)
-                applicant._create_portal_event(applicant.sedar_public_status, title, applicant.sedar_public_message or title)
+                applicant.create_portal_event(applicant.sedar_public_status, title, applicant.sedar_public_message or title)
         return result
 
-    def _create_portal_event(self, event_type, title, message):
+    @api.private
+    def create_portal_event(self, event_type, title, message):
         self.ensure_one()
         self.env["sedar.applicant.portal.event"].sudo().create({
             "applicant_id": self.id,

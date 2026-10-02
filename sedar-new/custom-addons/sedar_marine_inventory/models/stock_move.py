@@ -21,8 +21,8 @@ class StockMove(models.Model):
             orders = requirements.mapped("order_id")
             orders._compute_inventory_summary()
             orders._sync_inventory_readiness()
-            orders._compute_readiness()
-            orders._sync_automated_readiness()
+            orders.recompute_readiness()
+            orders.sync_automated_readiness()
 
         part_lines = self.env["sedar.maintenance.part.line"].search([
             ("product_id", "in", products.ids),

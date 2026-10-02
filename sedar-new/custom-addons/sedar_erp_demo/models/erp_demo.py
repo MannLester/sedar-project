@@ -125,9 +125,8 @@ class ResCompany(models.Model):
         if not employees:
             return True
 
-        # Standard Attendance records are the source facts for the demonstration payroll view.
         attendance = env["hr.attendance"]
-        for index, employee in enumerate(employees):
+        for employee in employees:
             for day in (3, 4):
                 check_in = datetime(2026, 8, day, 8, 0)
                 if not attendance.search([("employee_id", "=", employee.id), ("check_in", "=", check_in)], limit=1):

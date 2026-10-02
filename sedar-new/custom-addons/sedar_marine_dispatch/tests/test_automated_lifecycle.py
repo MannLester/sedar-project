@@ -50,7 +50,7 @@ class TestAutomatedMarineLifecycle(TransactionCase):
         self.assertEqual(self.order.state, "ready")
         self.assertEqual(len(self.order.operation_ids), 1)
         self.assertEqual(self.order.operation_ids.state, "awaiting_start")
-        self.order._sync_automated_readiness()
+        self.order.sync_automated_readiness()
         self.assertEqual(len(self.order.operation_ids), 1)
 
     def test_tug_times_drive_start_completion_and_reopen(self):

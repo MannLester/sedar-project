@@ -290,7 +290,7 @@ def _sync_order_inventory(env):
     for order in orders:
         order.action_generate_inventory_requirements()
         order._sync_inventory_readiness()
-    orders._sync_automated_readiness()
+    orders.sync_automated_readiness()
 
 
 def _ensure_inventory_usage_demo(env, stock_location, products):

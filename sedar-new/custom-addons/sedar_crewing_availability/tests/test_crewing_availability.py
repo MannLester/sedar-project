@@ -136,9 +136,27 @@ class TestCrewingAvailability(TransactionCase):
             "port_id": self.port.id,
             "requested_start": datetime(2026, 9, 2, 8, 0, 0),
         })
+        other_tug = self.env["sedar.tugboat"].create({
+            "name": "Other Availability Tug",
+            "registration_number": "AVL-OTHER-TUG",
+            "tug_class_id": self.tug_class.id,
+            "availability_status": "available",
+            "company_id": other_company.id,
+        })
+        other_employee = self.env["hr.employee"].create({
+            "name": "Other Availability Crew",
+            "company_id": other_company.id,
+        })
+        other_profile = self.env["sedar.crew.profile"].create({
+            "employee_id": other_employee.id,
+            "employee_number": "AVL-OTHER",
+            "rank_id": self.rank.id,
+            "home_tugboat_id": other_tug.id,
+            "availability_status": "available",
+        })
         tug_assignment = self.env["sedar.tug.assignment"].create({
             "order_id": order.id,
-            "tugboat_id": self.tug.id,
+            "tugboat_id": other_tug.id,
         })
         requirement = self.env["sedar.manning.requirement"].create({
             "tug_assignment_id": tug_assignment.id,
@@ -146,7 +164,7 @@ class TestCrewingAvailability(TransactionCase):
         })
         return self.env["sedar.crew.assignment"].create({
             "requirement_id": requirement.id,
-            "crew_profile_id": self.relief_profile.id,
+            "crew_profile_id": other_profile.id,
         })
 
     def test_relief_assignment_rejects_another_company(self):

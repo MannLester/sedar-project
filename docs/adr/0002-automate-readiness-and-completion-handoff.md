@@ -4,7 +4,8 @@ SEDAR treats Service Order and Job Order as the same client-request record. The 
 
 ## Status
 
-Accepted
+Accepted. The manual inventory confirmation described here was superseded by
+[ADR-0004](0004-use-odoo-stock-movements-for-authoritative-inventory.md); the rest of this decision stands.
 
 ## Consequences
 

@@ -6,7 +6,7 @@
     "author": "SEDAR Development Team",
     "license": "LGPL-3",
     "depends": [
-        "hr_attendance", "hr_holidays", "crm", "account", "sedar_marine_finance",
+        "hr_attendance", "hr_holidays", "crm", "account", "maintenance", "sedar_marine_finance",
         "sedar_marine_operations", "sedar_service_order_demo", "sedar_recruitment_crewing", "mail",
     ],
     "data": [

@@ -123,6 +123,21 @@ fixture seeding.
 | `sedar.job.vacancy` | Workflow changed | Synchronizes filled openings from traceable employee conversions | `sedar_manpower_planning/models/manpower_models.py` |
 | `sedar.document.request` | Extended | Links controlled document requests to applicants and interviews and governs portal/internal recruitment visibility | `sedar_recruitment_operations/models/interview.py`; `sedar_recruitment_operations/security/sedar_recruitment_security.xml` |
 
+## Cross-addon public methods
+
+These methods are called from other addons (ADR-0011). Each is public by name and decorated with
+`@api.private`, so Odoo does not expose it through RPC. Their callers must already hold the access
+the underlying workflow needs.
+
+| Method | Model | Addon | Purpose |
+| --- | --- | --- | --- |
+| `recompute_readiness()` | `sedar.marine.service.order` | `sedar_marine_operations` | Recomputes stored `readiness_status` and `readiness_reason` after a tugboat, drydock, or stock fact changed. |
+| `sync_completion_from_tugs()` | `sedar.marine.service.order` | `sedar_marine_operations` | Moves a dispatched or in-progress order to `completed`, or back to `in_progress`, from the active Tug Completions. |
+| `sync_automated_readiness()` | `sedar.marine.service.order` | `sedar_marine_dispatch` | Applies the Dispatch Readiness Gate: when readiness is `ready` it confirms the active tug and crew assignments, sets the order to `ready`, and creates or refreshes the awaiting-start Marine Operation; when a Ready order stops being ready it sets the order to `blocked`. |
+| `sedar_technical_blockers_for_window(window_start, window_end)` | `sedar.tugboat` | `sedar_marine_maintenance` | Returns the open Maintenance requests and dry dock plans that block the tugboat during the window. |
+| `create_portal_event(event_type, title, message)` | `hr.applicant` | `sedar_applicant_portal` | Records an applicant-visible status event. |
+| `sedar_sync_hiring_fulfillment()` | `sedar.job.vacancy` | `sedar_manpower_planning` | Derives `filled_openings` from employees created from the vacancy's applicants. |
+
 ## `sedar.tug.assignment`
 
 One record represents one tug assigned to a Service Order. The completion fields are maintained by the assigned Tug Master. Finance or a completion reviewer may return a submitted declaration for correction.
@@ -148,7 +163,7 @@ Key behavior:
 - `action_return_completion()` unlocks a submitted declaration for correction and requires a reason.
 - `_check_actual_times()` rejects zero-length or negative service periods.
 - `create()` and `write()` protect completion and audit fields from bypassing workflow actions.
-- Any completion or assignment-state change calls the parent order's `_sync_completion_from_tugs()`.
+- Any completion or assignment-state change calls the parent order's `sync_completion_from_tugs()`.
 
 ## `sedar.marine.service.order`
 
@@ -189,7 +204,7 @@ Global allowed-company record rules isolate Tugboats, the Service Order, and eve
 
 The `readiness_status` selection includes `waiting_inventory`. Before Slice 11, relevant changes to service, scope, tug requirements, terminal, schedule, cargo, permits, or safety requirements cleared the manual inventory confirmation. Slice 11 regenerates stock-backed requirements for planned/blocked/ready orders when relevant service inputs change and uses those lines as the inventory readiness truth. Automated dispatch creates one awaiting-start Marine Operation only when tugboat, crew, and inventory readiness all pass.
 
-`_sync_completion_from_tugs()` moves a dispatched or in-progress order to `completed` when all required tugs are complete. Returning or removing a completion moves a completed order back to `in_progress`.
+`sync_completion_from_tugs()` moves a dispatched or in-progress order to `completed` when all required tugs are complete. Returning or removing a completion moves a completed order back to `in_progress`.
 
 ### Billing and pricing fields
 
@@ -1320,7 +1335,7 @@ Once a Manpower Request has position lines, its company cannot change. Position 
 Their fulfillment workflow contract also changed materially under ADR-0003:
 
 - `sedar.manpower.request.action_open_vacancies()` creates or links vacancy records and moves the request to `position_open`; it no longer resolves linked operational crew shortages.
-- `sedar.job.vacancy._sedar_sync_hiring_fulfillment()` derives the vacancy's `filled_openings` from employees whose `sedar_source_vacancy_id` points to that vacancy.
+- `sedar.job.vacancy.sedar_sync_hiring_fulfillment()` derives the vacancy's `filled_openings` from employees whose `sedar_source_vacancy_id` points to that vacancy.
 - A vacancy moves to `filled` and closes publication when filled openings meet approved openings.
 - `sedar.manpower.request._sedar_sync_headcount_fulfillment()` closes the request only when all linked vacancies have no remaining openings.
 - Linked `sedar.crew.shortage` records remain open/escalated until Operations or Crewing records a concrete operational resolution.

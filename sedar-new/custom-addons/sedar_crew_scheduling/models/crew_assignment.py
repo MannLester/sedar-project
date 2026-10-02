@@ -88,12 +88,12 @@ class SedarCrewAssignment(models.Model):
             if not assignment.is_eligible:
                 raise UserError("Resolve the scheduling blocker before confirming: %s" % assignment.eligibility_reason)
             assignment.state = "confirmed"
-        self.mapped("order_id")._sync_automated_readiness()
+        self.mapped("order_id").sync_automated_readiness()
         return True
 
     def action_reject_assignment(self):
         self.write({"state": "rejected"})
-        self.mapped("order_id")._sync_automated_readiness()
+        self.mapped("order_id").sync_automated_readiness()
         return True
 
     def write(self, vals):
@@ -104,5 +104,5 @@ class SedarCrewAssignment(models.Model):
                     raise UserError("Resolve the scheduling blocker before confirming: %s" % assignment.eligibility_reason)
         result = super().write(vals)
         if {"crew_profile_id", "state"}.intersection(vals):
-            self.mapped("order_id")._sync_automated_readiness()
+            self.mapped("order_id").sync_automated_readiness()
         return result

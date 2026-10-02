@@ -126,7 +126,7 @@ class SedarMarineOperation(models.Model):
                 raise UserError("The number of planned tugs does not match the service order.")
             if any(not tug.tugboat_id.active for tug in operation.tug_operation_ids):
                 raise UserError("An assigned tugboat is inactive.")
-            if any(not tug.tugboat_id.availability_status in {"available", "assigned"}
+            if any(tug.tugboat_id.availability_status not in {"available", "assigned"}
                    for tug in operation.tug_operation_ids):
                 raise UserError("An assigned tugboat is not available.")
             if any(not crew.certificate_clearance for crew in operation.tug_operation_ids.mapped("crew_manifest_ids")):
@@ -241,7 +241,7 @@ class SedarTugAssignmentDispatchLock(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         assignments = super().create(vals_list)
-        assignments.mapped("order_id")._sync_automated_readiness()
+        assignments.mapped("order_id").sync_automated_readiness()
         return assignments
 
     def write(self, vals):
@@ -256,7 +256,7 @@ class SedarTugAssignmentDispatchLock(models.Model):
         if {"actual_start", "actual_end", "completion_state"}.intersection(vals):
             orders.mapped("operation_ids")._sync_from_tug_completions()
         if {"tugboat_id", "state"}.intersection(vals) and not self.env.context.get("sedar_automated_dispatch"):
-            orders._sync_automated_readiness()
+            orders.sync_automated_readiness()
         return result
 
     def unlink(self):
@@ -273,7 +273,7 @@ class SedarCrewAssignmentDispatchLock(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         assignments = super().create(vals_list)
-        assignments.mapped("order_id")._sync_automated_readiness()
+        assignments.mapped("order_id").sync_automated_readiness()
         return assignments
 
     def write(self, vals):
@@ -284,7 +284,7 @@ class SedarCrewAssignmentDispatchLock(models.Model):
             raise UserError("Crew planning is locked after dispatch.")
         result = super().write(vals)
         if not self.env.context.get("sedar_automated_dispatch"):
-            self.mapped("order_id")._sync_automated_readiness()
+            self.mapped("order_id").sync_automated_readiness()
         return result
 
     def unlink(self):

@@ -261,7 +261,7 @@ class ResCompany(models.Model):
                         "For marine crew, continue with Crew Profile onboarding and deployment eligibility.",
                     ]),
                 })
-                applicant.sedar_vacancy_id._sedar_sync_hiring_fulfillment()
+                applicant.sedar_vacancy_id.sedar_sync_hiring_fulfillment()
             self._sedar_prune_duplicate_portal_events(applicant)
 
         self._sedar_demo_portal_owner()

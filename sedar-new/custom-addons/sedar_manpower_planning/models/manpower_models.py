@@ -491,7 +491,8 @@ class SedarJobVacancy(models.Model):
     def action_close(self):
         self.write({"state": "closed", "publication_state": "closed"})
 
-    def _sedar_sync_hiring_fulfillment(self):
+    @api.private
+    def sedar_sync_hiring_fulfillment(self):
         employee_model = self.env["hr.employee"].sudo()
         for vacancy in self:
             hired_count = employee_model.search_count([("sedar_source_vacancy_id", "=", vacancy.id)])

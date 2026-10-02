@@ -165,7 +165,6 @@ class SedarDocumentRequest(models.Model):
 class SedarDocumentValue(models.Model):
     _name = "sedar.document.value"
     _description = "SEDAR Document Field Value"
-    # Related fields cannot be used in a model-level SQL order in Odoo.
     _order = "id"
 
     request_id = fields.Many2one("sedar.document.request", required=True, ondelete="cascade")

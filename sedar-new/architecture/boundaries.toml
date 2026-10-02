@@ -1,0 +1,55 @@
+allowed_private_calls = ["sedar_marine_inventory:_check_maintenance_manager"]
+
+[limits]
+python_lines = 400
+xml_lines = 500
+
+[domains]
+marine = [
+  "sedar_marine_operations",
+  "sedar_marine_dispatch",
+  "sedar_marine_finance",
+  "sedar_marine_maintenance",
+  "sedar_marine_inventory",
+  "sedar_hsse",
+]
+people = [
+  "sedar_manpower_planning",
+  "sedar_crew_compliance",
+  "sedar_crewing_availability",
+  "sedar_crew_scheduling",
+  "sedar_careers",
+  "sedar_applicant_intake",
+  "sedar_applicant_portal",
+  "sedar_recruitment_operations",
+  "sedar_recruitment_crewing",
+]
+supply = ["sedar_purchase_request"]
+customer = ["sedar_marketing"]
+platform = [
+  "sedar_document_control",
+  "sedar_executive_dashboard",
+  "sedar_theme",
+  "sedar_portal_theme",
+  "sedar_ui_cards",
+]
+demo = [
+  "sedar_ais_demo",
+  "sedar_erp_demo",
+  "sedar_service_order_demo",
+  "sedar_marine_dispatch_demo",
+  "sedar_manpower_planning_demo",
+  "sedar_recruitment_demo",
+  "sedar_demo_suite",
+]
+
+[public_models]
+sedar_applicant_intake = ["sedar.applicant.document"]
+sedar_document_control = ["sedar.document", "sedar.document.request", "sedar.document.type"]
+sedar_hsse = ["sedar.hsse.corrective.action", "sedar.hsse.incident", "sedar.hsse.permit", "sedar.hsse.risk.assessment"]
+sedar_manpower_planning = ["sedar.job.vacancy"]
+sedar_marine_inventory = ["sedar.inventory.requirement", "sedar.operation.fuel.log"]
+sedar_marine_maintenance = ["sedar.drydock.plan"]
+sedar_marine_operations = ["sedar.client.tariff", "sedar.client.vessel", "sedar.crew.assignment", "sedar.crew.certificate", "sedar.crew.certificate.type", "sedar.crew.profile", "sedar.crew.shortage", "sedar.manning.template.line", "sedar.marine.service.order", "sedar.marine.service.type", "sedar.tug.assignment", "sedar.tugboat"]
+sedar_purchase_request = ["sedar.purchase.request"]
+

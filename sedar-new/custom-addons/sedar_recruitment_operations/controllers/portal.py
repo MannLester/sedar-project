@@ -50,7 +50,7 @@ class SedarRecruitmentInterviewPortal(http.Controller):
         note = (post.get("confirmation_note") or "").strip()
         values = {"status": "confirmed", "applicant_confirmation_note": note or "Confirmed by applicant."}
         interview.write(values)
-        interview.applicant_id._create_portal_event(
+        interview.applicant_id.create_portal_event(
             "interview",
             "Interview Confirmed",
             "You confirmed your attendance for the scheduled interview.",
@@ -88,7 +88,7 @@ class SedarRecruitmentInterviewPortal(http.Controller):
         if note:
             offer.write({"applicant_response_note": note})
         offer.action_accept_from_portal(request.env.user)
-        offer.applicant_id._create_portal_event(
+        offer.applicant_id.create_portal_event(
             "offer",
             "Offer Accepted",
             "You accepted SEDAR's employment offer.",
@@ -104,7 +104,7 @@ class SedarRecruitmentInterviewPortal(http.Controller):
         if note:
             offer.write({"applicant_response_note": note})
         offer.action_decline_from_portal(request.env.user)
-        offer.applicant_id._create_portal_event(
+        offer.applicant_id.create_portal_event(
             "closed",
             "Offer Declined",
             "You declined SEDAR's employment offer.",
@@ -145,7 +145,7 @@ class SedarRecruitmentInterviewPortal(http.Controller):
             next_action="Review applicant employment requirements",
             message="Your employment requirements were submitted and are being reviewed by SEDAR HR.",
         )
-        document_request.applicant_id._create_portal_event(
+        document_request.applicant_id.create_portal_event(
             "final_review",
             "Employment Requirements Submitted",
             "Your employment requirements were submitted to SEDAR HR.",
@@ -162,7 +162,7 @@ class SedarRecruitmentInterviewPortal(http.Controller):
             "status": "reschedule",
             "applicant_confirmation_note": reason or "Applicant requested a new interview schedule.",
         })
-        interview.applicant_id._create_portal_event(
+        interview.applicant_id.create_portal_event(
             "interview",
             "Interview Reschedule Requested",
             reason or "Your request for a new interview schedule has been sent to HR.",

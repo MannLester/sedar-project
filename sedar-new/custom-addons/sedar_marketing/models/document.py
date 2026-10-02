@@ -80,9 +80,12 @@ class SedarMarketingDocument(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        if not self.env.su and not self.env.context.get("sedar_official_document_sync"):
-            if any(vals.get("department", "marketing") != "marketing" or vals.get("source", "uploaded") != "uploaded" for vals in vals_list):
-                raise AccessError("Marketing users may create only Marketing-owned upload records.")
+        restricted = not self.env.su and not self.env.context.get("sedar_official_document_sync")
+        if restricted and any(
+            vals.get("department", "marketing") != "marketing" or vals.get("source", "uploaded") != "uploaded"
+            for vals in vals_list
+        ):
+            raise AccessError("Marketing users may create only Marketing-owned upload records.")
         for vals in vals_list:
             if vals.get("name", "New") == "New":
                 vals["name"] = self.env["ir.sequence"].next_by_code("sedar.marketing.document") or "New"

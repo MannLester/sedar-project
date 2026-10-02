@@ -1,7 +1,6 @@
 import base64
 from datetime import datetime
 
-from odoo import fields
 from odoo.tests import TransactionCase, tagged
 from odoo.tests.common import new_test_user
 

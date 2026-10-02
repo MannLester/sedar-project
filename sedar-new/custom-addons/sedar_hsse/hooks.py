@@ -143,7 +143,7 @@ def post_init_hook(env):
         "note": "Demo expired required permit used to show an operational HSSE exception.",
     }, update=False)
 
-    risk = _record(env, "sedar.hsse.risk.assessment", "risk_demo_berthing_line_handling", {
+    _record(env, "sedar.hsse.risk.assessment", "risk_demo_berthing_line_handling", {
         "assessment_date": date(2026, 8, 18),
         "activity": "Berthing tug assist line handling",
         "hazard": "Snap-back zone exposure",
@@ -160,7 +160,7 @@ def post_init_hook(env):
         "approved_at": datetime(2026, 8, 18, 14, 0, 0),
     }, update=False)
 
-    meeting = _record(env, "sedar.hsse.meeting", "meeting_demo_toolbox", {
+    _record(env, "sedar.hsse.meeting", "meeting_demo_toolbox", {
         "meeting_type": "toolbox",
         "meeting_datetime": datetime(2026, 8, 20, 7, 30, 0),
         "facilitator_id": manager.id,

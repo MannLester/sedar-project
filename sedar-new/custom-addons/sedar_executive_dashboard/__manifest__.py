@@ -6,7 +6,7 @@
     "author": "SEDAR Development Team",
     "license": "LGPL-3",
     "depends": [
-        "sedar_document_control", "sedar_erp_demo", "sedar_hsse", "sedar_purchase_request",
+        "sedar_document_control", "sedar_hsse", "sedar_purchase_request",
         "sedar_marine_inventory", "sedar_marine_maintenance", "sedar_crew_compliance",
         "sedar_manpower_planning", "account", "mail",
     ],

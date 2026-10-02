@@ -36,7 +36,7 @@ def post_init_hook(env):
         "inventory_ready_by_id": env.user.id,
         "inventory_ready_at": _dt(10, 6, 45),
     })
-    ready_order._sync_automated_readiness()
+    ready_order.sync_automated_readiness()
     ready_operation = ready_order.operation_ids[:1]
     _record(env, "sedar.marine.operation.log", "log_ready_planning", {
         "operation_id": ready_operation.id,
@@ -90,9 +90,6 @@ def post_init_hook(env):
         "state": "resolved", "client_visible": True,
     })
 
-    # The flagship two-tug scenario must exercise the same operational handoff
-    # as the single-tug scenario.  Keep it deterministic and idempotent so a
-    # module upgrade repairs an existing demo database as well as a fresh one.
     two_tug_order.with_context(sedar_readiness_sync=True).write({
         "state": "completed",
         "inventory_ready": True,

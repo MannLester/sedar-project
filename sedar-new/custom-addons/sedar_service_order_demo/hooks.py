@@ -131,7 +131,7 @@ def _ensure_clients_and_vessels(env, company, services, port, base):
     return clients, vessels
 
 
-def _ensure_tugs_and_crew(env, company, port, standard, high_power, department, jobs,
+def _ensure_tugs_and_crew(env, company, port, standard, high_power, department, jobs,  # noqa: PLR0913
                           ranks, certificate_types):
     tug_specs = [
         ("atlas", "STS Atlas", high_power, 50, "available"),
@@ -326,8 +326,10 @@ def post_init_hook(env):
         })
         for sequence, (rank_code, count) in enumerate(lines, start=1):
             required = list(common_certificates)
-            if rank_code == "MASTER": required.append(certificate_types["COC-M"].id)
-            if rank_code == "CHENG": required.append(certificate_types["COC-E"].id)
+            if rank_code == "MASTER":
+                required.append(certificate_types["COC-M"].id)
+            if rank_code == "CHENG":
+                required.append(certificate_types["COC-E"].id)
             _record(env, "sedar.manning.template.line", f"template_{service}_{rank_code.lower()}", {
                 "template_id": templates[service].id, "sequence": sequence * 10,
                 "rank_id": ranks[rank_code].id, "required_count": count,

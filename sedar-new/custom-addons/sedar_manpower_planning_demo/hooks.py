@@ -79,7 +79,7 @@ def post_init_hook(env):
         "reviewed_at": _dt(12, 9),
         "resolution_notes": "Renew the assigned Chief Engineer's medical certificate.",
     })
-    medical_action = _record(env, "sedar.crew.shortage.action", "action_expired_medical", {
+    _record(env, "sedar.crew.shortage.action", "action_expired_medical", {
         "shortage_id": expired_medical.id, "action_type": "medical",
         "responsible_user_id": env.user.id, "planned_date": "2026-08-20",
         "completed_date": "2026-08-19", "state": "completed",

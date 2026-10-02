@@ -150,9 +150,10 @@ class ResPartner(models.Model):
     @api.constrains("sedar_preferred_contact_start", "sedar_preferred_contact_end")
     def _check_sedar_contact_window(self):
         for contact in self:
-            if contact.sedar_preferred_contact_start and contact.sedar_preferred_contact_end:
-                if contact.sedar_preferred_contact_end <= contact.sedar_preferred_contact_start:
-                    raise ValidationError("Available Until must be later than Available From.")
+            start = contact.sedar_preferred_contact_start
+            end = contact.sedar_preferred_contact_end
+            if start and end and end <= start:
+                raise ValidationError("Available Until must be later than Available From.")
 
     @api.model_create_multi
     def create(self, vals_list):

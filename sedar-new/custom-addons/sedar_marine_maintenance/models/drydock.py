@@ -118,8 +118,8 @@ class SedarDrydockPlan(models.Model):
             ("state", "!=", "cancelled"),
         ])
         orders = assignments.mapped("order_id")
-        orders._compute_readiness()
-        orders._sync_automated_readiness()
+        orders.recompute_readiness()
+        orders.sync_automated_readiness()
         return orders
 
     @api.model_create_multi

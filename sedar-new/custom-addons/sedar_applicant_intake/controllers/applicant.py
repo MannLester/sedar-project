@@ -155,7 +155,7 @@ class SedarApplicantController(http.Controller):
         categories = {"resume": "resume", "photo": "photo", "cover_letter": "cover_letter"}
         uploads = [(name, upload, categories.get(name, "other")) for name, upload in files.items()]
         uploads = [(name, upload, category) for name, upload, category in uploads if upload and upload.filename]
-        for name, upload, category in uploads:
+        for _name, upload, category in uploads:
             data = base64.b64encode(upload.read())
             attachment = request.env["ir.attachment"].sudo().create({
                 "name": upload.filename,

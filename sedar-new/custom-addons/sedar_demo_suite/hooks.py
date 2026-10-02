@@ -7,6 +7,8 @@ from odoo import Command
 from odoo.exceptions import UserError
 
 
+UNBOUNDED_BID_VALIDITY = False
+
 DEMO_MANAGER_GROUP_XMLIDS = (
     "sedar_ais_demo.group_sedar_ais_manager",
     "sedar_crew_compliance.group_crew_compliance_manager",
@@ -45,14 +47,9 @@ def post_init_hook(env):
         reconciler(env)
 
     company.sedar_ensure_erp_demo()
-    # The ERP module can be initialized before service-demo partners and
-    # products exist. Re-run the accounting portion after reconciliation.
     company._sedar_ensure_accounting_demo(company)
     _ensure_paid_service_demo(env)
     _ensure_pm_procurement_demo(env)
-    # Reconcile customer projections after the final Service Order, invoice,
-    # maintenance, and procurement fixtures exist. AIS then reads the final
-    # authoritative fleet state for its fictional positions.
     reconcile_marketing(env)
     reconcile_ais(env)
     _ensure_broader_demo_data(env)
@@ -197,8 +194,6 @@ def _ensure_demo_internal_access(env):
         env.ref(xmlid, raise_if_not_found=False)
         for xmlid in DEMO_MANAGER_GROUP_XMLIDS
     ]
-    # TODO(post-demo access hardening): Remove this shared override and assign
-    # role-scoped groups and permission-aware sidebar entries to each persona.
     users.write({
         "group_ids": [Command.link(group.id) for group in groups if group],
     })
@@ -215,7 +210,6 @@ def _ensure_accounting_foundation(env, company):
     env["account.chart.template"].try_loading(
         "generic_coa", company, install_demo=False
     )
-    # Generic COA defaults to USD. The fictional SEDAR company operates in PHP.
     company.sedar_configure_demo_currency()
 
 
@@ -397,9 +391,7 @@ def _ensure_pm_bids(env, officer, request, request_lines, bidders):
                 "request_id": request.id,
                 "bidder_id": bidders[key].id,
                 "received_date": date(2026, 8, 20),
-                # No expiry keeps fresh installs deterministic after 2026; a
-                # fixed historical expiry would eventually block Line Awards.
-                "validity_date": False,
+                "validity_date": UNBOUNDED_BID_VALIDITY,
                 "promised_delivery_date": date(2026, 8, 29),
                 "delivery_terms": "Delivered to SEDAR Storage, Batangas.",
                 "availability_notes": notes,
@@ -628,7 +620,7 @@ def _ensure_inventory_breadth(env):
     manager = env.ref("sedar_purchase_request.user_procurement_manager", raise_if_not_found=False)
     tugboats = env["sedar.tugboat"].search([], order="id", limit=3)
     for index, tugboat in enumerate(tugboats, start=1):
-        product = env.ref(f"sedar_demo_suite.inventory_item_ppe", raise_if_not_found=False)
+        product = env.ref("sedar_demo_suite.inventory_item_ppe", raise_if_not_found=False)
         if manager and product:
             _ensure_inventory_issue(env, f"inventory_issue_ppe_{index}", product, tugboat, 1, "Demo PPE replenishment for tug crew readiness.", manager)
 
@@ -671,7 +663,7 @@ def _ensure_inventory_shortage_demo(env):
     })
     requirement._compute_stock_status()
     order._sync_inventory_readiness()
-    order._sync_automated_readiness()
+    order.sync_automated_readiness()
 
 
 def _ensure_service_order_breadth(env):

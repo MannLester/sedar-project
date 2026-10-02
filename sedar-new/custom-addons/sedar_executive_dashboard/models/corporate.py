@@ -1,4 +1,3 @@
-from datetime import date
 
 from odoo import Command, api, fields, models
 
@@ -40,9 +39,7 @@ class SedarDocument(models.Model):
                 document.governance_status = "no_expiry"
             elif document.valid_until < today:
                 document.governance_status = "expired"
-            elif document.renewal_date and document.renewal_date <= warning_date:
-                document.governance_status = "renewal_due"
-            elif document.valid_until <= warning_date:
+            elif document.renewal_date and document.renewal_date <= warning_date or document.valid_until <= warning_date:
                 document.governance_status = "renewal_due"
             else:
                 document.governance_status = "current"
@@ -98,9 +95,7 @@ class SedarCorporateRecord(models.Model):
                 record.days_to_expiry = (record.valid_until - today).days
                 if record.valid_until < today:
                     record.compliance_status = "expired"
-                elif record.renewal_date and record.renewal_date <= warning_date:
-                    record.compliance_status = "renewal_due"
-                elif record.valid_until <= warning_date:
+                elif record.renewal_date and record.renewal_date <= warning_date or record.valid_until <= warning_date:
                     record.compliance_status = "renewal_due"
                 else:
                     record.compliance_status = "current"
@@ -115,7 +110,6 @@ class ResCompany(models.Model):
 
         env = self.env
         company = env.company
-        owner = env.user
         executive_group = env.ref("sedar_executive_dashboard.group_sedar_executive")
         executive_user = _record(env, "res.users", "user_executive_demo", {
             "name": "Demo SEDAR President", "login": "executive@sedar.demo",

@@ -9,4 +9,4 @@ def migrate(cr, version):
     orders = requirements.mapped("order_id")
     orders._compute_inventory_summary()
     orders._sync_inventory_readiness()
-    orders._sync_automated_readiness()
+    orders.sync_automated_readiness()

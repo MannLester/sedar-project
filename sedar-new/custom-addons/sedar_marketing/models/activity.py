@@ -96,7 +96,7 @@ class SedarMarketingActivity(models.Model):
         return text[:500]
 
     @api.model
-    def log(self, customer, module, action, description, record=None, changes=None,
+    def log(self, customer, module, action, description, record=None, changes=None,  # noqa: PLR0913
             visibility="internal", actor=None, actor_type="employee", source_event_key=None):
         customer = customer.commercial_partner_id
         actor = actor or self.env.user

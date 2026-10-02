@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo noupdate="1">
-    <!-- ADM-2: typed requisition fields -->
     <record id="field_adm2_request_type" model="sedar.document.field"><field name="document_type_id" ref="document_type_adm_2"/><field name="sequence">10</field><field name="name">Request Type</field><field name="technical_name">request_type</field><field name="field_type">selection</field><field name="required">True</field><field name="selection_options">New Position
 Replacement</field></record>
     <record id="field_adm2_requested_by" model="sedar.document.field"><field name="document_type_id" ref="document_type_adm_2"/><field name="sequence">20</field><field name="name">Requested By</field><field name="technical_name">requested_by</field><field name="field_type">text</field></record>
@@ -18,7 +17,6 @@ Female</field></record>
     <record id="field_adm2_received_date" model="sedar.document.field"><field name="document_type_id" ref="document_type_adm_2"/><field name="sequence">130</field><field name="name">Requisition Received Date</field><field name="technical_name">received_date</field><field name="field_type">date</field></record>
     <record id="field_adm2_approved_by" model="sedar.document.field"><field name="document_type_id" ref="document_type_adm_2"/><field name="sequence">140</field><field name="name">Requisition Approved By</field><field name="technical_name">approved_by</field><field name="field_type">text</field></record>
 
-    <!-- ADM-3: top-level applicant and employee data; repeating sections are multiline in this demo -->
     <record id="field_adm3_position" model="sedar.document.field"><field name="document_type_id" ref="document_type_adm_3"/><field name="sequence">10</field><field name="name">Position Applied</field><field name="technical_name">position_applied</field><field name="field_type">text</field></record>
     <record id="field_adm3_date_available" model="sedar.document.field"><field name="document_type_id" ref="document_type_adm_3"/><field name="sequence">20</field><field name="name">Date Available</field><field name="technical_name">date_available</field><field name="field_type">date</field></record>
     <record id="field_adm3_date_applied" model="sedar.document.field"><field name="document_type_id" ref="document_type_adm_3"/><field name="sequence">30</field><field name="name">Date Applied</field><field name="technical_name">date_applied</field><field name="field_type">date</field></record>
@@ -46,7 +44,6 @@ Legally Separated</field></record>
     <record id="field_adm3_signature" model="sedar.document.field"><field name="document_type_id" ref="document_type_adm_3"/><field name="sequence">220</field><field name="name">Signature</field><field name="technical_name">applicant_signature</field><field name="field_type">signature</field></record>
     <record id="field_adm3_office_checked" model="sedar.document.field"><field name="document_type_id" ref="document_type_adm_3"/><field name="sequence">230</field><field name="name">Information Checked By / Date</field><field name="technical_name">office_check</field><field name="field_type">text</field></record>
 
-    <!-- ADM-4: appraisal fields -->
     <record id="field_adm4_applicant" model="sedar.document.field"><field name="document_type_id" ref="document_type_adm_4"/><field name="sequence">10</field><field name="name">Name of Applicant</field><field name="technical_name">applicant_name</field><field name="field_type">text</field></record>
     <record id="field_adm4_date" model="sedar.document.field"><field name="document_type_id" ref="document_type_adm_4"/><field name="sequence">20</field><field name="name">Date</field><field name="technical_name">interview_date</field><field name="field_type">date</field></record>
     <record id="field_adm4_position" model="sedar.document.field"><field name="document_type_id" ref="document_type_adm_4"/><field name="sequence">30</field><field name="name">Position Applied for</field><field name="technical_name">position_applied</field><field name="field_type">text</field></record>
@@ -57,7 +54,6 @@ Legally Separated</field></record>
     <record id="field_adm4_action" model="sedar.document.field"><field name="document_type_id" ref="document_type_adm_4"/><field name="sequence">80</field><field name="name">Action Taken</field><field name="technical_name">action_taken</field><field name="field_type">text</field></record>
     <record id="field_adm4_signature" model="sedar.document.field"><field name="document_type_id" ref="document_type_adm_4"/><field name="sequence">90</field><field name="name">Interviewed By</field><field name="technical_name">interviewed_by</field><field name="field_type">signature</field></record>
 
-    <!-- ADM-4A: background inquiry fields -->
     <record id="field_adm4a_to" model="sedar.document.field"><field name="document_type_id" ref="document_type_adm_4a"/><field name="sequence">10</field><field name="name">To</field><field name="technical_name">correspondence_to</field><field name="field_type">text</field></record>
     <record id="field_adm4a_date" model="sedar.document.field"><field name="document_type_id" ref="document_type_adm_4a"/><field name="sequence">20</field><field name="name">Date</field><field name="technical_name">inquiry_date</field><field name="field_type">date</field></record>
     <record id="field_adm4a_attn" model="sedar.document.field"><field name="document_type_id" ref="document_type_adm_4a"/><field name="sequence">30</field><field name="name">Attn</field><field name="technical_name">attention_to</field><field name="field_type">text</field></record>
@@ -81,7 +77,6 @@ Other, pls. specify</field></record>
     <record id="field_adm4a_remarks" model="sedar.document.field"><field name="document_type_id" ref="document_type_adm_4a"/><field name="sequence">130</field><field name="name">General Remarks</field><field name="technical_name">general_remarks</field><field name="field_type">text</field></record>
     <record id="field_adm4a_evaluator" model="sedar.document.field"><field name="document_type_id" ref="document_type_adm_4a"/><field name="sequence">140</field><field name="name">Name / Position and Signature of Evaluator</field><field name="technical_name">evaluator_signature</field><field name="field_type">signature</field></record>
 
-    <!-- ADM-5: requirement checklist -->
     <record id="field_adm5_name" model="sedar.document.field"><field name="document_type_id" ref="document_type_adm_5"/><field name="sequence">10</field><field name="name">Name</field><field name="technical_name">employee_name</field><field name="field_type">text</field><field name="required">True</field></record>
     <record id="field_adm5_position" model="sedar.document.field"><field name="document_type_id" ref="document_type_adm_5"/><field name="sequence">20</field><field name="name">Position</field><field name="technical_name">position</field><field name="field_type">text</field></record>
     <record id="field_adm5_list_given" model="sedar.document.field"><field name="document_type_id" ref="document_type_adm_5"/><field name="sequence">30</field><field name="name">List Given On</field><field name="technical_name">list_given_on</field><field name="field_type">date</field></record>
@@ -91,7 +86,6 @@ Other, pls. specify</field></record>
     <record id="field_adm5_received_date" model="sedar.document.field"><field name="document_type_id" ref="document_type_adm_5"/><field name="sequence">70</field><field name="name">Date</field><field name="technical_name">requirements_received_date</field><field name="field_type">date</field></record>
     <record id="field_adm5_supporting_files" model="sedar.document.field"><field name="document_type_id" ref="document_type_adm_5"/><field name="sequence">80</field><field name="name">Supporting Employment Documents</field><field name="technical_name">supporting_documents</field><field name="field_type">attachment</field><field name="help_text">Upload NBI, SSS, TIN, transcript, medical, clearance, certificate, and other supporting files as applicable.</field></record>
 
-    <!-- CM-053: interview and orientation -->
     <record id="field_cm053_date" model="sedar.document.field"><field name="document_type_id" ref="document_type_cm_053"/><field name="sequence">10</field><field name="name">Date</field><field name="technical_name">orientation_date</field><field name="field_type">date</field></record>
     <record id="field_cm053_applicant" model="sedar.document.field"><field name="document_type_id" ref="document_type_cm_053"/><field name="sequence">20</field><field name="name">Name of Applicant</field><field name="technical_name">applicant_name</field><field name="field_type">text</field></record>
     <record id="field_cm053_position" model="sedar.document.field"><field name="document_type_id" ref="document_type_cm_053"/><field name="sequence">30</field><field name="name">Position Applied</field><field name="technical_name">position_applied</field><field name="field_type">text</field></record>

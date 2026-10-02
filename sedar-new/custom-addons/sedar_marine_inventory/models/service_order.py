@@ -69,7 +69,7 @@ class SedarMarineServiceOrder(models.Model):
             order.tug_assignment_count = len(assignments)
             order.readiness_status, order.readiness_reason = order._readiness_result(assignments)
 
-    def _readiness_result(self, assignments):
+    def _readiness_result(self, assignments):  # noqa: C901, PLR0911
         self.ensure_one()
         if not assignments:
             early_states = {"draft", "submitted", "review", "needs_info", "pricing", "quoted"}
@@ -169,7 +169,7 @@ class SedarMarineServiceOrder(models.Model):
         result = super().action_plan()
         self.action_generate_inventory_requirements()
         self._sync_inventory_readiness()
-        self._sync_automated_readiness()
+        self.sync_automated_readiness()
         return result
 
     def write(self, vals):
@@ -181,7 +181,7 @@ class SedarMarineServiceOrder(models.Model):
         if inventory_inputs.intersection(vals) and not self.env.context.get("sedar_inventory_sync"):
             eligible = self.filtered(lambda order: order.state in {"planning", "blocked", "ready"})
             eligible.with_context(sedar_inventory_sync=True).action_generate_inventory_requirements()
-            eligible._sync_automated_readiness()
+            eligible.sync_automated_readiness()
         return result
 
 
@@ -230,7 +230,7 @@ class SedarTugAssignment(models.Model):
         "requirement_ids.compliance_issue_count",
         "inventory_requirement_ids.readiness_state",
     )
-    def _compute_integrated_readiness(self):
+    def _compute_integrated_readiness(self):  # noqa: C901, PLR0912
         for assignment in self:
             reasons = []
             tug = assignment.tugboat_id
@@ -255,7 +255,7 @@ class SedarTugAssignment(models.Model):
             if overlap:
                 reasons.append("Overlapping tug assignment")
 
-            requests, drydocks = tug._sedar_technical_blockers_for_window(
+            requests, drydocks = tug.sedar_technical_blockers_for_window(
                 assignment.planned_start, assignment.planned_end
             ) if tug else (self.env["maintenance.request"], self.env["sedar.drydock.plan"])
             technical_ready = bool(tug) and tug.availability_status not in {"maintenance", "inactive"}
@@ -335,8 +335,8 @@ class SedarTugAssignment(models.Model):
             ("state", "!=", "cancelled"),
         ])
         orders = assignments.mapped("order_id")
-        orders._compute_readiness()
-        orders._sync_automated_readiness()
+        orders.recompute_readiness()
+        orders.sync_automated_readiness()
         return orders
 
 
@@ -456,7 +456,7 @@ class SedarInventoryRequirement(models.Model):
         if self.env.context.get("sedar_inventory_generation"):
             return lines
         lines.mapped("order_id")._sync_inventory_readiness()
-        lines.mapped("order_id")._sync_automated_readiness()
+        lines.mapped("order_id").sync_automated_readiness()
         return lines
 
     def write(self, vals):
@@ -468,7 +468,7 @@ class SedarInventoryRequirement(models.Model):
             "expected_consumption_qty", "minimum_reserve_qty",
         }.intersection(vals):
             self.mapped("order_id")._sync_inventory_readiness()
-            self.mapped("order_id")._sync_automated_readiness()
+            self.mapped("order_id").sync_automated_readiness()
         return result
 
     def unlink(self):
@@ -477,5 +477,5 @@ class SedarInventoryRequirement(models.Model):
         if self.env.context.get("sedar_inventory_generation"):
             return result
         orders._sync_inventory_readiness()
-        orders._sync_automated_readiness()
+        orders.sync_automated_readiness()
         return result
