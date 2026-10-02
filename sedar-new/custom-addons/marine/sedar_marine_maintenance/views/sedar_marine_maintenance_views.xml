@@ -351,6 +351,7 @@
                             <field name="yard_name"/>
                             <field name="availability_impact"/>
                             <field name="sedar_blocks_tug_readiness" readonly="1"/>
+                            <field name="reset_pm_counters" readonly="state == 'completed'"/>
                         </group>
                         <group>
                             <field name="planned_start"/>

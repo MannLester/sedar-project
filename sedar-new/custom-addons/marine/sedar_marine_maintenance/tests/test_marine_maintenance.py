@@ -365,6 +365,49 @@ class TestMarineMaintenance(TransactionCase):
         with self.assertRaises(UserError):
             report.unlink()
 
+    def _dry_dock(self, **extra):
+        return self.env["sedar.drydock.plan"].create({
+            "name": "Test Dry Dock",
+            "tugboat_id": self.tug.id,
+            "planned_start": datetime(2026, 9, 1, 8, 0, 0),
+            "planned_end": datetime(2026, 9, 20, 8, 0, 0),
+            "yard_name": "Test Yard",
+            "scope_summary": "Hull and propulsion overhaul.",
+            **extra,
+        })
+
+    def _finish_dry_dock(self, plan):
+        plan = plan.with_user(self.manager)
+        plan.action_plan()
+        plan.action_start()
+        plan.release_note = "Released after sea trial."
+        plan.action_complete()
+
+    def test_dry_dock_restarts_checkpoint_count_from_current_hours(self):
+        equipment = self._new_metered_equipment()
+        task = self._task(equipment, 300)
+        self._reading(equipment, 290, fields.Datetime.now() - timedelta(days=2))
+        self._complete(task)
+        self._reading(equipment, 1000, fields.Datetime.now() - timedelta(days=1))
+        self.assertEqual((task.cycle, task.next_checkpoint_hours, task.state), (1, 600, "overdue"))
+
+        self._finish_dry_dock(self._dry_dock())
+        self.assertEqual((task.cycle, task.cycle_start_hours), (2, 1000))
+        self.assertEqual((task.next_checkpoint_hours, task.state), (1300, "not_due"))
+        self.assertEqual(len(task.completion_ids), 1)
+        self._reading(equipment, 1290, fields.Datetime.now() - timedelta(hours=1))
+        self._complete(task)
+        self.assertEqual(task.next_checkpoint_hours, 1600)
+        with self.assertRaises(AccessError):
+            task.with_user(self.maintenance_user).write({"cycle": 9})
+
+    def test_dry_dock_can_leave_checkpoint_counts_alone(self):
+        equipment = self._new_metered_equipment()
+        task = self._task(equipment, 300)
+        self._reading(equipment, 100, fields.Datetime.now() - timedelta(days=1))
+        self._finish_dry_dock(self._dry_dock(reset_pm_counters=False))
+        self.assertEqual((task.cycle, task.next_checkpoint_hours), (1, 300))
+
     def test_report_records_the_paper_form_columns(self):
         engine = self._new_metered_equipment(name="Paper Form Engine")
         self._reading(engine, 100, fields.Datetime.now() - timedelta(days=1))

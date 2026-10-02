@@ -47,6 +47,10 @@ class SedarDrydockPlan(models.Model):
     )
     milestone_ids = fields.One2many("sedar.drydock.milestone", "plan_id", string="Milestones")
     work_order_ids = fields.One2many("maintenance.request", "sedar_drydock_plan_id", string="Work Orders")
+    reset_pm_counters = fields.Boolean(
+        string="Restart PM Counters on Completion", default=True,
+        help="Completing this dry dock restarts every Planned Maintenance checkpoint count of the tugboat.",
+    )
     release_note = fields.Text()
     released_by_id = fields.Many2one("res.users", readonly=True, copy=False)
     released_at = fields.Datetime(readonly=True, copy=False)
@@ -102,6 +106,10 @@ class SedarDrydockPlan(models.Model):
                 "released_by_id": self.env.user.id,
                 "released_at": fields.Datetime.now(),
             })
+            if plan.reset_pm_counters:
+                tasks = plan.tugboat_id.maintenance_equipment_ids.sedar_pm_task_ids
+                tasks._sedar_restart_cycle()
+                plan.message_post(body=f"Planned Maintenance counters restarted for {len(tasks)} task(s).")
         self.mapped("tugboat_id")._sedar_sync_maintenance_availability()
         return True
 

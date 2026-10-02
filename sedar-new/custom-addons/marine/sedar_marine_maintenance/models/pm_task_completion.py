@@ -1,7 +1,7 @@
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 
-SYSTEM_FIELDS = {"checkpoint_hours", "running_hours", "done_by_id"}
+SYSTEM_FIELDS = {"checkpoint_hours", "running_hours", "done_by_id", "cycle"}
 
 
 class SedarPmTaskCompletion(models.Model):
@@ -19,6 +19,7 @@ class SedarPmTaskCompletion(models.Model):
     )
     equipment_id = fields.Many2one(related="task_id.equipment_id", store=True, index=True)
     company_id = fields.Many2one(related="task_id.company_id", store=True, index=True)
+    cycle = fields.Integer(default=1, readonly=True)
     checkpoint_hours = fields.Float(string="Checkpoint", readonly=True)
     running_hours = fields.Float(string="Running Hours When Done", readonly=True)
     done_on = fields.Date(string="Done On", required=True, default=fields.Date.context_today)
@@ -29,7 +30,7 @@ class SedarPmTaskCompletion(models.Model):
     remarks = fields.Text()
 
     _one_completion_per_checkpoint = models.Constraint(
-        "unique(task_id, checkpoint_hours)",
+        "unique(task_id, cycle, checkpoint_hours)",
         "This checkpoint has already been completed.",
     )
 
@@ -57,6 +58,7 @@ class SedarPmTaskCompletion(models.Model):
                     running_hours=task.current_hours,
                     done_by_id=self.env.user.id,
                 )
+            vals.setdefault("cycle", task.cycle)
         completions = super().create(vals_list)
         completions.task_id._sedar_reconcile_alert()
         return completions

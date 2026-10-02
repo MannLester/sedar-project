@@ -639,6 +639,7 @@ A Planned Maintenance Task is one checklist item for one Equipment that repeats 
 | `completion_ids` | One-to-many to `sedar.pm.task.completion` | Audit history of completed checkpoints. |
 | `current_hours`, `last_checkpoint_hours`, `next_checkpoint_hours`, `remaining_hours` | Computed, stored float | Current Running Hours, last completed checkpoint, next checkpoint (last plus interval), and signed hours to it. |
 | `state` | Computed, stored selection | Not due; approaching (within the window); due (exactly at the checkpoint); overdue (past it). |
+| `cycle`, `cycle_start_hours` | Read-only integer, float | Checkpoint cycle and the Running Hours at which it began. Checkpoints are `cycle_start_hours` plus multiples of the interval. A dry dock starts the next cycle; earlier completions stay as history. |
 | `cycle_key`, `alerted_cycle_key` | Character | Identify the checkpoint already alerted so each checkpoint creates one activity. |
 | `alert_assignment_state` | Computed, stored selection | Shows whether a due alert is assigned or needs a technician or company fallback user. |
 
@@ -654,13 +655,20 @@ Key behavior:
 | Field | Type | How it is used |
 | --- | --- | --- |
 | `task_id` | Required many-to-one to `sedar.pm.task` | Completed task. |
-| `checkpoint_hours` | Read-only float | The checkpoint completed; always the task's next checkpoint. Unique per task. |
+| `cycle` | Read-only integer | The task cycle the completion belongs to. |
+| `checkpoint_hours` | Read-only float | The checkpoint completed; always the task's next checkpoint. Unique per task and cycle. |
 | `running_hours` | Read-only float | Running Hours when the task was done. |
 | `done_on` | Required date | Date the crew did the work; cannot be in the future. |
 | `done_by_id` | Read-only many-to-one to `res.users` | Recording user. |
 | `remarks` | Text | Findings, such as "visual inspection OK". |
 
 A task can be completed only once it is approaching, due, or overdue. Completions cannot be edited or deleted. Only seed data (superuser) may state its own checkpoint.
+
+### `sedar.drydock.plan` Planned Maintenance extension
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `reset_pm_counters` | Boolean, default true | When the plan is completed, every active Planned Maintenance Task of the tugboat's equipment starts a new cycle from its current Running Hours (a dry dock resets the checkpoint count). The engine's running hours are not changed. A chatter note records how many tasks restarted. |
 
 ### `sedar.daily.engine.report` and `sedar.daily.engine.report.line`
 

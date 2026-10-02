@@ -1,5 +1,5 @@
 from odoo import _, api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessError, ValidationError
 from odoo.tools.float_utils import float_compare
 
 from .maintenance_equipment_common import READING_PRECISION_DIGITS
@@ -38,6 +38,14 @@ class SedarPmTask(models.Model):
     )
     notes = fields.Text(string="Instructions")
     completion_ids = fields.One2many("sedar.pm.task.completion", "task_id", string="Completions")
+    cycle = fields.Integer(
+        default=1, readonly=True, copy=False,
+        help="Checkpoint cycle. A dry dock starts a new one; earlier completions stay as history.",
+    )
+    cycle_start_hours = fields.Float(
+        readonly=True, copy=False,
+        help="Running Hours at which the current cycle started. Checkpoints count from here.",
+    )
 
     current_hours = fields.Float(
         compute="_compute_sedar_pm_status", store=True, readonly=True,
@@ -77,13 +85,17 @@ class SedarPmTask(models.Model):
     @api.depends(
         "interval_hours",
         "warning_hours",
+        "cycle",
+        "cycle_start_hours",
         "equipment_id.sedar_current_running_hours",
         "completion_ids.checkpoint_hours",
+        "completion_ids.cycle",
     )
     def _compute_sedar_pm_status(self):
         for task in self:
             current = task.equipment_id.sedar_current_running_hours
-            last = max(task.completion_ids.mapped("checkpoint_hours"), default=0.0)
+            done = task.completion_ids.filtered(lambda completion: completion.cycle == task.cycle)
+            last = max(done.mapped("checkpoint_hours"), default=task.cycle_start_hours)
             next_checkpoint = last + task.interval_hours
             remaining = next_checkpoint - current
             comparison = float_compare(current, next_checkpoint, precision_digits=READING_PRECISION_DIGITS)
@@ -91,7 +103,7 @@ class SedarPmTask(models.Model):
             task.last_checkpoint_hours = last
             task.next_checkpoint_hours = next_checkpoint
             task.remaining_hours = remaining
-            task.cycle_key = f"{task.id}:{next_checkpoint:.6f}"
+            task.cycle_key = f"{task.id}:{task.cycle}:{next_checkpoint:.6f}"
             if comparison > 0:
                 task.state = "overdue"
             elif comparison == 0:
@@ -121,6 +133,12 @@ class SedarPmTask(models.Model):
                 raise ValidationError(_("The interval must be greater than zero hours."))
             if task.warning_hours < 0:
                 raise ValidationError(_("The approaching window cannot be negative."))
+
+    def _sedar_restart_cycle(self):
+        """Count checkpoints again from the current hours, as after a dry dock."""
+        for task in self:
+            task.sudo().write({"cycle": task.cycle + 1, "cycle_start_hours": task.current_hours})
+        self._sedar_reconcile_alert()
 
     def _sedar_get_alert_assignee(self):
         self.ensure_one()
@@ -198,6 +216,8 @@ class SedarPmTask(models.Model):
         return tasks
 
     def write(self, vals):
+        if {"cycle", "cycle_start_hours"}.intersection(vals) and not self.env.su:
+            raise AccessError(_("The checkpoint cycle is restarted only by a dry dock."))
         result = super().write(vals)
         if {"interval_hours", "equipment_id", "active"}.intersection(vals):
             self._sedar_reconcile_alert()
