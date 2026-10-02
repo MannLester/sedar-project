@@ -1,0 +1,124 @@
+[00:00] Sige po.
+[00:02] Ang pangalan niyo sir?
+[00:04] Edw na lang po.
+[00:06] Sige po. Anong pangalan niyo?
+[00:08] Ang tanong ko po is yung about po sa cash close po.
+[00:12] Cash? Cash close po.
+[00:14] Yung parang daily inventory po. Parang ganun. May ganun po ba kaya?
+[00:18] Nagka-count everyday.
+[00:20] So si cashier plus isang checker at isang witness.
+[00:24] So si cashier siya mismo yung may hawak ng cash for the whole day.
+[00:29] tapos si checker siya yung nagsicheck ng cash
+[00:31] in and out
+[00:33] based sa mga vouchers
+[00:35] siya din ang naglilistan
+[00:36] nung siya yung nagpusulat ng account
+[00:38] tapos si wait na sa man, makatingin na
+[00:40] ano po yun
+[00:42] daily at monthly
+[00:44] then yearly lang po, wala po siyang weekly
+[00:46] para po sa mga ganong
+[00:49] klaseng ano
+[00:50] hindi, basta daily
+[00:51] daily po talaga
+[00:53] daily siya, mandi to friday
+[00:54] sa isang buwan po
+[01:03] nakakailang transactions po kayo
+[01:05] gawang yung load po
+[01:07] kahit saan po
+[01:10] yung lahat po talaga
+[01:11] gawang
+[01:14] tatantahin po yung
+[01:16] data load po para po hindi
+[01:18] nag-ano yung system
+[01:19] check ko sa system ha
+[01:22] maintenance lang yung system
+[01:24] meron kami invoice
+[01:26] Tapos meron kaming petty cash vouchers
+[01:29] Tapos check vouchers
+[01:31] Tapos meron pa kaming journal voucher
+[01:34] Bigyan kita ng bilang ito
+[01:38] Check ko lang sa system
+[01:39] Yung average count per transaction ito
+[01:42] Tapos pwede ba rin po malaman
+[01:44] Kung ano po yung pinakaiba ng apat na yan?
+[01:48] Yung invoice sa billing
+[01:49] PCV yung mga mail
+[01:51] Yung lumalabas dito na petty cash
+[01:54] tapos si check voucher yung mga naka-check
+[01:57] si journal voucher
+[01:59] yun yung mga cash in
+[02:01] sa petty cash kasi ninsan
+[02:02] nagka-cash advance tapos pag may cash in
+[02:05] ang pasok niya journal voucher
+[02:07] mga cash in itong journal voucher
+[02:09] tsaka yung mga other transactions
+[02:11] like
+[02:12] adjustment sa salaries
+[02:15] contribution
+[02:17] depreciation
+[02:19] mga interest income
+[02:21] yung mga other
+[02:23] entries na hindi, walang cheque,
+[02:26] walang cash outflow
+[02:28] na kailangan nakarecord sa
+[02:29] system.
+[02:38] Yung kailangan mo dito
+[02:50] transaction per month, no?
+[02:51] Oo po.
+[02:52] Yung pangkol po
+[03:08] sa tariff po.
+[03:12] Paano po yun? Nagbabago-bago po ba yun?
+[03:16] Hindi.
+[03:16] hindi naman
+[03:17] unless merong
+[03:19] regulation
+[03:22] magbabago siya pero talagang
+[03:24] yun na yun
+[03:24] parang ilang years na yung tariff namin
+[03:27] unless magkakaroon ng price adjustment
+[03:29] tapos paano po yun
+[03:50] sa mga tax po
+[03:52] yun sa tax
+[03:54] meron kaming tax compliance officer
+[03:56] tax compliance
+[03:58] consultant
+[03:59] so outside services yun na ina-outsource namin
+[04:03] ako yung notice sa kanya
+[04:05] nung raw data
+[04:06] galing dito. Kasi na yung bahala
+[04:08] mag-file nyo sa BIR.
+[04:11] So, siya yung representative
+[04:13] namin sa BIR. Pag may mga
+[04:15] audit kami, siya rin yung representative namin.
+[04:18] Pero yun, once ma-file
+[04:19] niya, ang verification nun, tsaka
+[04:20] approval dito sa amin.
+[04:22] So, yung junior accountant namin, si Rochelle,
+[04:25] siya yung nag-verify. Tapos ako
+[04:26] naman yung for approval na yung
+[04:28] nare-release yung
+[04:30] na-debit sa account namin
+[04:32] sa bank.
+[04:33] yung isang bank namin
+[04:35] naka
+[04:36] naka link siya to DLR
+[04:39] so online payments
+[04:42] yung tax namin
+[04:42] tapos yung mga check voucher po
+[04:45] ngayon, kayo po lahat nagawa
+[04:47] tapos approval po, or iba po yung nagawa
+[04:49] tapos approval lang po kayo
+[04:51] hindi ako nag-approve nito, ano lang ako
+[04:53] checker lang ako, approver ng check voucher namin
+[04:55] yung mga general manager
+[04:57] hmm, mahal po
+[04:58] prepared by siya ni junior accountant
+[05:04] tapos check by ako
+[05:06] tapos
+[05:07] approved by ng officer
+[05:10] kung sino man yung officer
+[05:12] na available
+[05:13] meron po kayo
+[05:15] pwede po makita yung ganito
+[05:17] sige po
