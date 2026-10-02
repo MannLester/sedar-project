@@ -2,7 +2,7 @@
     "name": "SEDAR Marine Maintenance",
     "version": "19.0.4.0.0",
     "category": "Marine",
-    "summary": "Marine maintenance, planned maintenance by running hours, defects, dry dock planning, and tug availability controls",
+    "summary": "Marine maintenance, planned maintenance by running hours, daily engine reports, defects, dry dock planning, and tug availability controls",
     "author": "SEDAR Development Team",
     "license": "LGPL-3",
     "depends": ["maintenance", "sedar_marine_operations", "sedar_marine_dispatch"],

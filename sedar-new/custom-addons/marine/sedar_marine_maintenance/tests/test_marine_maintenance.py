@@ -338,3 +338,56 @@ class TestMarineMaintenance(TransactionCase):
         )
         self.assertEqual(task.state, "approaching")
         self.assertFalse(task.sedar_open_alerts())
+
+    def test_daily_engine_report_adds_hours_and_locks(self):
+        engine = self._new_metered_equipment(name="Report Engine")
+        self._reading(engine, 100, fields.Datetime.now() - timedelta(days=2))
+        task = self._task(engine, 110)
+        Report = self.env["sedar.daily.engine.report"].with_user(self.maintenance_user)
+        report = Report.create({
+            "tugboat_id": self.tug.id,
+            "line_ids": [(0, 0, {"equipment_id": engine.id, "hours_run": 12.5, "fuel_consumed": 410})],
+        })
+        with self.assertRaises(ValidationError):
+            Report.create({"tugboat_id": self.tug.id})
+        with self.assertRaises(ValidationError):
+            report.line_ids.hours_run = 25
+
+        report.action_post()
+        self.assertEqual(report.state, "posted")
+        self.assertEqual(engine.sedar_current_running_hours, 112.5)
+        self.assertEqual(report.line_ids.reading_id.running_hours, 112.5)
+        self.assertEqual(task.state, "overdue")
+        with self.assertRaises(AccessError):
+            report.remarks = "late edit"
+        with self.assertRaises(AccessError):
+            report.line_ids.hours_run = 1
+        with self.assertRaises(UserError):
+            report.unlink()
+
+    def test_report_records_the_paper_form_columns(self):
+        engine = self._new_metered_equipment(name="Paper Form Engine")
+        self._reading(engine, 100, fields.Datetime.now() - timedelta(days=1))
+        Report = self.env["sedar.daily.engine.report"].with_user(self.maintenance_user)
+        report = Report.create({
+            "tugboat_id": self.tug.id,
+            "rob_diesel": 5800, "rob_lube_40": 330, "rob_lube_15w40": 160, "rob_hydraulic": 55, "rob_fresh_water": 6,
+            "line_ids": [(0, 0, {
+                "equipment_id": engine.id, "time_start": 11 + 20 / 60, "time_stop": 13 + 40 / 60,
+                "hours_run": 2 + 20 / 60, "fuel_consumed": 150, "fuel_rob": 1300,
+                "rpm": 1800, "oil_pressure": 4.5, "water_temp": 70, "lube_oil_refill": 2,
+            })],
+        })
+        line = report.line_ids
+        line.time_start, line.time_stop = 22.0, 2.0
+        line._onchange_times()
+        self.assertEqual(line.hours_run, 4.0)
+        with self.assertRaises(ValidationError):
+            line.time_stop = 24
+        with self.assertRaises(ValidationError):
+            line.rpm = -1
+        with self.assertRaises(ValidationError):
+            report.rob_diesel = -1
+        report.action_post()
+        self.assertEqual(report.posted_by_id, self.maintenance_user)
+        self.assertEqual(engine.sedar_current_running_hours, 104)

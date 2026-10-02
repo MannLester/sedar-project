@@ -71,7 +71,7 @@ fixture seeding.
 | `sedar.tugboat` | Extended | Owns each fleet asset by company and exposes technical equipment, maintenance blockers, dry-dock plans, readiness reason, tugboat stock location, and HSSE exceptions | `sedar_marine_operations/models/marine_crew.py`; `sedar_marine_maintenance/models/tugboat.py`; `sedar_marine_inventory/models/tugboat.py`; `sedar_hsse/models/hsse.py` |
 | `sedar.ais.position` | New | Stores the current fictional AIS/GPS report consumed by the offline fleet-monitoring demonstration | `sedar_ais_demo/models/ais_position.py` |
 | `maintenance.equipment` | Extended | Links standard Odoo equipment to tugboats, running-hour history, and persistent Replacement Equipment inventory provenance | `sedar_marine_maintenance/models/maintenance_equipment.py`; `sedar_marine_inventory/models/inventory_lifecycle.py` |
-| `sedar.pm.task`, `sedar.pm.task.completion` | New | Planned Maintenance by fixed running-hour checkpoints with completion history | `sedar_marine_maintenance/models/pm_task.py`; `pm_task_completion.py`; `daily_engine_report.py` |
+| `sedar.pm.task`, `sedar.pm.task.completion`, `sedar.daily.engine.report`, `sedar.daily.engine.report.line` | New | Planned Maintenance by fixed running-hour checkpoints and the Daily Engine Monitoring Report that feeds running hours | `sedar_marine_maintenance/models/pm_task.py`; `pm_task_completion.py`; `daily_engine_report.py` |
 | `sedar.equipment.running.hour.reading` | New | Preserves dated, attributable Equipment hour-meter observations and manager-controlled corrections | `sedar_marine_maintenance/models/maintenance_equipment.py` |
 | `maintenance.request` | Extended | Adds SEDAR work-order type, tug availability impact, release evidence, dry-dock linkage, and spare-part status/lines | `sedar_marine_maintenance/models/maintenance_request.py`; `sedar_marine_inventory/models/maintenance_parts.py` |
 | `sedar.drydock.plan` | New | Represents dry-dock planning, milestones, availability impact, and controlled release | `sedar_marine_maintenance/models/drydock.py` |
@@ -661,6 +661,28 @@ Key behavior:
 | `remarks` | Text | Findings, such as "visual inspection OK". |
 
 A task can be completed only once it is approaching, due, or overdue. Completions cannot be edited or deleted. Only seed data (superuser) may state its own checkpoint.
+
+### `sedar.daily.engine.report` and `sedar.daily.engine.report.line`
+
+The Daily Engine Monitoring Report records one tugboat's engine hours and fuel for one day. Posting adds each engine's hours to its running hours.
+
+| Field | Type | How it is used |
+| --- | --- | --- |
+| `tugboat_id`, `report_date` | Required | One report per tugboat per date; the date cannot be in the future. |
+| `state` | Read-only selection | Draft or posted. |
+| `prepared_by_id`, `posted_by_id`, `posted_at` | Read-only | Author, the user who posted (the Chief Engineer's note on the paper form) and posting time. |
+| `rob_diesel`, `rob_lube_40`, `rob_lube_15w40`, `rob_hydraulic`, `rob_fresh_water` | Float | Remaining on board at the end of the day: D.O., L.O. 40, L.O. 15W-40, hydraulic oil and fresh water. Not negative. |
+| `remarks` | Text | Report remarks. |
+| `line_ids` | One-to-many to `sedar.daily.engine.report.line` | One line per engine. |
+| line `equipment_id` | Required many-to-one to `maintenance.equipment` | Engine of the report's tugboat that keeps its own hours. Unique per report. |
+| line `hours_run` | Float | Hours the engine ran that day, 0 to 24. |
+| line `fuel_consumed` | Float | Liters consumed; recorded only, not yet used elsewhere. |
+| line `time_start`, `time_stop` | Float | Times of day the engine started and stopped. Entering both fills in `hours_run`. |
+| line `rpm`, `oil_pressure`, `water_temp`, `fuel_rob`, `lube_oil_refill` | Float | Readings from the paper form: RPM, oil pressure, water temperature, service-tank fuel remaining and lube oil refilled. Recorded only. |
+| line `remarks` | Character | Line remarks. |
+| line `reading_id` | Read-only many-to-one to `sedar.equipment.running.hour.reading` | Reading created when the report was posted. |
+
+`action_post()` creates one Running Hour Reading per line with hours (current Running Hours plus hours run), so the task status of the engine and its components updates at once. A posted report cannot be edited or deleted; correct an error with a manager reading correction.
 
 ### `maintenance.request` marine extension
 
