@@ -2,7 +2,7 @@
 
 This repository contains the active SEDAR Odoo 19 demonstration and its supporting business and
 architecture documentation. The working implementation is in [`sedar-new/`](sedar-new/); the
-older [`odoo/`](odoo/) tree is retained only as legacy reference.
+older [`legacy/odoo/`](legacy/odoo/) tree is retained only as legacy reference.
 
 The demonstration connects Service Orders, tug and crew dispatch, maintenance, procurement,
 inventory, HSSE, recruitment, billing, accounting, and management reporting in one Odoo database.
@@ -16,7 +16,7 @@ certification.
 - Git
 - A modern browser
 
-Local Python is needed only for the optional developer-quality checks.
+Local Python is needed only for the developer-quality checks (`make check` in `sedar-new/`).
 
 ## Start the active workspace
 
@@ -54,7 +54,10 @@ quotation attachments are returned only to the configured Procurement and Invent
 - [`docs/project-requirements.md`](docs/project-requirements.md): demonstration requirements
 - [`docs/implementation-status.md`](docs/implementation-status.md): shipped capability status
 - [`docs/custom-models.md`](docs/custom-models.md): custom Odoo model and workflow contract
-- [`docs/adr/`](docs/adr/): accepted architecture decisions
+- [`docs/adr/`](docs/adr/): accepted architecture decisions, indexed in [`docs/adr/README.md`](docs/adr/README.md)
+- [`docs/module-map.md`](docs/module-map.md): the 29 addons by domain and the rules between them
+- [`AGENTS.md`](AGENTS.md): rules for AI agents and contributors working in this repository
+- [`docs/archive/`](docs/archive/): superseded planning material and source documents
 - [`docs/procurement-module-implementation-plan.md`](docs/procurement-module-implementation-plan.md): approved Procurement scope and verification contract
 
 ## Resetting local data

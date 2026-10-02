@@ -2,7 +2,7 @@
 
 ## Principle
 
-Everything in `resources/Web System.pdf` must be represented in the MVP dashboard. For MVP, "represented" means the module appears as a dashboard section, metric, alert, table, or drill-down using sample data. It does not mean every module is a full production ERP workflow yet.
+Everything in `docs/archive/resources/Web System.pdf` must be represented in the MVP dashboard. For MVP, "represented" means the module appears as a dashboard section, metric, alert, table, or drill-down using sample data. It does not mean every module is a full production ERP workflow yet.
 
 The MVP should prove:
 

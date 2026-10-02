@@ -1,6 +1,6 @@
 # Dashboard Coverage Matrix
 
-This matrix ensures every item from `resources/Web System.pdf` appears in the MVP dashboard.
+This matrix ensures every item from `docs/archive/resources/Web System.pdf` appears in the MVP dashboard.
 
 ## Coverage Levels
 

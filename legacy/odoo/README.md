@@ -9,7 +9,7 @@ Step 1 is the dashboard and module map. This Odoo project turns that map into a 
 - One custom addon: `sedar_marine_mvp`.
 - Sample/demo data only.
 - Dashboard-first menus split into separate Odoo app areas.
-- Coverage for every module requested in `resources/Web System.pdf`.
+- Coverage for every module requested in `docs/archive/resources/Web System.pdf`.
 
 ## Run With Docker
 
