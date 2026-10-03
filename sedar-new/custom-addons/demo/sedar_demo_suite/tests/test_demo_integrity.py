@@ -11,6 +11,7 @@ from odoo.addons.sedar_demo_suite.hooks import (
     DEMO_MANAGER_GROUP_XMLIDS,
     _bind_xmlid,
     _ensure_inventory_breadth,
+    _ensure_inventory_lifecycle_demo,
     _ensure_pm_procurement_demo,
     _immutable_record,
     _record,
@@ -77,6 +78,30 @@ class TestSedarDemoIntegrity(TransactionCase):
         moves = self.env["account.move"].search([("ref", "in", ["SEDAR-ERP-DEMO-SALE", "SEDAR-ERP-DEMO-BILL"])])
         self.assertEqual(len(moves), 2)
         self.assertTrue(all(move.state == "posted" for move in moves))
+
+    def test_inventory_lifecycle_walkthrough_starts_with_one_blocker(self):
+        _ensure_inventory_lifecycle_demo(self.env)
+        rope = self.env.ref("sedar_demo_suite.inventory_item_tow_rope_80")
+        tug_1 = self.env.ref("sedar_demo_suite.inventory_sedar_1")
+        tug_2 = self.env.ref("sedar_demo_suite.inventory_sedar_2")
+        tug_3 = self.env.ref("sedar_demo_suite.inventory_sedar_3")
+        Quant = self.env["stock.quant"]
+        self.assertEqual(
+            Quant._get_available_quantity(rope, tug_1.stock_location_id, strict=True),
+            3.0,
+        )
+        self.assertEqual(
+            Quant._get_available_quantity(rope, tug_2.stock_location_id, strict=True),
+            1.0,
+        )
+        self.assertEqual(
+            Quant._get_available_quantity(rope, tug_3.stock_location_id, strict=True),
+            2.0,
+        )
+        demands = self.env["sedar.replenishment.demand"].search([
+            ("product_id", "=", rope.id), ("state", "=", "open")
+        ])
+        self.assertEqual(demands.tugboat_id, tug_2)
 
     def test_administrator_can_open_every_demo_workspace(self):
         admin = self.env.ref("base.user_admin")

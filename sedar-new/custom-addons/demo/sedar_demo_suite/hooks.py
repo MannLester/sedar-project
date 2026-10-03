@@ -53,6 +53,7 @@ def post_init_hook(env):
     reconcile_marketing(env)
     reconcile_ais(env)
     _ensure_broader_demo_data(env)
+    _ensure_inventory_lifecycle_demo(env)
     _ensure_inventory_shortage_demo(env)
     company.sedar_ensure_executive_demo()
     _ensure_demo_internal_access(env)
@@ -277,7 +278,7 @@ def _ensure_pm_products(env):
     specs = {
         "a": (
             "pm_product_a_filter", "Product A — Main Engine Oil Filter Set",
-            "SEDAR-PM-A-FILTER", "ME-OF-500", unit, "spare_consumable",
+            "SEDAR-PM-A-FILTER", "ME-OF-500", unit, "spare_part",
         ),
         "b": (
             "pm_product_b_lube", "Product B — Marine Engine Oil",
@@ -622,6 +623,80 @@ def _ensure_inventory_breadth(env):
         product = env.ref("sedar_demo_suite.inventory_item_ppe", raise_if_not_found=False)
         if manager and product:
             _ensure_inventory_issue(env, f"inventory_issue_ppe_{index}", product, tugboat, 1, "Demo PPE replenishment for tug crew readiness.", manager)
+
+
+def _ensure_inventory_lifecycle_demo(env):
+    """Seed the approved quantity-tracked Tow Rope walkthrough starting state."""
+    company = env.company
+    tug_class = _first(env, "sedar.tug.class")
+    home_port = _first(env, "sedar.marine.port")
+    if not tug_class:
+        return
+    tugs = []
+    for index, status in ((1, "maintenance"), (2, "available"), (3, "available")):
+        tugs.append(_record(env, "sedar.tugboat", f"inventory_sedar_{index}", {
+            "name": f"SEDAR {index}",
+            "company_id": company.id,
+            "registration_number": f"SEDAR-DEMO-{index}",
+            "call_sign": f"SDR{index}",
+            "tug_class_id": tug_class.id,
+            "bollard_pull": tug_class.minimum_bollard_pull or 30,
+            "fuel_capacity": 25000,
+            "home_port_id": home_port.id if home_port else False,
+            "availability_status": status,
+        }))
+    from odoo.addons.sedar_marine_inventory.hooks import post_init_hook
+    post_init_hook(env)
+    unit = env.ref("uom.product_uom_unit")
+    rope_data = _fixture_data(env, "inventory_item_tow_rope_80")
+    existing_rope = bool(
+        rope_data
+        and env["product.product"].browse(rope_data.res_id).exists()
+    )
+    rope = _record(env, "product.product", "inventory_item_tow_rope_80", {
+        "name": "Tow Rope - 80 mm",
+        "type": "consu",
+        "is_storable": True,
+        "uom_id": unit.id,
+        "default_code": "SEDAR-GEAR-TOWROPE-80",
+        "sedar_inventory_item": True,
+        "sedar_item_type": "reusable_onboard_gear",
+        "sedar_readiness_critical": True,
+        "sedar_manufacturer_part_number": "TR-80MM-220M",
+        "sedar_compatibility_scope": "fleet",
+        "sedar_reorder_point": 1,
+    })
+    required = (3.0, 2.0, 2.0)
+    for index, (tug, quantity) in enumerate(zip(tugs, required), start=1):
+        _record(env, "sedar.tug.stock.requirement", f"tow_rope_requirement_{index}", {
+            "company_id": company.id,
+            "product_id": rope.id,
+            "tugboat_id": tug.id,
+            "required_qty": quantity,
+            "active": True,
+            "note": "Approved SEDAR Tow Rope inventory lifecycle walkthrough.",
+        })
+    marker = env["ir.config_parameter"].sudo().get_param(
+        "sedar_demo_suite.inventory_lifecycle_seeded"
+    )
+    if not marker and not existing_rope:
+        Quant = env["stock.quant"]
+        for tug, quantity in zip(tugs, (3.0, 1.0, 2.0)):
+            current = Quant._get_available_quantity(
+                rope, tug.stock_location_id, strict=True
+            )
+            Quant._update_available_quantity(
+                rope, tug.stock_location_id, quantity - current
+            )
+        warehouse = company.sedar_default_storage_location_id
+        current = Quant._get_available_quantity(rope, warehouse, strict=True)
+        if current:
+            Quant._update_available_quantity(rope, warehouse, -current)
+    if not marker:
+        env["ir.config_parameter"].sudo().set_param(
+            "sedar_demo_suite.inventory_lifecycle_seeded", "1"
+        )
+    env["sedar.replenishment.demand"]._sync_inventory_shortages()
 
 
 def _ensure_inventory_issue(env, xmlid, product, tugboat, quantity, purpose, manager):
