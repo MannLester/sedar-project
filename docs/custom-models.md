@@ -98,6 +98,8 @@ fixture seeding.
 | `sedar.purchase.request.line.cancel.wizard` | New transient | Captures the mandatory reason for irreversibly cancelling one unawarded requested product | `sedar_purchase_request/models/purchase_award.py` |
 | `sedar.purchase.request.recovery.wizard` | New transient | Captures the Officer's reason for recovering an incomplete legacy handoff | `sedar_purchase_request/models/purchase_award.py` |
 | `ir.attachment` | Method-only extension | Protects Bid quotation files from public/token access, reassignment, and post-receipt mutation | `sedar_purchase_request/models/ir_attachment.py` |
+| `stock.move` | Method-only extension | After a stock move is done, syncs the Low Stock to-do of each SEDAR Inventory Item it touched | `sedar_purchase_request/models/low_stock_alert.py` |
+| `product.product` | Method-only extension | Schedules one open Low Stock activity for the configured Procurement and Inventory Officer while Stock Status is Low Stock or Out of Stock, and closes it when the Item Type is In Stock again | `sedar_purchase_request/models/low_stock_alert.py` |
 | `purchase.order` | Extended | Links each standard Purchase Order to the Purchase Request and exact winning Bid that produced it | `sedar_purchase_request/models/purchase_request.py`; `sedar_purchase_request/models/purchase_award.py` |
 | `purchase.order.line` | Extended | Links each grouped order line to its requested product, winning Bid line, and immutable Line Award | `sedar_purchase_request/models/purchase_award.py` |
 | `sedar.hsse.incident` | New | Tracks incidents, near misses, investigation, source links, confidential evidence, corrective actions, and verified closure | `sedar_hsse/models/hsse.py` |

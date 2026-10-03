@@ -9,4 +9,13 @@
         <field name="category">default</field>
         <field name="res_model">sedar.purchase.request</field>
     </record>
+    <record id="mail_activity_type_low_stock" model="mail.activity.type">
+        <field name="name">Low Stock</field>
+        <field name="summary">Review low or out-of-stock Inventory Item</field>
+        <field name="icon">fa-exclamation-triangle</field>
+        <field name="delay_count">0</field>
+        <field name="delay_unit">days</field>
+        <field name="category">default</field>
+        <field name="res_model">product.product</field>
+    </record>
 </odoo>

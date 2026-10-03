@@ -8,3 +8,4 @@ from . import purchase_request_award
 from . import purchase_request_line_award
 from . import replenishment_demand
 from . import ir_attachment
+from . import low_stock_alert

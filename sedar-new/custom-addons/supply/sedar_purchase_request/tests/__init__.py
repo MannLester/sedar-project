@@ -3,3 +3,4 @@ from . import test_purchase_bid
 from . import test_purchase_award
 from . import test_purchase_workspace
 from . import test_replenishment_procurement
+from . import test_purchase_forms

@@ -168,6 +168,7 @@ Use this Procurement navigation:
 - A dedicated Bid comparison action grouped by requested product, plus a per-line award picker showing Bidder, price, delivery, validity, availability, and warranty before confirmation.
 - Smart buttons for Bids and generated Purchase Orders.
 - Chatter and activities for request and award audit history.
+- Print menu: Purchase Request Form for anyone who can read the request, and Abstract of Bids (Bids per product, awarded Bid marked with its reason) for the Officer. Both end with a Requested by / Reviewed by / Approved by signature block. Approved Purchase Orders print with the standard Odoo Purchase Order report.
 
 ### Bidder List
 
@@ -223,6 +224,7 @@ Server-side checks must enforce every authority rule; hidden buttons alone are i
 
 - A due Running Hours threshold assigns one deduplicated activity to the responsible Maintenance user or team.
 - Submitting a Purchase Request assigns one actionable review activity to the configured Procurement and Inventory Officer.
+- A done stock move that leaves a SEDAR Inventory Item at or below its Reorder Point (Low Stock) or with nothing available (Out of Stock) assigns one open Low Stock activity on that Item Type to the configured Procurement and Inventory Officer. It closes automatically when Stock Status returns to In Stock and never creates a Purchase Request.
 - Approving, rejecting, awarding, resetting an award, and creating Purchase Orders posts traceable chatter entries.
 - Email delivery is not required for the local MVP; Odoo inbox/activity notifications are authoritative.
 

@@ -17,6 +17,7 @@
         "data/sedar_purchase_request_activity.xml",
         "views/sedar_purchase_request_views.xml",
         "views/replenishment_demand_views.xml",
+        "report/sedar_purchase_request_reports.xml",
     ],
     "post_init_hook": "post_init_hook",
     "installable": True,

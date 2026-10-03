@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_sedar_purchase_request" model="ir.actions.report">
+        <field name="name">Purchase Request Form</field>
+        <field name="model">sedar.purchase.request</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">sedar_purchase_request.report_purchase_request_form</field>
+        <field name="report_file">sedar_purchase_request.report_purchase_request_form</field>
+        <field name="print_report_name">"Purchase Request - %s" % object.name</field>
+        <field name="binding_model_id" ref="model_sedar_purchase_request"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <record id="action_report_sedar_abstract_of_bids" model="ir.actions.report">
+        <field name="name">Abstract of Bids</field>
+        <field name="model">sedar.purchase.request</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">sedar_purchase_request.report_abstract_of_bids</field>
+        <field name="report_file">sedar_purchase_request.report_abstract_of_bids</field>
+        <field name="print_report_name">"Abstract of Bids - %s" % object.name</field>
+        <field name="binding_model_id" ref="model_sedar_purchase_request"/>
+        <field name="binding_type">report</field>
+        <field name="group_ids" eval="[Command.link(ref('sedar_marine_inventory.group_marine_inventory_manager'))]"/>
+    </record>
+
+    <template id="report_signature_block">
+        <div class="row mt-5 pt-4" style="page-break-inside: avoid;">
+            <div class="col-4 text-center">
+                <div style="border-bottom: 1px solid #000; height: 3.5rem; margin: 0 0.75rem;"/>
+                <strong t-out="prepared_by"/>
+                <div class="small text-muted">Requested by</div>
+                <div class="small" t-if="prepared_at" t-out="prepared_at" t-options="{'widget': 'datetime'}"/>
+            </div>
+            <div class="col-4 text-center">
+                <div style="border-bottom: 1px solid #000; height: 3.5rem; margin: 0 0.75rem;"/>
+                <strong t-out="reviewed_by or 'Procurement and Inventory Officer'"/>
+                <div class="small text-muted">Reviewed by, Procurement and Inventory Officer</div>
+                <div class="small" t-if="reviewed_at" t-out="reviewed_at" t-options="{'widget': 'datetime'}"/>
+            </div>
+            <div class="col-4 text-center">
+                <div style="border-bottom: 1px solid #000; height: 3.5rem; margin: 0 0.75rem;"/>
+                <strong>Name and signature</strong>
+                <div class="small text-muted">Approved by</div>
+                <div class="small">Date: ____________</div>
+            </div>
+        </div>
+    </template>
+
+    <template id="report_purchase_request_form">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2>Purchase Request <span t-field="o.name"/></h2>
+                        <div class="row mt-3 mb-3">
+                            <div class="col-6">
+                                <div><strong>Requested by:</strong> <span t-field="o.requester_id"/></div>
+                                <div t-if="o.department_id"><strong>Department:</strong> <span t-field="o.department_id"/></div>
+                                <div><strong>Date needed:</strong> <span t-field="o.required_date"/></div>
+                                <div><strong>Priority:</strong> <span t-field="o.priority"/></div>
+                            </div>
+                            <div class="col-6">
+                                <div><strong>Status:</strong> <span t-field="o.state"/></div>
+                                <div><strong>Source:</strong> <span t-field="o.source_type"/></div>
+                                <div t-if="o.equipment_id"><strong>Equipment:</strong> <span t-field="o.equipment_id"/></div>
+                                <div t-if="o.service_order_id"><strong>Service Order:</strong> <span t-field="o.service_order_id"/></div>
+                                <div t-if="o.maintenance_request_id"><strong>Work Order:</strong> <span t-field="o.maintenance_request_id"/></div>
+                            </div>
+                        </div>
+                        <div class="mb-3"><strong>Justification:</strong> <span t-field="o.justification"/></div>
+                        <table class="table table-sm o_main_table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Item</th>
+                                    <th class="text-end">Quantity</th>
+                                    <th>Unit</th>
+                                    <th class="text-end">Est. unit price</th>
+                                    <th class="text-end">Est. amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="o.line_ids.filtered(lambda line: line.line_state == 'active')" t-as="line">
+                                    <td t-out="line_index + 1"/>
+                                    <td>
+                                        <span t-field="line.product_id"/>
+                                        <div class="small text-muted" t-if="line.need_reason" t-field="line.need_reason"/>
+                                    </td>
+                                    <td class="text-end"><span t-field="line.quantity"/></td>
+                                    <td><span t-field="line.product_uom_id"/></td>
+                                    <td class="text-end"><span t-field="line.estimated_unit_price"/></td>
+                                    <td class="text-end"><span t-field="line.estimated_subtotal"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="text-end"><strong>Estimated total:</strong> <span t-field="o.estimated_total"/></div>
+                        <t t-call="sedar_purchase_request.report_signature_block">
+                            <t t-set="prepared_by" t-value="o.requester_id.name"/>
+                            <t t-set="prepared_at" t-value="o.create_date"/>
+                            <t t-set="reviewed_by" t-value="o.approved_by_id.name"/>
+                            <t t-set="reviewed_at" t-value="o.approved_at"/>
+                        </t>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_abstract_of_bids">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2>Abstract of Bids <span t-field="o.name"/></h2>
+                        <div class="mb-3">
+                            <strong>Requested by:</strong> <span t-field="o.requester_id"/>
+                            <span t-if="o.equipment_id"> · <strong>Equipment:</strong> <span t-field="o.equipment_id"/></span>
+                            · <strong>Progress:</strong> <span t-field="o.procurement_progress"/>
+                        </div>
+                        <t t-foreach="o.line_ids.filtered(lambda line: line.line_state == 'active')" t-as="line">
+                            <t t-set="bid_lines" t-value="line.bid_line_ids.filtered(lambda bid_line: bid_line.bid_id.state == 'received').sorted('unit_price')"/>
+                            <t t-set="award" t-value="line.current_award_id"/>
+                            <div class="mt-3" style="page-break-inside: avoid;">
+                                <h5>
+                                    <span t-field="line.product_id"/> —
+                                    <span t-field="line.quantity"/> <span t-field="line.product_uom_id"/>
+                                    <span class="small text-muted">(estimated <span t-field="line.estimated_unit_price"/> each)</span>
+                                </h5>
+                                <table class="table table-sm o_main_table">
+                                    <thead>
+                                        <tr>
+                                            <th>Bidder</th>
+                                            <th class="text-end">Unit price</th>
+                                            <th class="text-end">Amount</th>
+                                            <th>Delivery</th>
+                                            <th>Valid until</th>
+                                            <th>Availability</th>
+                                            <th/>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr t-foreach="bid_lines" t-as="bid_line" t-att-class="'fw-bold' if award and award.bid_line_id == bid_line else ''">
+                                            <td><span t-field="bid_line.bidder_id"/></td>
+                                            <td class="text-end"><span t-field="bid_line.unit_price" t-options="{'widget': 'monetary', 'display_currency': bid_line.currency_id}"/></td>
+                                            <td class="text-end"><span t-field="bid_line.subtotal"/></td>
+                                            <td><span t-out="bid_line.promised_delivery_date or bid_line.bid_id.promised_delivery_date" t-options="{'widget': 'date'}"/></td>
+                                            <td><span t-field="bid_line.validity_date"/></td>
+                                            <td><span t-field="bid_line.availability_note"/></td>
+                                            <td><span t-if="award and award.bid_line_id == bid_line">AWARDED</span></td>
+                                        </tr>
+                                        <tr t-if="not bid_lines">
+                                            <td colspan="7" class="text-muted">No bids received for this item.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div t-if="award" class="small"><strong>Award reason:</strong> <span t-field="award.award_reason"/></div>
+                            </div>
+                        </t>
+                        <div class="mt-4" style="page-break-inside: avoid;">
+                        <h5>Bids received</h5>
+                        <table class="table table-sm o_main_table">
+                            <thead>
+                                <tr>
+                                    <th>Reference</th>
+                                    <th>Bidder</th>
+                                    <th>Received</th>
+                                    <th>Valid until</th>
+                                    <th>Payment terms</th>
+                                    <th>Warranty</th>
+                                    <th class="text-end">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="o.bid_ids.filtered(lambda bid: bid.state == 'received')" t-as="bid">
+                                    <td><span t-field="bid.name"/></td>
+                                    <td><span t-field="bid.bidder_id"/></td>
+                                    <td><span t-field="bid.received_date"/></td>
+                                    <td><span t-field="bid.validity_date"/></td>
+                                    <td><span t-field="bid.payment_terms"/></td>
+                                    <td><span t-field="bid.warranty_notes"/></td>
+                                    <td class="text-end"><span t-field="bid.total_amount"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        </div>
+                        <t t-call="sedar_purchase_request.report_signature_block">
+                            <t t-set="prepared_by" t-value="o.requester_id.name"/>
+                            <t t-set="prepared_at" t-value="o.create_date"/>
+                            <t t-set="reviewed_by" t-value="o.company_id.sedar_procurement_inventory_officer_id.name"/>
+                            <t t-set="reviewed_at" t-value="False"/>
+                        </t>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>
