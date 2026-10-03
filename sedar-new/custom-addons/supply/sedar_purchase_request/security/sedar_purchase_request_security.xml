@@ -96,7 +96,9 @@
         <field name="groups" eval="[
             Command.link(ref('group_sedar_purchase_request_user')),
             Command.link(ref('sedar_marine_inventory.group_marine_inventory_user')),
-            Command.link(ref('sedar_marine_maintenance.group_marine_maintenance_user'))
+            Command.link(ref('sedar_marine_maintenance.group_marine_maintenance_user')),
+            Command.link(ref('sedar_marine_operations.group_operations_manager')),
+            Command.link(ref('sedar_marine_operations.group_tug_master'))
         ]"/>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
@@ -122,7 +124,9 @@
         <field name="groups" eval="[
             Command.link(ref('group_sedar_purchase_request_user')),
             Command.link(ref('sedar_marine_inventory.group_marine_inventory_user')),
-            Command.link(ref('sedar_marine_maintenance.group_marine_maintenance_user'))
+            Command.link(ref('sedar_marine_maintenance.group_marine_maintenance_user')),
+            Command.link(ref('sedar_marine_operations.group_operations_manager')),
+            Command.link(ref('sedar_marine_operations.group_tug_master'))
         ]"/>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>

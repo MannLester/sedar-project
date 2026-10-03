@@ -6,4 +6,5 @@ from . import purchase_award_common
 from . import purchase_award
 from . import purchase_request_award
 from . import purchase_request_line_award
+from . import replenishment_demand
 from . import ir_attachment

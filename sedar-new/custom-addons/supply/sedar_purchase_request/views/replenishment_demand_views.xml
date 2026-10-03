@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_purchase_request_demand_trace" model="ir.ui.view">
+        <field name="name">sedar.purchase.request.demand.trace</field>
+        <field name="model">sedar.purchase.request</field>
+        <field name="inherit_id" ref="sedar_purchase_request.view_sedar_purchase_request_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='line_ids']/list/field[@name='inventory_requirement_id']" position="after">
+                <field name="replenishment_demand_id" optional="show"/>
+                <field name="affected_tugboat_id" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_replenishment_demand_procurement" model="ir.ui.view">
+        <field name="name">sedar.replenishment.demand.procurement</field>
+        <field name="model">sedar.replenishment.demand</field>
+        <field name="inherit_id" ref="sedar_marine_inventory.view_replenishment_demand_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='remaining_qty']" position="after">
+                <field name="incoming_purchase_qty"/>
+                <field name="purchase_request_count"/>
+            </xpath>
+            <xpath expr="//field[@name='movement_ids']" position="after">
+                <field name="purchase_request_line_ids">
+                    <list>
+                        <field name="request_id"/>
+                        <field name="product_id"/>
+                        <field name="quantity"/>
+                        <field name="source_location_id"/>
+                    </list>
+                </field>
+            </xpath>
+        </field>
+    </record>
+</odoo>
