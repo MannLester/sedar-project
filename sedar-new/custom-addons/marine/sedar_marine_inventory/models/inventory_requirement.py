@@ -62,6 +62,9 @@ class SedarInventoryRequirement(models.Model):
     )
     auto_generated = fields.Boolean(default=False)
     note = fields.Text()
+    is_readiness_blocking = fields.Boolean(
+        related="product_id.sedar_readiness_critical", store=True, readonly=True,
+    )
 
     @api.depends(
         "product_id", "source_location_id", "tug_location_id",
@@ -119,6 +122,7 @@ class SedarInventoryRequirement(models.Model):
             return lines
         lines.mapped("order_id")._sync_inventory_readiness()
         lines.mapped("order_id").sync_automated_readiness()
+        self.env["sedar.replenishment.demand"]._sync_inventory_shortages()
         return lines
 
     def write(self, vals):
@@ -131,6 +135,7 @@ class SedarInventoryRequirement(models.Model):
         }.intersection(vals):
             self.mapped("order_id")._sync_inventory_readiness()
             self.mapped("order_id").sync_automated_readiness()
+            self.env["sedar.replenishment.demand"]._sync_inventory_shortages()
         return result
 
     def unlink(self):
@@ -140,4 +145,5 @@ class SedarInventoryRequirement(models.Model):
             return result
         orders._sync_inventory_readiness()
         orders.sync_automated_readiness()
+        self.env["sedar.replenishment.demand"]._sync_inventory_shortages()
         return result

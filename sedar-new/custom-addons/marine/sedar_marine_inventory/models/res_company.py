@@ -29,6 +29,16 @@ class ResCompany(models.Model):
         string="SEDAR Disposal Location",
         ondelete="restrict",
     )
+    sedar_adjustment_location_id = fields.Many2one(
+        "stock.location",
+        string="SEDAR Inventory Adjustment Location",
+        ondelete="restrict",
+    )
+    sedar_quarantine_location_id = fields.Many2one(
+        "stock.location",
+        string="SEDAR Storage Quarantine Location",
+        ondelete="restrict",
+    )
 
     @api.constrains("sedar_procurement_inventory_officer_id")
     def _check_sedar_procurement_inventory_officer(self):
@@ -47,14 +57,18 @@ class ResCompany(models.Model):
 
     @api.constrains(
         "sedar_default_storage_location_id",
+        "sedar_quarantine_location_id",
         "sedar_consumption_location_id",
         "sedar_disposal_location_id",
+        "sedar_adjustment_location_id",
     )
     def _check_sedar_inventory_locations(self):
         expected = (
             ("sedar_default_storage_location_id", "storage"),
+            ("sedar_quarantine_location_id", "storage_quarantine"),
             ("sedar_consumption_location_id", "consumption"),
             ("sedar_disposal_location_id", "disposal"),
+            ("sedar_adjustment_location_id", "adjustment"),
         )
         for company in self:
             for field_name, role in expected:
@@ -65,6 +79,11 @@ class ResCompany(models.Model):
                     raise ValidationError(_(
                         "Every configured SEDAR inventory location must belong to the company and have its matching role."
                     ))
+            quarantine = company.sedar_quarantine_location_id
+            if quarantine and quarantine.location_id != company.sedar_default_storage_location_id:
+                raise ValidationError(_(
+                    "The Storage Quarantine location must be inside the company's Default SEDAR Storage Location."
+                ))
 
 
 class ResConfigSettings(models.TransientModel):
@@ -78,4 +97,10 @@ class ResConfigSettings(models.TransientModel):
     )
     sedar_disposal_location_id = fields.Many2one(
         related="company_id.sedar_disposal_location_id", readonly=False
+    )
+    sedar_quarantine_location_id = fields.Many2one(
+        related="company_id.sedar_quarantine_location_id", readonly=False
+    )
+    sedar_adjustment_location_id = fields.Many2one(
+        related="company_id.sedar_adjustment_location_id", readonly=False
     )

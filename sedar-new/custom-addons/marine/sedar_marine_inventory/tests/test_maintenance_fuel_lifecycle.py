@@ -93,7 +93,7 @@ class TestMaintenanceFuelLifecycle(TransactionCase):
                 "uom_id": cls.unit.id,
                 "default_code": "LIFECYCLE-MAINT-SPARE",
                 "sedar_inventory_item": True,
-                "sedar_item_type": "spare_consumable",
+                "sedar_item_type": "spare_part",
             }
         )
         cls.fuel = cls.env["product.product"].create(

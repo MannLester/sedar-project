@@ -198,7 +198,7 @@ class TestMarineInventory(TransactionCase):
                 "uom_id": self.unit.id,
                 "default_code": "INVENTORY-LIFECYCLE-SPARE",
                 "sedar_inventory_item": True,
-                "sedar_item_type": "spare_consumable",
+                "sedar_item_type": "spare_part",
             }
         )
         self.env["stock.quant"]._update_available_quantity(

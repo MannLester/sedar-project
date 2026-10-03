@@ -99,7 +99,10 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='fuel_capacity']" position="after">
                 <field name="stock_location_id"/>
+                <field name="quarantine_location_id"/>
                 <field name="onboard_stock_item_count" readonly="1"/>
+                <field name="serviceable_stock_item_count" readonly="1"/>
+                <field name="defective_stock_item_count" readonly="1"/>
                 <button name="action_open_onboard_stock" type="object" string="View Onboard Stock" class="btn-secondary" invisible="not stock_location_id"/>
             </xpath>
         </field>
@@ -114,12 +117,14 @@
                 <block title="SEDAR Inventory Lifecycle">
                     <setting string="Default Storage" help="Default tagged Storage location proposed for new tugboat issues.">
                         <field name="sedar_default_storage_location_id" domain="[('company_id', '=', company_id), ('sedar_location_role', '=', 'storage')]"/>
+                        <field name="sedar_quarantine_location_id" domain="[('company_id', '=', company_id), ('sedar_location_role', '=', 'storage_quarantine')]"/>
                     </setting>
                     <setting string="Consumption Destination" help="Inventory-loss destination for controlled consumption movements.">
                         <field name="sedar_consumption_location_id" domain="[('company_id', '=', company_id), ('sedar_location_role', '=', 'consumption')]"/>
                     </setting>
                     <setting string="Disposal Destination" help="Inventory-loss destination for controlled disposal movements.">
                         <field name="sedar_disposal_location_id" domain="[('company_id', '=', company_id), ('sedar_location_role', '=', 'disposal')]"/>
+                        <field name="sedar_adjustment_location_id" domain="[('company_id', '=', company_id), ('sedar_location_role', '=', 'adjustment')]"/>
                     </setting>
                 </block>
             </xpath>
@@ -224,7 +229,9 @@
                 <filter name="fleet_wide" string="Fleet-wide" domain="[('sedar_compatibility_scope', '=', 'fleet')]"/>
                 <separator/>
                 <filter name="fuel_lubricant" string="Fuel / Lubricant" domain="[('sedar_item_type', '=', 'fuel_lubricant')]"/>
-                <filter name="spare_consumable" string="Spare / Consumable" domain="[('sedar_item_type', '=', 'spare_consumable')]"/>
+                <filter name="consumable_store" string="Consumable Store" domain="[('sedar_item_type', '=', 'consumable_store')]"/>
+                <filter name="spare_part" string="Spare Part" domain="[('sedar_item_type', '=', 'spare_part')]"/>
+                <filter name="reusable_onboard_gear" string="Reusable Onboard Gear" domain="[('sedar_item_type', '=', 'reusable_onboard_gear')]"/>
                 <filter name="replacement_equipment" string="Replacement Equipment" domain="[('sedar_item_type', '=', 'replacement_equipment')]"/>
                 <separator/>
                 <filter name="group_compatibility" string="Group by Compatibility" context="{'group_by': 'sedar_compatibility_scope'}"/>
@@ -242,6 +249,7 @@
                 <field name="sedar_stock_status" widget="badge"/>
                 <field name="name" string="Item Type"/>
                 <field name="sedar_item_type" string="Classification" widget="badge"/>
+                <field name="sedar_readiness_critical" optional="show"/>
                 <field name="sedar_available_to_issue" string="Available"/>
                 <field name="uom_id" string="Unit"/>
                 <field name="sedar_manufacturer_part_number" optional="hide"/>
@@ -260,6 +268,8 @@
             <form string="Storage Item Type">
                 <header>
                     <button name="action_open_sedar_issue_wizard" type="object" string="Issue to Tug" class="btn-primary" groups="sedar_marine_inventory.group_marine_inventory_manager"/>
+                    <button name="action_open_sedar_locations" type="object" string="Where Is It?"/>
+                    <button name="action_open_sedar_movements" type="object" string="Movement History"/>
                 </header>
                 <sheet>
                     <field name="sedar_inventory_item" invisible="1"/>
@@ -271,6 +281,7 @@
                             <field name="default_code" string="SEDAR Item Code" readonly="sedar_code_locked"/>
                             <field name="sedar_manufacturer_part_number"/>
                             <field name="sedar_item_type" readonly="sedar_code_locked"/>
+                            <field name="sedar_readiness_critical"/>
                             <field name="tracking" readonly="sedar_code_locked and sedar_item_type == 'replacement_equipment'"/>
                             <field name="uom_id"/>
                             <field name="active"/>

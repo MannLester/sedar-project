@@ -97,7 +97,7 @@ class TestInventoryLifecycleQuantityValuation(TransactionCase):
                 "uom_id": cls.precise_unit.id,
                 "default_code": "LIFECYCLE-ROUNDED-SPARE",
                 "sedar_inventory_item": True,
-                "sedar_item_type": "spare_consumable",
+                "sedar_item_type": "spare_part",
             }
         )
         cls.valuation_category = cls.env["product.category"].create(
@@ -117,7 +117,7 @@ class TestInventoryLifecycleQuantityValuation(TransactionCase):
                 "standard_price": 25.0,
                 "default_code": "LIFECYCLE-VALUED-SPARE",
                 "sedar_inventory_item": True,
-                "sedar_item_type": "spare_consumable",
+                "sedar_item_type": "spare_part",
             }
         )
         cls.env["stock.quant"]._update_available_quantity(
@@ -340,7 +340,7 @@ class TestInventoryLifecycleConcurrency(TransactionCase):
                         "company_id": company.id,
                         "default_code": "LIFECYCLE-COMMITTED-CONCURRENCY-SPARE",
                         "sedar_inventory_item": True,
-                        "sedar_item_type": "spare_consumable",
+                        "sedar_item_type": "spare_part",
                     }
                 )
             )

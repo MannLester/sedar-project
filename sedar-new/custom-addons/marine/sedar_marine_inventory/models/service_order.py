@@ -24,7 +24,10 @@ class SedarMarineServiceOrder(models.Model):
         for order in self:
             requirements = order.inventory_requirement_ids
             order.inventory_requirement_count = len(requirements)
-            shortages = requirements.filtered(lambda line: line.readiness_state != "ready")
+            shortages = requirements.filtered(
+                lambda line: line.is_readiness_blocking
+                and line.readiness_state != "ready"
+            )
             order.inventory_auto_ready = bool(requirements) and not shortages
             order.inventory_shortage_summary = ", ".join(
                 "%s: %.2f short" % (line.product_id.display_name, line.shortage_qty)
@@ -158,6 +161,7 @@ class SedarMarineServiceOrder(models.Model):
                         retained |= Requirement.create(values)
             (existing_auto - retained).with_context(sedar_inventory_generation=True).unlink()
             order._sync_inventory_readiness()
+        self.env["sedar.replenishment.demand"]._sync_inventory_shortages()
         return True
 
     def action_confirm_inventory_ready(self):
@@ -274,11 +278,13 @@ class SedarTugAssignment(models.Model):
                 reasons.append("Crew plan incomplete or noncompliant")
             assignment.crew_readiness_status = "ready" if crew_ready else "blocked"
 
-            inventory = assignment.inventory_requirement_ids
+            inventory = assignment.inventory_requirement_ids.filtered(
+                "is_readiness_blocking"
+            )
             if tug and not tug.stock_location_id:
                 inventory_status = "blocked"
                 reasons.append("Tug stock location is not configured")
-            elif inventory and all(line.readiness_state == "ready" for line in inventory):
+            elif not inventory or all(line.readiness_state == "ready" for line in inventory):
                 inventory_status = "ready"
             elif inventory and any(line.readiness_state == "purchase_required" for line in inventory):
                 inventory_status = "blocked"

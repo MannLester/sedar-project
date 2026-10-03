@@ -8,9 +8,12 @@ class StockLocation(models.Model):
     sedar_location_role = fields.Selection(
         [
             ("storage", "Storage"),
+            ("storage_quarantine", "Storage Quarantine"),
             ("tug", "Tugboat Stock"),
+            ("tug_quarantine", "Tugboat Quarantine"),
             ("consumption", "Consumption"),
             ("disposal", "Disposal"),
+            ("adjustment", "Inventory Adjustment"),
         ],
         string="SEDAR Inventory Role",
         index=True,
@@ -25,9 +28,9 @@ class StockLocation(models.Model):
         check_company=True,
     )
 
-    _sedar_tugboat_unique = models.Constraint(
-        "UNIQUE(sedar_tugboat_id)",
-        "A tugboat may have only one SEDAR tugboat stock location.",
+    _sedar_tugboat_role_unique = models.Constraint(
+        "UNIQUE(sedar_tugboat_id, sedar_location_role)",
+        "A tugboat may have only one SEDAR location for each inventory role.",
     )
 
     @api.constrains("sedar_location_role", "sedar_tugboat_id", "usage", "company_id")
@@ -40,14 +43,25 @@ class StockLocation(models.Model):
                 continue
             if not location.company_id:
                 raise ValidationError(_("A SEDAR inventory location must belong to a company."))
-            if role in {"storage", "tug"} and location.usage != "internal":
-                raise ValidationError(_("Storage and tugboat stock locations must be internal locations."))
-            if role in {"consumption", "disposal"} and location.usage != "inventory":
+            if role in {"storage", "storage_quarantine", "tug", "tug_quarantine"} and location.usage != "internal":
+                raise ValidationError(_("Storage, quarantine, and tugboat stock locations must be internal locations."))
+            if role in {"consumption", "disposal", "adjustment"} and location.usage != "inventory":
                 raise ValidationError(_("Consumption and disposal locations must be inventory-loss locations."))
-            if role == "tug" and not location.sedar_tugboat_id:
-                raise ValidationError(_("A Tugboat Stock location must identify its tugboat."))
-            if role != "tug" and location.sedar_tugboat_id:
-                raise ValidationError(_("Only Tugboat Stock locations may identify a tugboat."))
+            if role in {"tug", "tug_quarantine"} and not location.sedar_tugboat_id:
+                raise ValidationError(_("A tugboat inventory location must identify its tugboat."))
+            if role not in {"tug", "tug_quarantine"} and location.sedar_tugboat_id:
+                raise ValidationError(_("Only tugboat inventory locations may identify a tugboat."))
             tug_company = getattr(location.sedar_tugboat_id, "company_id", False)
             if tug_company and tug_company != location.company_id:
                 raise ValidationError(_("A tugboat stock location must belong to its tugboat's company."))
+            if role == "tug_quarantine" and (
+                not location.location_id
+                or location.location_id.sedar_location_role != "tug"
+                or location.location_id.sedar_tugboat_id != location.sedar_tugboat_id
+            ):
+                raise ValidationError(_("A tugboat quarantine location must be inside that tugboat's serviceable location."))
+            if role == "storage_quarantine" and (
+                not location.location_id
+                or location.location_id.sedar_location_role != "storage"
+            ):
+                raise ValidationError(_("A storage quarantine location must be inside a tagged Storage location."))

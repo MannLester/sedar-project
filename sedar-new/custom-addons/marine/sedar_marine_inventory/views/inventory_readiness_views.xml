@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_tug_stock_requirement_list" model="ir.ui.view">
+        <field name="name">sedar.tug.stock.requirement.list</field>
+        <field name="model">sedar.tug.stock.requirement</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="product_id"/>
+                <field name="tug_class_id"/>
+                <field name="tugboat_id"/>
+                <field name="required_qty"/>
+                <field name="product_uom_id"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_tug_stock_requirement_form" model="ir.ui.view">
+        <field name="name">sedar.tug.stock.requirement.form</field>
+        <field name="model">sedar.tug.stock.requirement</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="company_id" groups="base.group_multi_company"/>
+                        <field name="product_id"/>
+                        <field name="tug_class_id" invisible="tugboat_id"/>
+                        <field name="tugboat_id" invisible="tug_class_id"/>
+                        <field name="required_qty"/>
+                        <field name="product_uom_id"/>
+                        <field name="active"/>
+                    </group>
+                    <field name="note"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_replenishment_demand_list" model="ir.ui.view">
+        <field name="name">sedar.replenishment.demand.list</field>
+        <field name="model">sedar.replenishment.demand</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0" decoration-danger="state == 'open'">
+                <field name="name"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="scope" widget="badge"/>
+                <field name="tugboat_id"/>
+                <field name="product_id"/>
+                <field name="required_qty"/>
+                <field name="serviceable_qty"/>
+                <field name="remaining_qty"/>
+                <field name="product_uom_id"/>
+                <field name="required_date"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_replenishment_demand_form" model="ir.ui.view">
+        <field name="name">sedar.replenishment.demand.form</field>
+        <field name="model">sedar.replenishment.demand</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0" delete="0">
+                <header>
+                    <button name="action_resolve_shortage" type="object" string="Resolve Shortage" class="btn-primary" invisible="state != 'open'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="scope"/>
+                            <field name="tugboat_id"/>
+                            <field name="product_id"/>
+                            <field name="product_uom_id"/>
+                            <field name="required_date"/>
+                        </group>
+                        <group>
+                            <field name="required_qty"/>
+                            <field name="serviceable_qty"/>
+                            <field name="original_shortage_qty"/>
+                            <field name="fulfilled_qty"/>
+                            <field name="remaining_qty"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="stock_requirement_id"/>
+                        <field name="inventory_requirement_id"/>
+                        <field name="tug_assignment_id"/>
+                        <field name="order_id"/>
+                    </group>
+                    <group>
+                        <field name="opened_at"/>
+                        <field name="closed_at"/>
+                        <field name="closure_reason"/>
+                    </group>
+                    <field name="movement_ids">
+                        <list>
+                            <field name="name"/>
+                            <field name="state"/>
+                            <field name="quantity"/>
+                            <field name="source_location_id"/>
+                            <field name="destination_location_id"/>
+                        </list>
+                    </field>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_inventory_shortage_resolve_wizard" model="ir.ui.view">
+        <field name="name">sedar.inventory.shortage.resolve.wizard.form</field>
+        <field name="model">sedar.inventory.shortage.resolve.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Resolve Shortage">
+                <group>
+                    <field name="demand_id"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                    <field name="tugboat_id"/>
+                    <field name="product_id"/>
+                    <field name="remaining_qty"/>
+                    <field name="product_uom_id"/>
+                    <field name="incoming_purchase_qty"/>
+                </group>
+                <group>
+                    <field name="resolution"/>
+                    <field name="source_location_id" invisible="resolution != 'movement'"/>
+                    <field name="source_tugboat_id" invisible="resolution != 'movement'"/>
+                    <field name="source_available_qty" invisible="resolution != 'movement'"/>
+                    <field name="quantity" invisible="resolution != 'movement'"/>
+                </group>
+                <footer>
+                    <button name="action_apply" type="object" string="Continue" class="btn-primary"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_tugboat_inventory_readiness" model="ir.ui.view">
+        <field name="name">sedar.tugboat.inventory.readiness</field>
+        <field name="model">sedar.tugboat</field>
+        <field name="inherit_id" ref="sedar_marine_inventory.view_tugboat_inventory"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='defective_stock_item_count']" position="after">
+                <field name="inventory_readiness_status" widget="badge"/>
+                <field name="inventory_readiness_reason"/>
+                <field name="open_replenishment_demand_count"/>
+                <button name="action_open_inventory_movements" type="object" string="Movements"/>
+                <button name="action_open_inventory_history" type="object" string="History"/>
+                <button name="action_record_physical_count" type="object" string="Record Physical Count"/>
+                <button name="action_open_replenishment_demands" type="object" string="Shortages" invisible="not open_replenishment_demand_count"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_inventory_physical_count_wizard" model="ir.ui.view">
+        <field name="name">sedar.inventory.physical.count.wizard.form</field>
+        <field name="model">sedar.inventory.physical.count.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Record Physical Count">
+                <group>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                    <field name="target_location_id"/>
+                    <field name="tugboat_id"/>
+                    <field name="product_id"/>
+                    <field name="product_uom_id"/>
+                </group>
+                <group string="Count by Condition">
+                    <group>
+                        <field name="current_serviceable_qty"/>
+                        <field name="serviceable_count"/>
+                    </group>
+                    <group>
+                        <field name="current_defective_qty"/>
+                        <field name="defective_count"/>
+                    </group>
+                </group>
+                <field name="note" placeholder="Optional count explanation"/>
+                <footer>
+                    <button name="action_apply" type="object" string="Apply Count" class="btn-primary"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_tug_stock_requirements" model="ir.actions.act_window">
+        <field name="name">Tug Stock Requirements</field>
+        <field name="res_model">sedar.tug.stock.requirement</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_replenishment_demands" model="ir.actions.act_window">
+        <field name="name">Replenishment Demands</field>
+        <field name="res_model">sedar.replenishment.demand</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="inventory_dashboard_main" model="sedar.inventory.dashboard">
+        <field name="name">Inventory Exception Dashboard</field>
+        <field name="company_id" ref="base.main_company"/>
+    </record>
+
+    <record id="view_inventory_dashboard_form" model="ir.ui.view">
+        <field name="name">sedar.inventory.dashboard.form</field>
+        <field name="model">sedar.inventory.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="Inventory Exception Dashboard" create="0" edit="0" delete="0">
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                    <separator string="Readiness and Replenishment"/>
+                    <div class="oe_button_box">
+                        <button name="action_open_baseline_blockers" type="object" class="oe_stat_button"><field name="baseline_blocker_count" widget="statinfo" string="Baseline Blockers"/></button>
+                        <button name="action_open_operation_blockers" type="object" class="oe_stat_button"><field name="operation_blocker_count" widget="statinfo" string="Operation Blockers"/></button>
+                        <button name="action_open_demands" type="object" class="oe_stat_button"><field name="open_demand_count" widget="statinfo" string="Open Demands"/></button>
+                        <button name="action_open_overdue_demands" type="object" class="oe_stat_button"><field name="overdue_demand_count" widget="statinfo" string="Overdue Demands"/></button>
+                    </div>
+                    <separator string="Stock Exceptions and Activity"/>
+                    <div class="oe_button_box">
+                        <button name="action_open_draft_movements" type="object" class="oe_stat_button"><field name="draft_movement_count" widget="statinfo" string="Draft Movements"/></button>
+                        <button name="action_open_defective_stock" type="object" class="oe_stat_button"><field name="defective_onboard_qty" widget="statinfo" string="Defective Onboard"/></button>
+                        <button name="action_open_low_stock" type="object" class="oe_stat_button"><field name="low_stock_item_count" widget="statinfo" string="Low Warehouse Stock"/></button>
+                        <button name="action_open_incoming_orders" type="object" class="oe_stat_button" invisible="not incoming_purchase_order_count"><field name="incoming_purchase_order_count" widget="statinfo" string="Incoming POs"/></button>
+                        <button name="action_open_recent_movements" type="object" class="oe_stat_button"><field name="recent_movement_count" widget="statinfo" string="Fleet Movements"/></button>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_inventory_dashboard" model="ir.actions.act_window">
+        <field name="name">Inventory Dashboard</field>
+        <field name="res_model">sedar.inventory.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="res_id" ref="sedar_marine_inventory.inventory_dashboard_main"/>
+    </record>
+
+    <menuitem id="menu_inventory_dashboard" name="Dashboard" parent="menu_marine_inventory_root" action="action_inventory_dashboard" sequence="1"/>
+    <menuitem id="menu_tug_stock_requirements" name="Tug Stock Requirements" parent="menu_marine_inventory_root" action="action_tug_stock_requirements" sequence="25"/>
+    <menuitem id="menu_replenishment_demands" name="Replenishment Demands" parent="menu_marine_inventory_root" action="action_replenishment_demands" sequence="26"/>
+</odoo>

@@ -7,4 +7,11 @@
         <field name="padding">5</field>
         <field name="company_id" eval="False"/>
     </record>
+    <record id="sequence_tug_inventory_movement" model="ir.sequence">
+        <field name="name">SEDAR Tug Inventory Movement</field>
+        <field name="code">sedar.tug.inventory.movement</field>
+        <field name="prefix">TIM/%(year)s/</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
 </odoo>

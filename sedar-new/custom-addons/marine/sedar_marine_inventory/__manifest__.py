@@ -1,6 +1,6 @@
 {
     "name": "SEDAR Marine Inventory",
-    "version": "19.0.4.0.0",
+    "version": "19.0.5.0.0",
     "category": "Marine",
     "summary": "Marine inventory readiness, spare parts, fuel, and lubricant controls",
     "author": "SEDAR Development Team",
@@ -16,6 +16,8 @@
         "security/ir.model.access.csv",
         "data/sedar_inventory_sequence.xml",
         "views/sedar_marine_inventory_views.xml",
+        "views/tug_inventory_movement_views.xml",
+        "views/inventory_readiness_views.xml",
     ],
     "post_init_hook": "post_init_hook",
     "installable": True,

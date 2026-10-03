@@ -100,6 +100,13 @@ def _ensure_warehouse(env):
 
 def _ensure_inventory_configuration(env, storage_location):
     company = env.company
+    quarantine = _record(env, "stock.location", "location_storage_quarantine", {
+        "name": "SEDAR Storage Quarantine",
+        "usage": "internal",
+        "location_id": storage_location.id,
+        "company_id": company.id,
+        "sedar_location_role": "storage_quarantine",
+    })
     virtual_parent = env["stock.location"].search([
         ("usage", "=", "view"),
         ("company_id", "in", [False, company.id]),
@@ -118,10 +125,19 @@ def _ensure_inventory_configuration(env, storage_location):
         "company_id": company.id,
         "sedar_location_role": "disposal",
     })
+    adjustment = _record(env, "stock.location", "location_inventory_adjustment", {
+        "name": "SEDAR Inventory Adjustment",
+        "usage": "inventory",
+        "location_id": virtual_parent.id,
+        "company_id": company.id,
+        "sedar_location_role": "adjustment",
+    })
     company.write({
         "sedar_default_storage_location_id": storage_location.id,
+        "sedar_quarantine_location_id": quarantine.id,
         "sedar_consumption_location_id": consumption.id,
         "sedar_disposal_location_id": disposal.id,
+        "sedar_adjustment_location_id": adjustment.id,
     })
 
 
@@ -138,6 +154,7 @@ def _ensure_products(env, stock_location):
             "barcode": "SEDAR000001",
             "sedar_inventory_item": True,
             "sedar_item_type": "fuel_lubricant",
+            "sedar_readiness_critical": True,
             "sedar_manufacturer_part_number": "DMA-ISO8217",
             "sedar_compatibility_scope": "fleet",
             "sedar_reorder_point": 30000,
@@ -151,6 +168,7 @@ def _ensure_products(env, stock_location):
             "barcode": "SEDAR000002",
             "sedar_inventory_item": True,
             "sedar_item_type": "fuel_lubricant",
+            "sedar_readiness_critical": True,
             "sedar_manufacturer_part_number": "MEO-15W40-CI4",
             "sedar_compatibility_scope": "fleet",
             "sedar_reorder_point": 250,
@@ -163,7 +181,7 @@ def _ensure_products(env, stock_location):
             "default_code": "SEDAR-SP-FILTER",
             "barcode": "SEDAR000003",
             "sedar_inventory_item": True,
-            "sedar_item_type": "spare_consumable",
+            "sedar_item_type": "spare_part",
             "sedar_manufacturer_part_number": "FF-9001-KR",
             "sedar_reorder_point": 10,
         }),
@@ -175,7 +193,7 @@ def _ensure_products(env, stock_location):
             "default_code": "SEDAR-SP-ORING",
             "barcode": "SEDAR000005",
             "sedar_inventory_item": True,
-            "sedar_item_type": "spare_consumable",
+            "sedar_item_type": "spare_part",
             "sedar_manufacturer_part_number": "OR-KIT-220-ME",
             "sedar_reorder_point": 6,
         }),
@@ -187,7 +205,7 @@ def _ensure_products(env, stock_location):
             "default_code": "SEDAR-SP-PACKING",
             "barcode": "SEDAR000004",
             "sedar_inventory_item": True,
-            "sedar_item_type": "spare_consumable",
+            "sedar_item_type": "spare_part",
             "sedar_manufacturer_part_number": "PPK-440-KR",
             "sedar_reorder_point": 2,
         }),
@@ -250,7 +268,23 @@ def _ensure_tug_locations(env, tug_parent_location, products):
             "sedar_location_role": "tug",
             "sedar_tugboat_id": tug.id,
         })
-        tug.write({"stock_location_id": location.id})
+        quarantine = _record(
+            env,
+            "stock.location",
+            f"location_{tug.registration_number.lower().replace('-', '_')}_quarantine",
+            {
+                "name": f"{tug.name} Quarantine",
+                "usage": "internal",
+                "location_id": location.id,
+                "company_id": company.id,
+                "sedar_location_role": "tug_quarantine",
+                "sedar_tugboat_id": tug.id,
+            },
+        )
+        tug.write({
+            "stock_location_id": location.id,
+            "quarantine_location_id": quarantine.id,
+        })
         _seed_available_once(env, products["diesel"], location, 12000)
         _seed_available_once(env, products["lube"], location, 80)
 
@@ -345,3 +379,7 @@ def post_init_hook(env):
     _configure_compatibility(env, products)
     _sync_order_inventory(env)
     _ensure_inventory_usage_demo(env, stock_location, products)
+    _record(env, "sedar.inventory.dashboard", "inventory_dashboard_main", {
+        "name": "Inventory Exception Dashboard",
+        "company_id": env.company.id,
+    })

@@ -72,7 +72,7 @@ class TestInventoryMigrationSecurity(TransactionCase):
                 "is_storable": True,
                 "default_code": "IMSC-SPARE",
                 "sedar_inventory_item": True,
-                "sedar_item_type": "spare_consumable",
+                "sedar_item_type": "spare_part",
             }
         )
         cls.env["stock.quant"].with_company(cls.company)._update_available_quantity(

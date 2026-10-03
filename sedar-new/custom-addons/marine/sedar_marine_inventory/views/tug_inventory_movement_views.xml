@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_tug_inventory_movement_list" model="ir.ui.view">
+        <field name="name">sedar.tug.inventory.movement.list</field>
+        <field name="model">sedar.tug.inventory.movement</field>
+        <field name="arch" type="xml">
+            <list decoration-info="state == 'draft'" decoration-muted="state == 'reversed'">
+                <field name="name"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="completed_at"/>
+                <field name="product_id"/>
+                <field name="quantity"/>
+                <field name="product_uom_id"/>
+                <field name="source_location_id"/>
+                <field name="destination_location_id"/>
+                <field name="reason_label"/>
+                <field name="completed_by_id"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_tug_inventory_movement_form" model="ir.ui.view">
+        <field name="name">sedar.tug.inventory.movement.form</field>
+        <field name="model">sedar.tug.inventory.movement</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_complete" type="object" string="Complete Movement" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_reverse" type="object" string="Reverse" invisible="state != 'done' or reversal_id"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done,reversed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company" readonly="state != 'draft'"/>
+                            <field name="action" readonly="state != 'draft'"/>
+                            <field name="product_id" readonly="state != 'draft'"/>
+                            <field name="lot_id" readonly="state != 'draft'" invisible="product_id == False"/>
+                            <field name="quantity" readonly="state != 'draft'"/>
+                            <field name="product_uom_id"/>
+                        </group>
+                        <group>
+                            <field name="source_location_id" readonly="state != 'draft'"/>
+                            <field name="destination_location_id" readonly="state != 'draft'"/>
+                            <field name="source_tugboat_id"/>
+                            <field name="destination_tugboat_id"/>
+                            <field name="source_condition"/>
+                            <field name="destination_condition"/>
+                        </group>
+                    </group>
+                    <group string="Live Projection" invisible="state != 'draft'">
+                        <field name="source_available_qty"/>
+                        <field name="projected_source_qty"/>
+                        <field name="projected_destination_qty"/>
+                        <field name="source_readiness_effect"/>
+                        <field name="destination_readiness_effect"/>
+                        <field name="source_will_be_blocked" invisible="1"/>
+                        <field name="source_shortage_acknowledged" invisible="not source_will_be_blocked"/>
+                        <field name="count_before_qty" readonly="state != 'draft'" invisible="action != 'correct'"/>
+                        <field name="counted_qty" readonly="state != 'draft'" invisible="action != 'correct'"/>
+                    </group>
+                    <group>
+                        <field name="reason_code" readonly="state != 'draft'"/>
+                        <field name="reason_label" invisible="state == 'draft'"/>
+                        <field name="note" readonly="state != 'draft'"/>
+                        <field name="evidence_filename" invisible="1"/>
+                        <field name="evidence" filename="evidence_filename" readonly="state != 'draft'"/>
+                    </group>
+                    <group string="Completion" invisible="state == 'draft'">
+                        <field name="completed_by_id"/>
+                        <field name="completed_at"/>
+                        <field name="stock_move_id"/>
+                        <field name="reversal_of_id"/>
+                        <field name="reversal_id"/>
+                    </group>
+                    <notebook>
+                        <page string="Tug History">
+                            <field name="history_ids">
+                                <list>
+                                    <field name="tugboat_id"/>
+                                    <field name="perspective"/>
+                                    <field name="event_text"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_tug_inventory_history_list" model="ir.ui.view">
+        <field name="name">sedar.tug.inventory.history.list</field>
+        <field name="model">sedar.tug.inventory.history</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0">
+                <field name="completed_at"/>
+                <field name="tugboat_id"/>
+                <field name="event_text"/>
+                <field name="reason_label"/>
+                <field name="actor_id"/>
+                <field name="movement_id"/>
+                <field name="stock_move_id" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_tug_inventory_movements" model="ir.actions.act_window">
+        <field name="name">Inventory Movements</field>
+        <field name="res_model">sedar.tug.inventory.movement</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_tug_inventory_history" model="ir.actions.act_window">
+        <field name="name">Tug Inventory History</field>
+        <field name="res_model">sedar.tug.inventory.history</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <menuitem id="menu_tug_inventory_movements" name="Movements" parent="menu_marine_inventory_root" action="action_tug_inventory_movements" sequence="16"/>
+    <menuitem id="menu_tug_inventory_history" name="Tug History" parent="menu_marine_inventory_root" action="action_tug_inventory_history" sequence="17"/>
+</odoo>

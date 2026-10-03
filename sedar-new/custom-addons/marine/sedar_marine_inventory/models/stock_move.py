@@ -30,6 +30,7 @@ class StockMove(models.Model):
         ])
         if part_lines:
             part_lines._compute_state()
+        self.env["sedar.replenishment.demand"]._sync_inventory_shortages()
 
     def _action_done(self, *args, **kwargs):
         result = super()._action_done(*args, **kwargs)

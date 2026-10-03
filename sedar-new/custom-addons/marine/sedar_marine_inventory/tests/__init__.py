@@ -4,4 +4,7 @@ from . import test_inventory_lifecycle
 from . import test_inventory_lifecycle_concurrency_valuation
 from . import test_inventory_lifecycle_edges
 from . import test_inventory_bootstrap
+from . import test_inventory_condition_foundation
+from . import test_tug_inventory_movement
+from . import test_inventory_readiness_demand
 from . import test_inventory_migration_security

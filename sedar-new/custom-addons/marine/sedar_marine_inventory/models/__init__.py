@@ -11,3 +11,11 @@ from . import maintenance_parts
 from . import operation_fuel
 from . import tugboat
 from . import stock_move
+from . import tug_inventory_movement
+from . import tug_inventory_projection
+from . import tug_inventory_history
+from . import tug_stock_requirement
+from . import replenishment_demand
+from . import inventory_shortage_wizard
+from . import inventory_physical_count_wizard
+from . import inventory_dashboard

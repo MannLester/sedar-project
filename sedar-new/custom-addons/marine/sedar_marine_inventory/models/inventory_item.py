@@ -1,5 +1,47 @@
 from odoo import Command, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
+from odoo.tools.float_utils import float_compare, float_is_zero, float_round
+
+
+SEDAR_ITEM_ACTIONS = {
+    "fuel_lubricant": frozenset({"transfer", "consume", "correct"}),
+    "consumable_store": frozenset(
+        {"transfer", "consume", "return", "dispose", "correct"}
+    ),
+    "spare_part": frozenset(
+        {
+            "transfer",
+            "issue_maintenance",
+            "consume",
+            "install",
+            "return",
+            "dispose",
+            "correct",
+        }
+    ),
+    "reusable_onboard_gear": frozenset(
+        {
+            "transfer",
+            "mark_defective",
+            "return_service",
+            "return_warehouse",
+            "dispose",
+            "correct",
+        }
+    ),
+    "replacement_equipment": frozenset(
+        {
+            "transfer",
+            "install",
+            "remove",
+            "mark_defective",
+            "return_service",
+            "return",
+            "dispose",
+            "correct",
+        }
+    ),
+}
 
 
 class ProductProduct(models.Model):
@@ -17,13 +59,19 @@ class ProductProduct(models.Model):
     sedar_item_type = fields.Selection(
         [
             ("fuel_lubricant", "Fuel / Lubricant"),
-            ("spare_consumable", "Spare / Consumable"),
+            ("consumable_store", "Consumable Store"),
+            ("spare_part", "Spare Part"),
+            ("reusable_onboard_gear", "Reusable Onboard Gear"),
             ("replacement_equipment", "Replacement Equipment"),
         ],
         string="Item Type",
         required=True,
-        default="spare_consumable",
+        default="consumable_store",
         index=True,
+    )
+    sedar_readiness_critical = fields.Boolean(
+        string="Readiness-Critical Item",
+        help="Allows an approved onboard shortage for this Item Type to block inventory readiness.",
     )
     sedar_compatibility_scope = fields.Selection(
         [("fleet", "Fleet-wide"), ("restricted", "Selected Tugboats")],
@@ -196,7 +244,35 @@ class ProductProduct(models.Model):
         vals = dict(vals)
         if vals.get("sedar_compatibility_scope") == "fleet":
             vals["sedar_compatible_tugboat_ids"] = [Command.clear()]
-        return super().write(vals)
+        result = super().write(vals)
+        if "sedar_readiness_critical" in vals:
+            self.env["sedar.replenishment.demand"]._sync_inventory_shortages()
+        return result
+
+    def _sedar_allowed_inventory_actions(self):
+        self.ensure_one()
+        return SEDAR_ITEM_ACTIONS[self.sedar_item_type]
+
+    def _sedar_validate_inventory_action(self, action):
+        self.ensure_one()
+        if action not in self._sedar_allowed_inventory_actions():
+            raise UserError(
+                "%s is not allowed for %s items."
+                % (action.replace("_", " ").title(), self.sedar_item_type.replace("_", " ").title())
+            )
+
+    def _sedar_validate_inventory_quantity(self, quantity):
+        self.ensure_one()
+        rounding = self.uom_id.rounding
+        if float_compare(quantity, 0.0, precision_rounding=rounding) <= 0:
+            raise UserError("Inventory quantity must be greater than zero.")
+        rounded = float_round(quantity, precision_rounding=rounding)
+        if not float_is_zero(quantity - rounded, precision_digits=12):
+            raise UserError(
+                "Inventory quantity must follow the %s rounding of %s."
+                % (self.uom_id.display_name, rounding)
+            )
+        return rounded
 
     def action_open_sedar_issue_wizard(self):
         self.ensure_one()
@@ -210,3 +286,28 @@ class ProductProduct(models.Model):
             "target": "new",
             "context": {"default_product_id": self.id},
         }
+
+    def action_open_sedar_locations(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Where Is It? — %s") % self.display_name,
+            "res_model": "stock.quant",
+            "view_mode": "list",
+            "domain": [
+                ("product_id", "=", self.id),
+                ("location_id.sedar_location_role", "in", [
+                    "storage", "storage_quarantine", "tug", "tug_quarantine",
+                ]),
+                ("quantity", "!=", 0),
+            ],
+            "context": {"search_default_internal_loc": 1},
+        }
+
+    def action_open_sedar_movements(self):
+        self.ensure_one()
+        action = self.env.ref(
+            "sedar_marine_inventory.action_tug_inventory_movements"
+        ).read()[0]
+        action["domain"] = [("product_id", "=", self.id)]
+        return action

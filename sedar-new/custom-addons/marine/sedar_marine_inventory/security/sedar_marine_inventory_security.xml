@@ -65,4 +65,34 @@
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
         <field name="groups" eval="[Command.clear()]"/>
     </record>
+    <record id="rule_tug_inventory_movement_company" model="ir.rule">
+        <field name="name">Tug Inventory Movements: same company</field>
+        <field name="model_id" ref="model_sedar_tug_inventory_movement"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[Command.clear()]"/>
+    </record>
+    <record id="rule_tug_inventory_history_company" model="ir.rule">
+        <field name="name">Tug Inventory History: same company</field>
+        <field name="model_id" ref="model_sedar_tug_inventory_history"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[Command.clear()]"/>
+    </record>
+    <record id="rule_tug_stock_requirement_company" model="ir.rule">
+        <field name="name">Tug Stock Requirements: same company</field>
+        <field name="model_id" ref="model_sedar_tug_stock_requirement"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[Command.clear()]"/>
+    </record>
+    <record id="rule_replenishment_demand_company" model="ir.rule">
+        <field name="name">Replenishment Demands: same company</field>
+        <field name="model_id" ref="model_sedar_replenishment_demand"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[Command.clear()]"/>
+    </record>
+    <record id="rule_inventory_dashboard_company" model="ir.rule">
+        <field name="name">Inventory Dashboards: same company</field>
+        <field name="model_id" ref="model_sedar_inventory_dashboard"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[Command.clear()]"/>
+    </record>
 </odoo>

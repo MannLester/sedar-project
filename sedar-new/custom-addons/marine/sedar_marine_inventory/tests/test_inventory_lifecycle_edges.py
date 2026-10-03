@@ -106,7 +106,7 @@ class TestInventoryLifecycleEdges(TransactionCase):
             "uom_id": cls.unit.id,
             "default_code": code,
             "sedar_inventory_item": True,
-            "sedar_item_type": "spare_consumable",
+            "sedar_item_type": "spare_part",
         }
         product_values.update(values)
         return cls.env["product.product"].create(product_values)

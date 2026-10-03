@@ -101,7 +101,7 @@ class TestInventoryLifecycle(TransactionCase):
             "uom_id": cls.unit.id,
             "default_code": "LIFECYCLE-SPARE",
             "sedar_inventory_item": True,
-            "sedar_item_type": "spare_consumable",
+            "sedar_item_type": "spare_part",
         })
         cls.env["stock.quant"]._update_available_quantity(
             cls.product, cls.storage, 100
