@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sedar_marine_maintenance.EngineRoomAction">
+        <div class="o_sedar_engine_room" t-ref="host"/>
+    </t>
+</templates>

@@ -1,0 +1,14 @@
+/* Only for the Odoo embedding; Ed's own rules stay untouched in index.css. */
+.embedded-frame { display: flex; flex-direction: column; height: 100%; min-height: 0; background: #fff; }
+.embedded-frame > .embedded-body { flex: 1; min-height: 0; padding: 0 24px 24px; overflow: auto; }
+/* Same locked-scroll console as the standalone workspace: header and tabs pinned, panel body scrolls. */
+.embedded-frame:has(.tech-console) > .embedded-body { overflow: hidden; }
+.embedded-frame .technical-dashboard { padding-top: 16px; }
+.embedded-frame .technical-dashboard:has(.tech-console) { padding-bottom: 0; }
+.embedded-toolbar { flex: 0 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 10px 24px; border-bottom: 1px solid var(--border); }
+
+/* With "reduce motion" on, index.css makes every animation last 0.01 ms but lets it loop forever,
+   so the pulsing status dot and the spinners strobe. Looping decorations simply stop instead. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse, .animate-spin { animation: none !important; }
+}
