@@ -250,16 +250,7 @@ def _ensure_templates(env, stock_location, products):
 
 def _ensure_tug_locations(env, tug_parent_location, products):
     company = env.company
-    for xmlid in [
-        "sedar_service_order_demo.tug_atlas",
-        "sedar_service_order_demo.tug_harbor_one",
-        "sedar_service_order_demo.tug_matikas",
-        "sedar_service_order_demo.tug_bantay",
-        "sedar_service_order_demo.tug_lakas",
-    ]:
-        tug = env.ref(xmlid, raise_if_not_found=False)
-        if not tug:
-            continue
+    for tug in env["sedar.tugboat"].search([("company_id", "=", company.id)], order="id"):
         location = _record(env, "stock.location", f"location_{tug.registration_number.lower().replace('-', '_')}", {
             "name": tug.name,
             "usage": "internal",

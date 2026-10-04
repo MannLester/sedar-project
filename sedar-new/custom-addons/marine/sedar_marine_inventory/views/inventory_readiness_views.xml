@@ -143,7 +143,7 @@
     <record id="view_tugboat_inventory_readiness" model="ir.ui.view">
         <field name="name">sedar.tugboat.inventory.readiness</field>
         <field name="model">sedar.tugboat</field>
-        <field name="inherit_id" ref="sedar_marine_inventory.view_tugboat_inventory"/>
+        <field name="inherit_id" ref="sedar_marine_inventory.view_tugboat_form_inventory"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='defective_stock_item_count']" position="after">
                 <field name="inventory_readiness_status" widget="badge"/>

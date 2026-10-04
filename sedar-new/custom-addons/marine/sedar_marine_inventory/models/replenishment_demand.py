@@ -203,7 +203,7 @@ class SedarReplenishmentDemand(models.Model):
             if activity:
                 activity.write(values)
             else:
-                demand.activity_schedule(activity_type.id, user_id=officer.id, **values)
+                demand.activity_schedule("mail.mail_activity_data_todo", user_id=officer.id, **values)
 
     def _close(self, state, reason):
         demands = self.sudo()

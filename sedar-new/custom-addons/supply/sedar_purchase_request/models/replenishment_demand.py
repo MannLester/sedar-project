@@ -18,7 +18,7 @@ class SedarReplenishmentDemand(models.Model):
 
     @api.depends(
         "purchase_request_line_ids.request_id.state",
-        "purchase_request_line_ids.current_award_id.purchase_order_id.state",
+        "purchase_request_line_ids.current_award_id.purchase_order_line_id.order_id.state",
     )
     def _compute_procurement_summary(self):
         PurchaseOrderLine = self.env["purchase.order.line"]
