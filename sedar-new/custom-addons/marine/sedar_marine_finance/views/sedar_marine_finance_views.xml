@@ -180,6 +180,11 @@
         <field name="domain">[('billing_status','=','pricing_exception')]</field>
     </record>
 
+    <record id="action_finance_dashboard" model="ir.actions.client">
+        <field name="name">Finance Operations</field>
+        <field name="tag">sedar_finance_dashboard</field>
+    </record>
+
     <record id="view_client_tariff_form_finance" model="ir.ui.view">
         <field name="name">sedar.client.tariff.form.finance</field><field name="model">sedar.client.tariff</field>
         <field name="inherit_id" ref="sedar_marine_operations.view_client_tariff_form"/>
@@ -230,6 +235,7 @@
     </record>
 
     <menuitem id="menu_marine_finance" name="Marine Finance" parent="sedar_document_control.menu_sedar_root" sequence="30" groups="group_billing_officer"/>
+    <menuitem id="menu_finance_dashboard" name="Finance Operations" parent="menu_marine_finance" action="action_finance_dashboard" sequence="5" groups="group_billing_officer"/>
     <menuitem id="menu_billing_reviews" name="Billing Reviews" parent="menu_marine_finance" action="action_billing_reviews" sequence="10"/>
     <menuitem id="menu_pricing_exceptions" name="Pricing Exceptions" parent="menu_marine_finance" action="action_pricing_exceptions" sequence="20"/>
 </odoo>

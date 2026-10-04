@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 from odoo import fields
 from odoo.exceptions import AccessError, UserError, ValidationError
@@ -162,6 +162,48 @@ class TestMarineFinanceWorkflow(TransactionCase):
         self._add_completed_operation(order)
         self.assertFalse(order.confirmed_tariff_id)
         self.assertEqual(order.billing_status, "pricing_exception")
+
+    def test_finance_dashboard_uses_customer_invoice_ledger(self):
+        dashboard = self.env["sedar.finance.dashboard"].with_user(self.billing)
+        before = dashboard.get_dashboard_data()
+        journal = self.env["account.journal"].search([
+            ("company_id", "=", self.company.id), ("type", "=", "sale"),
+        ], limit=1)
+        product = self.env.ref("sedar_marine_finance.product_marine_service")
+        invoice = self.env["account.move"].create({
+            "move_type": "out_invoice",
+            "company_id": self.company.id,
+            "journal_id": journal.id,
+            "partner_id": self.client.id,
+            "invoice_date": date.today() - timedelta(days=15),
+            "invoice_date_due": date.today() - timedelta(days=5),
+            "ref": "FIN-DASHBOARD-TEST",
+            "invoice_line_ids": [(0, 0, {
+                "product_id": product.id,
+                "name": "Dashboard test service",
+                "quantity": 1,
+                "price_unit": 4321,
+            })],
+        })
+        invoice.action_post()
+
+        after = dashboard.get_dashboard_data()
+
+        self.assertEqual(after["receivables"]["open"], before["receivables"]["open"] + 1)
+        self.assertEqual(after["receivables"]["overdue"], before["receivables"]["overdue"] + 1)
+        self.assertAlmostEqual(after["summary"]["outstanding"] - before["summary"]["outstanding"], 4321)
+        self.assertTrue(any(
+            item["res_id"] == invoice.id for item in after["work_queue"]
+        ))
+
+    def test_finance_dashboard_rejects_internal_user_without_finance_role(self):
+        user = new_test_user(
+            self.env,
+            login="sedar_finance_dashboard_unauthorized",
+            groups="base.group_user",
+        )
+        with self.assertRaises(AccessError):
+            self.env["sedar.finance.dashboard"].with_user(user).get_dashboard_data()
 
     def test_tariff_is_manager_controlled_and_immutable(self):
         with self.assertRaises(AccessError):
