@@ -1,6 +1,6 @@
 {
     "name": "SEDAR Simulated AIS Fleet Monitoring",
-    "version": "19.0.2.0.0",
+    "version": "19.0.5.0.0",
     "category": "Marine",
     "summary": "Offline-safe simulated AIS/GPS fleet map for client demonstrations",
     "author": "SEDAR Development Team",

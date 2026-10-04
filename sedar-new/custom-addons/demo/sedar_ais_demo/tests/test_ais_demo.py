@@ -172,6 +172,69 @@ class TestSedarAisDemo(TransactionCase):
         self.assertEqual(equipment["criticality"], "critical")
         self.assertEqual(equipment["active_procurement_count"], 1)
 
+    def test_dashboard_payload_exposes_authoritative_onboard_stock(self):
+        product = self.env["product.product"].create({
+            "name": "Issue 8 Onboard Tow Rope",
+            "is_storable": True,
+        })
+        self.assertTrue(self.tug.stock_location_id)
+        self.env["stock.quant"]._update_available_quantity(
+            product,
+            self.tug.stock_location_id,
+            4,
+        )
+
+        payload = self.env["sedar.ais.position"].get_dashboard_data()
+        tug = next(item for item in payload["fleet"] if item["id"] == self.tug.id)
+        inventory = tug["inventory"]
+        item = next(row for row in inventory["items"] if row["id"] == product.id)
+        self.assertEqual(item["condition"], "serviceable")
+        self.assertEqual(item["quantity"], 4)
+        self.assertEqual(item["available"], 4)
+        self.assertIn(inventory["status"], {"ready", "blocked"})
+
+    def test_dashboard_story_populates_inventory_and_procurement_tabs(self):
+        atlas = self.env.ref("sedar_service_order_demo.tug_atlas")
+        product = self.env.ref("sedar_ais_demo.dashboard_atlas_impeller")
+        equipment = self.env.ref("sedar_ais_demo.dashboard_atlas_main_engine")
+
+        payload = self.env["sedar.ais.position"].get_dashboard_data()
+        tug = next(item for item in payload["fleet"] if item["id"] == atlas.id)
+        inventory = tug["inventory"]
+        shortage = next(
+            row for row in inventory["shortages"]
+            if row["product"] == product.display_name
+        )
+        equipment_row = next(
+            row for row in tug["equipment"] if row["id"] == equipment.id
+        )
+        detail = self.env[
+            "sedar.ais.position"
+        ].get_equipment_procurement_detail(equipment.id)
+
+        self.assertEqual(inventory["status"], "blocked")
+        self.assertEqual(shortage["quantity"], 3)
+        self.assertEqual(equipment_row["active_procurement_count"], 1)
+        self.assertEqual(len(detail["active_procurement"]), 1)
+        self.assertEqual(detail["active_procurement"][0]["bid_count"], 2)
+        self.assertEqual(len(detail["procurement_history"]), 1)
+
+        self.env.company.sedar_ensure_ais_demo()
+        self.assertEqual(
+            self.env["sedar.purchase.request"].search_count([
+                ("equipment_id", "=", equipment.id),
+                ("id", "in", [
+                    self.env.ref(
+                        "sedar_ais_demo.dashboard_atlas_active_request"
+                    ).id,
+                    self.env.ref(
+                        "sedar_ais_demo.dashboard_atlas_history_request"
+                    ).id,
+                ]),
+            ]),
+            2,
+        )
+
     def test_limited_detail_recursively_omits_commercial_values(self):
         detail = self.env["sedar.ais.position"].with_user(
             self.ais_user
