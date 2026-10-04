@@ -140,7 +140,7 @@ internal until a future HR/Careers slice explicitly approves publication.
 ## Marine Finance Demo
 
 The custom model and field contract for this workflow is documented in
-[`docs/custom-models.md`](../docs/custom-models.md).
+[`docs/custom-models.md`](docs/custom-models.md).
 
 The `sedar_marine_finance` addon adds the post-service billing workflow on top of Odoo
 Accounting. Tug Masters declare actual completion per assigned tug. A Service Order enters
