@@ -14,7 +14,43 @@ class TestSedarExecutiveDashboard(TransactionCase):
         self.assertGreaterEqual(dashboard.service_order_count, 1)
         self.assertGreaterEqual(dashboard.revenue_total, 0)
         self.assertGreaterEqual(dashboard.governance_exception_count, 1)
+        self.assertEqual(dashboard.reporting_date, fields.Date.context_today(dashboard))
+        self.assertIn("cost-allocation", dashboard.profitability_note)
+        self.assertIn("intentionally not reported", dashboard.utilization_note)
         action = dashboard.action_open_service_orders()
+        self.assertEqual(action["res_model"], "sedar.marine.service.order")
+        self.assertEqual(action["type"], "ir.actions.act_window")
+
+    def test_attention_queue_uses_source_record_domains(self):
+        dashboard = self.env.ref("sedar_executive_dashboard.executive_dashboard_demo")
+        expected = sum([
+            dashboard.overdue_receivable_count,
+            dashboard.billing_review_count,
+            dashboard.blocked_service_order_count,
+            dashboard.credential_expiry_count,
+            dashboard.maintenance_blocker_count,
+            dashboard.inventory_shortage_count,
+            dashboard.purchase_overdue_count,
+            dashboard.hsse_overdue_action_count,
+            dashboard.document_expiry_count,
+        ])
+        self.assertEqual(dashboard.attention_total_count, expected)
+        self.assertEqual(
+            dashboard.action_open_overdue_receivables()["res_model"],
+            "account.move",
+        )
+        self.assertEqual(
+            dashboard.action_open_blocked_service_orders()["res_model"],
+            "sedar.marine.service.order",
+        )
+        self.assertEqual(
+            dashboard.action_open_overdue_hsse_actions()["res_model"],
+            "sedar.hsse.corrective.action",
+        )
+
+    def test_flagship_walkthrough_opens_a_service_order(self):
+        dashboard = self.env.ref("sedar_executive_dashboard.executive_dashboard_demo")
+        action = dashboard.action_open_flagship_service()
         self.assertEqual(action["res_model"], "sedar.marine.service.order")
         self.assertEqual(action["type"], "ir.actions.act_window")
 

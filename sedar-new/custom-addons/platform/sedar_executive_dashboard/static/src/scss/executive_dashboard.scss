@@ -1,0 +1,249 @@
+.sedar_executive_dashboard {
+    --sedar-ink: #14213d;
+    --sedar-muted: #5e6c84;
+    --sedar-blue: #155eef;
+    --sedar-line: #dfe5ef;
+    --sedar-soft: #f5f7fb;
+    --sedar-danger: #b42318;
+    --sedar-warning: #b54708;
+    max-width: 1500px;
+    background: #f8fafc;
+}
+
+.sedar_executive_header,
+.sedar_attention_banner,
+.sedar_pillar header,
+.sedar_metric_row,
+.sedar_secondary_links {
+    display: flex;
+    align-items: center;
+}
+
+.sedar_executive_header {
+    justify-content: space-between;
+    gap: 2rem;
+    padding: 1.75rem 2rem;
+    color: white;
+    border-radius: 18px;
+    background: linear-gradient(120deg, #09203f 0%, #155eef 72%, #38bdf8 125%);
+    box-shadow: 0 14px 30px rgba(9, 32, 63, 0.18);
+}
+
+.sedar_executive_header h1 {
+    margin: 0.3rem 0;
+    font-size: clamp(1.55rem, 3vw, 2.4rem);
+    color: white;
+}
+
+.sedar_executive_header p,
+.sedar_pillar p {
+    margin: 0;
+}
+
+.sedar_eyebrow {
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    opacity: 0.8;
+}
+
+.sedar_as_of {
+    min-width: 180px;
+    padding: 0.75rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.sedar_as_of span,
+.sedar_as_of strong,
+.sedar_as_of small {
+    display: block;
+}
+
+.sedar_attention_banner {
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 1.25rem 0;
+    padding: 1rem 1.25rem;
+    border: 1px solid #fedf89;
+    border-radius: 14px;
+    background: #fffaeb;
+}
+
+.sedar_attention_banner > div {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+}
+
+.sedar_attention_banner span {
+    display: block;
+    color: var(--sedar-muted);
+}
+
+.sedar_attention_count {
+    min-width: 52px;
+    font-size: 1.8rem;
+    font-weight: 800;
+    text-align: center;
+    color: var(--sedar-warning) !important;
+}
+
+.sedar_action_grid,
+.sedar_pillar_grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.sedar_action_grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-bottom: 1.5rem;
+}
+
+.sedar_action_card {
+    display: grid;
+    min-height: 128px;
+    padding: 1rem;
+    text-align: left;
+    color: var(--sedar-ink);
+    border: 1px solid var(--sedar-line);
+    border-left: 5px solid var(--sedar-blue);
+    border-radius: 12px;
+    background: white;
+    box-shadow: 0 5px 14px rgba(20, 33, 61, 0.07);
+}
+
+.sedar_action_card:hover,
+.sedar_metric_row button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(20, 33, 61, 0.12);
+}
+
+.sedar_action_card strong {
+    align-self: center;
+    font-size: 1.8rem;
+}
+
+.sedar_action_card small {
+    color: var(--sedar-muted);
+}
+
+.sedar_tone_danger {
+    border-left-color: var(--sedar-danger);
+}
+
+.sedar_tone_warning {
+    border-left-color: var(--sedar-warning);
+}
+
+.sedar_pillar_grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.sedar_pillar {
+    padding: 1.25rem;
+    border: 1px solid var(--sedar-line);
+    border-radius: 16px;
+    background: white;
+}
+
+.sedar_pillar header {
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.sedar_pillar header > span {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    color: white;
+    font-weight: 800;
+    border-radius: 11px;
+    background: var(--sedar-blue);
+}
+
+.sedar_pillar h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--sedar-ink);
+}
+
+.sedar_pillar p,
+.sedar_policy_note {
+    color: var(--sedar-muted);
+}
+
+.sedar_metric_row {
+    align-items: stretch;
+    gap: 0.65rem;
+}
+
+.sedar_metric_row button {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0.8rem 0.5rem;
+    border: 0;
+    border-radius: 10px;
+    background: var(--sedar-soft);
+}
+
+.sedar_metric_row strong,
+.sedar_metric_row span {
+    display: block;
+}
+
+.sedar_metric_row strong {
+    overflow: hidden;
+    font-size: 1.15rem;
+    color: var(--sedar-ink);
+    text-overflow: ellipsis;
+}
+
+.sedar_metric_row span {
+    margin-top: 0.3rem;
+    font-size: 0.76rem;
+    color: var(--sedar-muted);
+}
+
+.sedar_policy_note {
+    margin-top: 0.9rem;
+    padding: 0.7rem 0.85rem;
+    font-size: 0.8rem;
+    border-radius: 9px;
+    background: #f0f7ff;
+}
+
+.sedar_secondary_links {
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin-top: 1.25rem;
+}
+
+@media (max-width: 1100px) {
+    .sedar_action_grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .sedar_pillar_grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 700px) {
+    .sedar_executive_header,
+    .sedar_attention_banner {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .sedar_action_grid {
+        grid-template-columns: 1fr;
+    }
+
+    .sedar_metric_row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}

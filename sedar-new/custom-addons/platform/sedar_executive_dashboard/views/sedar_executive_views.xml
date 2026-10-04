@@ -14,13 +14,132 @@
         <field name="arch" type="xml"><xpath expr="//sheet/group" position="after"><group string="Governance Metadata"><field name="document_category"/><field name="owner_id"/><field name="approval_state"/><field name="confidential"/><field name="valid_from"/><field name="valid_until"/><field name="renewal_date"/><field name="governance_status"/><field name="partner_id"/><field name="tugboat_id"/></group></xpath></field>
     </record>
     <record id="view_sedar_executive_dashboard_form" model="ir.ui.view">
-        <field name="name">sedar.executive.dashboard.form</field><field name="model">sedar.executive.dashboard</field>
-        <field name="arch" type="xml"><form string="Executive Management Dashboard" create="0" edit="0"><sheet><div class="oe_title"><h1><field name="name"/></h1><p>Source-backed demonstration dashboard. Values refresh from governed Odoo records when opened.</p></div><group><field name="last_refreshed"/><field name="company_id"/><field name="currency_id"/></group><separator string="Finance"/><div class="oe_button_box"><button name="action_open_invoices" type="object" class="oe_stat_button"><field name="revenue_total" widget="statinfo" string="Revenue"/></button><button name="action_open_invoices" type="object" class="oe_stat_button"><field name="unpaid_total" widget="statinfo" string="Unpaid"/></button><button name="action_open_invoices" type="object" class="oe_stat_button"><field name="cash_collected_total" widget="statinfo" string="Collected"/></button><button name="action_open_invoices" type="object" class="oe_stat_button"><field name="known_cost_total" widget="statinfo" string="Known Cost"/></button></div><group><field name="revenue_total"/><field name="invoiced_total"/><field name="unpaid_total"/><field name="cash_collected_total"/><field name="known_cost_total"/></group><separator string="Marine Operations"/><div class="oe_button_box"><button name="action_open_service_orders" type="object" class="oe_stat_button"><field name="service_order_count" widget="statinfo" string="Service Orders"/></button><button name="action_open_service_orders" type="object" class="oe_stat_button"><field name="active_service_order_count" widget="statinfo" string="Active Orders"/></button><button name="action_open_service_orders" type="object" class="oe_stat_button"><field name="completed_service_order_count" widget="statinfo" string="Completed"/></button><button name="action_open_tugs" type="object" class="oe_stat_button"><field name="fleet_count" widget="statinfo" string="Fleet"/></button><button name="action_open_tugs" type="object" class="oe_stat_button"><field name="utilization_percent" widget="statinfo" string="Utilization %"/></button></div><group><field name="service_order_count"/><field name="active_service_order_count"/><field name="completed_service_order_count"/><field name="marine_operation_count"/><field name="fleet_count"/><field name="available_tug_count"/><field name="tug_blocker_count"/><field name="utilization_percent"/></group><separator string="People and Fleet Readiness"/><div class="oe_button_box"><button name="action_open_crew" type="object" class="oe_stat_button"><field name="crew_count" widget="statinfo" string="Crew"/></button><button name="action_open_crew" type="object" class="oe_stat_button"><field name="credential_expiry_count" widget="statinfo" string="Credential Expiry"/></button><button name="action_open_maintenance" type="object" class="oe_stat_button"><field name="maintenance_blocker_count" widget="statinfo" string="Maintenance Holds"/></button></div><group><field name="crew_count"/><field name="available_crew_count"/><field name="vacancy_count"/><field name="applicant_count"/><field name="open_shortage_count"/><field name="credential_expiry_count"/><field name="maintenance_open_count"/><field name="maintenance_blocker_count"/><field name="drydock_active_count"/></group><separator string="Supply, HSSE, and Governance"/><div class="oe_button_box"><button name="action_open_inventory" type="object" class="oe_stat_button"><field name="inventory_shortage_count" widget="statinfo" string="Stock Shortages"/></button><button name="action_open_procurement" type="object" class="oe_stat_button"><field name="purchase_overdue_count" widget="statinfo" string="Overdue Purchases"/></button><button name="action_open_hsse" type="object" class="oe_stat_button"><field name="hsse_incident_count" widget="statinfo" string="Open Incidents"/></button><button name="action_open_documents" type="object" class="oe_stat_button"><field name="document_expiry_count" widget="statinfo" string="Document Expiry"/></button><button name="action_open_governance" type="object" class="oe_stat_button"><field name="governance_exception_count" widget="statinfo" string="Governance Exceptions"/></button></div><group><field name="inventory_shortage_count"/><field name="fuel_consumed_qty"/><field name="purchase_open_count"/><field name="purchase_overdue_count"/><field name="hsse_incident_count"/><field name="hsse_high_risk_count"/><field name="hsse_permit_exception_count"/><field name="hsse_overdue_action_count"/><field name="document_expiry_count"/><field name="governance_exception_count"/></group></sheet></form></field>
+        <field name="name">sedar.executive.dashboard.form</field>
+        <field name="model">sedar.executive.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="President's Daily Operations Cockpit" create="0" edit="0">
+                <sheet class="sedar_executive_dashboard">
+                    <field name="currency_id" invisible="1"/>
+                    <div class="sedar_executive_header">
+                        <div>
+                            <span class="sedar_eyebrow">EXECUTIVE CONTROL ROOM</span>
+                            <h1><field name="name"/></h1>
+                            <p>Vessels, people, cash, and customers in one decision-focused view.</p>
+                        </div>
+                        <div class="sedar_as_of">
+                            <span>As of</span>
+                            <strong><field name="reporting_date"/></strong>
+                            <small>Refreshed <field name="last_refreshed"/></small>
+                        </div>
+                    </div>
+                    <div class="sedar_attention_banner">
+                        <div>
+                            <span class="sedar_attention_count"><field name="attention_total_count"/></span>
+                            <div>
+                                <strong>Items require management attention</strong>
+                                <span>Open a queue below to see the source record, owner, and next action.</span>
+                            </div>
+                        </div>
+                        <button name="action_open_flagship_service" type="object" class="btn btn-primary">
+                            Open completed service-to-payment walkthrough
+                        </button>
+                    </div>
+                    <h2>Attention required today</h2>
+                    <div class="sedar_action_grid">
+                        <button name="action_open_overdue_receivables" type="object" class="sedar_action_card sedar_tone_danger">
+                            <span>Overdue receivables</span>
+                            <strong><field name="overdue_receivable_count"/></strong>
+                            <small><field name="overdue_receivable_total" widget="monetary" options="{'currency_field': 'currency_id'}"/></small>
+                        </button>
+                        <button name="action_open_billing_reviews" type="object" class="sedar_action_card sedar_tone_warning">
+                            <span>Billing decisions</span>
+                            <strong><field name="billing_review_count"/></strong>
+                            <small>Reviews and pricing exceptions</small>
+                        </button>
+                        <button name="action_open_blocked_service_orders" type="object" class="sedar_action_card sedar_tone_danger">
+                            <span>Blocked Service Orders</span>
+                            <strong><field name="blocked_service_order_count"/></strong>
+                            <small>Operations cannot proceed</small>
+                        </button>
+                        <button name="action_open_maintenance_blockers" type="object" class="sedar_action_card sedar_tone_danger">
+                            <span>Maintenance holds</span>
+                            <strong><field name="maintenance_blocker_count"/></strong>
+                            <small>Tug readiness affected</small>
+                        </button>
+                        <button name="action_open_credential_expiries" type="object" class="sedar_action_card sedar_tone_warning">
+                            <span>Crew credential risks</span>
+                            <strong><field name="credential_expiry_count"/></strong>
+                            <small>Expired or due in 30 days</small>
+                        </button>
+                        <button name="action_open_inventory" type="object" class="sedar_action_card sedar_tone_warning">
+                            <span>Inventory shortages</span>
+                            <strong><field name="inventory_shortage_count"/></strong>
+                            <small>Readiness requirements not met</small>
+                        </button>
+                        <button name="action_open_overdue_hsse_actions" type="object" class="sedar_action_card sedar_tone_danger">
+                            <span>Overdue HSSE actions</span>
+                            <strong><field name="hsse_overdue_action_count"/></strong>
+                            <small>Corrective action is late</small>
+                        </button>
+                        <button name="action_open_expiring_documents" type="object" class="sedar_action_card sedar_tone_warning">
+                            <span>Document renewals</span>
+                            <strong><field name="document_expiry_count"/></strong>
+                            <small>Expired or due in 30 days</small>
+                        </button>
+                    </div>
+                    <div class="sedar_pillar_grid">
+                        <section class="sedar_pillar">
+                            <header><span>01</span><div><h2>Vessels</h2><p>Can the fleet safely perform today's work?</p></div></header>
+                            <div class="sedar_metric_row">
+                                <button name="action_open_tugs" type="object"><strong><field name="available_tug_count"/></strong><span>Available</span></button>
+                                <button name="action_open_tugs" type="object"><strong><field name="fleet_count"/></strong><span>Total fleet</span></button>
+                                <button name="action_open_maintenance" type="object"><strong><field name="maintenance_open_count"/></strong><span>Open work orders</span></button>
+                                <button name="action_open_governance" type="object"><strong><field name="governance_exception_count"/></strong><span>Governance risks</span></button>
+                            </div>
+                            <div class="sedar_policy_note"><field name="utilization_note"/></div>
+                        </section>
+                        <section class="sedar_pillar">
+                            <header><span>02</span><div><h2>People</h2><p>Do we have qualified crew where they are needed?</p></div></header>
+                            <div class="sedar_metric_row">
+                                <button name="action_open_crew" type="object"><strong><field name="available_crew_count"/></strong><span>Available crew</span></button>
+                                <button name="action_open_crew" type="object"><strong><field name="crew_count"/></strong><span>Crew profiles</span></button>
+                                <button name="action_open_crew" type="object"><strong><field name="open_shortage_count"/></strong><span>Open shortages</span></button>
+                                <button name="action_open_crew" type="object"><strong><field name="vacancy_count"/></strong><span>Vacancies</span></button>
+                            </div>
+                        </section>
+                        <section class="sedar_pillar">
+                            <header><span>03</span><div><h2>Cash</h2><p>What has been earned, collected, and is falling due?</p></div></header>
+                            <div class="sedar_metric_row">
+                                <button name="action_open_invoices" type="object"><strong><field name="current_month_revenue" widget="monetary" options="{'currency_field': 'currency_id'}"/></strong><span>Revenue this month</span></button>
+                                <button name="action_open_invoices" type="object"><strong><field name="cash_collected_total" widget="monetary" options="{'currency_field': 'currency_id'}"/></strong><span>Collected, all demo data</span></button>
+                                <button name="action_open_overdue_receivables" type="object"><strong><field name="overdue_receivable_total" widget="monetary" options="{'currency_field': 'currency_id'}"/></strong><span>Overdue receivables</span></button>
+                                <button name="action_open_upcoming_payables" type="object"><strong><field name="payable_30_day_total" widget="monetary" options="{'currency_field': 'currency_id'}"/></strong><span>Payables due in 30 days</span></button>
+                            </div>
+                            <div class="sedar_policy_note"><field name="profitability_note"/></div>
+                        </section>
+                        <section class="sedar_pillar">
+                            <header><span>04</span><div><h2>Customers and Service</h2><p>Are commitments being completed and billed?</p></div></header>
+                            <div class="sedar_metric_row">
+                                <button name="action_open_service_orders" type="object"><strong><field name="active_service_order_count"/></strong><span>Active Service Orders</span></button>
+                                <button name="action_open_service_orders" type="object"><strong><field name="completed_service_order_count"/></strong><span>Completed</span></button>
+                                <button name="action_open_blocked_service_orders" type="object"><strong><field name="blocked_service_order_count"/></strong><span>Blocked</span></button>
+                                <button name="action_open_service_orders" type="object"><strong><field name="cancelled_service_order_count"/></strong><span>Cancelled</span></button>
+                            </div>
+                        </section>
+                    </div>
+                    <div class="sedar_secondary_links">
+                        <button name="action_open_procurement" type="object" class="btn btn-secondary">Procurement queue</button>
+                        <button name="action_open_hsse" type="object" class="btn btn-secondary">Open HSSE records</button>
+                        <button name="action_open_documents" type="object" class="btn btn-secondary">Controlled documents</button>
+                        <button name="action_open_service_orders" type="object" class="btn btn-secondary">All Service Orders</button>
+                    </div>
+                </sheet>
+            </form>
+        </field>
     </record>
     <record id="action_sedar_corporate_records" model="ir.actions.act_window"><field name="name">Corporate Governance Register</field><field name="res_model">sedar.corporate.record</field><field name="view_mode">list,form</field></record>
-    <record id="action_sedar_executive_dashboard" model="ir.actions.act_window"><field name="name">Executive Management Dashboard</field><field name="res_model">sedar.executive.dashboard</field><field name="view_mode">form</field><field name="res_id" ref="sedar_executive_dashboard.executive_dashboard_demo"/></record>
+    <record id="action_sedar_executive_dashboard" model="ir.actions.act_window"><field name="name">President's Daily Operations Cockpit</field><field name="res_model">sedar.executive.dashboard</field><field name="view_mode">form</field><field name="res_id" ref="sedar_executive_dashboard.executive_dashboard_demo"/></record>
     <menuitem id="menu_sedar_executive_root" name="Executive Management" sequence="90" groups="sedar_executive_dashboard.group_sedar_executive"/>
-    <menuitem id="menu_sedar_executive_dashboard" name="Executive Dashboard" parent="menu_sedar_executive_root" action="action_sedar_executive_dashboard" sequence="10"/>
+    <menuitem id="menu_sedar_executive_dashboard" name="President's Daily Cockpit" parent="menu_sedar_executive_root" action="action_sedar_executive_dashboard" sequence="10"/>
     <menuitem id="menu_sedar_corporate_records" name="Corporate Governance Register" parent="menu_sedar_executive_root" action="action_sedar_corporate_records" sequence="20"/>
 </odoo>
-
