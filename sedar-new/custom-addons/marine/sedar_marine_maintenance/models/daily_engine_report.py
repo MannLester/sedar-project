@@ -4,6 +4,7 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 
 MEASUREMENTS = ("rpm", "oil_pressure", "water_temp", "fuel_rob_start", "fuel_rob_stop")
 MANAGER_GROUP = "sedar_marine_maintenance.group_marine_maintenance_manager"
+WORKFLOW_FIELDS = ("state", "prepared_by_id", "submitted_by_id", "submitted_at", "return_reason", "posted_by_id", "posted_at")
 
 
 def _clock(hours):
@@ -62,6 +63,11 @@ class SedarDailyEngineReport(models.Model):
                 start=_clock(report.watch_start), stop=_clock(report.watch_stop),
             )
 
+    @staticmethod
+    def _watch_span(report):
+        stop = report.watch_stop if report.watch_stop > report.watch_start else report.watch_stop + 24
+        return report.watch_start, stop
+
     @api.constrains("report_date", "tugboat_id", "watch_start", "watch_stop")
     def _check_report(self):
         today = fields.Date.context_today(self)
@@ -77,6 +83,15 @@ class SedarDailyEngineReport(models.Model):
                 ("id", "!=", report.id),
             ]):
                 raise ValidationError(_("This tugboat already has a report for a watch starting then."))
+            start, stop = self._watch_span(report)
+            for other in self.search([
+                ("tugboat_id", "=", report.tugboat_id.id),
+                ("report_date", "=", report.report_date),
+                ("id", "!=", report.id),
+            ]):
+                other_start, other_stop = self._watch_span(other)
+                if start < other_stop and other_start < stop:
+                    raise ValidationError(_("This watch overlaps the watch log %s of the same tugboat.", other.name))
 
     @api.onchange("tugboat_id")
     def _onchange_tugboat_id(self):
@@ -143,15 +158,32 @@ class SedarDailyEngineReport(models.Model):
             })
         return True
 
+    def _check_workflow_values(self, vals, guarded):
+        if self.env.su:
+            return
+        for name in guarded:
+            value = vals.get(name)
+            if value and not (name == "state" and value == "draft") and not (name == "prepared_by_id" and value == self.env.uid):
+                raise AccessError(_("Status, signatures and the return reason are set by submitting, approving and returning."))
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            self._check_workflow_values(vals, WORKFLOW_FIELDS)
+        return super().create(vals_list)
+
     def write(self, vals):
         if self.filtered(lambda report: report.state != "draft") and not self.env.su:
             raise AccessError(_("A submitted or posted report cannot be edited."))
+        self._check_workflow_values(vals, (*WORKFLOW_FIELDS, "log_key"))
         return super().write(vals)
 
     @api.ondelete(at_uninstall=False)
     def _unlink_except_posted(self):
         if self.filtered(lambda report: report.state == "posted"):
             raise UserError(_("A posted report is running-hour history and cannot be deleted."))
+        if not self.env.su and self.filtered(lambda report: report.state != "draft"):
+            raise UserError(_("A submitted report can only be sent back by the Chief Engineer, not deleted."))
 
 
 class SedarDailyEngineReportLine(models.Model):
@@ -232,6 +264,8 @@ class SedarDailyEngineReportLine(models.Model):
     def write(self, vals):
         if self.filtered(lambda line: line.state != "draft") and not self.env.su:
             raise AccessError(_("A submitted or posted report cannot be edited."))
+        if "reading_id" in vals and not self.env.su:
+            raise AccessError(_("The running-hour reading is created by approving the report."))
         return super().write(vals)
 
     @api.ondelete(at_uninstall=False)

@@ -37,6 +37,7 @@ export interface EngineRoomContextValue {
   returnReason: string
   reports: ApiReport[]
   waitingToSync: boolean
+  rejection: string
   queue: QueueItem[]
   discardQueued: (clientId: string) => void
   lastSynced: string

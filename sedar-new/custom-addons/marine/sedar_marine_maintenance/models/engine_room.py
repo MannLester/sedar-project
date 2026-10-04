@@ -107,8 +107,8 @@ class SedarDailyEngineReportEngineRoom(models.Model):
         if report.state in ("submitted", "posted"):
             raise UserError(_("%(report)s is already %(state)s.", report=report.name, state=report.state))
         values = {
-            "watch_start": item["watch_start"],
-            "watch_stop": item["watch_stop"],
+            "watch_start": float(item["watch_start"]),
+            "watch_stop": float(item["watch_stop"]),
             "line_ids": [Command.clear()] + [
                 Command.create({name: line[name] for name in LINE_FIELDS if name in line}) for line in item["lines"]
             ],

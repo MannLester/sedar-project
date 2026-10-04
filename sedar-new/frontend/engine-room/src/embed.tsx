@@ -41,5 +41,6 @@ export function mount(host: HTMLElement): () => void {
   return () => {
     root.unmount()
     shadow.replaceChildren()
+    document.getElementById('sedar-engine-room-page-styles')?.remove()
   }
 }

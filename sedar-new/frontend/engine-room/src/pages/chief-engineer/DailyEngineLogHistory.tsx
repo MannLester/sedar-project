@@ -17,6 +17,7 @@ interface HistoryRow {
   fuel: number
   status: HistoryStatus
   waiting: boolean
+  rejected: boolean
 }
 
 function formatDisplayDate(dateISO: string): string {
@@ -75,6 +76,7 @@ export function DailyEngineLogHistory() {
       fuel: report.fuel,
       status: statusOf(report),
       waiting: false,
+      rejected: false,
     }))
     const waiting = queue
       .filter((item) => item.tugboat_id === activeTug?.id && !reports.some((report) => report.log_id === item.log_id && report.state !== 'draft'))
@@ -86,8 +88,9 @@ export function DailyEngineLogHistory() {
         preparedBy: 'You',
         hours: item.lines.some((line) => line.engine_status === 'operated') ? ((item.watch_stop - item.watch_start + 24) % 24) : 0,
         fuel: item.lines.reduce((sum, line) => (line.engine_status === 'operated' ? sum + Math.max(0, line.fuel_rob_start - line.fuel_rob_stop) : sum), 0),
-        status: 'pending' as const,
-        waiting: true,
+        status: item.error ? ('returned' as const) : ('pending' as const),
+        waiting: !item.error,
+        rejected: Boolean(item.error),
       }))
     const inProgress: HistoryRow[] = draftSummary
       ? [{
@@ -100,6 +103,7 @@ export function DailyEngineLogHistory() {
           fuel: draftSummary.fuelUsed,
           status: 'draft',
           waiting: false,
+          rejected: false,
         }]
       : []
     return [...inProgress, ...waiting, ...saved.filter((row) => !waiting.some((entry) => entry.logId === row.logId))]
@@ -207,7 +211,7 @@ export function DailyEngineLogHistory() {
                     <td className="px-5 py-4 text-sm tabular-nums text-slate-900">{entry.fuel.toLocaleString()} L</td>
                     <td className="px-5 py-4">
                       <span className={`inline-flex rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wide ${STATUS_STYLES[entry.status]}`}>
-                        {entry.waiting ? 'Waiting to sync' : STATUS_LABELS[entry.status]}
+                        {entry.rejected ? 'Not accepted' : entry.waiting ? 'Waiting to sync' : STATUS_LABELS[entry.status]}
                       </span>
                     </td>
                     <td className="px-5 py-4 text-right">

@@ -167,3 +167,29 @@ class TestEngineRoom(TransactionCase):
             log._sedar_sync([entry])[0]["message"], "Report Engine Room Tug — %s 06:00–12:30 submitted." % self.today
         )
         self.assertEqual(self.Report.search_count([("tugboat_id", "=", self.tug.id)]), 1)
+
+    def test_duty_cannot_forge_the_workflow_or_delete_a_submitted_log(self):
+        report = self.Report.with_user(self.duty).create({"tugboat_id": self.tug.id, "watch_start": 1.0, "watch_stop": 2.0})
+        with self.assertRaises(AccessError):
+            report.write({"state": "posted", "posted_by_id": self.chief.id})
+        with self.assertRaises(AccessError):
+            report.write({"log_key": "someone-elses"})
+        with self.assertRaises(AccessError):
+            self.Report.with_user(self.duty).create({"tugboat_id": self.tug.id, "watch_start": 3.0, "state": "posted"})
+        submitted = self._submit()
+        with self.assertRaises(UserError):
+            submitted.unlink()
+        report.line_ids = [(0, 0, {"equipment_id": self.main.id})]
+        with self.assertRaises(AccessError):
+            report.line_ids.write({"reading_id": 1})
+
+    def test_watches_of_one_tugboat_cannot_overlap(self):
+        self._submit()
+        for start, stop in ((6.5, 9.0), (5.0, 7.0), (7.0, 11.0)):
+            with self.assertRaises(ValidationError):
+                self._submit(log_id=f"clash-{start}", watch_start=start, watch_stop=stop)
+        self._submit(log_id="after", watch_start=12.5, watch_stop=14.0)
+
+    def test_a_watch_without_a_start_is_not_accepted(self):
+        with self.assertRaises(TypeError):
+            self.Report.with_user(self.duty)._sedar_save_log({**self._item(), "watch_start": None})

@@ -1,3 +1,6 @@
+from odoo import SUPERUSER_ID, api
+
+
 def migrate(cr, version):
     cr.execute(
         """
@@ -21,3 +24,7 @@ def migrate(cr, version):
          WHERE fuel_rob_stop IS NULL
         """
     )
+    env = api.Environment(cr, SUPERUSER_ID, {})
+    reports = env["sedar.daily.engine.report"].search([])
+    env.add_to_compute(reports._fields["name"], reports)
+    env.flush_all()

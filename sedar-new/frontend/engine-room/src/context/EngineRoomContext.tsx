@@ -145,7 +145,8 @@ export function EngineRoomProvider({ children }: { children: React.ReactNode }) 
   const returned = reports.find((report) => report.state === 'draft')
   const logKey = requestedLog ?? returned?.log_id ?? `new:${activeTug?.id}`
   const serverReport = reports.find((report) => report.log_id === logKey)
-  const queued = queue.find((item) => item.log_id === logKey)
+  const queued = queue.find((item) => item.log_id === logKey && !item.error)
+  const rejection = queue.find((item) => item.log_id === logKey && item.error)?.error ?? ''
   const draft = drafts[logKey]
   const date = serverReport?.date ?? draft?.date ?? todayISO()
 
@@ -229,7 +230,7 @@ export function EngineRoomProvider({ children }: { children: React.ReactNode }) 
       ...toPayload(activeTug, date, baseWindow, logId),
     }
     adopt(logId)
-    updateQueue((current) => [...current, item])
+    updateQueue((current) => [...current.filter((waiting) => waiting.log_id !== logId), item])
     notify(online ? 'Submitting to the Chief Engineer…' : 'Saved on this device; it will be sent when you are back online.')
     void sync()
     return logId
@@ -300,6 +301,7 @@ export function EngineRoomProvider({ children }: { children: React.ReactNode }) 
       returnReason: serverReport?.return_reason ?? '',
       reports,
       waitingToSync: Boolean(queued),
+      rejection,
       queue,
       discardQueued: (clientId) => updateQueue((current) => current.filter((item) => item.client_id !== clientId)),
       lastSynced: snapshot?.generated_at ?? '',
@@ -313,7 +315,7 @@ export function EngineRoomProvider({ children }: { children: React.ReactNode }) 
       toast,
       clearToast,
     }),
-    [snapshot, activeTug, selectTug, logKey, draftSummary, date, working, updateLog, setWatchStart, setWatchStop, serverReport, reviewStatus, reports, queued, queue, problem, online, sync, submit, approve, returnReport, notify, toast, clearToast, updateQueue],
+    [snapshot, activeTug, selectTug, logKey, draftSummary, date, working, updateLog, setWatchStart, setWatchStop, serverReport, reviewStatus, reports, queued, rejection, queue, problem, online, sync, submit, approve, returnReport, notify, toast, clearToast, updateQueue],
   )
 
   return <EngineRoomContext.Provider value={value}>{children}</EngineRoomContext.Provider>

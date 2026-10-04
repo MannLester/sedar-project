@@ -3,7 +3,7 @@ import { Minus, Plus, Fuel, Clock, Activity, AlertTriangle, ChevronDown } from '
 import { useEngineRoom } from '../../context/engineRoomStore'
 import type { ReactNode } from 'react'
 import type { EngineLog, EngineTab } from '../../types/engineLog'
-import { computeWatchDurationHours, currentClockTime } from '../../utils/engineLog'
+import { computeWatchDurationHours } from '../../utils/engineLog'
 
 interface DailyEngineMonitorCardProps {
   log: EngineLog
@@ -141,15 +141,14 @@ export function DailyEngineMonitorCard({ log, tabs, notice, onEngineChange, onUp
   const { watchStart, watchStop, setWatchStart, setWatchStop } = useEngineRoom()
   const isRunning = Boolean(log.timeStart) && !log.timeStop
   const hasStarted = Boolean(log.timeStart)
-  const consumption = Math.max(0, log.fuelRobStart - log.fuelRobStop)
-
   const activeStatus: EngineStatus = isRunning ? 'operated' : hasStarted ? 'no-operation' : 'standby'
   const activeStatusOption = STATUS_OPTIONS.find((option) => option.id === activeStatus) ?? STATUS_OPTIONS[0]
   const isNoOperation = activeStatus === 'no-operation'
+  const consumption = activeStatus === 'operated' ? Math.max(0, log.fuelRobStart - log.fuelRobStop) : 0
 
   // Strict auto-calculation: hours run this watch come purely from WATCH START → WATCH STOP.
-  // 0 while NO OPERATION · null while the times are incomplete · otherwise decimal hours (overnight included).
-  const watchDelta = activeStatus === 'no-operation' ? 0 : computeWatchDurationHours(watchStart, watchStop)
+  // 0 for an engine that did not operate · null while the times are incomplete · otherwise decimal hours (overnight included).
+  const watchDelta = activeStatus === 'operated' ? computeWatchDurationHours(watchStart, watchStop) : 0
   // Current Meter = Previous + delta; null until both times exist, so the field falls back to the previous reading.
   const derivedMeter = watchDelta === null ? null : roundTo(log.meterPrevious + watchDelta, 1)
   const displayMeter = derivedMeter ?? log.meterPrevious
@@ -180,9 +179,8 @@ export function DailyEngineMonitorCard({ log, tabs, notice, onEngineChange, onUp
       if (next === 'no-operation') {
         // NO OPERATION enforces zero consumption: ROB stop = ROB start, rpm 0. The meter follows
         // automatically through the reconciliation effect below (delta 0 ⇒ meter = previous).
-        // The watch window resets to the current wall-clock time with STOP pinned to START, so the
-        // duration is 0 by construction — both stay editable, see the keep-stop-matched effect.
-        const clock = currentClockTime()
+        // The watch window is shared by every engine, so it is left alone: one engine not running
+        // must not erase the times of the engines that did.
         onUpdate({
           ...log,
           timeStart: log.timeStart ?? stamp,
@@ -190,13 +188,11 @@ export function DailyEngineMonitorCard({ log, tabs, notice, onEngineChange, onUp
           fuelRobStop: log.fuelRobStart,
           rpm: 0,
         })
-        setWatchStart(clock)
-        setWatchStop(clock)
       } else if (next === 'operated') {
         onUpdate({ ...log, timeStart: log.timeStart ?? stamp, timeStop: null })
       } else onUpdate({ ...log, timeStart: null, timeStop: null })
     },
-    [activeStatus, log, onUpdate, setWatchStart, setWatchStop],
+    [activeStatus, log, onUpdate],
   )
 
   // Single owner of the auto-derived fields: mirror the computed meter (keeps the Review table and the
@@ -217,14 +213,6 @@ export function DailyEngineMonitorCard({ log, tabs, notice, onEngineChange, onUp
     }
     if (changed) onUpdate(next)
   }, [derivedMeter, isNoOperation, log, onUpdate, readOnly])
-
-  // While NO OPERATION, STOP always mirrors START (duration 0 by construction). The equality guard
-  // keeps it loop-free; it also repairs logs that open as NO OPERATION with an empty stop time.
-  useEffect(() => {
-    if (readOnly || !isNoOperation) return
-    if (watchStop === watchStart) return
-    setWatchStop(watchStart)
-  }, [isNoOperation, readOnly, watchStart, watchStop, setWatchStop])
 
   return (
     <section className="tech-panel tech-console" aria-label="Daily Engine Monitor">
@@ -302,7 +290,7 @@ export function DailyEngineMonitorCard({ log, tabs, notice, onEngineChange, onUp
                 type="time"
                 aria-label="Watch stop time"
                 value={watchStop}
-                disabled={readOnly || isNoOperation}
+                disabled={readOnly}
                 onChange={(event) => setWatchStop(event.target.value)}
                 className={`${TIME_INPUT_CLS}${stopError && !watchStop ? ' border-red-400 focus:border-red-400 focus:ring-red-200' : ''}`}
               />

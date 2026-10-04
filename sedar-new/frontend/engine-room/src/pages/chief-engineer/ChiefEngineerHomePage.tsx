@@ -42,8 +42,8 @@ export function ChiefEngineerHomePage() {
         draftToday ? 'plus the log in progress' : '',
       ].filter(Boolean).join(' · '),
     },
-    fuel: { value: fuelRob.toLocaleString(), detail: mainEngine ? `Litres · ${mainEngine.name}` : 'Litres' },
-    tasks: { value: String(activeTug?.open_pm_tasks ?? 0), detail: 'Approaching, due or overdue' },
+    fuel: { value: fuelRob.toLocaleString(), detail: mainEngine ? `Litres · ${mainEngine.name.replace(activeTug?.name ?? '', '').trim()}` : 'Litres' },
+    tasks: { value: String(activeTug?.open_pm_tasks ?? 0), detail: 'Across all maintenance intervals' },
   }
 
   return (

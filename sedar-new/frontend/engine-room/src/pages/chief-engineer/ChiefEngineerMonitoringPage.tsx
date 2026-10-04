@@ -15,7 +15,7 @@ const consoleTitle = 'Engine Room Console'
 export function ChiefEngineerMonitoringPage() {
   const {
     currentRole, activeTug, date, selectLog, tabs, logs, updateLog, watchStart, watchStop, preparedBy, approvedBy,
-    reviewStatus, returnReason, waitingToSync, submit, approve, returnReport, notify,
+    reviewStatus, returnReason, waitingToSync, rejection, submit, approve, returnReport, notify,
   } = useEngineRoom()
   const [params] = useSearchParams()
   const navigate = useNavigate()
@@ -53,6 +53,10 @@ export function ChiefEngineerMonitoringPage() {
 
   // Validation gate: an open-ended log cannot enter Review mode — WATCH STOP (cut-off) is mandatory.
   const handleReview = () => {
+    if (!watchStart) {
+      notify('Watch start time is required before opening the review.')
+      return
+    }
     if (!watchStop) {
       setStopError(true)
       notify('Watch stop (cut-off) time is required before opening the review.')
@@ -63,10 +67,10 @@ export function ChiefEngineerMonitoringPage() {
   }
 
   const handleConfirmAndSubmit = () => {
-    if (!watchStop) {
+    if (!watchStart || !watchStop) {
       setStopError(true)
       setViewMode('edit')
-      notify('Watch stop (cut-off) time is required before submitting the log.')
+      notify('Watch start and stop (cut-off) times are required before submitting the log.')
       return
     }
     void runAction(() => follow(submit), () => setViewMode('edit'))
@@ -189,13 +193,19 @@ export function ChiefEngineerMonitoringPage() {
     )
   }
 
-  const showNotice = reviewStatus === 'returned' || waitingToSync || returning
+  const showNotice = reviewStatus === 'returned' || waitingToSync || returning || Boolean(rejection)
   const notice = (
     <>
       {reviewStatus === 'returned' && (
     <div role="alert" className="rounded-[10px] border border-red-300 bg-red-50 px-5 py-4 text-sm text-red-900">
       <strong className="block text-xs font-black uppercase tracking-wide">Returned for correction</strong>
       {returnReason}
+    </div>
+  )}
+  {rejection && (
+    <div role="alert" className="rounded-[10px] border border-red-300 bg-red-50 px-5 py-4 text-sm text-red-900">
+      <strong className="block text-xs font-black uppercase tracking-wide">Not accepted by Odoo</strong>
+      {rejection} Fix the entries and submit the log again.
     </div>
   )}
   {waitingToSync && (
