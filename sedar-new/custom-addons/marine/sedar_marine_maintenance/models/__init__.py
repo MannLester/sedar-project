@@ -4,6 +4,7 @@ from . import equipment_running_hour_reading
 from . import pm_task
 from . import pm_task_completion
 from . import daily_engine_report
+from . import engine_room
 from . import ship_log
 from . import maintenance_request
 from . import res_company

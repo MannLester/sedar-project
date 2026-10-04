@@ -22,8 +22,6 @@ let reachable = true;
 
 const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`);
 const today = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-const num = (value) => (value === "" || value == null ? undefined : Number(value));
-const timeToHours = (value) => { if (!value) return undefined; const [h, m] = value.split(":").map(Number); return h + m / 60; };
 
 async function rpc(path, params) {
   let response;
@@ -130,29 +128,8 @@ function render() {
   const selected = $("tug").value;
   $("tug").innerHTML = snapshot.tugs.map((tug) => `<option value="${tug.id}">${esc(tug.name)}</option>`).join("");
   if (snapshot.tugs.some((tug) => String(tug.id) === selected)) $("tug").value = selected;
-  renderEngines();
   renderTasks();
   renderQueue();
-}
-
-function renderEngines() {
-  const tug = currentTug();
-  $("engines").innerHTML = (tug?.engines || []).map((engine) => `
-    <div class="engine" data-engine="${engine.id}">
-      <h3>${esc(engine.name)} <span class="muted">(${engine.hours.toFixed(1)} h now)</span></h3>
-      <div class="grid">
-        <label>Started <input type="time" data-f="time_start"></label>
-        <label>Stopped <input type="time" data-f="time_stop"></label>
-        <label>Hours run <input type="number" inputmode="decimal" step="any" min="0" max="24" data-f="hours_run"></label>
-        <label>Fuel used (L) <input type="number" inputmode="decimal" step="any" data-f="fuel_consumed"></label>
-        <label>Service tank (L) <input type="number" inputmode="decimal" step="any" data-f="fuel_rob"></label>
-        <label>RPM <input type="number" inputmode="decimal" step="any" data-f="rpm"></label>
-        <label>Oil pressure <input type="number" inputmode="decimal" step="any" data-f="oil_pressure"></label>
-        <label>Water temp (°C) <input type="number" inputmode="decimal" step="any" data-f="water_temp"></label>
-        <label>Lube oil refill (L) <input type="number" inputmode="decimal" step="any" data-f="lube_oil_refill"></label>
-      </div>
-      <label style="margin-top:8px">Remarks <input type="text" data-f="remarks"></label>
-    </div>`).join("") || '<p class="muted">No engines with running hours on this tugboat.</p>';
 }
 
 function renderTasks() {
@@ -179,36 +156,6 @@ function renderQueue() {
   $("done-log").innerHTML = done.slice(-5).reverse().map(esc).join("<br>");
 }
 
-function collectReport() {
-  const tug = currentTug();
-  const lines = [...$("engines").querySelectorAll(".engine")].map((card) => {
-    const line = { equipment_id: Number(card.dataset.engine) };
-    card.querySelectorAll("[data-f]").forEach((input) => {
-      const name = input.dataset.f;
-      if (input.type === "time") line[name] = timeToHours(input.value);
-      else if (name === "remarks") line[name] = input.value || undefined;
-      else line[name] = num(input.value);
-    });
-    if (line.hours_run === undefined && line.time_start !== undefined && line.time_stop !== undefined) {
-      line.hours_run = (line.time_stop - line.time_start + 24) % 24;
-    }
-    return line;
-  }).filter((line) => Object.entries(line).some(([key, value]) => key !== "equipment_id" && value !== undefined));
-  return { tug, lines };
-}
-
-$("tug").addEventListener("change", () => { renderEngines(); renderTasks(); });
-
-$("save-report").addEventListener("click", () => {
-  const { tug, lines } = collectReport();
-  if (!tug || !lines.length) { alert("Enter hours for at least one engine."); return; }
-  const report = { kind: "report", tugboat_id: tug.id, report_date: $("report-date").value, lines, remarks: $("report-remarks").value || undefined };
-  ["rob_diesel", "rob_lube_40", "rob_lube_15w40", "rob_hydraulic", "rob_fresh_water"].forEach((name) => { report[name] = num($(name).value); });
-  enqueue({ ...report, label: `Daily report ${esc(tug.name)} ${report.report_date}` });
-  renderEngines();
-  ["rob_diesel", "rob_lube_40", "rob_lube_15w40", "rob_hydraulic", "rob_fresh_water", "report-remarks"].forEach((id) => { $(id).value = ""; });
-});
-
 document.addEventListener("click", (event) => {
   const taskId = event.target.dataset.done;
   const discard = event.target.dataset.discard;
@@ -231,7 +178,6 @@ window.addEventListener("online", sync);
 window.addEventListener("offline", status);
 setInterval(() => { if (queue.some((item) => !item.error)) sync(); }, SYNC_RETRY_MS);
 
-$("report-date").value = today();
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 render();
 status();

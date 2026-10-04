@@ -674,25 +674,29 @@ A task can be completed only once it is approaching, due, or overdue. Completion
 
 ### `sedar.daily.engine.report` and `sedar.daily.engine.report.line`
 
-The Daily Engine Monitoring Report records one tugboat's engine hours and fuel for one day. Posting adds each engine's hours to its running hours.
+The Daily Engine Monitoring Report records one engine-room watch of one tugboat: a start and a stop time and, for each engine, its status, readings and fuel. It is shaped by the Engine Room page (`static/engine_room`, shown inside Odoo by Technical Maintenance > Daily Engine Reports), which follows the design of the crew's watch log. The crew submits a watch log and the Chief Engineer (a Marine Maintenance Manager) approves it; approving posts it and adds each engine's hours to its running hours. A tugboat can have several watch logs in one day.
 
 | Field | Type | How it is used |
 | --- | --- | --- |
-| `tugboat_id`, `report_date` | Required | One report per tugboat per date; the date cannot be in the future. |
-| `state` | Read-only selection | Draft or posted. |
-| `prepared_by_id`, `posted_by_id`, `posted_at` | Read-only | Author, the user who posted (the Chief Engineer's note on the paper form) and posting time. |
-| `rob_diesel`, `rob_lube_40`, `rob_lube_15w40`, `rob_hydraulic`, `rob_fresh_water` | Float | Remaining on board at the end of the day: D.O., L.O. 40, L.O. 15W-40, hydraulic oil and fresh water. Not negative. |
-| `remarks` | Text | Report remarks. |
+| `tugboat_id`, `report_date` | Required | The tugboat and the day the watch began; the date cannot be in the future. |
+| `watch_start`, `watch_stop` | Float time of day | The watch window, which can end after midnight. A tugboat has one report per date and start time. |
+| `log_key` | Read-only character | Identifier the Engine Room page gives a watch log, so a retried or resubmitted upload finds the same report. Reports without one are addressed as `r` plus their database id. |
+| `state` | Read-only selection | Draft, submitted or posted. Only a draft can be edited. |
+| `prepared_by_id`, `submitted_by_id`, `submitted_at` | Read-only | Author, the user who submitted the report and when. |
+| `return_reason` | Read-only text | Why the Chief Engineer returned the report to draft. A draft with a reason is shown as Returned; submitting again clears it. |
+| `posted_by_id`, `posted_at` | Read-only | The Chief Engineer who approved the report and when. |
 | `line_ids` | One-to-many to `sedar.daily.engine.report.line` | One line per engine. |
 | line `equipment_id` | Required many-to-one to `maintenance.equipment` | Engine of the report's tugboat that keeps its own hours. Unique per report. |
-| line `hours_run` | Float | Hours the engine ran that day, 0 to 24. |
-| line `fuel_consumed` | Float | Liters consumed; recorded only, not yet used elsewhere. |
-| line `time_start`, `time_stop` | Float | Times of day the engine started and stopped. Entering both fills in `hours_run`. |
-| line `rpm`, `oil_pressure`, `water_temp`, `fuel_rob`, `lube_oil_refill` | Float | Readings from the paper form: RPM, oil pressure, water temperature, service-tank fuel remaining and lube oil refilled. Recorded only. |
-| line `remarks` | Character | Line remarks. |
+| line `engine_status` | Required selection, default Operated | Operated, No Operation or Standby. |
+| line `hours_run` | Computed, stored float | The length of the watch for an operated engine, to a tenth of an hour; zero otherwise. |
+| line `rpm`, `oil_pressure`, `water_temp` | Float | Readings during the watch. Not negative. |
+| line `fuel_rob_start`, `fuel_rob_stop` | Float | Fuel remaining on board in liters at the start and at the stop. Not negative. |
+| line `fuel_consumed` | Computed, stored float | Start less stop for an operated engine; zero otherwise. |
 | line `reading_id` | Read-only many-to-one to `sedar.equipment.running.hour.reading` | Reading created when the report was posted. |
 
-`action_post()` creates one Running Hour Reading per line with hours (current Running Hours plus hours run), so the task status of the engine and its components updates at once. A posted report cannot be edited or deleted; correct an error with a manager reading correction.
+`action_submit()` hands a draft to the Chief Engineer; it needs at least one engine line, and an operated engine needs a watch that stops later than it starts. `action_return(reason)` (manager only, reason required) sends a submitted report back to draft. `action_post()` (manager only, from draft or submitted) creates one Running Hour Reading per line with hours (current Running Hours plus hours run), so the task status of the engine and its components updates at once. A submitted or posted report cannot be edited and a posted one cannot be deleted; correct a posted error with a manager reading correction. Two reports for the same engine cannot be posted within the same second.
+
+The Engine Room page reads `_sedar_engine_room_snapshot()` (tugboats, their engines with running hours, last fuel remaining and the nearest Planned Maintenance Task, and the latest 60 reports). `_sedar_save_log()` replaces the draft watch log identified by the page's `log_id`, and `_sedar_review()` is the Chief Engineer's online approve or return, saving an entered log first when it was never submitted.
 
 ### `sedar.ship.log.entry`
 
@@ -704,7 +708,7 @@ Receives what the offline Ship Log page uploads (`static/ship_log`, reached from
 | `user_id` | Read-only many-to-one to `res.users` | User who delivered the entry. |
 | `message` | Read-only character | Result shown to the crew, such as the posted report. |
 
-Each entry is applied in its own savepoint, so one rejected entry (for example a second report for the same tugboat and date) does not block the others. Entries are either a posted Daily Engine Report or a task completion; fields outside the documented columns are ignored.
+Each entry is applied in its own savepoint, so one rejected entry (for example a second report for the same tugboat and date) does not block the others. Entries are either a submitted watch log (never posted; the Chief Engineer approves it online) or a task completion; fields outside the documented columns are ignored.
 
 ### `maintenance.request` marine extension
 

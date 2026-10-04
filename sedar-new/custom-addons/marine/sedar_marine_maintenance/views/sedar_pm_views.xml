@@ -105,6 +105,7 @@
             <search string="Daily Engine Reports">
                 <field name="tugboat_id"/>
                 <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="submitted" string="Submitted" domain="[('state', '=', 'submitted')]"/>
                 <filter name="group_tugboat" string="Group by Tugboat" context="{'group_by': 'tugboat_id'}"/>
             </search>
         </field>
@@ -114,8 +115,10 @@
         <field name="name">sedar.daily.engine.report.list</field>
         <field name="model">sedar.daily.engine.report</field>
         <field name="arch" type="xml">
-            <list string="Daily Engine Reports" decoration-muted="state == 'posted'">
+            <list string="Daily Engine Reports" decoration-muted="state == 'posted'" decoration-warning="state == 'submitted'">
                 <field name="report_date"/>
+                <field name="watch_start" widget="float_time"/>
+                <field name="watch_stop" widget="float_time"/>
                 <field name="tugboat_id"/>
                 <field name="prepared_by_id"/>
                 <field name="state" widget="badge"/>
@@ -129,50 +132,43 @@
         <field name="arch" type="xml">
             <form string="Daily Engine Monitoring Report">
                 <header>
-                    <button name="action_post" type="object" string="Post Hours" class="btn-primary" invisible="state == 'posted'"
+                    <button name="action_submit" type="object" string="Submit to Chief Engineer" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_post" type="object" string="Approve and Post Hours" class="btn-primary" invisible="state == 'posted'"
+                            groups="sedar_marine_maintenance.group_marine_maintenance_manager"
                             confirm="Posting adds these hours to each engine's running hours and cannot be undone."/>
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
                     <group>
                         <group>
-                            <field name="tugboat_id" readonly="state == 'posted'"/>
-                            <field name="report_date" readonly="state == 'posted'"/>
+                            <field name="tugboat_id" readonly="state != 'draft'"/>
+                            <field name="report_date" readonly="state != 'draft'"/>
+                            <field name="watch_start" widget="float_time" readonly="state != 'draft'"/>
+                            <field name="watch_stop" widget="float_time" readonly="state != 'draft'"/>
                         </group>
                         <group>
                             <field name="prepared_by_id"/>
+                            <field name="submitted_by_id"/>
+                            <field name="submitted_at"/>
                             <field name="posted_by_id"/>
                             <field name="posted_at"/>
                         </group>
                     </group>
-                    <field name="line_ids" readonly="state == 'posted'">
+                    <field name="return_reason" invisible="not return_reason"/>
+                    <field name="line_ids" readonly="state != 'draft'">
                         <list editable="bottom">
                             <field name="equipment_id"/>
-                            <field name="time_start" widget="float_time" optional="show"/>
-                            <field name="time_stop" widget="float_time" optional="show"/>
+                            <field name="engine_status"/>
                             <field name="hours_run" widget="float_time"/>
+                            <field name="fuel_rob_start"/>
+                            <field name="fuel_rob_stop"/>
                             <field name="fuel_consumed"/>
-                            <field name="fuel_rob" optional="show"/>
-                            <field name="rpm" optional="show"/>
-                            <field name="oil_pressure" optional="show"/>
-                            <field name="water_temp" optional="show"/>
-                            <field name="lube_oil_refill" optional="show"/>
-                            <field name="remarks"/>
+                            <field name="rpm"/>
+                            <field name="oil_pressure"/>
+                            <field name="water_temp"/>
                             <field name="reading_id" optional="hide"/>
                         </list>
                     </field>
-                    <group string="Remaining on Board">
-                        <group>
-                            <field name="rob_diesel" readonly="state == 'posted'"/>
-                            <field name="rob_lube_40" readonly="state == 'posted'"/>
-                            <field name="rob_lube_15w40" readonly="state == 'posted'"/>
-                        </group>
-                        <group>
-                            <field name="rob_hydraulic" readonly="state == 'posted'"/>
-                            <field name="rob_fresh_water" readonly="state == 'posted'"/>
-                        </group>
-                    </group>
-                    <field name="remarks" placeholder="Remarks" readonly="state == 'posted'"/>
                 </sheet>
             </form>
         </field>
@@ -185,6 +181,12 @@
         <field name="search_view_id" ref="view_daily_engine_report_search"/>
     </record>
 
-    <menuitem id="menu_daily_engine_reports" name="Daily Engine Reports" parent="menu_marine_maintenance_root" action="action_daily_engine_reports" sequence="12"/>
+    <record id="action_engine_room" model="ir.actions.client">
+        <field name="name">Daily Engine Reports</field>
+        <field name="tag">sedar_marine_maintenance.engine_room</field>
+    </record>
+
+    <menuitem id="menu_daily_engine_reports" name="Daily Engine Reports" parent="menu_marine_maintenance_root" action="action_engine_room" sequence="12"/>
+    <menuitem id="menu_daily_engine_report_records" name="Daily Engine Report Records" parent="menu_marine_maintenance_root" action="action_daily_engine_reports" sequence="13" groups="sedar_marine_maintenance.group_marine_maintenance_manager"/>
     <menuitem id="menu_pm_tasks" name="Planned Maintenance" parent="menu_marine_maintenance_root" action="action_pm_tasks" sequence="15"/>
 </odoo>

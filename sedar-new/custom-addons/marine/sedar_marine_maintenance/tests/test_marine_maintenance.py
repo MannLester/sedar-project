@@ -345,23 +345,23 @@ class TestMarineMaintenance(TransactionCase):
         task = self._task(engine, 110)
         Report = self.env["sedar.daily.engine.report"].with_user(self.maintenance_user)
         report = Report.create({
-            "tugboat_id": self.tug.id,
-            "line_ids": [(0, 0, {"equipment_id": engine.id, "hours_run": 12.5, "fuel_consumed": 410})],
+            "tugboat_id": self.tug.id, "watch_start": 6.0, "watch_stop": 18.5,
+            "line_ids": [(0, 0, {"equipment_id": engine.id, "fuel_rob_start": 900, "fuel_rob_stop": 490})],
         })
+        self.assertEqual((report.line_ids.hours_run, report.line_ids.fuel_consumed), (12.5, 410))
         with self.assertRaises(ValidationError):
-            Report.create({"tugboat_id": self.tug.id})
-        with self.assertRaises(ValidationError):
-            report.line_ids.hours_run = 25
+            Report.create({"tugboat_id": self.tug.id, "watch_start": 6.0, "watch_stop": 10.0})
+        Report.create({"tugboat_id": self.tug.id, "watch_start": 18.5, "watch_stop": 22.0})
 
-        report.action_post()
+        report.with_user(self.manager).action_post()
         self.assertEqual(report.state, "posted")
         self.assertEqual(engine.sedar_current_running_hours, 112.5)
         self.assertEqual(report.line_ids.reading_id.running_hours, 112.5)
         self.assertEqual(task.state, "overdue")
         with self.assertRaises(AccessError):
-            report.remarks = "late edit"
+            report.watch_stop = 19.0
         with self.assertRaises(AccessError):
-            report.line_ids.hours_run = 1
+            report.line_ids.rpm = 1
         with self.assertRaises(UserError):
             report.unlink()
 
@@ -408,31 +408,30 @@ class TestMarineMaintenance(TransactionCase):
         self._finish_dry_dock(self._dry_dock(reset_pm_counters=False))
         self.assertEqual((task.cycle, task.next_checkpoint_hours), (1, 300))
 
-    def test_report_records_the_paper_form_columns(self):
-        engine = self._new_metered_equipment(name="Paper Form Engine")
+    def test_report_records_the_watch_log_columns(self):
+        engine = self._new_metered_equipment(name="Watch Log Engine")
         self._reading(engine, 100, fields.Datetime.now() - timedelta(days=1))
         Report = self.env["sedar.daily.engine.report"].with_user(self.maintenance_user)
         report = Report.create({
-            "tugboat_id": self.tug.id,
-            "rob_diesel": 5800, "rob_lube_40": 330, "rob_lube_15w40": 160, "rob_hydraulic": 55, "rob_fresh_water": 6,
+            "tugboat_id": self.tug.id, "watch_start": 22.0, "watch_stop": 2.0,
             "line_ids": [(0, 0, {
-                "equipment_id": engine.id, "time_start": 11 + 20 / 60, "time_stop": 13 + 40 / 60,
-                "hours_run": 2 + 20 / 60, "fuel_consumed": 150, "fuel_rob": 1300,
-                "rpm": 1800, "oil_pressure": 4.5, "water_temp": 70, "lube_oil_refill": 2,
+                "equipment_id": engine.id, "fuel_rob_start": 1450, "fuel_rob_stop": 1300,
+                "rpm": 1800, "oil_pressure": 4.5, "water_temp": 70,
             })],
         })
         line = report.line_ids
-        line.time_start, line.time_stop = 22.0, 2.0
-        line._onchange_times()
-        self.assertEqual(line.hours_run, 4.0)
+        self.assertEqual((line.hours_run, line.fuel_consumed), (4.0, 150))
+        line.engine_status = "standby"
+        self.assertEqual((line.hours_run, line.fuel_consumed), (0, 0))
+        line.engine_status = "operated"
         with self.assertRaises(ValidationError):
-            line.time_stop = 24
+            report.watch_stop = 24
         with self.assertRaises(ValidationError):
             line.rpm = -1
-        with self.assertRaises(ValidationError):
-            report.rob_diesel = -1
-        report.action_post()
-        self.assertEqual(report.posted_by_id, self.maintenance_user)
+        with self.assertRaises(AccessError):
+            report.action_post()
+        report.with_user(self.manager).action_post()
+        self.assertEqual(report.posted_by_id, self.manager)
         self.assertEqual(engine.sedar_current_running_hours, 104)
 
     def test_ship_log_snapshot_and_idempotent_sync(self):
@@ -446,14 +445,18 @@ class TestMarineMaintenance(TransactionCase):
         self.assertEqual([entry["id"] for entry in tug["tasks"]], [task.id])
 
         report = {
-            "client_id": "report-1", "kind": "report", "tugboat_id": self.tug.id,
-            "report_date": str(fields.Date.context_today(log)),
-            "lines": [{"equipment_id": engine.id, "hours_run": 12, "fuel_consumed": 300, "is_system": "ignored"}],
+            "client_id": "report-1", "kind": "report", "log_id": "log-1", "tugboat_id": self.tug.id,
+            "report_date": str(fields.Date.context_today(log)), "watch_start": 6.0, "watch_stop": 18.0,
+            "lines": [{"equipment_id": engine.id, "fuel_rob_start": 900, "fuel_rob_stop": 600, "is_system": "ignored"}],
         }
         first = log._sedar_sync([report])[0]
         again = log._sedar_sync([report])[0]
         self.assertTrue(first["ok"])
         self.assertEqual(again, first)
+        submitted = self.env["sedar.daily.engine.report"].search([("tugboat_id", "=", self.tug.id)])
+        self.assertEqual(submitted.state, "submitted")
+        self.assertEqual(engine.sedar_current_running_hours, 290)
+        submitted.with_user(self.manager).action_post()
         self.assertEqual(engine.sedar_current_running_hours, 302)
         self.assertEqual(self.env["sedar.daily.engine.report"].search_count([("tugboat_id", "=", self.tug.id)]), 1)
 

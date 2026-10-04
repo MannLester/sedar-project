@@ -1,7 +1,7 @@
 "use strict";
 // Keeps the ship log page itself available without a connection; data and uploads go through app.js.
 
-const CACHE = "ship-log-v4";
+const CACHE = "ship-log-v5";
 const SHELL = ["./app.html", "./app.js", "./sedar-logo.png"];
 const SCOPE_PATH = new URL("./", self.location).pathname;
 

@@ -1,17 +1,11 @@
-from odoo import Command, _, api, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
-
-REPORT_FIELDS = ("rob_diesel", "rob_lube_40", "rob_lube_15w40", "rob_hydraulic", "rob_fresh_water", "remarks")
-REPORT_LINE_FIELDS = (
-    "equipment_id", "hours_run", "fuel_consumed", "time_start", "time_stop",
-    "rpm", "oil_pressure", "water_temp", "fuel_rob", "lube_oil_refill", "remarks",
-)
 
 
 class SedarShipLogEntry(models.Model):
     """One entry the offline ship log has already delivered, so a retried upload is never applied twice.
 
-    The offline page keeps no business rules: it downloads a snapshot and uploads entries, and this model
+    The offline pages keep no business rules: they download a snapshot and upload entries, and this model
     applies them through the normal Daily Engine Report and Planned Maintenance completion rules.
     """
 
@@ -86,17 +80,8 @@ class SedarShipLogEntry(models.Model):
     def _sedar_apply(self, item):
         kind = item["kind"]
         if kind == "report":
-            report = self.env["sedar.daily.engine.report"].create({
-                "tugboat_id": item["tugboat_id"],
-                "report_date": item["report_date"],
-                **{name: item[name] for name in REPORT_FIELDS if name in item},
-                "line_ids": [
-                    Command.create({name: line[name] for name in REPORT_LINE_FIELDS if name in line})
-                    for line in item["lines"]
-                ],
-            })
-            report.action_post()
-            return _("Report %s posted.", report.name)
+            report = self.env["sedar.daily.engine.report"]._sedar_save_log(item, submit=True)
+            return _("Report %s submitted.", report.name)
         if kind == "completion":
             task = self.env["sedar.pm.task"].browse(item["task_id"]).exists()
             if not task:
