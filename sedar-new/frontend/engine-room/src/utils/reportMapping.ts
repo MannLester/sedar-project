@@ -35,6 +35,12 @@ function standbyLog(engine: ApiEngine, tug: ApiTug, date: string): EngineLog {
   }
 }
 
+// A watch log starts with every engine at No Operation; the crew marks the ones that ran.
+function idleLog(engine: ApiEngine, tug: ApiTug, date: string): EngineLog {
+  const stamp = `${date}T00:00:00`
+  return { ...standbyLog(engine, tug, date), timeStart: stamp, timeStop: stamp }
+}
+
 function savedLog(base: EngineLog, line: ApiLine, posted: boolean): EngineLog {
   const stamp = `${base.date}T00:00:00`
   return {
@@ -66,7 +72,7 @@ export function windowFromReport(tug: ApiTug, report: ApiReport): WatchWindowLog
 }
 
 export function blankWindow(tug: ApiTug, date: string): WatchWindowLogs {
-  return { watchStart: currentClockTime(), watchStop: '', logs: tug.engines.map((engine) => standbyLog(engine, tug, date)) }
+  return { watchStart: currentClockTime(), watchStop: '', logs: tug.engines.map((engine) => idleLog(engine, tug, date)) }
 }
 
 // A stored draft keeps what the crew typed, but the engines' hours and maintenance come from the latest snapshot.
@@ -74,7 +80,7 @@ export function refreshDraft(tug: ApiTug, date: string, draft: WatchWindowLogs):
   return {
     ...draft,
     logs: tug.engines.map((engine) => {
-      const fresh = standbyLog(engine, tug, date)
+      const fresh = idleLog(engine, tug, date)
       const typed = draft.logs.find((log) => log.engineId === fresh.engineId)
       return typed ? { ...fresh, ...typed, label: fresh.label, engineClass: fresh.engineClass, meterPrevious: fresh.meterPrevious, nextPm: fresh.nextPm } : fresh
     }),

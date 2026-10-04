@@ -50,7 +50,7 @@ export function EngineRoomProvider({ children }: { children: React.ReactNode }) 
   const [snapshot, setSnapshot] = useState<Snapshot | null>(() => readStored('snapshot-v3', null))
   const [queue, setQueue] = useState<QueueItem[]>(() => readStored('queue-v3', []))
   const [tugId, setTugId] = useState<number | null>(() => readStored('tug', null))
-  const [drafts, setDrafts] = useState<Record<string, Draft>>(() => readStored('drafts-v3', {}))
+  const [drafts, setDrafts] = useState<Record<string, Draft>>(() => readStored('drafts-v4', {}))
   const [requestedLog, setRequestedLog] = useState<string | null>(null)
   const [problem, setProblem] = useState('')
   const [toast, setToast] = useState('')
@@ -66,7 +66,7 @@ export function EngineRoomProvider({ children }: { children: React.ReactNode }) 
   useEffect(() => writeStored('snapshot-v3', snapshot), [snapshot])
   useEffect(() => writeStored('queue-v3', queue), [queue])
   useEffect(() => writeStored('tug', tugId), [tugId])
-  useEffect(() => writeStored('drafts-v3', drafts), [drafts])
+  useEffect(() => writeStored('drafts-v4', drafts), [drafts])
 
   useEffect(() => {
     if (!toast) return

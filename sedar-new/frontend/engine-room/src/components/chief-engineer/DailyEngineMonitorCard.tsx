@@ -376,7 +376,7 @@ export function DailyEngineMonitorCard({ log, tabs, notice, onEngineChange, onUp
                     <strong className={`text-5xl font-black tabular-nums leading-none ${tone.value}`}>
                       {pmRemaining.toFixed(1)}
                     </strong>
-                    <span className={`mt-1 text-[10px] font-bold uppercase tracking-widest ${tone.label}`}>Hrs to {pm.name}</span>
+                    <span className={`mt-1 text-[10px] font-bold uppercase tracking-widest ${tone.label}`}>Hrs to {pmIntervalHours}H routine</span>
                     <span className="mt-2 text-[10px] text-slate-500">
                       Elapsed Since Last Service: {sinceService.toFixed(1)} HRS
                     </span>
