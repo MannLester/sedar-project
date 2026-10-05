@@ -150,9 +150,14 @@ customer invoice.
 
 Demo users:
 
+- Full-access demonstration: `fullaccess@sedar.demo`, password `fullaccessdemo`
 - Tug Masters: `tugmaster1@sedar.demo` through `tugmaster5@sedar.demo`, password `tugdemo`
 - Billing Officer: `billing@sedar.demo`, password `billingdemo`
 - Accounting Manager: `accounting@sedar.demo`, password `accountingdemo`
+
+The full-access demonstration account opens the Executive Company Dashboard by default and can
+switch among Owner Overview, Operations, Finance, and Crewing & Safety. It is a local fixture for
+guided demonstrations and must not be copied into production.
 
 The seeded two-tug towage order is completed by both Tug Masters and appears in
 **SEDAR > Marine Finance > Billing Reviews**. It uses 12 actual tug-hours and an approved,

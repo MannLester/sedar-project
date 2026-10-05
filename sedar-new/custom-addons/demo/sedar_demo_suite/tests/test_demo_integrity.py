@@ -150,6 +150,19 @@ class TestSedarDemoIntegrity(TransactionCase):
         order = self.env.ref("sedar_service_order_demo.order_draft").with_user(admin)
         order.write({"special_instructions": "Administrator demo-access QA."})
 
+    def test_full_access_demo_opens_owner_dashboard(self):
+        user = self.env.ref("sedar_demo_suite.user_full_access_demo")
+        dashboard_action = self.env.ref(
+            "sedar_executive_dashboard.action_sedar_executive_dashboard"
+        )
+
+        self.assertEqual(user.login, "fullaccess@sedar.demo")
+        self.assertTrue(
+            user.has_group("sedar_executive_dashboard.group_sedar_executive")
+        )
+        self.assertEqual(user.action_id.id, dashboard_action.id)
+        self.assertEqual(user.sedar_executive_dashboard_view, "owner")
+
     def test_internal_demo_personas_receive_demo_access_override(self):
         personas = self.env["res.users"].search([
             ("active", "=", True),

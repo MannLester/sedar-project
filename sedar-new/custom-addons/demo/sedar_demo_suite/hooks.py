@@ -34,6 +34,7 @@ def post_init_hook(env):
     company.sedar_ensure_recruitment_demo()
     company.sedar_ensure_crew_onboarding_demo()
     company.sedar_ensure_executive_demo()
+    _ensure_full_access_demo_user(env)
 
     from odoo.addons.sedar_service_order_demo.hooks import post_init_hook as reconcile_orders
     from odoo.addons.sedar_marine_dispatch_demo.hooks import post_init_hook as reconcile_dispatch
@@ -199,6 +200,44 @@ def _ensure_demo_internal_access(env):
     users.write({
         "group_ids": [Command.link(group.id) for group in groups if group],
     })
+
+
+def _ensure_full_access_demo_user(env):
+    login = "fullaccess@sedar.demo"
+    data = _fixture_data(env, "user_full_access_demo")
+    if data:
+        if data.model != "res.users":
+            raise UserError(
+                "Fixture sedar_demo_suite.user_full_access_demo must reference res.users."
+            )
+        user = env["res.users"].sudo().browse(data.res_id).exists()
+        if not user:
+            raise UserError(
+                "Fixture sedar_demo_suite.user_full_access_demo references a missing user."
+            )
+    else:
+        user = env["res.users"].sudo().search([("login", "=", login)], limit=1)
+        if user:
+            _bind_xmlid(env, "user_full_access_demo", user)
+        else:
+            user = env["res.users"].sudo().with_context(no_reset_password=True).create({
+                "name": "Full Access Demo",
+                "login": login,
+                "password": "fullaccessdemo",
+                "company_id": env.company.id,
+                "company_ids": [Command.set(env.company.ids)],
+                "group_ids": [Command.link(env.ref("base.group_user").id)],
+            })
+            _bind_xmlid(env, "user_full_access_demo", user)
+    action = env.ref("sedar_executive_dashboard.action_sedar_executive_dashboard")
+    user.write({
+        "name": "Full Access Demo",
+        "company_id": env.company.id,
+        "company_ids": [Command.set(env.company.ids)],
+        "action_id": action.id,
+        "sedar_executive_dashboard_view": "owner",
+    })
+    return user
 
 
 def _ensure_accounting_foundation(env, company):
