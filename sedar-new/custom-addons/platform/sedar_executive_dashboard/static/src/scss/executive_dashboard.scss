@@ -11,12 +11,72 @@
 }
 
 .sedar_executive_header,
+.sedar_preset_bar,
 .sedar_attention_banner,
 .sedar_pillar header,
 .sedar_metric_row,
 .sedar_secondary_links {
     display: flex;
     align-items: center;
+}
+
+.sedar_preset_bar {
+    justify-content: space-between;
+    gap: 1.25rem;
+    margin-top: 1rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--sedar-line);
+    border-radius: 14px;
+    background: white;
+}
+
+.sedar_preset_bar > div > strong,
+.sedar_preset_bar > div > small {
+    display: block;
+}
+
+.sedar_preset_bar > div > strong {
+    margin: 0.12rem 0;
+    color: var(--sedar-ink);
+}
+
+.sedar_preset_bar small {
+    color: var(--sedar-muted);
+}
+
+.sedar_preset_switcher {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.4rem;
+}
+
+.sedar_preset_button,
+.sedar_preset_active {
+    padding: 0.55rem 0.8rem;
+    border: 1px solid var(--sedar-line);
+    border-radius: 9px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.sedar_preset_button {
+    color: var(--sedar-muted);
+    background: var(--sedar-soft);
+}
+
+.sedar_preset_button:hover {
+    color: var(--sedar-blue);
+    border-color: #84adff;
+    background: #eff6ff;
+}
+
+.sedar_preset_active {
+    color: white;
+    border-color: var(--sedar-blue);
+    background: var(--sedar-blue);
+    box-shadow: 0 5px 12px rgba(21, 94, 239, 0.22);
 }
 
 .sedar_executive_header {
@@ -233,9 +293,14 @@
 
 @media (max-width: 700px) {
     .sedar_executive_header,
+    .sedar_preset_bar,
     .sedar_attention_banner {
         align-items: stretch;
         flex-direction: column;
+    }
+
+    .sedar_preset_switcher {
+        justify-content: flex-start;
     }
 
     .sedar_action_grid {

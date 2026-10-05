@@ -1,8 +1,62 @@
 from odoo import fields
+from odoo.exceptions import UserError
 from odoo.tests.common import TransactionCase
+from odoo.tests.common import new_test_user
+from odoo.tools import file_open
 
 
 class TestSedarExecutiveDashboard(TransactionCase):
+    def test_dashboard_perspective_is_saved_per_user(self):
+        executive = new_test_user(
+            self.env,
+            login="dashboard_perspective_user",
+            groups="sedar_executive_dashboard.group_sedar_executive",
+        )
+        dashboard = self.env.ref(
+            "sedar_executive_dashboard.executive_dashboard_demo"
+        ).with_user(executive)
+
+        action = dashboard.with_context(
+            dashboard_perspective="operations"
+        ).action_set_dashboard_perspective()
+
+        self.assertEqual(executive.sedar_executive_dashboard_view, "operations")
+        self.assertEqual(action["res_id"], dashboard.id)
+        self.assertEqual(action["res_model"], "sedar.executive.dashboard")
+        with self.assertRaises(UserError):
+            dashboard.with_context(
+                dashboard_perspective="unsupported"
+            ).action_set_dashboard_perspective()
+
+    def test_dashboard_perspectives_focus_attention_counts(self):
+        dashboard = self.env.ref("sedar_executive_dashboard.executive_dashboard_demo")
+
+        self.assertEqual(
+            dashboard._perspective_attention_count("finance"),
+            dashboard.overdue_receivable_count + dashboard.billing_review_count,
+        )
+        self.assertEqual(
+            dashboard._perspective_attention_count("people"),
+            dashboard.credential_expiry_count
+            + dashboard.open_shortage_count
+            + dashboard.hsse_overdue_action_count,
+        )
+        self.assertEqual(
+            dashboard._perspective_attention_count("owner"),
+            dashboard.attention_total_count,
+        )
+
+    def test_dashboard_view_exposes_four_role_presets(self):
+        with file_open(
+            "sedar_executive_dashboard/views/sedar_executive_views.xml"
+        ) as view_file:
+            view = view_file.read()
+
+        self.assertIn("Owner Overview", view)
+        self.assertIn(">Operations</", view)
+        self.assertIn(">Finance</", view)
+        self.assertIn("Crewing &amp; Safety", view)
+
     def test_corporate_register_has_controlled_sources(self):
         records = self.env["sedar.corporate.record"].search([])
         self.assertEqual(len(records), 7)

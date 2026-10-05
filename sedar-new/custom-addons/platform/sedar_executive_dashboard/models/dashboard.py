@@ -1,4 +1,7 @@
 from odoo import _, api, fields, models
+from odoo.exceptions import UserError
+
+from .res_users import EXECUTIVE_DASHBOARD_VIEWS
 
 
 MODULE = "sedar_executive_dashboard"
@@ -23,6 +26,13 @@ class SedarExecutiveDashboard(models.Model):
     name = fields.Char(required=True)
     company_id = fields.Many2one("res.company", required=True, default=lambda self: self.env.company, ondelete="restrict")
     currency_id = fields.Many2one(related="company_id.currency_id", readonly=True)
+    dashboard_perspective = fields.Selection(
+        EXECUTIVE_DASHBOARD_VIEWS,
+        compute="_compute_dashboard_perspective",
+    )
+    perspective_title = fields.Char(compute="_compute_dashboard_perspective")
+    perspective_summary = fields.Char(compute="_compute_dashboard_perspective")
+    visible_attention_count = fields.Integer(compute="_compute_dashboard_perspective")
     last_refreshed = fields.Datetime(compute="_compute_kpis")
     revenue_total = fields.Monetary(compute="_compute_kpis", currency_field="currency_id")
     invoiced_total = fields.Monetary(compute="_compute_kpis", currency_field="currency_id")
@@ -68,6 +78,70 @@ class SedarExecutiveDashboard(models.Model):
     attention_total_count = fields.Integer(compute="_compute_kpis")
     profitability_note = fields.Char(compute="_compute_kpis")
     utilization_note = fields.Char(compute="_compute_kpis")
+
+    @api.depends_context("uid")
+    def _compute_dashboard_perspective(self):
+        perspective = self.env.user.sedar_executive_dashboard_view or "owner"
+        presentations = {
+            "owner": (
+                "Owner Overview",
+                "Company-wide operating health across vessels, people, cash, and customers.",
+            ),
+            "operations": (
+                "Operations",
+                "Fleet readiness, Service Order delivery, maintenance, inventory, and procurement.",
+            ),
+            "finance": (
+                "Finance",
+                "Revenue, collections, receivables, payables, and billing decisions.",
+            ),
+            "people": (
+                "Crewing & Safety",
+                "Crew readiness, credential risk, shortages, vacancies, and HSSE follow-through.",
+            ),
+        }
+        for dashboard in self:
+            dashboard.dashboard_perspective = perspective
+            dashboard.perspective_title, dashboard.perspective_summary = presentations[perspective]
+            dashboard.visible_attention_count = dashboard._perspective_attention_count(
+                perspective
+            )
+
+    def _perspective_attention_count(self, perspective):
+        self.ensure_one()
+        if perspective == "operations":
+            return sum([
+                self.blocked_service_order_count,
+                self.maintenance_blocker_count,
+                self.inventory_shortage_count,
+                self.purchase_overdue_count,
+                self.document_expiry_count,
+            ])
+        if perspective == "finance":
+            return self.overdue_receivable_count + self.billing_review_count
+        if perspective == "people":
+            return sum([
+                self.credential_expiry_count,
+                self.open_shortage_count,
+                self.hsse_overdue_action_count,
+            ])
+        return self.attention_total_count
+
+    def action_set_dashboard_perspective(self):
+        self.ensure_one()
+        perspective = self.env.context.get("dashboard_perspective")
+        allowed = dict(EXECUTIVE_DASHBOARD_VIEWS)
+        if perspective not in allowed:
+            raise UserError(_("Select a valid executive dashboard view."))
+        self.env.user.write({"sedar_executive_dashboard_view": perspective})
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Company Dashboard"),
+            "res_model": self._name,
+            "res_id": self.id,
+            "view_mode": "form",
+            "target": "current",
+        }
 
     def _assign_people_and_support_kpis(self, today, warning):
         company_domain = [("company_id", "=", self.company_id.id)]
