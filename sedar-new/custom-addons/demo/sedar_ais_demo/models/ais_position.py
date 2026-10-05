@@ -256,6 +256,7 @@ class SedarAisPosition(models.Model):
         ], order="planned_start desc, id desc")
         crew_by_tug = self._dashboard_crew(tugs, assignments)
         equipment_by_tug = self._equipment_summaries(tugs)
+        inventory_by_tug = self._inventory_summaries(tugs)
         payload = []
         now = fields.Datetime.now()
         for tug in tugs:
@@ -313,6 +314,7 @@ class SedarAisPosition(models.Model):
                 } if drydock else False,
                 "maintenance_blockers": blockers,
                 "equipment": equipment_by_tug[tug.id],
+                "inventory": inventory_by_tug[tug.id],
             })
         return {
             "simulation": True,
@@ -577,4 +579,5 @@ class ResCompany(models.Model):
             else:
                 values["tugboat_id"] = tug.id
                 env["sedar.ais.position"].create(values)
+        self._sedar_ensure_ais_demo_story()
         return True

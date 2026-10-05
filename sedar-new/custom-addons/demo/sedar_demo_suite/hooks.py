@@ -34,6 +34,7 @@ def post_init_hook(env):
     company.sedar_ensure_recruitment_demo()
     company.sedar_ensure_crew_onboarding_demo()
     company.sedar_ensure_executive_demo()
+    _ensure_full_access_demo_user(env)
 
     from odoo.addons.sedar_service_order_demo.hooks import post_init_hook as reconcile_orders
     from odoo.addons.sedar_marine_dispatch_demo.hooks import post_init_hook as reconcile_dispatch
@@ -49,6 +50,7 @@ def post_init_hook(env):
     company.sedar_ensure_erp_demo()
     company._sedar_ensure_accounting_demo(company)
     _ensure_paid_service_demo(env)
+    _ensure_finance_scenarios(env)
     _ensure_pm_procurement_demo(env)
     reconcile_marketing(env)
     reconcile_ais(env)
@@ -200,6 +202,44 @@ def _ensure_demo_internal_access(env):
     })
 
 
+def _ensure_full_access_demo_user(env):
+    login = "fullaccess@sedar.demo"
+    data = _fixture_data(env, "user_full_access_demo")
+    if data:
+        if data.model != "res.users":
+            raise UserError(
+                "Fixture sedar_demo_suite.user_full_access_demo must reference res.users."
+            )
+        user = env["res.users"].sudo().browse(data.res_id).exists()
+        if not user:
+            raise UserError(
+                "Fixture sedar_demo_suite.user_full_access_demo references a missing user."
+            )
+    else:
+        user = env["res.users"].sudo().search([("login", "=", login)], limit=1)
+        if user:
+            _bind_xmlid(env, "user_full_access_demo", user)
+        else:
+            user = env["res.users"].sudo().with_context(no_reset_password=True).create({
+                "name": "Full Access Demo",
+                "login": login,
+                "password": "fullaccessdemo",
+                "company_id": env.company.id,
+                "company_ids": [Command.set(env.company.ids)],
+                "group_ids": [Command.link(env.ref("base.group_user").id)],
+            })
+            _bind_xmlid(env, "user_full_access_demo", user)
+    action = env.ref("sedar_executive_dashboard.action_sedar_executive_dashboard")
+    user.write({
+        "name": "Full Access Demo",
+        "company_id": env.company.id,
+        "company_ids": [Command.set(env.company.ids)],
+        "action_id": action.id,
+        "sedar_executive_dashboard_view": "owner",
+    })
+    return user
+
+
 def _ensure_accounting_foundation(env, company):
     """Load Odoo's generic chart only when a fresh demo company has no ledger setup."""
     journals = env["account.journal"].search_count([
@@ -237,6 +277,89 @@ def _ensure_paid_service_demo(env):
             active_model="account.move", active_ids=invoice.ids,
         ).create({})
         register._create_payments()
+
+
+def _ensure_finance_scenarios(env):
+    company = env.company
+    journal = _first(env, "account.journal", [
+        ("company_id", "=", company.id), ("type", "=", "sale"),
+    ])
+    product = env.ref("sedar_marine_finance.product_marine_service", raise_if_not_found=False)
+    partner = _record(env, "res.partner", "finance_scenario_customer", {
+        "name": "Demo Harbor Logistics Corporation",
+        "is_company": True,
+        "customer_rank": 1,
+        "company_id": company.id,
+    })
+    if not journal or not product:
+        return
+    today = date.today()
+    current_month_offset = -min(max(today.day - 1, 0), 2)
+    scenarios = (
+        ("finance_invoice_month", "DEMO-FIN-THIS-MONTH", current_month_offset, 20, 105000, True),
+        ("finance_invoice_draft", "DEMO-FIN-DRAFT", -2, 14, 58000, False),
+        ("finance_invoice_current", "DEMO-FIN-CURRENT", -5, 12, 92000, True),
+        ("finance_invoice_overdue_18", "DEMO-FIN-OVERDUE-18", -35, -18, 76000, True),
+        ("finance_invoice_overdue_46", "DEMO-FIN-OVERDUE-46", -70, -46, 124000, True),
+        ("finance_invoice_partial", "DEMO-FIN-PARTIAL", -28, -12, 88000, True),
+        ("finance_invoice_paid", "DEMO-FIN-PAID", -24, -8, 64000, True),
+    )
+    invoices = {}
+    for xmlid, reference, invoice_offset, due_offset, amount, post in scenarios:
+        invoice = _record(env, "account.move", xmlid, {
+            "move_type": "out_invoice",
+            "company_id": company.id,
+            "journal_id": journal.id,
+            "partner_id": partner.id,
+            "invoice_date": today + timedelta(days=invoice_offset),
+            "invoice_date_due": today + timedelta(days=due_offset),
+            "invoice_origin": f"Finance walkthrough · {reference}",
+            "ref": reference,
+            "invoice_line_ids": [Command.create({
+                "product_id": product.id,
+                "name": "Demo marine tug assistance",
+                "quantity": 1,
+                "price_unit": amount,
+            })],
+        }, update=False)
+        if post and invoice.state == "draft":
+            invoice.action_post()
+        invoices[xmlid] = invoice
+    _ensure_demo_invoice_payment(env, invoices["finance_invoice_partial"], 36000)
+    _ensure_demo_invoice_payment(env, invoices["finance_invoice_paid"], 64000)
+    credit = _record(env, "account.move", "finance_credit_note", {
+        "move_type": "out_refund",
+        "company_id": company.id,
+        "journal_id": journal.id,
+        "partner_id": partner.id,
+        "invoice_date": today - timedelta(days=6),
+        "ref": "DEMO-FIN-CREDIT",
+        "invoice_origin": "Finance walkthrough · service adjustment",
+        "invoice_line_ids": [Command.create({
+            "product_id": product.id,
+            "name": "Demo service adjustment credit",
+            "quantity": 1,
+            "price_unit": 12000,
+        })],
+    }, update=False)
+    if credit.state == "draft":
+        credit.action_post()
+
+
+def _ensure_demo_invoice_payment(env, invoice, amount):
+    if invoice.state != "posted" or invoice.payment_state in {"paid", "reversed"}:
+        return
+    already_applied = invoice.amount_total - invoice.amount_residual
+    remaining_payment = min(amount - already_applied, invoice.amount_residual)
+    if remaining_payment <= 0:
+        return
+    register = env["account.payment.register"].with_context(
+        active_model="account.move", active_ids=invoice.ids,
+    ).create({
+        "amount": remaining_payment,
+        "payment_date": date.today() - timedelta(days=4),
+    })
+    register._create_payments()
 
 
 def _ensure_pm_procurement_demo(env):
@@ -558,6 +681,7 @@ def _bind_pm_maintenance_facts(env, equipment):
 
 def _ensure_broader_demo_data(env):
     """Add moderate list/dashboard volume without changing source-of-truth rules."""
+    _ensure_customer_breadth(env)
     _ensure_inventory_breadth(env)
     _ensure_service_order_breadth(env)
     _ensure_invoice_breadth(env)
@@ -565,6 +689,49 @@ def _ensure_broader_demo_data(env):
     _ensure_purchase_request_breadth(env)
     _ensure_hsse_breadth(env)
     _ensure_document_breadth(env)
+
+
+def _ensure_customer_breadth(env):
+    existing_clients = [
+        env.ref(f"sedar_service_order_demo.client_{code}", raise_if_not_found=False)
+        for code in ("archipelago", "baylink", "pacific", "island")
+    ]
+    for client in filter(None, existing_clients):
+        if client.customer_rank < 1:
+            client.customer_rank = 1
+    client_specs = [
+        ("northstar", "Northstar Coastal Shipping, Inc.", "9881201", "MV Northstar Pioneer"),
+        ("seabridge", "SeaBridge Bulk Carriers Corporation", "9881202", "MV SeaBridge Valor"),
+        ("harborline", "HarborLine Petroleum Logistics, Inc.", "9881203", "MT HarborLine One"),
+        ("orient", "Orient Inter-Island Transport Corporation", "9881204", "MV Orient Voyager"),
+    ]
+    for index, (code, name, imo, vessel_name) in enumerate(client_specs, start=1):
+        client = _record(env, "res.partner", f"executive_client_{code}", {
+            "name": name,
+            "is_company": True,
+            "company_type": "company",
+            "customer_rank": 1,
+            "email": f"operations@{code}.example.com",
+            "phone": f"+63 2 8890 20{index:02d}",
+            "city": "Batangas City",
+            "country_id": env.ref("base.ph").id,
+        })
+        _record(env, "res.partner", f"executive_client_{code}_contact", {
+            "name": f"Demo Operations Contact {index + 4}",
+            "parent_id": client.id,
+            "email": f"dispatch@{code}.example.com",
+            "phone": f"+63 917 620 {index:04d}",
+        })
+        _record(env, "sedar.client.vessel", f"executive_client_{code}_vessel", {
+            "name": vessel_name,
+            "owner_id": client.id,
+            "vessel_type": "tanker" if code == "harborline" else "cargo",
+            "imo_number": imo,
+            "call_sign": f"DU{imo[-4:]}",
+            "gross_tonnage": 16000 + index * 3200,
+            "length_overall": 138 + index * 9,
+            "draft": 7.2 + index * 0.4,
+        })
 
 
 def _ensure_inventory_breadth(env):
@@ -753,11 +920,18 @@ def _ensure_service_order_breadth(env):
     if not all([clients, vessels, services, port, terminal]):
         return
     states = ["draft", "submitted", "review", "quoted", "confirmed", "planning", "blocked", "cancelled", "submitted"]
-    for index in range(18):
+    today = date.today()
+    for index in range(70):
         client = clients[index % len(clients)]
         vessel = vessels[index % len(vessels)]
         service = services[index % len(services)]
         state = states[index % len(states)]
+        service_day = today - timedelta(days=(index * 7) % 90)
+        if index % 14 == 0:
+            service_day = today + timedelta(days=index % 6 + 1)
+        requested_start = datetime(
+            service_day.year, service_day.month, service_day.day, 6 + (index % 12), 0, 0
+        )
         order = _record(env, "sedar.marine.service.order", f"enriched_order_{index + 1:02d}", {
             "client_id": client.id,
             "contact_id": _first(env, "res.partner", [("parent_id", "=", client.id)]).id,
@@ -776,7 +950,7 @@ def _ensure_service_order_breadth(env):
             "terminal_id": terminal.id,
             "origin_berth_id": anchorage.id,
             "destination_berth_id": terminal.id,
-            "requested_start": datetime(2026, 8, 16 + (index % 12), 8 + (index % 8), 0, 0),
+            "requested_start": requested_start,
             "estimated_duration_hours": 2 + (index % 5),
             "state": state,
         })
@@ -790,12 +964,15 @@ def _ensure_invoice_breadth(env):
     clients = env["res.partner"].search([("is_company", "=", True), ("customer_rank", ">", 0)], order="id", limit=8)
     if not sale_journal or not product or not clients:
         return
-    for index in range(8):
+    today = date.today()
+    for index in range(15):
+        invoice_day = today - timedelta(days=8 + index * 5)
         invoice = _record(env, "account.move", f"enriched_customer_invoice_{index + 1:02d}", {
             "move_type": "out_invoice",
             "journal_id": sale_journal.id,
             "partner_id": clients[index % len(clients)].id,
-            "invoice_date": date(2026, 8, 4 + index),
+            "invoice_date": invoice_day,
+            "invoice_date_due": invoice_day + timedelta(days=30),
             "invoice_origin": f"DEMO-ENR-SO-{index + 1:03d}",
             "ref": f"DEMO-ENR-INV-{index + 1:03d}",
             "invoice_line_ids": [Command.create({
@@ -821,7 +998,8 @@ def _ensure_maintenance_breadth(env):
         return
     work_types = ["planned", "defect", "drydock"]
     impacts = ["none", "advisory", "blocking"]
-    for index in range(10):
+    today = date.today()
+    for index in range(17):
         tugboat = tugboats[index % len(tugboats)]
         equipment = _record(env, "maintenance.equipment", f"enriched_equipment_{index + 1:02d}", {
             "name": f"{tugboat.name} Demo Equipment {index + 1}",
@@ -842,7 +1020,9 @@ def _ensure_maintenance_breadth(env):
             "maintenance_type": "preventive" if index % 3 == 0 else "corrective",
             "equipment_id": equipment.id,
             "maintenance_team_id": team.id,
-            "schedule_date": datetime(2026, 8, 18 + (index % 10), 8, 0, 0),
+            "schedule_date": datetime.combine(
+                today - timedelta(days=(index * 5) % 75), datetime.min.time()
+            ).replace(hour=8),
             "duration": 2 + (index % 6),
             "priority": str((index % 3) + 1),
             "sedar_tugboat_id": tugboat.id,
@@ -854,7 +1034,9 @@ def _ensure_maintenance_breadth(env):
         })
         if index in {1, 5} and not request.close_date:
             request.write({
-                "close_date": datetime(2026, 8, 22 + index, 15, 0, 0),
+                "close_date": datetime.combine(
+                    today - timedelta(days=max(index - 1, 0)), datetime.min.time()
+                ).replace(hour=15),
                 "sedar_closure_note": "Demo work order closed after verification.",
             })
 

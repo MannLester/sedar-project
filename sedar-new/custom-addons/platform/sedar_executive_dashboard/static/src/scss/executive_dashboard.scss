@@ -1,0 +1,483 @@
+.sedar_executive_dashboard {
+    --sedar-ink: #14213d;
+    --sedar-muted: #5e6c84;
+    --sedar-blue: #155eef;
+    --sedar-line: #dfe5ef;
+    --sedar-soft: #f5f7fb;
+    --sedar-danger: #b42318;
+    --sedar-warning: #b54708;
+    max-width: 1500px;
+    background: #f8fafc;
+}
+
+.sedar_executive_header,
+.sedar_preset_bar,
+.sedar_attention_banner,
+.sedar_kpi_strip,
+.sedar_visual_section > header,
+.sedar_secondary_links {
+    display: flex;
+    align-items: center;
+}
+
+.sedar_kpi_strip {
+    align-items: stretch;
+    gap: 0.8rem;
+    margin-top: 1rem;
+}
+
+.sedar_kpi_strip > button,
+.sedar_kpi_strip > div {
+    display: grid;
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 1rem 1.1rem;
+    text-align: left;
+    color: var(--sedar-ink);
+    border: 1px solid var(--sedar-line);
+    border-radius: 12px;
+    background: white;
+    box-shadow: 0 4px 12px rgba(20, 33, 61, 0.05);
+}
+
+.sedar_kpi_strip > button:hover {
+    border-color: #84adff;
+    transform: translateY(-2px);
+}
+
+.sedar_kpi_strip span,
+.sedar_kpi_strip strong,
+.sedar_kpi_strip small {
+    display: block;
+}
+
+.sedar_kpi_strip span {
+    color: var(--sedar-muted);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.sedar_kpi_strip strong {
+    margin: 0.35rem 0;
+    overflow: hidden;
+    color: var(--sedar-ink);
+    font-size: clamp(1.25rem, 2vw, 1.75rem);
+    text-overflow: ellipsis;
+}
+
+.sedar_kpi_strip small {
+    color: var(--sedar-muted);
+    font-size: 0.75rem;
+}
+
+.sedar_kpi_attention {
+    border-color: #fedf89 !important;
+    background: #fffaeb !important;
+}
+
+.sedar_kpi_attention strong {
+    color: var(--sedar-warning);
+}
+
+.sedar_visual_section {
+    margin: 1.5rem 0;
+}
+
+.sedar_visual_section > header {
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.8rem;
+}
+
+.sedar_visual_section > header h2,
+.sedar_chart_card h3 {
+    margin: 0;
+    color: var(--sedar-ink);
+}
+
+.sedar_visual_section > header p {
+    max-width: 430px;
+    margin: 0;
+    color: var(--sedar-muted);
+    font-size: 0.78rem;
+    text-align: right;
+}
+
+.sedar_visual_section .o_field_html,
+.sedar_visual_section .o_readonly_modifier {
+    width: 100%;
+}
+
+.sedar_visual_grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.sedar_chart_card {
+    min-width: 0;
+    padding: 1.2rem;
+    border: 1px solid var(--sedar-line);
+    border-radius: 16px;
+    background: white;
+    box-shadow: 0 7px 18px rgba(20, 33, 61, 0.06);
+}
+
+.sedar_chart_card > header > span {
+    color: var(--sedar-blue);
+    font-size: 0.67rem;
+    font-weight: 800;
+    letter-spacing: 0.11em;
+}
+
+.sedar_chart_card h3 {
+    margin-top: 0.2rem;
+    font-size: 1.1rem;
+}
+
+.sedar_chart_card header p {
+    min-height: 2.5em;
+    margin: 0.25rem 0 1rem;
+    color: var(--sedar-muted);
+    font-size: 0.76rem;
+}
+
+.sedar_chart_body,
+.sedar_trend_body {
+    display: grid;
+    gap: 0.85rem;
+}
+
+.sedar_chart_label {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.3rem;
+    font-size: 0.75rem;
+}
+
+.sedar_chart_label span {
+    color: var(--sedar-muted);
+}
+
+.sedar_chart_label strong {
+    color: var(--sedar-ink);
+    font-variant-numeric: tabular-nums;
+}
+
+.sedar_chart_track {
+    height: 10px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #e9eef6;
+}
+
+.sedar_chart_fill,
+.sedar_trend_bars i {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+}
+
+.sedar_chart_fill_blue {
+    background: #155eef;
+}
+
+.sedar_chart_fill_green {
+    background: #039855;
+}
+
+.sedar_chart_fill_red {
+    background: #d92d20;
+}
+
+.sedar_chart_fill_orange {
+    background: #f79009;
+}
+
+.sedar_chart_fill_amber {
+    background: #fdb022;
+}
+
+.sedar_chart_fill_purple {
+    background: #7f56d9;
+}
+
+.sedar_chart_fill_slate {
+    background: #667085;
+}
+
+.sedar_chart_legend {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.8rem;
+    color: var(--sedar-muted);
+    font-size: 0.7rem;
+}
+
+.sedar_chart_legend i {
+    width: 9px;
+    height: 9px;
+    margin-left: 0.45rem;
+    border-radius: 50%;
+}
+
+.sedar_chart_legend i:first-child {
+    margin-left: 0;
+}
+
+.sedar_trend_row {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr) 72px;
+    align-items: center;
+    gap: 0.65rem;
+    color: var(--sedar-muted);
+    font-size: 0.7rem;
+}
+
+.sedar_trend_row > strong {
+    color: var(--sedar-ink);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+.sedar_trend_bars {
+    display: grid;
+    align-content: center;
+    gap: 3px;
+    height: 18px;
+}
+
+.sedar_trend_bars i {
+    min-height: 5px;
+}
+
+.sedar_preset_bar {
+    justify-content: space-between;
+    gap: 1.25rem;
+    margin-top: 1rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--sedar-line);
+    border-radius: 14px;
+    background: white;
+}
+
+.sedar_preset_bar > div > strong,
+.sedar_preset_bar > div > small {
+    display: block;
+}
+
+.sedar_preset_bar > div > strong {
+    margin: 0.12rem 0;
+    color: var(--sedar-ink);
+}
+
+.sedar_preset_bar small {
+    color: var(--sedar-muted);
+}
+
+.sedar_preset_switcher {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.4rem;
+}
+
+.sedar_preset_button,
+.sedar_preset_active {
+    padding: 0.55rem 0.8rem;
+    border: 1px solid var(--sedar-line);
+    border-radius: 9px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.sedar_preset_button {
+    color: var(--sedar-muted);
+    background: var(--sedar-soft);
+}
+
+.sedar_preset_button:hover {
+    color: var(--sedar-blue);
+    border-color: #84adff;
+    background: #eff6ff;
+}
+
+.sedar_preset_active {
+    color: white;
+    border-color: var(--sedar-blue);
+    background: var(--sedar-blue);
+    box-shadow: 0 5px 12px rgba(21, 94, 239, 0.22);
+}
+
+.sedar_executive_header {
+    justify-content: space-between;
+    gap: 2rem;
+    padding: 1.75rem 2rem;
+    color: white;
+    border-radius: 18px;
+    background: linear-gradient(120deg, #09203f 0%, #155eef 72%, #38bdf8 125%);
+    box-shadow: 0 14px 30px rgba(9, 32, 63, 0.18);
+}
+
+.sedar_executive_header h1 {
+    margin: 0.3rem 0;
+    font-size: clamp(1.55rem, 3vw, 2.4rem);
+    color: white;
+}
+
+.sedar_executive_header p {
+    margin: 0;
+}
+
+.sedar_eyebrow {
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    opacity: 0.8;
+}
+
+.sedar_as_of {
+    min-width: 180px;
+    padding: 0.75rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.sedar_as_of span,
+.sedar_as_of strong,
+.sedar_as_of small {
+    display: block;
+}
+
+.sedar_attention_banner {
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 1.25rem 0;
+    padding: 1rem 1.25rem;
+    border: 1px solid #fedf89;
+    border-radius: 14px;
+    background: #fffaeb;
+}
+
+.sedar_attention_banner > div {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+}
+
+.sedar_attention_banner span {
+    display: block;
+    color: var(--sedar-muted);
+}
+
+.sedar_attention_count {
+    min-width: 52px;
+    font-size: 1.8rem;
+    font-weight: 800;
+    text-align: center;
+    color: var(--sedar-warning) !important;
+}
+
+.sedar_action_grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.sedar_action_grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-bottom: 1rem;
+}
+
+.sedar_action_card {
+    display: grid;
+    min-height: 128px;
+    padding: 1rem;
+    text-align: left;
+    color: var(--sedar-ink);
+    border: 1px solid var(--sedar-line);
+    border-left: 5px solid var(--sedar-blue);
+    border-radius: 12px;
+    background: white;
+    box-shadow: 0 5px 14px rgba(20, 33, 61, 0.07);
+}
+
+.sedar_action_card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(20, 33, 61, 0.12);
+}
+
+.sedar_action_card strong {
+    align-self: center;
+    font-size: 1.8rem;
+}
+
+.sedar_action_card small {
+    color: var(--sedar-muted);
+}
+
+.sedar_tone_danger {
+    border-left-color: var(--sedar-danger);
+}
+
+.sedar_tone_warning {
+    border-left-color: var(--sedar-warning);
+}
+
+.sedar_secondary_links {
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin-top: 1.25rem;
+}
+
+@media (max-width: 1100px) {
+    .sedar_action_grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .sedar_visual_grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 700px) {
+    .sedar_executive_header,
+    .sedar_preset_bar,
+    .sedar_attention_banner,
+    .sedar_visual_section > header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .sedar_visual_section > header p {
+        text-align: left;
+    }
+
+    .sedar_preset_switcher {
+        justify-content: flex-start;
+    }
+
+    .sedar_action_grid {
+        grid-template-columns: 1fr;
+    }
+
+    .sedar_kpi_strip {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 480px) {
+    .sedar_kpi_strip {
+        grid-template-columns: 1fr;
+    }
+
+    .sedar_trend_row {
+        grid-template-columns: 30px minmax(0, 1fr) 62px;
+    }
+}

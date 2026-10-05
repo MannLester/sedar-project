@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 from unittest.mock import patch
 
-from odoo import Command
+from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import tagged
 from odoo.tests.common import TransactionCase
@@ -11,6 +11,7 @@ from odoo.addons.sedar_demo_suite.hooks import (
     DEMO_MANAGER_GROUP_XMLIDS,
     _bind_xmlid,
     _ensure_inventory_breadth,
+    _ensure_finance_scenarios,
     _ensure_inventory_lifecycle_demo,
     _ensure_pm_procurement_demo,
     _immutable_record,
@@ -20,6 +21,20 @@ from odoo.addons.sedar_demo_suite.hooks import (
 
 @tagged("post_install", "-at_install")
 class TestSedarDemoIntegrity(TransactionCase):
+    def test_president_dataset_has_customer_and_rolling_service_order_breadth(self):
+        today = fields.Date.today()
+        customers = self.env["res.partner"].search_count([
+            ("is_company", "=", True),
+            ("customer_rank", ">", 0),
+        ])
+        orders = self.env["sedar.marine.service.order"].search([])
+        requested_dates = [fields.Date.to_date(value) for value in orders.mapped("requested_start")]
+
+        self.assertGreaterEqual(customers, 8)
+        self.assertGreaterEqual(len(orders), 80)
+        self.assertLessEqual(min(requested_dates), fields.Date.subtract(today, days=75))
+        self.assertGreaterEqual(max(requested_dates), today)
+
     def _pm_snapshot(self):
         request = self.env.ref("sedar_demo_suite.pm_request").sudo()
         bids = request.bid_ids.sorted("id")
@@ -79,6 +94,23 @@ class TestSedarDemoIntegrity(TransactionCase):
         self.assertEqual(len(moves), 2)
         self.assertTrue(all(move.state == "posted" for move in moves))
 
+    def test_finance_walkthrough_covers_customer_invoice_states(self):
+        _ensure_finance_scenarios(self.env)
+        draft = self.env.ref("sedar_demo_suite.finance_invoice_draft")
+        current = self.env.ref("sedar_demo_suite.finance_invoice_current")
+        overdue = self.env.ref("sedar_demo_suite.finance_invoice_overdue_46")
+        partial = self.env.ref("sedar_demo_suite.finance_invoice_partial")
+        paid = self.env.ref("sedar_demo_suite.finance_invoice_paid")
+        credit = self.env.ref("sedar_demo_suite.finance_credit_note")
+
+        self.assertEqual(draft.state, "draft")
+        self.assertEqual(current.payment_state, "not_paid")
+        self.assertLess(overdue.invoice_date_due, datetime.now().date())
+        self.assertEqual(partial.payment_state, "partial")
+        self.assertEqual(paid.payment_state, "paid")
+        self.assertEqual(credit.move_type, "out_refund")
+        self.assertEqual(credit.state, "posted")
+
     def test_inventory_lifecycle_walkthrough_starts_with_one_blocker(self):
         _ensure_inventory_lifecycle_demo(self.env)
         rope = self.env.ref("sedar_demo_suite.inventory_item_tow_rope_80")
@@ -117,6 +149,19 @@ class TestSedarDemoIntegrity(TransactionCase):
 
         order = self.env.ref("sedar_service_order_demo.order_draft").with_user(admin)
         order.write({"special_instructions": "Administrator demo-access QA."})
+
+    def test_full_access_demo_opens_owner_dashboard(self):
+        user = self.env.ref("sedar_demo_suite.user_full_access_demo")
+        dashboard_action = self.env.ref(
+            "sedar_executive_dashboard.action_sedar_executive_dashboard"
+        )
+
+        self.assertEqual(user.login, "fullaccess@sedar.demo")
+        self.assertTrue(
+            user.has_group("sedar_executive_dashboard.group_sedar_executive")
+        )
+        self.assertEqual(user.action_id.id, dashboard_action.id)
+        self.assertEqual(user.sedar_executive_dashboard_view, "owner")
 
     def test_internal_demo_personas_receive_demo_access_override(self):
         personas = self.env["res.users"].search([

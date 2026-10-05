@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sedar_marine_finance.FinanceDashboard">
+        <div class="o_sedar_finance_dashboard">
+            <header class="o_sedar_finance_header">
+                <div>
+                    <span class="o_sedar_finance_eyebrow"><i class="fa fa-line-chart" aria-hidden="true"/> Finance operations</span>
+                    <h1>Customer billing and collections</h1>
+                    <p t-if="state.data"><t t-esc="state.data.company"/> · As of <t t-esc="state.data.as_of"/></p>
+                </div>
+                <button type="button" class="btn btn-light" t-att-disabled="state.loading" t-on-click="loadDashboard">
+                    <i class="fa fa-refresh" aria-hidden="true"/> Refresh
+                </button>
+            </header>
+
+            <div t-if="state.loading" class="o_sedar_finance_state" role="status">
+                <i class="fa fa-circle-o-notch fa-spin" aria-hidden="true"/> Loading finance activity…
+            </div>
+            <div t-elif="state.error" class="o_sedar_finance_state o_sedar_finance_state--error" role="alert">
+                <i class="fa fa-exclamation-circle" aria-hidden="true"/>
+                <span>Finance activity could not be loaded.</span>
+                <button type="button" class="btn btn-primary btn-sm" t-on-click="loadDashboard">Try again</button>
+            </div>
+            <main t-else="" class="o_sedar_finance_content">
+                <section class="o_sedar_finance_summary" aria-label="Finance summary">
+                    <button t-foreach="summaryCards" t-as="card" t-key="card.label" type="button"
+                            t-att-class="'o_sedar_finance_summary_card is-' + card.tone + (card.action ? ' is-clickable' : '')"
+                            t-att-disabled="!card.action" t-on-click="() => card.action ? this.openAction(card.action) : false">
+                        <span t-esc="card.label"/>
+                        <strong t-esc="formatMoney(card.value)"/>
+                        <small t-esc="card.help"/>
+                        <i t-if="card.action" class="fa fa-arrow-right" aria-hidden="true"/>
+                    </button>
+                </section>
+
+                <section class="o_sedar_finance_explainer" aria-labelledby="o_sedar_finance_flow_heading">
+                    <div>
+                        <span class="o_sedar_finance_section_kicker">How to read this page</span>
+                        <h2 id="o_sedar_finance_flow_heading">One customer-to-cash flow</h2>
+                    </div>
+                    <div class="o_sedar_finance_flow">
+                        <span><b>1</b><strong>Review completed service</strong><small>Confirm quantity, tariff, and adjustments</small></span>
+                        <i class="fa fa-chevron-right" aria-hidden="true"/>
+                        <span><b>2</b><strong>Post customer invoice</strong><small>Odoo Accounting owns the ledger entry</small></span>
+                        <i class="fa fa-chevron-right" aria-hidden="true"/>
+                        <span><b>3</b><strong>Collect and reconcile</strong><small>Monitor partial, overdue, and paid invoices</small></span>
+                    </div>
+                </section>
+
+                <div class="o_sedar_finance_grid">
+                    <section class="o_sedar_finance_panel o_sedar_finance_panel--pipeline" aria-labelledby="o_sedar_finance_pipeline_heading">
+                        <div class="o_sedar_finance_panel_heading">
+                            <div><span class="o_sedar_finance_section_kicker">Before posting</span><h2 id="o_sedar_finance_pipeline_heading">Billing pipeline</h2></div>
+                            <small>Click a stage to work the source records</small>
+                        </div>
+                        <button t-foreach="pipelineCards" t-as="card" t-key="card.key" type="button"
+                                t-att-class="'o_sedar_finance_pipeline_card' + (card.warning ? ' is-warning' : '')"
+                                t-on-click="() => this.openAction(card.key)">
+                            <i t-att-class="'fa ' + card.icon" aria-hidden="true"/>
+                            <span><strong t-esc="card.label"/><small t-esc="card.help"/></span>
+                            <b t-esc="card.value"/>
+                            <i class="fa fa-chevron-right" aria-hidden="true"/>
+                        </button>
+                    </section>
+
+                    <section class="o_sedar_finance_panel" aria-labelledby="o_sedar_finance_receivables_heading">
+                        <div class="o_sedar_finance_panel_heading">
+                            <div><span class="o_sedar_finance_section_kicker">After posting</span><h2 id="o_sedar_finance_receivables_heading">Receivables status</h2></div>
+                            <small>Standard Odoo customer invoices</small>
+                        </div>
+                        <div class="o_sedar_finance_status_grid">
+                            <button t-foreach="receivableCards" t-as="card" t-key="card.key" type="button"
+                                    t-att-class="'o_sedar_finance_status_card' + (card.warning ? ' is-warning' : '')"
+                                    t-on-click="() => this.openAction(card.key)">
+                                <strong t-esc="card.value"/><span t-esc="card.label"/><i class="fa fa-external-link" aria-hidden="true"/>
+                            </button>
+                        </div>
+                        <div class="o_sedar_finance_aging">
+                            <h3>Outstanding by age</h3>
+                            <div t-foreach="state.data.aging" t-as="bucket" t-key="bucket.label" class="o_sedar_finance_aging_row">
+                                <span><strong t-esc="bucket.label"/><small><t t-esc="bucket.count"/> invoice<t t-if="bucket.count !== 1">s</t></small></span>
+                                <div><i t-att-style="'width: ' + bucket.percent + '%'"/></div>
+                                <b t-esc="formatMoney(bucket.amount)"/>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <section class="o_sedar_finance_panel o_sedar_finance_queue" aria-labelledby="o_sedar_finance_queue_heading">
+                    <div class="o_sedar_finance_panel_heading">
+                        <div><span class="o_sedar_finance_section_kicker">Start here</span><h2 id="o_sedar_finance_queue_heading">Priority work queue</h2></div>
+                        <small>Exceptions, reviews, drafts, then oldest overdue invoices</small>
+                    </div>
+                    <div class="o_sedar_finance_queue_list">
+                        <button t-foreach="state.data.work_queue" t-as="item" t-key="item.model + '-' + item.res_id" type="button"
+                                class="o_sedar_finance_queue_row" t-on-click="() => this.openRecord(item)">
+                            <span t-att-class="'o_sedar_finance_badge is-' + item.tone" t-esc="item.kind"/>
+                            <span><strong t-esc="item.title"/><small><t t-esc="item.customer"/> · <t t-esc="item.detail"/></small></span>
+                            <b t-esc="formatMoney(item.amount, item.currency)"/>
+                            <i class="fa fa-chevron-right" aria-hidden="true"/>
+                        </button>
+                        <div t-if="!state.data.work_queue.length" class="o_sedar_finance_empty">
+                            <i class="fa fa-check-circle" aria-hidden="true"/><strong>No urgent customer billing work</strong><span>There are no reviews, pricing exceptions, draft invoices, or overdue balances.</span>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </t>
+</templates>

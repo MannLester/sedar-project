@@ -1,3 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_billing_adjustment_officer,billing adjustment officer,model_sedar_marine_billing_adjustment,group_billing_officer,1,1,1,1
 access_billing_adjustment_manager,billing adjustment manager,model_sedar_marine_billing_adjustment,group_accounting_manager,1,1,1,1
+access_finance_dashboard_officer,finance dashboard officer,model_sedar_finance_dashboard,group_billing_officer,1,0,0,0
+access_finance_dashboard_manager,finance dashboard manager,model_sedar_finance_dashboard,group_accounting_manager,1,0,0,0

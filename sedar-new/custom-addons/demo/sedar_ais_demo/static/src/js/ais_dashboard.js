@@ -23,6 +23,7 @@ export class SedarAisDashboard extends Component {
             equipmentDetail: false,
             equipmentDetailStatus: "idle",
             equipmentDetailError: false,
+            detailTab: "overview",
             filter: "all",
             generatedAt: false,
             canAdvance: false,
@@ -72,7 +73,7 @@ export class SedarAisDashboard extends Component {
     reconcileSelection() {
         const selectedStillExists = this.state.fleet.some((tug) => tug.id === this.state.selectedId);
         if (!selectedStillExists) {
-            this.state.selectedId = this.state.fleet[0]?.id || false;
+            this.state.selectedId = false;
         }
     }
 
@@ -151,45 +152,55 @@ export class SedarAisDashboard extends Component {
     }
 
     selectTug(tugId) {
-        if (this.state.selectedId === tugId) {
-            return;
+        if (this.state.selectedId !== tugId) {
+            this.invalidateEquipmentRequest();
+            this.state.selectedId = tugId;
+            this.state.detailTab = "overview";
         }
-        this.invalidateEquipmentRequest();
-        this.state.selectedId = tugId;
+        this.focusAfterRender(
+            `.o_sedar_ais_fleet_accordion_button[data-tug-id="${tugId}"]`
+        );
+    }
+
+    toggleTug(tugId) {
+        if (this.state.selectedId === tugId) {
+            this.closeTugDetail();
+        } else {
+            this.selectTug(tugId);
+        }
     }
 
     closeTugDetail() {
         const tugId = this.state.selectedId;
         this.invalidateEquipmentRequest();
         this.state.selectedId = false;
+        this.state.detailTab = "overview";
         this.focusAfterRender(
-            `.o_sedar_ais_tug_card[data-tug-id="${tugId}"], .o_sedar_ais_marker[data-tug-id="${tugId}"]`
+            `.o_sedar_ais_fleet_accordion_button[data-tug-id="${tugId}"]`
         );
-    }
-
-    onTugSelect(event) {
-        const value = event.target.value;
-        const tugId = value ? Number(value) : false;
-        if (tugId) {
-            this.selectTug(tugId);
-        } else {
-            this.closeTugDetail();
-        }
     }
 
     setFilter(filter) {
         this.invalidateEquipmentRequest();
         this.state.filter = filter;
         const visible = this.visibleFleet;
-        if (visible.length && !visible.some((tug) => tug.id === this.state.selectedId)) {
-            this.state.selectedId = visible[0].id;
+        if (!visible.some((tug) => tug.id === this.state.selectedId)) {
+            this.state.selectedId = false;
         }
+    }
+
+    setDetailTab(tab) {
+        if (tab !== "procurement") {
+            this.invalidateEquipmentRequest();
+        }
+        this.state.detailTab = tab;
     }
 
     async selectEquipment(equipmentId) {
         const generation = this.invalidateEquipmentRequest();
         this.state.selectedEquipmentId = equipmentId;
         this.state.equipmentDetailStatus = "loading";
+        this.state.detailTab = "procurement";
         this.focusAfterRender(".o_sedar_ais_back");
         try {
             const detail = await this.orm.call(
@@ -214,6 +225,7 @@ export class SedarAisDashboard extends Component {
     closeEquipmentDetail() {
         const equipmentId = this.state.selectedEquipmentId;
         this.invalidateEquipmentRequest();
+        this.state.detailTab = "equipment";
         this.focusAfterRender(
             `.o_sedar_ais_equipment_card[data-equipment-id="${equipmentId}"]`
         );
