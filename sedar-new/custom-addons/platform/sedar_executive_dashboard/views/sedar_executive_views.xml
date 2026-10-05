@@ -50,6 +50,73 @@
                             <button name="action_set_dashboard_perspective" type="object" class="sedar_preset_button" context="{'dashboard_perspective': 'people'}" invisible="dashboard_perspective == 'people'">Crewing &amp; Safety</button>
                         </nav>
                     </div>
+                    <div class="sedar_kpi_strip" aria-label="Headline indicators">
+                        <button name="action_open_invoices" type="object" invisible="dashboard_perspective not in ['owner', 'finance']">
+                            <span>Revenue this month</span>
+                            <strong><field name="current_month_revenue" widget="monetary" options="{'currency_field': 'currency_id'}"/></strong>
+                            <small>Posted customer invoices</small>
+                        </button>
+                        <button name="action_open_tugs" type="object" invisible="dashboard_perspective not in ['owner', 'operations']">
+                            <span>Fleet available</span>
+                            <strong><field name="available_tug_count"/> / <field name="fleet_count"/></strong>
+                            <small>Ready to accept work</small>
+                        </button>
+                        <button name="action_open_service_orders" type="object" invisible="dashboard_perspective not in ['owner', 'operations']">
+                            <span>Active Service Orders</span>
+                            <strong><field name="active_service_order_count"/></strong>
+                            <small>Current customer commitments</small>
+                        </button>
+                        <button name="action_open_maintenance" type="object" invisible="dashboard_perspective != 'operations'">
+                            <span>Open maintenance</span>
+                            <strong><field name="maintenance_open_count"/></strong>
+                            <small><field name="maintenance_blocker_count"/> affect readiness</small>
+                        </button>
+                        <button name="action_open_invoices" type="object" invisible="dashboard_perspective != 'finance'">
+                            <span>Cash collected</span>
+                            <strong><field name="cash_collected_total" widget="monetary" options="{'currency_field': 'currency_id'}"/></strong>
+                            <small>Applied to posted invoices</small>
+                        </button>
+                        <button name="action_open_overdue_receivables" type="object" invisible="dashboard_perspective != 'finance'">
+                            <span>Overdue receivables</span>
+                            <strong><field name="overdue_receivable_total" widget="monetary" options="{'currency_field': 'currency_id'}"/></strong>
+                            <small><field name="overdue_receivable_count"/> customer invoices</small>
+                        </button>
+                        <button name="action_open_crew" type="object" invisible="dashboard_perspective != 'people'">
+                            <span>Crew ready</span>
+                            <strong><field name="available_crew_count"/> / <field name="crew_count"/></strong>
+                            <small>Available or assigned</small>
+                        </button>
+                        <button name="action_open_crew" type="object" invisible="dashboard_perspective != 'people'">
+                            <span>Open shortages</span>
+                            <strong><field name="open_shortage_count"/></strong>
+                            <small>Crew coverage gaps</small>
+                        </button>
+                        <button name="action_open_credential_expiries" type="object" invisible="dashboard_perspective != 'people'">
+                            <span>Credentials at risk</span>
+                            <strong><field name="credential_expiry_count"/></strong>
+                            <small>Expired or due in 30 days</small>
+                        </button>
+                        <button name="action_open_overdue_hsse_actions" type="object" invisible="dashboard_perspective != 'people'">
+                            <span>HSSE overdue</span>
+                            <strong><field name="hsse_overdue_action_count"/></strong>
+                            <small>Corrective actions</small>
+                        </button>
+                        <div class="sedar_kpi_attention" invisible="dashboard_perspective != 'owner'">
+                            <span>Needs attention</span>
+                            <strong><field name="visible_attention_count"/></strong>
+                            <small>Exceptions across the company</small>
+                        </div>
+                    </div>
+                    <section class="sedar_visual_section" aria-labelledby="sedar_visual_heading">
+                        <header>
+                            <div>
+                                <span class="sedar_eyebrow">VISUAL COMPANY PULSE</span>
+                                <h2 id="sedar_visual_heading">See the direction before the detail</h2>
+                            </div>
+                            <p>Bars use the largest value in each panel as their visual scale.</p>
+                        </header>
+                        <field name="visualization_html" widget="html" nolabel="1"/>
+                    </section>
                     <div class="sedar_attention_banner">
                         <div>
                             <span class="sedar_attention_count"><field name="visible_attention_count"/></span>
@@ -62,17 +129,22 @@
                             Open completed service-to-payment walkthrough
                         </button>
                     </div>
-                    <h2>Attention required today</h2>
+                    <h2>Needs attention</h2>
                     <div class="sedar_action_grid">
                         <button name="action_open_overdue_receivables" type="object" class="sedar_action_card sedar_tone_danger" invisible="dashboard_perspective not in ['owner', 'finance']">
                             <span>Overdue receivables</span>
                             <strong><field name="overdue_receivable_count"/></strong>
                             <small><field name="overdue_receivable_total" widget="monetary" options="{'currency_field': 'currency_id'}"/></small>
                         </button>
-                        <button name="action_open_billing_reviews" type="object" class="sedar_action_card sedar_tone_warning" invisible="dashboard_perspective not in ['owner', 'finance']">
+                        <button name="action_open_billing_reviews" type="object" class="sedar_action_card sedar_tone_warning" invisible="dashboard_perspective != 'finance'">
                             <span>Billing decisions</span>
                             <strong><field name="billing_review_count"/></strong>
                             <small>Reviews and pricing exceptions</small>
+                        </button>
+                        <button name="action_open_upcoming_payables" type="object" class="sedar_action_card sedar_tone_warning" invisible="dashboard_perspective != 'finance'">
+                            <span>Payables due soon</span>
+                            <strong><field name="payable_30_day_count"/></strong>
+                            <small><field name="payable_30_day_total" widget="monetary" options="{'currency_field': 'currency_id'}"/></small>
                         </button>
                         <button name="action_open_blocked_service_orders" type="object" class="sedar_action_card sedar_tone_danger" invisible="dashboard_perspective not in ['owner', 'operations']">
                             <span>Blocked Service Orders</span>
@@ -89,61 +161,31 @@
                             <strong><field name="credential_expiry_count"/></strong>
                             <small>Expired or due in 30 days</small>
                         </button>
-                        <button name="action_open_inventory" type="object" class="sedar_action_card sedar_tone_warning" invisible="dashboard_perspective not in ['owner', 'operations']">
+                        <button name="action_open_inventory" type="object" class="sedar_action_card sedar_tone_warning" invisible="dashboard_perspective != 'operations'">
                             <span>Inventory shortages</span>
                             <strong><field name="inventory_shortage_count"/></strong>
                             <small>Readiness requirements not met</small>
                         </button>
-                        <button name="action_open_overdue_hsse_actions" type="object" class="sedar_action_card sedar_tone_danger" invisible="dashboard_perspective not in ['owner', 'people']">
+                        <button name="action_open_overdue_hsse_actions" type="object" class="sedar_action_card sedar_tone_danger" invisible="dashboard_perspective != 'people'">
                             <span>Overdue HSSE actions</span>
                             <strong><field name="hsse_overdue_action_count"/></strong>
                             <small>Corrective action is late</small>
                         </button>
-                        <button name="action_open_expiring_documents" type="object" class="sedar_action_card sedar_tone_warning" invisible="dashboard_perspective not in ['owner', 'operations']">
+                        <button name="action_open_expiring_documents" type="object" class="sedar_action_card sedar_tone_warning" invisible="dashboard_perspective != 'operations'">
                             <span>Document renewals</span>
                             <strong><field name="document_expiry_count"/></strong>
                             <small>Expired or due in 30 days</small>
                         </button>
-                    </div>
-                    <div class="sedar_pillar_grid">
-                        <section class="sedar_pillar" invisible="dashboard_perspective not in ['owner', 'operations']">
-                            <header><span>01</span><div><h2>Vessels</h2><p>Can the fleet safely perform today's work?</p></div></header>
-                            <div class="sedar_metric_row">
-                                <button name="action_open_tugs" type="object"><strong><field name="available_tug_count"/></strong><span>Available</span></button>
-                                <button name="action_open_tugs" type="object"><strong><field name="fleet_count"/></strong><span>Total fleet</span></button>
-                                <button name="action_open_maintenance" type="object"><strong><field name="maintenance_open_count"/></strong><span>Open work orders</span></button>
-                                <button name="action_open_governance" type="object"><strong><field name="governance_exception_count"/></strong><span>Governance risks</span></button>
-                            </div>
-                            <div class="sedar_policy_note"><field name="utilization_note"/></div>
-                        </section>
-                        <section class="sedar_pillar" invisible="dashboard_perspective not in ['owner', 'people']">
-                            <header><span>02</span><div><h2>People</h2><p>Do we have qualified crew where they are needed?</p></div></header>
-                            <div class="sedar_metric_row">
-                                <button name="action_open_crew" type="object"><strong><field name="available_crew_count"/></strong><span>Available crew</span></button>
-                                <button name="action_open_crew" type="object"><strong><field name="crew_count"/></strong><span>Crew profiles</span></button>
-                                <button name="action_open_crew" type="object"><strong><field name="open_shortage_count"/></strong><span>Open shortages</span></button>
-                                <button name="action_open_crew" type="object"><strong><field name="vacancy_count"/></strong><span>Vacancies</span></button>
-                            </div>
-                        </section>
-                        <section class="sedar_pillar" invisible="dashboard_perspective not in ['owner', 'finance']">
-                            <header><span>03</span><div><h2>Cash</h2><p>What has been earned, collected, and is falling due?</p></div></header>
-                            <div class="sedar_metric_row">
-                                <button name="action_open_invoices" type="object"><strong><field name="current_month_revenue" widget="monetary" options="{'currency_field': 'currency_id'}"/></strong><span>Revenue this month</span></button>
-                                <button name="action_open_invoices" type="object"><strong><field name="cash_collected_total" widget="monetary" options="{'currency_field': 'currency_id'}"/></strong><span>Collected, all demo data</span></button>
-                                <button name="action_open_overdue_receivables" type="object"><strong><field name="overdue_receivable_total" widget="monetary" options="{'currency_field': 'currency_id'}"/></strong><span>Overdue receivables</span></button>
-                                <button name="action_open_upcoming_payables" type="object"><strong><field name="payable_30_day_total" widget="monetary" options="{'currency_field': 'currency_id'}"/></strong><span>Payables due in 30 days</span></button>
-                            </div>
-                            <div class="sedar_policy_note"><field name="profitability_note"/></div>
-                        </section>
-                        <section class="sedar_pillar" invisible="dashboard_perspective not in ['owner', 'operations', 'finance']">
-                            <header><span>04</span><div><h2>Customers and Service</h2><p>Are commitments being completed and billed?</p></div></header>
-                            <div class="sedar_metric_row">
-                                <button name="action_open_service_orders" type="object"><strong><field name="active_service_order_count"/></strong><span>Active Service Orders</span></button>
-                                <button name="action_open_service_orders" type="object"><strong><field name="completed_service_order_count"/></strong><span>Completed</span></button>
-                                <button name="action_open_blocked_service_orders" type="object"><strong><field name="blocked_service_order_count"/></strong><span>Blocked</span></button>
-                                <button name="action_open_service_orders" type="object"><strong><field name="cancelled_service_order_count"/></strong><span>Cancelled</span></button>
-                            </div>
-                        </section>
+                        <button name="action_open_crew" type="object" class="sedar_action_card sedar_tone_danger" invisible="dashboard_perspective != 'people'">
+                            <span>Open crew shortages</span>
+                            <strong><field name="open_shortage_count"/></strong>
+                            <small>Coverage requires intervention</small>
+                        </button>
+                        <button name="action_open_hsse" type="object" class="sedar_action_card sedar_tone_warning" invisible="dashboard_perspective != 'people'">
+                            <span>High safety risks</span>
+                            <strong><field name="hsse_high_risk_count"/></strong>
+                            <small>High or critical residual risk</small>
+                        </button>
                     </div>
                     <div class="sedar_secondary_links">
                         <button name="action_open_procurement" type="object" class="btn btn-secondary" invisible="dashboard_perspective not in ['owner', 'operations']">Procurement queue</button>

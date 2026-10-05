@@ -56,6 +56,32 @@ class TestSedarExecutiveDashboard(TransactionCase):
         self.assertIn(">Operations</", view)
         self.assertIn(">Finance</", view)
         self.assertIn("Crewing &amp; Safety", view)
+        self.assertIn("VISUAL COMPANY PULSE", view)
+        self.assertIn('name="visualization_html"', view)
+
+    def test_dashboard_visualizations_explain_each_perspective(self):
+        dashboard = self.env.ref("sedar_executive_dashboard.executive_dashboard_demo")
+        expected_titles = {
+            "owner": ["Revenue and known costs", "Fleet readiness", "Service delivery", "Risk concentration"],
+            "operations": ["Fleet readiness", "Service workflow", "Readiness blockers", "Support workload"],
+            "finance": ["Revenue and known costs", "Cash conversion", "Billing pipeline", "Financial pressure"],
+            "people": ["Crew availability", "Staffing pipeline", "Compliance exposure", "Safety workload"],
+        }
+
+        for perspective, titles in expected_titles.items():
+            dashboard.env.user.sedar_executive_dashboard_view = perspective
+            dashboard.invalidate_recordset(["dashboard_perspective", "visualization_html"])
+            visual = str(dashboard.visualization_html)
+            self.assertEqual(visual.count('class="sedar_chart_card'), 4)
+            for title in titles:
+                self.assertIn(title, visual)
+
+        dashboard.env.user.sedar_executive_dashboard_view = "owner"
+        dashboard.invalidate_recordset(["dashboard_perspective", "visualization_html"])
+        self.assertEqual(
+            str(dashboard.visualization_html).count('class="sedar_trend_row"'),
+            6,
+        )
 
     def test_corporate_register_has_controlled_sources(self):
         records = self.env["sedar.corporate.record"].search([])

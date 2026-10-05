@@ -13,11 +13,246 @@
 .sedar_executive_header,
 .sedar_preset_bar,
 .sedar_attention_banner,
-.sedar_pillar header,
-.sedar_metric_row,
+.sedar_kpi_strip,
+.sedar_visual_section > header,
 .sedar_secondary_links {
     display: flex;
     align-items: center;
+}
+
+.sedar_kpi_strip {
+    align-items: stretch;
+    gap: 0.8rem;
+    margin-top: 1rem;
+}
+
+.sedar_kpi_strip > button,
+.sedar_kpi_strip > div {
+    display: grid;
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 1rem 1.1rem;
+    text-align: left;
+    color: var(--sedar-ink);
+    border: 1px solid var(--sedar-line);
+    border-radius: 12px;
+    background: white;
+    box-shadow: 0 4px 12px rgba(20, 33, 61, 0.05);
+}
+
+.sedar_kpi_strip > button:hover {
+    border-color: #84adff;
+    transform: translateY(-2px);
+}
+
+.sedar_kpi_strip span,
+.sedar_kpi_strip strong,
+.sedar_kpi_strip small {
+    display: block;
+}
+
+.sedar_kpi_strip span {
+    color: var(--sedar-muted);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.sedar_kpi_strip strong {
+    margin: 0.35rem 0;
+    overflow: hidden;
+    color: var(--sedar-ink);
+    font-size: clamp(1.25rem, 2vw, 1.75rem);
+    text-overflow: ellipsis;
+}
+
+.sedar_kpi_strip small {
+    color: var(--sedar-muted);
+    font-size: 0.75rem;
+}
+
+.sedar_kpi_attention {
+    border-color: #fedf89 !important;
+    background: #fffaeb !important;
+}
+
+.sedar_kpi_attention strong {
+    color: var(--sedar-warning);
+}
+
+.sedar_visual_section {
+    margin: 1.5rem 0;
+}
+
+.sedar_visual_section > header {
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.8rem;
+}
+
+.sedar_visual_section > header h2,
+.sedar_chart_card h3 {
+    margin: 0;
+    color: var(--sedar-ink);
+}
+
+.sedar_visual_section > header p {
+    max-width: 430px;
+    margin: 0;
+    color: var(--sedar-muted);
+    font-size: 0.78rem;
+    text-align: right;
+}
+
+.sedar_visual_section .o_field_html,
+.sedar_visual_section .o_readonly_modifier {
+    width: 100%;
+}
+
+.sedar_visual_grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.sedar_chart_card {
+    min-width: 0;
+    padding: 1.2rem;
+    border: 1px solid var(--sedar-line);
+    border-radius: 16px;
+    background: white;
+    box-shadow: 0 7px 18px rgba(20, 33, 61, 0.06);
+}
+
+.sedar_chart_card > header > span {
+    color: var(--sedar-blue);
+    font-size: 0.67rem;
+    font-weight: 800;
+    letter-spacing: 0.11em;
+}
+
+.sedar_chart_card h3 {
+    margin-top: 0.2rem;
+    font-size: 1.1rem;
+}
+
+.sedar_chart_card header p {
+    min-height: 2.5em;
+    margin: 0.25rem 0 1rem;
+    color: var(--sedar-muted);
+    font-size: 0.76rem;
+}
+
+.sedar_chart_body,
+.sedar_trend_body {
+    display: grid;
+    gap: 0.85rem;
+}
+
+.sedar_chart_label {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.3rem;
+    font-size: 0.75rem;
+}
+
+.sedar_chart_label span {
+    color: var(--sedar-muted);
+}
+
+.sedar_chart_label strong {
+    color: var(--sedar-ink);
+    font-variant-numeric: tabular-nums;
+}
+
+.sedar_chart_track {
+    height: 10px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #e9eef6;
+}
+
+.sedar_chart_fill,
+.sedar_trend_bars i {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+}
+
+.sedar_chart_fill_blue {
+    background: #155eef;
+}
+
+.sedar_chart_fill_green {
+    background: #039855;
+}
+
+.sedar_chart_fill_red {
+    background: #d92d20;
+}
+
+.sedar_chart_fill_orange {
+    background: #f79009;
+}
+
+.sedar_chart_fill_amber {
+    background: #fdb022;
+}
+
+.sedar_chart_fill_purple {
+    background: #7f56d9;
+}
+
+.sedar_chart_fill_slate {
+    background: #667085;
+}
+
+.sedar_chart_legend {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.8rem;
+    color: var(--sedar-muted);
+    font-size: 0.7rem;
+}
+
+.sedar_chart_legend i {
+    width: 9px;
+    height: 9px;
+    margin-left: 0.45rem;
+    border-radius: 50%;
+}
+
+.sedar_chart_legend i:first-child {
+    margin-left: 0;
+}
+
+.sedar_trend_row {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr) 72px;
+    align-items: center;
+    gap: 0.65rem;
+    color: var(--sedar-muted);
+    font-size: 0.7rem;
+}
+
+.sedar_trend_row > strong {
+    color: var(--sedar-ink);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+.sedar_trend_bars {
+    display: grid;
+    align-content: center;
+    gap: 3px;
+    height: 18px;
+}
+
+.sedar_trend_bars i {
+    min-height: 5px;
 }
 
 .sedar_preset_bar {
@@ -95,8 +330,7 @@
     color: white;
 }
 
-.sedar_executive_header p,
-.sedar_pillar p {
+.sedar_executive_header p {
     margin: 0;
 }
 
@@ -150,15 +384,14 @@
     color: var(--sedar-warning) !important;
 }
 
-.sedar_action_grid,
-.sedar_pillar_grid {
+.sedar_action_grid {
     display: grid;
     gap: 1rem;
 }
 
 .sedar_action_grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
 }
 
 .sedar_action_card {
@@ -174,8 +407,7 @@
     box-shadow: 0 5px 14px rgba(20, 33, 61, 0.07);
 }
 
-.sedar_action_card:hover,
-.sedar_metric_row button:hover {
+.sedar_action_card:hover {
     transform: translateY(-2px);
     box-shadow: 0 10px 22px rgba(20, 33, 61, 0.12);
 }
@@ -197,84 +429,6 @@
     border-left-color: var(--sedar-warning);
 }
 
-.sedar_pillar_grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.sedar_pillar {
-    padding: 1.25rem;
-    border: 1px solid var(--sedar-line);
-    border-radius: 16px;
-    background: white;
-}
-
-.sedar_pillar header {
-    gap: 0.75rem;
-    margin-bottom: 1rem;
-}
-
-.sedar_pillar header > span {
-    display: grid;
-    width: 42px;
-    height: 42px;
-    place-items: center;
-    color: white;
-    font-weight: 800;
-    border-radius: 11px;
-    background: var(--sedar-blue);
-}
-
-.sedar_pillar h2 {
-    margin: 0;
-    font-size: 1.25rem;
-    color: var(--sedar-ink);
-}
-
-.sedar_pillar p,
-.sedar_policy_note {
-    color: var(--sedar-muted);
-}
-
-.sedar_metric_row {
-    align-items: stretch;
-    gap: 0.65rem;
-}
-
-.sedar_metric_row button {
-    flex: 1 1 0;
-    min-width: 0;
-    padding: 0.8rem 0.5rem;
-    border: 0;
-    border-radius: 10px;
-    background: var(--sedar-soft);
-}
-
-.sedar_metric_row strong,
-.sedar_metric_row span {
-    display: block;
-}
-
-.sedar_metric_row strong {
-    overflow: hidden;
-    font-size: 1.15rem;
-    color: var(--sedar-ink);
-    text-overflow: ellipsis;
-}
-
-.sedar_metric_row span {
-    margin-top: 0.3rem;
-    font-size: 0.76rem;
-    color: var(--sedar-muted);
-}
-
-.sedar_policy_note {
-    margin-top: 0.9rem;
-    padding: 0.7rem 0.85rem;
-    font-size: 0.8rem;
-    border-radius: 9px;
-    background: #f0f7ff;
-}
-
 .sedar_secondary_links {
     flex-wrap: wrap;
     gap: 0.65rem;
@@ -286,7 +440,7 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .sedar_pillar_grid {
+    .sedar_visual_grid {
         grid-template-columns: 1fr;
     }
 }
@@ -294,9 +448,14 @@
 @media (max-width: 700px) {
     .sedar_executive_header,
     .sedar_preset_bar,
-    .sedar_attention_banner {
+    .sedar_attention_banner,
+    .sedar_visual_section > header {
         align-items: stretch;
         flex-direction: column;
+    }
+
+    .sedar_visual_section > header p {
+        text-align: left;
     }
 
     .sedar_preset_switcher {
@@ -307,8 +466,18 @@
         grid-template-columns: 1fr;
     }
 
-    .sedar_metric_row {
+    .sedar_kpi_strip {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 480px) {
+    .sedar_kpi_strip {
+        grid-template-columns: 1fr;
+    }
+
+    .sedar_trend_row {
+        grid-template-columns: 30px minmax(0, 1fr) 62px;
     }
 }
